@@ -26,7 +26,7 @@ std::vector<Vector2> FindPath(Vector2 start, Vector2 goal) {
     const int gx = (int)goal.x,  gy = (int)goal.y;
 
     if (!inBounds(sx, sy) || !inBounds(gx, gy)) return {};
-    // If you require start/goal to be walkable, keep these:
+
     if (!walkable[sx][sy]) return {};
     if (!walkable[gx][gy]) return {};
 
@@ -73,7 +73,7 @@ std::vector<Vector2> FindPath(Vector2 start, Vector2 goal) {
     }
     std::reverse(path.begin(), path.end());
 
-    // Optional: stop one tile short (melee)
+    // Optional: stop one tile short
     // if (path.size() > 1) path.pop_back();
 
     return path;
@@ -253,50 +253,14 @@ bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction, LOSMod
                 if (hit.hit && hit.distance + epsilon < maxDistance) return false;
             }
         }
-        // NOTE: We intentionally do NOT test door panels here, so closed doors don't kill the glow.
+        // NOTE: We intentionally do NOT test door panels here, so closed doors don't kill the glow. Doors leak light through so we
+        //can have cool light through open door effect. Looks dumb with closed doors but that is the price we pay. Because recalculating
+        //lights on door open isn't doable. 
     }
 
     return true;
 }
 
-
-// bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction) {  
-
-//     Ray ray = { from, Vector3Normalize(Vector3Subtract(to, from)) };
-//     float maxDistance = Vector3Distance(from, to);
-//     float epsilon = epsilonFraction * maxDistance;
-
-//     for (const WallRun& wall : wallRunColliders) {
-//         RayCollision hit = GetRayCollisionBox(ray, wall.bounds); //ray stops at the collider, epsilon pushes it further to the actual wall position. 
-//         if (hit.hit && hit.distance + epsilon < maxDistance) {
-//             return false;
-//         }
-//     }
-
-//     // for (const Door& door: doors) {
-//     //     if (!door.isOpen){
-//     //         RayCollision hit = GetRayCollisionBox(ray, door.collider);
-            
-//     //         if (hit.hit && hit.distance + epsilon < maxDistance) {
-//     //             return false;
-//     //         }
-//     //     }
-
-//     // }
-
-//     for (const DoorwayInstance& dw : doorways){ //check against side colliders not door way, let light leak through doors. 
-//         for (const auto& sc : dw.sideColliders){
-//             RayCollision hit = GetRayCollisionBox(ray, sc);
-
-//             if (hit.hit && hit.distance + epsilon < maxDistance) {
-//                 return false;
-//             }
-//         }
-//     }
-
-
-//     return true;
-// }
 
 Vector2 TileToWorldCenter(Vector2 tile) {
     return {
@@ -427,40 +391,6 @@ std::vector<Vector3> SmoothWorldPath(const std::vector<Vector3>& worldPath)
     return out;
 }
 
-
-// std::vector<Vector2> SmoothPath(const std::vector<Vector2>& path, const Image& dungeonMap) {
-//     //check for short cuts. skip points if you can connect stright to a point further along. 
-   
-//     std::vector<Vector2> result;
-
-//     if (path.empty()) return result;
-//     size_t i = 0;
-//     while (i < path.size()) {
-//         result.push_back(path[i]);
-
-//         size_t j = path.size() - 1;
-//         bool found = false;
-
-//         for (; j > i + 1; --j) {
-//             Vector2 start = TileToWorldCenter(path[i]);
-//             Vector2 end   = TileToWorldCenter(path[j]);
-            
-            
-//             if (LineOfSightRaycast(start, end, dungeonMap, 100, 0.0f)) { //raymarch the pixel map
-//                 found = true;
-//                 break;
-//             }
-//         }
-
-//         if (found) {
-//             i = j;  // jump to further straight-line segment
-//         } else {
-//             ++i;    // fallback: step forward to prevent infinite loop
-//         }
-//     }
-
-//     return result;
-// }
 
 //Raptor steering behavior
 Vector3 SeekXZ(const Vector3& pos, const Vector3& target, float maxSpeed) {

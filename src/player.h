@@ -28,11 +28,11 @@ struct Player {
     const float FRICTION_AIR   = 0.01f;    // bleed a bit of air speed
     const float GRAVITY        = -980.0f;
 
-    const float COYOTE_TIME    = 0.12f;  // grace after walking off ledge
-    const float JUMP_BUFFER    = 0.12f;  // grace before touching ground
+    const float COYOTE_TIME    = 0.05f;  // grace after walking off ledge
+    const float JUMP_BUFFER    = 0.05f;  // grace before touching ground
 
     float lastGroundedTime = 0.0f;
-    float lastJumpPressedTime = -999.f;
+    float lastJumpPressedTime = -999.0f;
 
     int gold = 0;
     float displayedGold = 0.0f;
@@ -75,9 +75,7 @@ struct Player {
 
     std::vector<WeaponType> collectedWeapons;
 
-    int currentWeaponIndex = -1; // 
-
-
+    int currentWeaponIndex = -1; 
     WeaponType activeWeapon = WeaponType::None;
 
     float switchTimer = 0.0f;

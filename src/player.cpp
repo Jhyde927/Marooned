@@ -280,7 +280,7 @@ void PlaySwimOnce()
 
 
 
-void PlayFootstepSound() {
+void Player::PlayFootstepSound() {
     if (player.isSwimming) return;
     static std::vector<std::string> footstepKeys = { "step1", "step2", "step3", "step4" };
     static int lastIndex = -1;
@@ -304,7 +304,7 @@ void UpdateFootsteps(float deltaTime){
         float interval = player.running ? 0.4f : 0.6f;
 
         if (player.footstepTimer >= interval) {
-            PlayFootstepSound();
+            player.PlayFootstepSound();
             player.footstepTimer = 0.0f;
         }
     } else {
@@ -559,7 +559,7 @@ void Player::TakeDamage(int amount){
 }
 
 void DrawPlayer(const Player& player, Camera& camera) {
-    DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
+    //DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
     //DrawBoundingBox(player.GetBoundingBox(), RED);
     //DrawBoundingBox(player.meleeHitbox, WHITE);
 

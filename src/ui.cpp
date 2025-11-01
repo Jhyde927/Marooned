@@ -275,16 +275,6 @@ static Rectangle FitTextureDest(const Texture2D& tex, int screenW, int screenH, 
 }
 
 
-// inline void DrawTextShadowed(const char* text, int x, int y, int fontSize,
-//                              Color color,
-//                              int shadowPx = -1,
-//                              Color shadowCol = {0,0,0,190})
-// {
-//     if (shadowPx < 0) shadowPx = std::max(1, fontSize/18); // scale with size
-//     DrawText(text, x + shadowPx, y + shadowPx, fontSize, shadowCol); // shadow
-//     DrawText(text, x,            y,            fontSize, color);     // main
-// }
-
 inline void DrawTextExShadowed(Font font,
                                const char* text,
                                Vector2 pos,
