@@ -176,7 +176,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                         SoundManager::GetInstance().Play("slice");
                         Decal decal = {offsetPos, DecalType::MeleeSwipe, R.GetTexture("slashSheet"), 5, 0.5f, 0.1f, 80.0f};
 
-                        Vector3 vel = Vector3Scale(camDir, -250.0f);
+                        Vector3 vel = Vector3Scale(camDir, 0.0f); //no velocity looks better, keep this technology for later
                         decal.velocity = vel;
                         decals.emplace_back(decal);
                         //decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("slashSheet"), 5, 0.5f, 0.1f, 80.0f);
@@ -1044,7 +1044,7 @@ void Character::UpdateRaptorVisibility(const Player& player, float deltaTime) {
 void Character::UpdateChase(float deltaTime)
 {
     //update raptor/trex chase state. 
-    float ATTACK_ENTER  = 300.0f;   // start attack if closer than this
+    float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
     if (type == CharacterType::Trex) ATTACK_ENTER = 600;
 
     const float VISION_ENTER = 4000.0f;

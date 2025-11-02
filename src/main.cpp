@@ -13,8 +13,6 @@
 #include "lighting.h"
 #include "hintManager.h"
 
-
-
 bool squareRes = false; // set true for 1280x1024, false for widescreen
 
 int main() { 

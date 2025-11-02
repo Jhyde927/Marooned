@@ -29,23 +29,4 @@ void main()
     finalColor = vec4(waterColor, 0.8); // translucent water
 }
 
-// #version 330
 
-// in vec3 fragPosition;
-// in vec2 fragTexCoord;
-
-// out vec4 finalColor;
-
-// uniform float time;
-
-// void main()
-// {
-//     // Simple sine wave motion pattern (cheap distortion)
-//     float wave = sin(fragTexCoord.x * 30.0 + time * 0.5) * 0.05 +
-//                  cos(fragTexCoord.y * 30.0 + time * 0.3) * 0.05;
-
-//     float brightness = 0.75 + wave;
-//     vec3 waterColor = vec3(0.0, 0.4, 0.8) * brightness;
-
-//     finalColor = vec4(waterColor, 0.7); // translucent water
-// }

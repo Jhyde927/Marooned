@@ -621,7 +621,7 @@ void PlayerSwipeDecal(Camera& camera){
     offsetPos.y -= 50;
     Decal decal = {offsetPos, DecalType::MeleeSwipe, R.GetTexture("playerSlashSheet"), 7, 0.35f, 0.05f, 100.0f};
 
-    Vector3 vel = Vector3Add(Vector3Scale(fwd, 200.0f), Vector3Scale(right, 0.0f)); //melee swipe decals move forward 
+    Vector3 vel = Vector3Add(Vector3Scale(fwd, 0.0f), Vector3Scale(right, 0.0f)); //melee swipe decals move forward 
     decal.velocity = vel;
     
     decals.emplace_back(decal);

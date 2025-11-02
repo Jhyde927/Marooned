@@ -413,15 +413,9 @@ void TryQueuedJump(){
     }
 }
 
-void UpdatePlayerInput(Player& player, float deltaTime, Camera& camera){
-
-
-}
-
 
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
-    UpdatePlayerInput(player, deltaTime, camera);
     HandleMouseLook(deltaTime);
     weapon.Update(deltaTime);
     weapon.isMoving = player.isMoving;

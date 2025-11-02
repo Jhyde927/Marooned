@@ -52,6 +52,9 @@ struct Player {
     float currentHealth = maxHealth;
     float maxMana = 100.0f;
     float currentMana = maxMana;
+    float maxStamina = 100.0f;
+    float stamina = maxStamina;
+
     float radius = 150.0f;
     float hitTimer = 0.0f;
     bool dying = false;
@@ -66,10 +69,7 @@ struct Player {
     bool onBoard = false;
     bool disableMovement = false;
     bool blocking = false;
-    
 
-    float stamina = 100.0f;
-    float maxStamina = 100.0f;
     bool canRun = true;
     bool canMove = true;
 
@@ -86,14 +86,11 @@ struct Player {
     void EquipNextWeapon();
 };
 
-
-
 // Initializes the player at a given position
 void InitPlayer(Player& player, Vector3 startPosition);
 
 // Updates player movement and physics
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera);
-void UpdatePlayerInput(Player& player, float deltaTime, Camera& camera);
 void HandlePlayerMovement(float deltaTime);
 void TryQueuedJump();
 void DrawPlayer(const Player& player, Camera& camera);

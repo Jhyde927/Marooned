@@ -196,11 +196,6 @@ void ResourceManager::LoadAllResources() {
     SetTextureWrap(R.GetRenderTexture("sceneTexture").texture, TEXTURE_WRAP_CLAMP);
     SetTextureWrap(R.GetRenderTexture("postProcessTexture").texture, TEXTURE_WRAP_CLAMP);
 
-
-
-    // R.LoadRenderTexture("sceneTexture", (int)screenResolution.x, (int)screenResolution.y);
-    // R.LoadRenderTexture("postProcessTexture", (int)screenResolution.x,(int) screenResolution.y);
-
     R.LoadFont("Pieces", "assets/fonts/PiecesOfEight.ttf", 128, 1);
     R.LoadFont("Kingthings", "assets/fonts/KingthingsPetrock.ttf", 128, 1);
 
@@ -293,7 +288,7 @@ void ResourceManager::LoadAllResources() {
 
 
 void ResourceManager::SetShaderValues(){
-    //outdoor shaders + bloom, tonemap, saturation, foliage alpha cutoff , shadowTex
+    //outdoor shaders + bloom, tonemap, saturation, foliage alpha cutoff , shadowTex, water
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     // set shaders values
     Shader& fogShader = R.GetShader("fogShader");
@@ -328,19 +323,6 @@ void ResourceManager::SetShaderValues(){
     SetShaderValue(waterShader, GetShaderLocation(waterShader, "waterLevel"), &waterHeightY, SHADER_UNIFORM_FLOAT);
     R.GetModel("waterModel").materials[0].shader = waterShader;
     R.GetModel("bottomPlane").materials[0].shader = waterShader;
-
-    //palm tree alpha cutoff
-    // int locCutoff = GetShaderLocation(R.GetShader("cutoutShader"), "alphaCutoff");
-    // float cutoff = 0.5f;
-    // SetShaderValue(R.GetShader("cutoutShader"), locCutoff, &cutoff, SHADER_UNIFORM_FLOAT);
-    // Model& palm = R.GetModel("palmTree");
-    // Model& palm2 = R.GetModel("palm2");
-   
-    // for (int m = 0; m < palm.materialCount; ++m) {
-        
-    //     palm.materials[m].shader = R.GetShader("cutoutShader");
-    //     palm2.materials[m].shader = R.GetShader("cutoutShader");  
-    // }
 
     Shader& bloomShader = R.GetShader("bloomShader");
 
@@ -479,9 +461,6 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     // Alpha cutoff (tweak per asset)
     float alphaCut = 0.30f;
     SetShaderValue(treeShader, GetShaderLocation(treeShader,"alphaCutoff"), &alphaCut, SHADER_UNIFORM_FLOAT);
-    //bushModel.materials->shader = treeShader;
-    //bushModel.materials->maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    // Assign to your tree model/material(s)
 
 
     for (int i = 0; i < doorwayModel.materialCount; ++i) {
@@ -489,7 +468,6 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
         doorwayModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     }
 
-    
 
     for (int i = 0; i < bushModel.materialCount; ++i) {
         bushModel.materials[i].shader = treeShader;
@@ -498,7 +476,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
     for (int i = 0; i < treeModel.materialCount; ++i) {
         treeModel.materials[i].shader = treeShader;
-        smallTreeModel.materials[i].shader = treeShader;
+        smallTreeModel.materials[i].shader = treeShader; //smallTree matrials as well. 
         
         
         // IMPORTANT: keep map tint white so it doesn’t darken
@@ -610,6 +588,7 @@ void ResourceManager::SetLightingShaderValues() {
     for (int i = 0; i < launcherModel.materialCount; ++i)   launcherModel.materials[i].shader = lightingShader;
     for (int i = 0; i < barrelModel.materialCount; ++i)   barrelModel.materials[i].shader = lightingShader;
     for (int i = 0; i < brokeModel.materialCount; ++i)   brokeModel.materials[i].shader = lightingShader;
+    //consider weapon models, probably would be too dark though. 
 
     // Use one material's shader handle to set uniforms (shared Shader)
     Shader use = floorModel.materials[0].shader;
@@ -662,8 +641,8 @@ void ResourceManager::SetLightingShaderValues() {
 
 
 void ResourceManager::UpdateShaders(Camera& camera){
+    //runs every frame, updates all shaders
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
-
     Shader& waterShader = R.GetShader("waterShader");
     Shader& skyShader = R.GetShader("skyShader");
     Shader& terrainShader = R.GetShader("terrainShader");
