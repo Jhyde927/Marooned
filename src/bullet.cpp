@@ -325,8 +325,8 @@ void Bullet::Explode(Camera& camera) {
             float pDamage = 50.0f;
             float pdist = Vector3Distance(player.position, position);
             if (pdist < explosionRadius){
-                float dmg =  Lerp(pDamage, minDamage, pdist / explosionRadius);
-                player.TakeDamage(dmg);
+                float dmg =  Lerp(pDamage, minDamage, pdist / explosionRadius); //damage fall off with distance.
+                player.TakeDamage(dmg);//upto 50 percent health may be a lot for direct hit. 
             }
 
         }else if (type == BulletType::Iceball){
@@ -336,7 +336,7 @@ void Bullet::Explode(Camera& camera) {
                     float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
                     enemy->ChangeState(CharacterState::Freeze);
                     enemy->currentHealth -= dmg; //dont call take damage, it triggers stagger which over rides freeze. 
-
+                    //can cause invincible skeletons if they die to freeze, we check health again on freeze state for skeles not pirates.
                     
 
                 }

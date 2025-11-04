@@ -367,13 +367,15 @@ void ResourceManager::SetPortalShaderValues(){
 
 }
 
+
 void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     // Load textures (tileable, power-of-two helps mips)
     Shader& terrainShader = R.GetShader("terrainShader");
     Texture2D grassTex = R.GetTexture("grassTexture");
     Texture2D sandTex  = R.GetTexture("sandTexture");
 
-    // Make them look good when tiled
+
+
     GenTextureMipmaps(&grassTex);
     GenTextureMipmaps(&sandTex);
     SetTextureFilter(grassTex, TEXTURE_FILTER_TRILINEAR);
@@ -381,57 +383,61 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     SetTextureWrap(grassTex, TEXTURE_WRAP_REPEAT);
     SetTextureWrap(sandTex,  TEXTURE_WRAP_REPEAT);
 
-    // Hook shader samplers to material map locations
-    terrainShader.locs[SHADER_LOC_MAP_ALBEDO]     = GetShaderLocation(terrainShader, "texGrass");
-    terrainShader.locs[SHADER_LOC_MAP_METALNESS]  = GetShaderLocation(terrainShader, "texSand");
-    terrainShader.locs[SHADER_LOC_MAP_OCCLUSION]  = GetShaderLocation(terrainShader, "textureOcclusion");
-
-    // Assign shader and maps to the terrain material
+    // --- Assign shader to terrain material
     terrainModel.materials[0].shader = terrainShader;
+
+    // --- Look up sampler locations
+    int locGrassSampler = GetShaderLocation(terrainShader, "texGrass");
+    int locSandSampler  = GetShaderLocation(terrainShader, "texSand");
+    int locOccSampler   = GetShaderLocation(terrainShader, "textureOcclusion");
+
+    // --- Assign fixed texture units (0,1,2) to those samplers
+    int texUnitGrass = 0;
+    int texUnitSand  = 1;
+    int texUnitOcc   = 2;
+    SetShaderValue(terrainShader, locGrassSampler, &texUnitGrass, SHADER_UNIFORM_INT);
+    SetShaderValue(terrainShader, locSandSampler,  &texUnitSand,  SHADER_UNIFORM_INT);
+    SetShaderValue(terrainShader, locOccSampler,   &texUnitOcc,   SHADER_UNIFORM_INT);
+
     SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_ALBEDO,    grassTex);
     SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_METALNESS, sandTex);
 
-    //terrain
-    // Uniforms for world bounds & tiling
+    // --- Bind textures explicitly
+    // NOTE: SetShaderValueTexture() automatically activates the right slot
+    // SetShaderValueTexture(terrainShader, locGrassSampler, grassTex);
+    // SetShaderValueTexture(terrainShader, locSandSampler,  sandTex);
+    //SetShaderValueTexture(terrainShader, locOccSampler,   occlusionRT.texture);
+
+    // --- World bounds and tiling
     int locWorldMinXZ  = GetShaderLocation(terrainShader, "u_WorldMinXZ");
     int locWorldSizeXZ = GetShaderLocation(terrainShader, "u_WorldSizeXZ");
     int locGrassTile   = GetShaderLocation(terrainShader, "grassTiling");
     int locSandTile    = GetShaderLocation(terrainShader, "sandTiling");
 
-    
-    Vector2 t_worldMinXZ  = { -terrainScale.x*0.5f, -terrainScale.z*0.5f };
-    Vector2 t_worldSizeXZ = {  terrainScale.x,       terrainScale.z      };
+    Vector2 t_worldMinXZ  = { -terrainScale.x * 0.5f, -terrainScale.z * 0.5f };
+    Vector2 t_worldSizeXZ = {  terrainScale.x,          terrainScale.z       };
     SetShaderValue(terrainShader, locWorldMinXZ,  &t_worldMinXZ,  SHADER_UNIFORM_VEC2);
     SetShaderValue(terrainShader, locWorldSizeXZ, &t_worldSizeXZ, SHADER_UNIFORM_VEC2);
 
-    // Tiling counts (start here; tweak live)
-    float grassTiles = 60.0f;   // repeats across island width
+    float grassTiles = 60.0f;
     float sandTiles  = 20.0f;
     SetShaderValue(terrainShader, locGrassTile, &grassTiles, SHADER_UNIFORM_FLOAT);
     SetShaderValue(terrainShader, locSandTile,  &sandTiles,  SHADER_UNIFORM_FLOAT);
 
-    //distant fog
-    int locSkyTop   = GetShaderLocation(terrainShader, "u_SkyColorTop");
-    int locSkyHorz  = GetShaderLocation(terrainShader, "u_SkyColorHorizon");
-    int locFogStart = GetShaderLocation(terrainShader, "u_FogStart");
-    int locFogEnd   = GetShaderLocation(terrainShader, "u_FogEnd");
-    int locSea      = GetShaderLocation(terrainShader, "u_SeaLevel");
-    int locFalloff  = GetShaderLocation(terrainShader, "u_FogHeightFalloff");
-    //0.0, 0.60, 1.00
-    // nice tropical-ish defaults
+    // --- Fog and sky
     Vector3 skyTop  = {0.55f, 0.75f, 1.00f};
-    Vector3 skyHorz = {0.6f, 0.8f, 0.95f};
+    Vector3 skyHorz = {0.60f, 0.80f, 0.95f};
     float fogStart  = 100.0f;
     float fogEnd    = 18000.0f;
-    float seaLevel  = 400.0f;     // your existing cutoff
-    float falloff   = 0.002f;    // smaller = thinner with height
+    float seaLevel  = 400.0f;
+    float falloff   = 0.002f;
 
-    SetShaderValue(terrainShader, locSkyTop,   &skyTop,  SHADER_UNIFORM_VEC3);
-    SetShaderValue(terrainShader, locSkyHorz,  &skyHorz, SHADER_UNIFORM_VEC3);
-    SetShaderValue(terrainShader, locFogStart, &fogStart,SHADER_UNIFORM_FLOAT);
-    SetShaderValue(terrainShader, locFogEnd,   &fogEnd,  SHADER_UNIFORM_FLOAT);
-    SetShaderValue(terrainShader, locSea,      &seaLevel,SHADER_UNIFORM_FLOAT);
-    SetShaderValue(terrainShader, locFalloff,  &falloff, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_SkyColorTop"),      &skyTop,   SHADER_UNIFORM_VEC3);
+    SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_SkyColorHorizon"),  &skyHorz,  SHADER_UNIFORM_VEC3);
+    SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_FogStart"),         &fogStart, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_FogEnd"),           &fogEnd,   SHADER_UNIFORM_FLOAT);
+    SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_SeaLevel"),         &seaLevel, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_FogHeightFalloff"), &falloff,  SHADER_UNIFORM_FLOAT);
 
     // Load tree shader
     Shader treeShader = R.GetShader("treeShader");
@@ -487,6 +493,128 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
 
 }
+
+
+// void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
+//     // Load textures (tileable, power-of-two helps mips)
+//     Shader& terrainShader = R.GetShader("terrainShader");
+//     Texture2D grassTex = R.GetTexture("grassTexture");
+//     Texture2D sandTex  = R.GetTexture("sandTexture");
+
+//     // Make them look good when tiled
+//     GenTextureMipmaps(&grassTex);
+//     GenTextureMipmaps(&sandTex);
+//     SetTextureFilter(grassTex, TEXTURE_FILTER_TRILINEAR);
+//     SetTextureFilter(sandTex,  TEXTURE_FILTER_TRILINEAR);
+//     SetTextureWrap(grassTex, TEXTURE_WRAP_REPEAT);
+//     SetTextureWrap(sandTex,  TEXTURE_WRAP_REPEAT);
+
+//     // Hook shader samplers to material map locations
+//     terrainShader.locs[SHADER_LOC_MAP_ALBEDO]     = GetShaderLocation(terrainShader, "texGrass");
+//     terrainShader.locs[SHADER_LOC_MAP_METALNESS]  = GetShaderLocation(terrainShader, "texSand");
+//     terrainShader.locs[SHADER_LOC_MAP_OCCLUSION]  = GetShaderLocation(terrainShader, "textureOcclusion");
+
+//     // Assign shader and maps to the terrain material
+//     terrainModel.materials[0].shader = terrainShader;
+//     SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_ALBEDO,    grassTex);
+//     SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_METALNESS, sandTex);
+
+//     //terrain
+//     // Uniforms for world bounds & tiling
+//     int locWorldMinXZ  = GetShaderLocation(terrainShader, "u_WorldMinXZ");
+//     int locWorldSizeXZ = GetShaderLocation(terrainShader, "u_WorldSizeXZ");
+//     int locGrassTile   = GetShaderLocation(terrainShader, "grassTiling");
+//     int locSandTile    = GetShaderLocation(terrainShader, "sandTiling");
+
+    
+//     Vector2 t_worldMinXZ  = { -terrainScale.x*0.5f, -terrainScale.z*0.5f };
+//     Vector2 t_worldSizeXZ = {  terrainScale.x,       terrainScale.z      };
+//     SetShaderValue(terrainShader, locWorldMinXZ,  &t_worldMinXZ,  SHADER_UNIFORM_VEC2);
+//     SetShaderValue(terrainShader, locWorldSizeXZ, &t_worldSizeXZ, SHADER_UNIFORM_VEC2);
+
+//     // Tiling counts (start here; tweak live)
+//     float grassTiles = 60.0f;   // repeats across island width
+//     float sandTiles  = 20.0f;
+//     SetShaderValue(terrainShader, locGrassTile, &grassTiles, SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(terrainShader, locSandTile,  &sandTiles,  SHADER_UNIFORM_FLOAT);
+
+//     //distant fog
+//     int locSkyTop   = GetShaderLocation(terrainShader, "u_SkyColorTop");
+//     int locSkyHorz  = GetShaderLocation(terrainShader, "u_SkyColorHorizon");
+//     int locFogStart = GetShaderLocation(terrainShader, "u_FogStart");
+//     int locFogEnd   = GetShaderLocation(terrainShader, "u_FogEnd");
+//     int locSea      = GetShaderLocation(terrainShader, "u_SeaLevel");
+//     int locFalloff  = GetShaderLocation(terrainShader, "u_FogHeightFalloff");
+//     //0.0, 0.60, 1.00
+//     // nice tropical-ish defaults
+//     Vector3 skyTop  = {0.55f, 0.75f, 1.00f};
+//     Vector3 skyHorz = {0.6f, 0.8f, 0.95f};
+//     float fogStart  = 100.0f;
+//     float fogEnd    = 18000.0f;
+//     float seaLevel  = 400.0f;     // your existing cutoff
+//     float falloff   = 0.002f;    // smaller = thinner with height
+
+//     SetShaderValue(terrainShader, locSkyTop,   &skyTop,  SHADER_UNIFORM_VEC3);
+//     SetShaderValue(terrainShader, locSkyHorz,  &skyHorz, SHADER_UNIFORM_VEC3);
+//     SetShaderValue(terrainShader, locFogStart, &fogStart,SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(terrainShader, locFogEnd,   &fogEnd,  SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(terrainShader, locSea,      &seaLevel,SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(terrainShader, locFalloff,  &falloff, SHADER_UNIFORM_FLOAT);
+
+//     // Load tree shader
+//     Shader treeShader = R.GetShader("treeShader");
+
+//     Model& treeModel = R.GetModel("palmTree");
+//     Model& smallTreeModel = R.GetModel("palm2");
+//     Model& bushModel = R.GetModel("bush");
+//     Model& doorwayModel = R.GetModel("doorWayGray");
+
+//     // Hook ALBEDO to our sampler name
+//     treeShader.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(treeShader, "textureDiffuse");
+
+//     // (optional) hook diffuse tint if you plan to use it; otherwise raylib will handle it
+//     treeShader.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(treeShader, "colDiffuse");
+
+//     // Set shared fog uniforms once (reuse the same values as terrain)
+//     SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorTop"),      &skyTop,   SHADER_UNIFORM_VEC3);
+//     SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorHorizon"),  &skyHorz,  SHADER_UNIFORM_VEC3);
+//     SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogStart"),         &fogStart, SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogEnd"),           &fogEnd,   SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SeaLevel"),         &seaLevel, SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogHeightFalloff"), &falloff,  SHADER_UNIFORM_FLOAT);
+
+
+
+
+//     // Alpha cutoff (tweak per asset)
+//     float alphaCut = 0.30f;
+//     SetShaderValue(treeShader, GetShaderLocation(treeShader,"alphaCutoff"), &alphaCut, SHADER_UNIFORM_FLOAT);
+
+
+//     for (int i = 0; i < doorwayModel.materialCount; ++i) {
+//         doorwayModel.materials[i].shader = treeShader;
+//         doorwayModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+//     }
+
+
+//     for (int i = 0; i < bushModel.materialCount; ++i) {
+//         bushModel.materials[i].shader = treeShader;
+//         bushModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+//     }
+
+//     for (int i = 0; i < treeModel.materialCount; ++i) {
+//         treeModel.materials[i].shader = treeShader;
+//         smallTreeModel.materials[i].shader = treeShader; //smallTree matrials as well. 
+        
+        
+//         // IMPORTANT: keep map tint white so it doesn’t darken
+//         treeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+//         smallTreeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+//     }
+
+
+
+// }
 
 
 void ResourceManager::SetBloomShaderValues(){
@@ -647,7 +775,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     Shader& skyShader = R.GetShader("skyShader");
     Shader& terrainShader = R.GetShader("terrainShader");
     Shader& fogShader = R.GetShader("fogShader");
-    Shader& bloomShader = R.GetShader("bloomShader");
+    //Shader& bloomShader = R.GetShader("bloomShader");
     Shader& treeShader = R.GetShader("treeShader");
 
     Vector3 camPos = camera.position;
@@ -696,7 +824,6 @@ void ResourceManager::UpdateShaders(Camera& camera){
     int locWorldSizeXZ = GetShaderLocation(terrainShader, "u_WorldSizeXZ");
 
     
-
     // Per-frame before drawing terrain:
     Vector2 worldMinXZ  = { gTreeShadowMask.worldXZBounds.x, gTreeShadowMask.worldXZBounds.y };
     Vector2 worldSizeXZ = { gTreeShadowMask.worldXZBounds.width, gTreeShadowMask.worldXZBounds.height };

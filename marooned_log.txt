@@ -1,0 +1,807 @@
+Initializing raylib 5.5
+Platform backend: DESKTOP (GLFW)
+Supported raylib modules:
+    > rcore:..... loaded (mandatory)
+    > rlgl:...... loaded (mandatory)
+    > rshapes:... loaded (optional)
+    > rtextures:. loaded (optional)
+    > rtext:..... loaded (optional)
+    > rmodels:... loaded (optional)
+    > raudio:.... loaded (optional)
+DISPLAY: Device initialized successfully
+    > Display size: 1920 x 1080
+    > Screen size:  1600 x 900
+    > Render size:  1600 x 900
+    > Viewport offsets: 0, 0
+GLAD: OpenGL extensions loaded successfully
+GL: Supported extensions count: 392
+GL: OpenGL device information:
+    > Vendor:   NVIDIA Corporation
+    > Renderer: NVIDIA GeForce GTX 1070/PCIe/SSE2
+    > Version:  3.3.0 NVIDIA 560.94
+    > GLSL:     3.30 NVIDIA via Cg compiler
+GL: VAO extension detected, VAO functions loaded successfully
+GL: NPOT textures extension detected, full NPOT textures supported
+GL: DXT compressed textures supported
+GL: ETC2/EAC compressed textures supported
+PLATFORM: DESKTOP (GLFW - Win32): Initialized successfully
+TEXTURE: [ID 1] Texture loaded successfully (1x1 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 1] Default texture loaded successfully
+SHADER: [ID 1] Vertex shader compiled successfully
+SHADER: [ID 2] Fragment shader compiled successfully
+SHADER: [ID 3] Program shader loaded successfully
+SHADER: [ID 3] Default shader loaded successfully
+RLGL: Render batch vertex buffers loaded successfully in RAM (CPU)
+RLGL: Render batch vertex buffers loaded successfully in VRAM (GPU)
+RLGL: Default OpenGL state initialized successfully
+TEXTURE: [ID 2] Texture loaded successfully (128x128 | GRAY_ALPHA | 1 mipmaps)
+FONT: Default font loaded successfully (224 glyphs)
+SYSTEM: Working Directory: C:\C++\3dSandbox
+AUDIO: Device initialized successfully
+    > Backend:       miniaudio | WASAPI
+    > Format:        32-bit IEEE Floating Point -> 32-bit IEEE Floating Point
+    > Channels:      2 -> 2
+    > Sample rate:   48000 -> 48000
+    > Periods size:  1440
+TIMER: Target time per frame: 16.667 milliseconds
+TEXTURE: [ID 3] Texture loaded successfully (1600x900 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 1] Depth renderbuffer loaded successfully (32 bits)
+FBO: [ID 1] Framebuffer object created successfully
+TEXTURE: [ID 4] Texture loaded successfully (1600x900 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 2] Depth renderbuffer loaded successfully (32 bits)
+FBO: [ID 2] Framebuffer object created successfully
+FILEIO: [assets/fonts/PiecesOfEight.ttf] File loaded successfully
+TEXTURE: [ID 5] Texture loaded successfully (1024x1024 | GRAY_ALPHA | 1 mipmaps)
+FONT: Data loaded successfully (128 pixel size | 95 glyphs)
+FILEIO: [assets/fonts/KingthingsPetrock.ttf] File loaded successfully
+TEXTURE: [ID 6] Texture loaded successfully (1024x1024 | GRAY_ALPHA | 1 mipmaps)
+FONT: Data loaded successfully (128 pixel size | 95 glyphs)
+FILEIO: [assets/sprites/raptorSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (1000x1000 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 7] Texture loaded successfully (1000x1000 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/skeletonSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (1000x1000 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 8] Texture loaded successfully (1000x1000 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/muzzleFlash.png] File loaded successfully
+IMAGE: Data loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 9] Texture loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/screenshots/dungeon1.png] File loaded successfully
+IMAGE: Data loaded successfully (1821x1024 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 10] Texture loaded successfully (1821x1024 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/smokeSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (448x64 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 11] Texture loaded successfully (448x64 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/bloodSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (448x64 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 12] Texture loaded successfully (448x64 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/door.png] File loaded successfully
+IMAGE: Data loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 13] Texture loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/Healthpot.png] File loaded successfully
+IMAGE: Data loaded successfully (64x64 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 14] Texture loaded successfully (64x64 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/key.png] File loaded successfully
+IMAGE: Data loaded successfully (128x128 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 15] Texture loaded successfully (128x128 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/textures/swordBloody.png] File loaded successfully
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 16] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+FILEIO: [assets/textures/swordClean.png] File loaded successfully
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 17] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+FILEIO: [assets/sprites/fireSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (640x384 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 18] Texture loaded successfully (640x384 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/pirateSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (1000x1200 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 19] Texture loaded successfully (1000x1200 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/coin.png] File loaded successfully
+IMAGE: Data loaded successfully (64x64 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 20] Texture loaded successfully (64x64 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/spiderSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (1000x1000 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 21] Texture loaded successfully (1000x1000 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/spiderWeb.png] File loaded successfully
+IMAGE: Data loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 22] Texture loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/brokeWeb.png] File loaded successfully
+IMAGE: Data loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 23] Texture loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/explosionSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (2548x190 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 24] Texture loaded successfully (2548x190 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/manaPotion.png] File loaded successfully
+IMAGE: Data loaded successfully (64x64 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 25] Texture loaded successfully (64x64 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/fireIcon.png] File loaded successfully
+IMAGE: Data loaded successfully (128x128 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 26] Texture loaded successfully (128x128 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/iceIcon.png] File loaded successfully
+IMAGE: Data loaded successfully (128x128 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 27] Texture loaded successfully (128x128 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/textures/shadow_decal.png] File loaded successfully
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 28] Texture loaded successfully (1024x1024 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/ghostSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (1400x400 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 29] Texture loaded successfully (1400x400 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/magicAttackSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (512x256 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 30] Texture loaded successfully (512x256 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/textures/treeShadow.png] File loaded successfully
+IMAGE: Data loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 31] Texture loaded successfully (256x256 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/textures/grass2.png] File loaded successfully
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 32] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+FILEIO: [assets/textures/sand.png] File loaded successfully
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 33] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+FILEIO: [assets/sprites/trexSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (1500x1500 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 34] Texture loaded successfully (1500x1500 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/blockSheet2.png] File loaded successfully
+IMAGE: Data loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 35] Texture loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/playerSlashSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (1372x196 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 36] Texture loaded successfully (1372x196 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/slashSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 37] Texture loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/slashSheetLeft.png] File loaded successfully
+IMAGE: Data loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 38] Texture loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/biteSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (784x196 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 39] Texture loaded successfully (784x196 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/sprites/bulletHoleSheet.png] File loaded successfully
+IMAGE: Data loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 40] Texture loaded successfully (980x196 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/models/bigPalmTree.glb] File loaded successfully
+MODEL: [assets/models/bigPalmTree.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 11
+    > Materials count: 3 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 11
+IMAGE: Data loaded successfully (256x256 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 41] Texture loaded successfully (256x256 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 42] Texture loaded successfully (512x512 | R8G8B8A8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 43] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 2] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 3] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 4] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 5] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 6] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 7] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 8] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 9] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 10] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 11] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 12] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/smallPalmTree.glb] File loaded successfully
+MODEL: [assets/models/smallPalmTree.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 10
+    > Materials count: 3 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 10
+IMAGE: Data loaded successfully (256x256 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 44] Texture loaded successfully (256x256 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 45] Texture loaded successfully (512x512 | R8G8B8A8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 46] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 13] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 14] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 15] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 16] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 17] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 18] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 19] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 20] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 21] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 22] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/grass(stripped).glb] File loaded successfully
+MODEL: [assets/models/grass(stripped).glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 2
+    > Textures count: 2
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 47] Texture loaded successfully (2048x2048 | R8G8B8A8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 48] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+VAO: [ID 23] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/boat.glb] File loaded successfully
+MODEL: [assets/models/boat.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 1
+    > Textures count: 1
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 49] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+VAO: [ID 24] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/blunderbus.glb] File loaded successfully
+MODEL: [assets/models/blunderbus.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 4
+    > Textures count: 4
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 50] Texture loaded successfully (1024x1024 | R8G8B8A8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 51] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 52] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 53] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 54] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+VAO: [ID 25] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/floorTileGray.glb] File loaded successfully
+MODEL: [assets/models/floorTileGray.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 55] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 56] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 57] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 26] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/doorWayGray.glb] File loaded successfully
+MODEL: [assets/models/doorWayGray.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 58] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 59] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 60] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 27] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/wallSegment.glb] File loaded successfully
+MODEL: [assets/models/wallSegment.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 61] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 62] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 63] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 28] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/barrel.glb] File loaded successfully
+MODEL: [assets/models/barrel.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 64] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 65] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 66] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 29] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/sword.glb] File loaded successfully
+MODEL: [assets/models/sword.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 3
+    > Materials count: 3 (+1 default)
+    > Buffers count: 1
+    > Images count: 9
+    > Textures count: 9
+    > Primitives (triangles only) count based on hierarchy : 3
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 67] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 68] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 69] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 70] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 71] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 72] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 73] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 74] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 75] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 76] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+VAO: [ID 30] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 31] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 32] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/lamp.glb] File loaded successfully
+MODEL: [assets/models/lamp.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 77] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 78] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 79] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 33] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/brokeBarrel.glb] File loaded successfully
+MODEL: [assets/models/brokeBarrel.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 80] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 81] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 82] Texture loaded successfully (512x512 | R8G8B8 | 1 mipmaps)
+VAO: [ID 34] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/chest.glb] File loaded successfully
+MODEL: [assets/models/chest.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 1
+    > Textures count: 1
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 83] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+MODEL: [assets/models/chest.glb] No more than 2 texture coordinates attributes supported
+VAO: [ID 35] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/staff.glb] File loaded successfully
+MODEL: [assets/models/staff.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 1
+    > Textures count: 1
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 84] Texture loaded successfully (1024x1024 | R8G8B8 | 1 mipmaps)
+VAO: [ID 36] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/fireball.glb] File loaded successfully
+MODEL: [assets/models/fireball.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 1
+    > Textures count: 1
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (1300x731 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 85] Texture loaded successfully (1300x731 | R8G8B8 | 1 mipmaps)
+VAO: [ID 37] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/iceBall.glb] File loaded successfully
+MODEL: [assets/models/iceBall.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 1
+    > Textures count: 1
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (889x500 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 86] Texture loaded successfully (889x500 | R8G8B8 | 1 mipmaps)
+VAO: [ID 38] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/campFire.glb] File loaded successfully
+MODEL: [assets/models/campFire.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 10
+    > Materials count: 7 (+1 default)
+    > Buffers count: 1
+    > Images count: 1
+    > Textures count: 7
+    > Primitives (triangles only) count based on hierarchy : 10
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 87] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 88] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 89] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 90] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 91] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 92] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 93] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+VAO: [ID 39] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 40] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 41] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 42] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 43] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 44] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 45] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 46] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 47] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 48] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/stonePillar.glb] File loaded successfully
+MODEL: [assets/models/stonePillar.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 2
+    > Materials count: 2 (+1 default)
+    > Buffers count: 1
+    > Images count: 3
+    > Textures count: 3
+    > Primitives (triangles only) count based on hierarchy : 2
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 94] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 95] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 96] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+IMAGE: Data loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 97] Texture loaded successfully (2048x2048 | R8G8B8 | 1 mipmaps)
+VAO: [ID 49] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 50] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/lavaTileSquare.glb] File loaded successfully
+MODEL: [assets/models/lavaTileSquare.glb] Model basic data (glb) loaded successfully
+    > Meshes count: 1
+    > Materials count: 1 (+1 default)
+    > Buffers count: 1
+    > Images count: 1
+    > Textures count: 1
+    > Primitives (triangles only) count based on hierarchy : 1
+IMAGE: Data loaded successfully (639x360 | R8G8B8 | 1 mipmaps)
+TEXTURE: [ID 98] Texture loaded successfully (639x360 | R8G8B8 | 1 mipmaps)
+VAO: [ID 51] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/models/musket.glb] Failed to open file
+MESH: [assets/models/musket.glb] Failed to load model mesh(es) data
+MATERIAL: [assets/models/musket.glb] Failed to load model material data, default to white material
+VAO: [ID 52] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 53] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 54] Mesh uploaded successfully to VRAM (GPU)
+VAO: [ID 55] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/shaders/height_color.vs] Text file loaded successfully
+FILEIO: [assets/shaders/height_color.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 5] Fragment shader compiled successfully
+SHADER: [ID 6] Program shader loaded successfully
+FILEIO: [] Failed to open text file
+FILEIO: [assets/shaders/fog_postprocess.fs] Text file loaded successfully
+SHADER: [ID 4] Fragment shader compiled successfully
+SHADER: [ID 5] Program shader loaded successfully
+FILEIO: [assets/shaders/shadow_decal.vs] Text file loaded successfully
+FILEIO: [assets/shaders/shadow_decal.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 7] Fragment shader compiled successfully
+SHADER: [ID 8] Program shader loaded successfully
+FILEIO: [assets/shaders/skybox.vs] Text file loaded successfully
+FILEIO: [assets/shaders/skybox.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 7] Fragment shader compiled successfully
+SHADER: [ID 9] Program shader loaded successfully
+FILEIO: [assets/shaders/water.vs] Text file loaded successfully
+FILEIO: [assets/shaders/water.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 7] Fragment shader compiled successfully
+SHADER: [ID 10] Program shader loaded successfully
+FILEIO: [] Failed to open text file
+FILEIO: [assets/shaders/bloom.fs] Text file loaded successfully
+SHADER: [ID 4] Fragment shader compiled successfully
+SHADER: [ID 7] Program shader loaded successfully
+FILEIO: [] Failed to open text file
+FILEIO: [assets/shaders/leaf_cutout.fs] Text file loaded successfully
+SHADER: [ID 4] Fragment shader compiled successfully
+SHADER: [ID 11] Program shader loaded successfully
+FILEIO: [assets/shaders/lighting_baked_xz.vs] Text file loaded successfully
+FILEIO: [assets/shaders/lighting_baked_xz.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 12] Fragment shader compiled successfully
+SHADER: [ID 13] Program shader loaded successfully
+FILEIO: [assets/shaders/lava_world.vs] Text file loaded successfully
+FILEIO: [assets/shaders/lava_world.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 12] Fragment shader compiled successfully
+SHADER: [ID 14] Program shader loaded successfully
+FILEIO: [assets/shaders/treeShader.vs] Text file loaded successfully
+FILEIO: [assets/shaders/treeShader.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 12] Fragment shader compiled successfully
+SHADER: [ID 15] Program shader loaded successfully
+FILEIO: [assets/shaders/portal.vs] Text file loaded successfully
+FILEIO: [assets/shaders/portal.fs] Text file loaded successfully
+SHADER: [ID 4] Vertex shader compiled successfully
+SHADER: [ID 12] Fragment shader compiled successfully
+SHADER: [ID 16] Program shader loaded successfully
+FILEIO: [assets/sounds/dinoHit.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/dinoDeath.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/dino1.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/dino2.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/dino3.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/bite.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/reload.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/shotgun.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/step1.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/step2.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/step3.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/step4.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/PlayerHit1.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/PlayerHit2.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/doorOpen.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/doorCLose.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/swipe1.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swipe2.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swipe3.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swordHit.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swordBlock.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swordBlock2.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/slice.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/bones.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/bones2.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/gulp.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/clink.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/lockedDoor.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/unlock.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/KeyGet.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/barrelBreak.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 1 channels)
+FILEIO: [assets/sounds/musket.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/chestOpen.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/spiderBite1.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/spiderBite2.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/spiderDeath.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/flame1.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/flame2.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/explosion.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/staffHit.ogg] File loaded successfully
+WAVE: Data loaded successfully (24000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/iceMagic.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/jump.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swim1.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swim2.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swim3.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/swim4.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/TrexRoar.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/TrexRoar2.ogg] File loaded successfully
+WAVE: Data loaded successfully (44100 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/TrexBite.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/TrexBite2.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/TrexHurt.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/TrexHurt2.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+FILEIO: [assets/sounds/TrexStep.ogg] File loaded successfully
+WAVE: Data loaded successfully (48000 Hz, 16 bit, 2 channels)
+STREAM: Initialized successfully (24000 Hz, 16 bit, Stereo)
+FILEIO: [assets/sounds/dungeonAir.ogg] Music file loaded successfully
+    > Sample rate:   24000 Hz
+    > Sample size:   16 bits
+    > Channels:      2 (Stereo)
+    > Total frames:  3051225
+STREAM: Initialized successfully (44100 Hz, 16 bit, Stereo)
+FILEIO: [assets/sounds/jungleSounds.ogg] Music file loaded successfully
+    > Sample rate:   44100 Hz
+    > Sample size:   16 bits
+    > Channels:      2 (Stereo)
+    > Total frames:  25975296
+FILEIO: [assets/heightmaps/blank.png] File loaded successfully
+IMAGE: Data loaded successfully (4096x4096 | R8G8B8A8 | 1 mipmaps)
+VAO: [ID 56] Mesh uploaded successfully to VRAM (GPU)
+TEXTURE: [ID 99] Texture loaded successfully (4096x4096 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 3] Depth renderbuffer loaded successfully (32 bits)
+FBO: [ID 3] Framebuffer object created successfully
+FILEIO: [assets/maps/map17.png] File loaded successfully
+IMAGE: Data loaded successfully (48x48 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 100] Texture loaded successfully (192x192 | R8G8B8A8 | 1 mipmaps)
+[lava alpha] tiles=214  scale=4x4  dyn=192x192
+VAO: [ID 56] Unloaded vertex array data from VRAM (GPU)
+FILEIO: [assets/heightmaps/MiddleIsland.png] File loaded successfully
+IMAGE: Data loaded successfully (4096x4096 | R8G8B8 | 1 mipmaps)
+VAO: [ID 56] Mesh uploaded successfully to VRAM (GPU)
+TEXTURE: [ID 32] Mipmaps generated automatically, total: 11
+TEXTURE: [ID 33] Mipmaps generated automatically, total: 11
+VAO: [ID 56] Unloaded vertex array data from VRAM (GPU)
+TEXTURE: [ID 40] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 39] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 38] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 16] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 14] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 36] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 8] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 19] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 10] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 12] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 20] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 18] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 24] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 17] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 9] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 32] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 7] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 21] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 30] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 23] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 13] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 25] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 37] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 29] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 34] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 26] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 27] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 33] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 15] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 22] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 28] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 31] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 11] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 35] Unloaded texture data from VRAM (GPU)
+VAO: [ID 55] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 53] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 54] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 52] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 49] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 50] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 39] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 40] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 41] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 42] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 43] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 44] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 45] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 46] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 47] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 48] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 51] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 36] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 38] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 25] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 2] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 3] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 4] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 5] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 6] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 7] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 8] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 9] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 10] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 11] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 12] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 28] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 13] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 14] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 15] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 16] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 17] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 18] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 19] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 20] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 21] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 22] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 26] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 27] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 37] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 23] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 30] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 31] Unloaded vertex array data from VRAM (GPU)
+VAO: [ID 32] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 24] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 29] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 33] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 34] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+VAO: [ID 35] Unloaded vertex array data from VRAM (GPU)
+MODEL: Unloaded model (and meshes) from RAM and VRAM
+SHADER: [ID 16] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 15] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 13] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 11] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 14] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 7] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 9] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 8] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 5] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 10] Unloaded shader program data from VRAM (GPU)
+SHADER: [ID 6] Unloaded shader program data from VRAM (GPU)
+FBO: [ID 2] Unloaded framebuffer from VRAM (GPU)
+FBO: [ID 1] Unloaded framebuffer from VRAM (GPU)
+TEXTURE: [ID 6] Unloaded texture data from VRAM (GPU)
+TEXTURE: [ID 5] Unloaded texture data from VRAM (GPU)
+STREAM: Unloaded audio stream data from RAM
+STREAM: Unloaded audio stream data from RAM
+AUDIO: Device closed successfully
+TEXTURE: [ID 2] Unloaded texture data from VRAM (GPU)
+SHADER: [ID 3] Default shader unloaded successfully
+TEXTURE: [ID 1] Default texture unloaded successfully
+Window closed successfully

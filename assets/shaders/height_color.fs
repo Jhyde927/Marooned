@@ -1,6 +1,5 @@
 #version 330
 
-in vec3 fragNormal;
 in vec3 fragPosition;
 
 out vec4 finalColor;
@@ -40,8 +39,9 @@ void main()
 
     // ---- Sample base textures
     vec3 grassTex = texture(texGrass, uvGrass).rgb;
+    //vec3 grassTex = vec3(0.25, 0.60, 0.20);   // deep lush green
     vec3 sandTex  = texture(texSand,  uvSand ).rgb;
-
+    //vec3 sandTex = vec3(1.0, 1.0, 0.0); // bright yellow
     // ---- Height-based blend: water -> sand -> grass
     vec3 waterColor = vec3(0.10, 0.60, 1.00);
 
@@ -58,6 +58,7 @@ void main()
     vec2 uvMask = vec2(uvIsland.x, 1.0 - uvIsland.y);
     float mask = texture(textureOcclusion, uvMask).r; // 1=no shadow, 0=dark
     color *= mask;
+
 
     // ---- Sky-colored fog (no grayscale desat)
     float dist      = length(fragPosition - cameraPos);

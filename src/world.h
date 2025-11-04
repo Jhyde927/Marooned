@@ -95,7 +95,7 @@ extern std::vector<Character> enemies;
 extern std::vector<Character*> enemyPtrs;
 
 void ClearLevel();
-void InitLevel(const LevelData& level, Camera& camera);
+void InitLevel(LevelData& level, Camera& camera);
 void InitDungeonLights();
 void UpdateFade(Camera& camera);
 void removeAllCharacters();

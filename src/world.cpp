@@ -81,15 +81,20 @@ std::vector<Character*> enemyPtrs;
 std::vector<DungeonEntrance> dungeonEntrances;
 
 
-void InitLevel(const LevelData& level, Camera& camera) {
+void InitLevel(LevelData& level, Camera& camera) {
     isLoadingLevel = true;
     isDungeon = false;
     
     //Called when starting game and changing level. init the level you pass it. the level is chosen by menu or door's linkedLevelIndex. 
-    ClearLevel();//clears everything. 
-
+    ClearLevel();//clears everything.
+    
     camera.position = player.position; //start as player, not freecam.
     levelIndex = level.levelIndex; //update current level index to new level. 
+
+    if (level.heightmapPath.empty() && level.dungeonPath.empty()) {
+        TraceLog(LOG_INFO, "Skipping placeholder level index %d", levelIndex);
+        level = levels[2];
+    }
 
     vignetteStrengthValue = 0.2f; //less of vignette outdoors.
     bloomStrengthValue = 0.0f; //turn on bloom in dungeons
@@ -162,10 +167,7 @@ void InitLevel(const LevelData& level, Camera& camera) {
 
         //XZ dynamic lightmap + shader lighting with occlusion
         InitDungeonLights();
- 
     }
-
-
 
     ResourceManager::Get().SetLightingShaderValues();
     ResourceManager::Get().SetPortalShaderValues();
@@ -264,44 +266,6 @@ void UpdateFade(Camera& camera) {
                    &fadeValue, SHADER_UNIFORM_FLOAT);
 }
 
-// void UpdateFade(float deltaTime, Camera& camera){
-//     //fades out on death, and level transition if pendingLevelIndex != -1
-//     if (isFading) {
-//         if (fadeIn) {
-//             fadeToBlack += fadeSpeed * deltaTime;
-
-//             if (fadeToBlack >= 1.0f) {
-//                 fadeToBlack = 1.0f;
-//                 isFading = false;
-
-//                 if (pendingLevelIndex != -1) {
-//                     currentGameState = GameState::Menu; //HACK //quickly switch to menu before switching to new level. This fixes lighting bug on level switch.
-//                     //Menu gameState stops all other code from running, letting us switch lightmaps cleanly, found no other way. 
-//                     switchFromMenu = true;
-//                     //InitLevel(levels[pendingLevelIndex], camera); //Start new Level
-//                     //pendingLevelIndex = -1;
-
-//                     // Start fading back in
-//                     fadeIn = false;
-//                     isFading = true;
-//                 }
-//             }
-//         } else {//fade in = false
-//             std::cout << "fading in \n" << fadeToBlack << "\n";
-//             fadeToBlack -= fadeSpeed * deltaTime;
-            
-//             if (fadeToBlack <= 0.0f) {
-//                 fadeToBlack = 0.0f;
-//                 isFading = false;
-//             }
-//         }
-
-//     }
-
-//     Shader& fogShader = R.GetShader("fogShader");
-//     SetShaderValue(fogShader, GetShaderLocation(fogShader, "fadeToBlack"), &fadeToBlack, SHADER_UNIFORM_FLOAT);
-
-// }
 
 void InitDungeonLights(){
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 

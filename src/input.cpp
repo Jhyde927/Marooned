@@ -23,13 +23,13 @@ void debugControls(Camera& camera, float deltaTime){
         DebugPrintVector(player.position);
 
         //Reloading lights live breaks them for what ever reason
-        // isLoadingLevel = true;
-        // InitDynamicLightmap(dungeonWidth * 4);
-        // R.SetLightingShaderValues();
-        // BuildStaticLightmapOnce(dungeonLights);
-        // BuildDynamicLightmapFromFrameLights(frameLights);
-        // isLoadingLevel = false;
-        // LogDynamicLightmapNonBlack("testing: ");
+        isLoadingLevel = true;
+        InitDynamicLightmap(dungeonWidth * 4);
+        R.SetLightingShaderValues();
+        BuildStaticLightmapOnce(dungeonLights);
+        //BuildDynamicLightmapFromFrameLights(frameLights);
+        isLoadingLevel = false;
+        LogDynamicLightmapNonBlack("testing: ");
         
     
     }

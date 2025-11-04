@@ -349,7 +349,7 @@ void CheckBulletHits(Camera& camera) {
             if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), b.GetPosition(), b.GetRadius())) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
                     enemy->TakeDamage(25);
-                    int rn = GetRandomValue(0, 4);
+
                     if (enemy->isDead){
                         if (enemy->type == CharacterType::Skeleton || enemy->type == CharacterType::Ghost){
                             b.Erase();

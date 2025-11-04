@@ -187,7 +187,7 @@ void HandleKeyboardInput(float deltaTime, Camera& camera) {
 
     if (IsKeyPressed(KEY_ONE)){
         //use health potion
-        if (player.inventory.HasItem("HealthPotion")){
+        if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
             if (player.currentHealth < player.maxHealth){
                 player.currentHealth = player.maxHealth;

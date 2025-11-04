@@ -35,41 +35,17 @@ DungeonEntrance entranceToDungeon11 = {
 
 std::vector<LevelData> levels = {
     {
-        "(Middle Island)", //display name
-        "assets/heightmaps/MiddleIsland.png", //heightmap
-        "",//dungeon path
-        {0.0f, 300.0f, 0.0f}, //starting position
-        -90.0f, //starting player rotation
-        {0, 0, 0}, //raptor spawn center
-        5, //raptor count
-        false, //isDungeon
-        {entranceToDungeon1, entranceToDungeon3, entranceToDungeon4}, //add entrance struct to level's vector of entrances. 
-        0, //current level
-        2, //next level, index 2
-        {
-            { PropType::FirePit,  5200.f, -5600.f,  0.f, 100.0f }, // outdoor props
-            { PropType::Boat,     6000.0f, -20.0f, 0.0f},
-        
-        },
-        true, //ceiling default is true. doesn't matter for islands. 
-        
+
+        "Dungeon1", 
+        "", "", {0,0,0}, 0.0f, {0,0,0}, 0,
+        false, {}, 0, 0, {}, true
     },
     {
-        "River", 
-        "assets/heightmaps/River.png",
-        "",
-        {5475.0f, 300.0f, -5665.0f},
-        180.0f,
-        {0.0f, 0, 0.0f},
-        7,//raptor count
-        false,
-        {entranceToDungeon11},
-        1, 
-        0,
-        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
-        true, //ceiling
-   
+        "PlaceHolder:dungeon1", 
+        "", "", {0,0,0}, 0.0f, {0,0,0}, 0,
+        false, {}, 1, 0, {}, true
     },
+
     {
         "Dungeon1",
         "assets/heightmaps/blank.png", //big blank heightmap incase we want water underneath the dungeon. 
@@ -115,7 +91,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         4, 
-        0,
+        5,
         {},
         true,
     },
@@ -220,7 +196,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         11, 
-        1, //go from portal to river, skip last 2 for demo
+        12, //go from portal to river, skip last 2 for demo
         {}, 
         false, 
     },
@@ -250,9 +226,46 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         13, 
-        1, //river
+        2, //change for demo to start back at dungeon1 index 2
         {}, 
         true,// ceiling
+    },
+    {
+
+        "(Middle Island)", //display name
+        "assets/heightmaps/MiddleIsland.png", //heightmap
+        "",//dungeon path
+        {0.0f, 300.0f, 0.0f}, //starting position
+        -90.0f, //starting player rotation
+        {0, 0, 0}, //raptor spawn center
+        5, //raptor count
+        false, //isDungeon
+        {entranceToDungeon1, entranceToDungeon3, entranceToDungeon4}, //add entrance struct to level's vector of entrances. 
+        14, //current level
+        2, //next level, index 2
+        {
+            { PropType::FirePit,  5200.f, -5600.f,  0.f, 100.0f }, // outdoor props
+            { PropType::Boat,     6000.0f, -20.0f, 0.0f},
+        
+        },
+        true, //ceiling default is true. doesn't matter for islands. 
+        
+    },
+    {
+        "River", 
+        "assets/heightmaps/River.png",
+        "",
+        {5475.0f, 300.0f, -5665.0f},
+        180.0f,
+        {0.0f, 0, 0.0f},
+        7,//raptor count
+        false,
+        {entranceToDungeon11},
+        15, 
+        0,
+        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
+        true, //ceiling
+   
     },
     
 };

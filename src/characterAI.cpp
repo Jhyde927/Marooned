@@ -824,6 +824,9 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         case CharacterState::Freeze: {
             stateTimer += deltaTime;
             //do nothing
+            if (currentHealth <= 0){
+                ChangeState(CharacterState::Death); //check for death to freeze, freeze damage doesn't call takeDamage
+            }
 
             if (stateTimer > 5.0f && !isDead){
                 ChangeState(CharacterState::Idle);
@@ -1045,9 +1048,9 @@ void Character::UpdateChase(float deltaTime)
 {
     //update raptor/trex chase state. 
     float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
-    if (type == CharacterType::Trex) ATTACK_ENTER = 600;
+    if (type == CharacterType::Trex) ATTACK_ENTER = 600; //maybe to far
 
-    const float VISION_ENTER = 4000.0f;
+    const float VISION_ENTER = 4500.0f;
     float distance = Vector3Distance(position, player.position);
     if (!canSee) {ChangeState(CharacterState::Idle); return; }
     if (stateTimer > chaseDuration) { ChangeState(CharacterState::RunAway); return;}

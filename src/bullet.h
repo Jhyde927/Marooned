@@ -29,7 +29,7 @@ struct BulletLight {
 
 class Bullet {
 public:
-    Bullet(Vector3 position, Vector3 velocity, float lifetime, bool enemy,  BulletType t = BulletType::Default, float radius = 1.0f, bool launcher = false);
+    Bullet(Vector3 position, Vector3 velocity, float lifetime, bool enemy,  BulletType t = BulletType::Default, float radius = 25.0f, bool launcher = false);
     Emitter fireEmitter;
     Emitter sparkEmitter;
     Vector3 position;
@@ -41,7 +41,7 @@ public:
     float maxLifetime;
     float timer;
     float gravity = 300.0f;
-    float radius = 3.5f;
+    float radius = 25.0f;
     float spinAngle = 0.0f;
     bool exploded = false;
     float timeSinceExploded = 0.0f;

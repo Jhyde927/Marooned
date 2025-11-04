@@ -124,8 +124,9 @@ std::vector<TreeInstance> GenerateTrees(Image& heightmap, unsigned char* pixels,
                     tree.useAltModel = GetRandomValue(0, 1);
                     tree.cullFactor = 1.05f; //5 percent higher than tree threshold. 
 
-
                     trees.push_back(tree);
+
+                    
                 }
             }
         }
@@ -186,6 +187,8 @@ std::vector<BushInstance> GenerateBushes(Image& heightmap, unsigned char* pixels
                 bush.zOffset = ((float)GetRandomValue(-bushSpacing*2, bushSpacing*2)); //space them out wider, then cull more aggresively. 
                 bush.cullFactor = 1.09f; //agressively cull bushes. 
                 bushes.push_back(bush);
+
+ 
             }
         }
     }
