@@ -98,7 +98,7 @@ static inline void BuildLavaMaskAlphaFromImage(const Image& dungeonImg)
     }
 
     // A tiny dilate helps distant mips hold the glow
-    DilateAlphaOnce();
+    //DilateAlphaOnce();
 
     TraceLog(LOG_INFO, "[lava alpha] tiles=%d  scale=%dx%d  dyn=%dx%d",
             lavaCount,

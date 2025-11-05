@@ -15,7 +15,7 @@ struct BakedLightmap {
 };
 
 extern BakedLightmap gDynamic;  //is it really a bakedLighmap if it's dynamic? it's a hybrid
-extern BakedLightmap gLavaGlow;  // lava glow map
+
 
 float SmoothFalloff(float d, float radius);
 

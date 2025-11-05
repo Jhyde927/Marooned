@@ -1470,7 +1470,7 @@ void DrawDungeonFloor() {
 
     Model& floorModel = R.GetModel("floorTileGray");
     Model& lavaModel = R.GetModel("lavaTile");
-    const float cull_radius = 10000.0f;
+    const float cull_radius = 54000.0f;
 
     const Vector3 baseScale   = {700, 700, 700};
 
@@ -1489,10 +1489,15 @@ void DrawDungeonFloor() {
 }
 
 void DrawDungeonWalls() {
-
+    float cullRadius = 6500.0f;
+    
     for (const WallInstance& _wall : wallInstances) {
-        // "wall"
-        DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+        float distanceTo = Vector3Distance(player.position, _wall.position);
+        if (distanceTo < cullRadius){
+            DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+
+        }
+
 
     }
 }

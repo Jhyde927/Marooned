@@ -64,15 +64,20 @@ int main() {
         
        // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
+
+
         
         UpdateFade(camera); //always update fade
 
         //Main Menu - level select 
         if (currentGameState == GameState::Menu) {
+
+            UpdateMenu(camera);
+            
             UpdateMusicStream(SoundManager::GetInstance().GetMusic("jungleAmbience"));
             if (switchFromMenu){ //HACK//// make lighting work on level load from door. When game state is menu, only menu code runs,
             //enabling us to cleanly switch levels and lightmaps. 
-               
+
                 InitLevel(levels[pendingLevelIndex], camera);
                 pendingLevelIndex = -1;
                 
@@ -80,11 +85,13 @@ int main() {
                 currentGameState = GameState::Playing;
             } 
 
-            UpdateMenu(camera);
+
       
             //dont draw menu when doing the menu switching hack
             BeginDrawing();
+
             DrawMenu(selectedOption, levelIndex);
+
             EndDrawing();
 
 

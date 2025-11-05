@@ -115,13 +115,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
     GenerateEntrances();
     generateVegetation();
-    //tree shadows after tree generation
-    Shader& terrainShader = R.GetShader("terrainShader");
-    terrainShader.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(terrainShader, "textureOcclusion");
-    terrainModel.materials[0].shader = terrainShader;
 
-    // plug the shadow mask into the material's occlusion map
-    SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_OCCLUSION, gTreeShadowMask.rt.texture);
 
 
     if (!level.isDungeon) InitBoat(player_boat, boatPosition);
@@ -235,7 +229,7 @@ void UpdateFade(Camera& camera) {
 
             // Do the swap atomically here:
             if (queuedLevel != -1) {
-                currentGameState = GameState::Menu; // or Loading
+                currentGameState = GameState::Menu; // hack, switch to menu after fading out, if switch from menu is true imediatly load queued level
                 switchFromMenu   = true;
                 queuedLevel = -1;
             }

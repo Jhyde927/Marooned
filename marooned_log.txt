@@ -477,9 +477,6 @@ MODEL: [assets/models/lavaTileSquare.glb] Model basic data (glb) loaded successf
 IMAGE: Data loaded successfully (639x360 | R8G8B8 | 1 mipmaps)
 TEXTURE: [ID 98] Texture loaded successfully (639x360 | R8G8B8 | 1 mipmaps)
 VAO: [ID 51] Mesh uploaded successfully to VRAM (GPU)
-FILEIO: [assets/models/musket.glb] Failed to open file
-MESH: [assets/models/musket.glb] Failed to load model mesh(es) data
-MATERIAL: [assets/models/musket.glb] Failed to load model material data, default to white material
 VAO: [ID 52] Mesh uploaded successfully to VRAM (GPU)
 VAO: [ID 53] Mesh uploaded successfully to VRAM (GPU)
 VAO: [ID 54] Mesh uploaded successfully to VRAM (GPU)
@@ -654,22 +651,22 @@ FILEIO: [assets/sounds/jungleSounds.ogg] Music file loaded successfully
     > Sample size:   16 bits
     > Channels:      2 (Stereo)
     > Total frames:  25975296
-FILEIO: [assets/heightmaps/blank.png] File loaded successfully
-IMAGE: Data loaded successfully (4096x4096 | R8G8B8A8 | 1 mipmaps)
+FILEIO: [assets/heightmaps/MiddleIsland.png] File loaded successfully
+IMAGE: Data loaded successfully (4096x4096 | R8G8B8 | 1 mipmaps)
 VAO: [ID 56] Mesh uploaded successfully to VRAM (GPU)
 TEXTURE: [ID 99] Texture loaded successfully (4096x4096 | R8G8B8A8 | 1 mipmaps)
 TEXTURE: [ID 3] Depth renderbuffer loaded successfully (32 bits)
 FBO: [ID 3] Framebuffer object created successfully
-FILEIO: [assets/maps/map17.png] File loaded successfully
-IMAGE: Data loaded successfully (48x48 | R8G8B8A8 | 1 mipmaps)
-TEXTURE: [ID 100] Texture loaded successfully (192x192 | R8G8B8A8 | 1 mipmaps)
-[lava alpha] tiles=214  scale=4x4  dyn=192x192
-VAO: [ID 56] Unloaded vertex array data from VRAM (GPU)
-FILEIO: [assets/heightmaps/MiddleIsland.png] File loaded successfully
-IMAGE: Data loaded successfully (4096x4096 | R8G8B8 | 1 mipmaps)
-VAO: [ID 56] Mesh uploaded successfully to VRAM (GPU)
 TEXTURE: [ID 32] Mipmaps generated automatically, total: 11
 TEXTURE: [ID 33] Mipmaps generated automatically, total: 11
+VAO: [ID 56] Unloaded vertex array data from VRAM (GPU)
+FILEIO: [assets/heightmaps/blank.png] File loaded successfully
+IMAGE: Data loaded successfully (4096x4096 | R8G8B8A8 | 1 mipmaps)
+VAO: [ID 56] Mesh uploaded successfully to VRAM (GPU)
+FILEIO: [assets/maps/map4.png] File loaded successfully
+IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+TEXTURE: [ID 100] Texture loaded successfully (128x128 | R8G8B8A8 | 1 mipmaps)
+[lava alpha] tiles=0  scale=4x4  dyn=128x128
 VAO: [ID 56] Unloaded vertex array data from VRAM (GPU)
 TEXTURE: [ID 40] Unloaded texture data from VRAM (GPU)
 TEXTURE: [ID 39] Unloaded texture data from VRAM (GPU)
@@ -712,7 +709,6 @@ MODEL: Unloaded model (and meshes) from RAM and VRAM
 VAO: [ID 54] Unloaded vertex array data from VRAM (GPU)
 MODEL: Unloaded model (and meshes) from RAM and VRAM
 VAO: [ID 52] Unloaded vertex array data from VRAM (GPU)
-MODEL: Unloaded model (and meshes) from RAM and VRAM
 MODEL: Unloaded model (and meshes) from RAM and VRAM
 VAO: [ID 49] Unloaded vertex array data from VRAM (GPU)
 VAO: [ID 50] Unloaded vertex array data from VRAM (GPU)

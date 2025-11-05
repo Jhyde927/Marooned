@@ -7,6 +7,7 @@
 #include "lighting.h"
 #include "resourceManager.h"
 #include "sound_manager.h"
+#include "vegetation.h"
 
 InputMode currentInputMode = InputMode::KeyboardMouse;
 //TODO: add controller support 
@@ -23,18 +24,22 @@ void debugControls(Camera& camera, float deltaTime){
         DebugPrintVector(player.position);
 
         //Reloading lights live breaks them for what ever reason
-        isLoadingLevel = true;
-        InitDynamicLightmap(dungeonWidth * 4);
-        R.SetLightingShaderValues();
-        BuildStaticLightmapOnce(dungeonLights);
-        //BuildDynamicLightmapFromFrameLights(frameLights);
-        isLoadingLevel = false;
-        LogDynamicLightmapNonBlack("testing: ");
+        // isLoadingLevel = true;
+        // InitDynamicLightmap(dungeonWidth * 4);
+        // R.SetLightingShaderValues();
+        // BuildStaticLightmapOnce(dungeonLights);
+        // //BuildDynamicLightmapFromFrameLights(frameLights);
+        // isLoadingLevel = false;
+        // LogDynamicLightmapNonBlack("testing: ");
         
     
     }
 
     if (debugInfo){
+
+        if (IsKeyPressed(KEY_SLASH)){
+            RemoveAllVegetation();
+        }
 
         if (IsKeyPressed(KEY_APOSTROPHE)){ //hide ceiling for better screenshots. 
             if (!drawCeiling){

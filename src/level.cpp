@@ -34,9 +34,11 @@ DungeonEntrance entranceToDungeon11 = {
 
 
 std::vector<LevelData> levels = {
+    //we put middle island and river at the end of the list. Runs extremely slow on laptop. terrain shader was broken. Made a version with
+    //them at the end of the list and hard coded green and yellow solid color for grass and sand. So at least its not all white. They can 
+    //come back to the front of the list once they are optimized. 
     {
-
-        "Dungeon1", 
+        "Dungeon1", //call it dungeon1, it redirects there. 
         "", "", {0,0,0}, 0.0f, {0,0,0}, 0,
         false, {}, 0, 0, {}, true
     },

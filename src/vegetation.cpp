@@ -122,9 +122,11 @@ std::vector<TreeInstance> GenerateTrees(Image& heightmap, unsigned char* pixels,
                     tree.xOffset = ((float)GetRandomValue(-treeSpacing, treeSpacing));
                     tree.zOffset = ((float)GetRandomValue(-treeSpacing, treeSpacing));
                     tree.useAltModel = GetRandomValue(0, 1);
-                    tree.cullFactor = 1.05f; //5 percent higher than tree threshold. 
-
+                    tree.cullFactor = 1.15f; //5 percent higher than tree threshold. 
+                    //if (GetRandomValue(1, 4) > 1){
                     trees.push_back(tree);
+                    //}
+                    
 
                     
                 }
@@ -186,7 +188,12 @@ std::vector<BushInstance> GenerateBushes(Image& heightmap, unsigned char* pixels
                 bush.xOffset = ((float)GetRandomValue(-bushSpacing*2, bushSpacing*2));
                 bush.zOffset = ((float)GetRandomValue(-bushSpacing*2, bushSpacing*2)); //space them out wider, then cull more aggresively. 
                 bush.cullFactor = 1.09f; //agressively cull bushes. 
-                bushes.push_back(bush);
+
+                if (GetRandomValue(1,4) > 1){
+                    bushes.push_back(bush);
+
+                }
+
 
  
             }
@@ -249,13 +256,20 @@ void DrawTrees(const std::vector<TreeInstance>& trees, Camera& camera){
 }
 
 void DrawBushes(const std::vector<BushInstance>& bushes) {
+    float cullDistance = 10000.0f;
     for (const auto& bush : bushes) {
+        float distanceTo = Vector3Distance(player.position, bush.position);
+
         Vector3 pos = bush.position;
         pos.x += bush.xOffset;
         pos.y += bush.yOffset-10;
         pos.z += bush.zOffset;
         Color customGreen = { 0, 160, 0, 255 };
-        DrawModel(bush.model, pos, bush.scale, WHITE);
+        if (distanceTo < cullDistance){
+            DrawModel(bush.model, pos, bush.scale, WHITE);
+
+        }
+
 
     }
 }

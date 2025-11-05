@@ -39,9 +39,12 @@ void main()
 
     // ---- Sample base textures
     vec3 grassTex = texture(texGrass, uvGrass).rgb;
-    //vec3 grassTex = vec3(0.25, 0.60, 0.20);   // deep lush green
     vec3 sandTex  = texture(texSand,  uvSand ).rgb;
-    //vec3 sandTex = vec3(1.0, 1.0, 0.0); // bright yellow
+    
+    //solid colors
+    //vec3 grassTex = vec3(0.25, 0.55, 0.20);   // deep lush green
+    //vec3 sandTex = vec3(0.9, 0.9, 0.0); // bright yellow
+
     // ---- Height-based blend: water -> sand -> grass
     vec3 waterColor = vec3(0.10, 0.60, 1.00);
 

@@ -258,10 +258,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("iceballModel",   "assets/models/iceBall.glb");
     R.LoadModel("campFire",       "assets/models/campFire.glb");
     R.LoadModel("stonePillar",    "assets/models/stonePillar.glb");
-
-
     R.LoadModel("lavaTile",       "assets/models/lavaTileSquare.glb");
-    R.LoadModel("musket",         "assets/models/musket.glb");
+
 
     //generated models
     R.LoadModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
@@ -374,8 +372,24 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     Texture2D grassTex = R.GetTexture("grassTexture");
     Texture2D sandTex  = R.GetTexture("sandTexture");
 
+        // --- Assign shader to terrain material
+    //terrainModel.materials[0].shader = terrainShader;
+
+    for (int i = 0; i < terrainModel.materialCount; ++i)
+    {
+        terrainModel.materials[i].shader = terrainShader;
+    }
 
 
+        //tree shadows after tree generation
+    //Shader& terrainShader = R.GetShader("terrainShader");
+    terrainShader.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(terrainShader, "textureOcclusion");
+    //terrainModel.materials[0].shader = terrainShader;
+
+    // plug the shadow mask into the material's occlusion map
+    SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_OCCLUSION, gTreeShadowMask.rt.texture);
+
+    //EDITED FOR WINOWS 11 11/03/2025
     GenTextureMipmaps(&grassTex);
     GenTextureMipmaps(&sandTex);
     SetTextureFilter(grassTex, TEXTURE_FILTER_TRILINEAR);
@@ -383,8 +397,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     SetTextureWrap(grassTex, TEXTURE_WRAP_REPEAT);
     SetTextureWrap(sandTex,  TEXTURE_WRAP_REPEAT);
 
-    // --- Assign shader to terrain material
-    terrainModel.materials[0].shader = terrainShader;
+
 
     // --- Look up sampler locations
     int locGrassSampler = GetShaderLocation(terrainShader, "texGrass");
@@ -399,6 +412,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     SetShaderValue(terrainShader, locSandSampler,  &texUnitSand,  SHADER_UNIFORM_INT);
     SetShaderValue(terrainShader, locOccSampler,   &texUnitOcc,   SHADER_UNIFORM_INT);
 
+    //bind them this way
     SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_ALBEDO,    grassTex);
     SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_METALNESS, sandTex);
 
@@ -494,7 +508,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
 }
 
-
+//old working way
 // void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 //     // Load textures (tileable, power-of-two helps mips)
 //     Shader& terrainShader = R.GetShader("terrainShader");

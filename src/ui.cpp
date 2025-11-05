@@ -370,7 +370,7 @@ void DrawMenu(int selectedOption, int levelIndex) {
 
 
     float alpha = 1.0f; // 0..1
-    if (fade > 0) DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, alpha));
+    if (fade > 0.0f) DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, alpha));
     //when we switch from menu, it was flashing the menu screen for 1 frame durring fade out. 
     //So draw a black rectangle over the menu when fading. For some reason this function needs to run for the lights to work. 
 
@@ -388,6 +388,7 @@ void UpdateMenu(Camera& camera){
         if (IsKeyPressed(KEY_ENTER)) {
             if (selectedOption == 0) {
                 InitLevel(levels[levelIndex], camera);
+
                 currentGameState = GameState::Playing;
                 levelLoaded = true;
             } else if (selectedOption == 1) {

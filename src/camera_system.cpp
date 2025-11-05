@@ -129,7 +129,7 @@ void CameraSystem::UpdatePlayerCam(float dt) {
     playerRig.yaw   = pv.yawDeg;
     playerRig.pitch = pv.pitchDeg;
 
-    SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+    SetFarClip(isDungeon ? 16000.0f : 16000.0f);
 }
 
 

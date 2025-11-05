@@ -17,12 +17,11 @@
 
 
 void RenderFrame(Camera3D& camera, Player& player, float dt) {
-    Shader& terrainShader = R.GetShader("terrainShader");
-    //int locShadow      = GetShaderLocation(terrainShader, "u_ShadowMask");
+
     // --- 3D scene to sceneTexture ---
     BeginTextureMode(R.GetRenderTexture("sceneTexture"));
         ClearBackground(SKYBLUE);
-        float farClip = isDungeon ? 10000.0f : 50000.0f;
+        float farClip = isDungeon ? 10000.0f : 16000.0f;
         float nearclip = 30.0f;
         CameraSystem::Get().BeginCustom3D(camera, nearclip, farClip);
 
