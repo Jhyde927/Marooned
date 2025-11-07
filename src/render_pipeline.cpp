@@ -12,6 +12,7 @@
 #include "camera_system.h"
 #include "lighting.h"
 #include "shadows.h"
+#include "terrainChunking.h"
 
 
 
@@ -32,7 +33,12 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
         if (!isDungeon) {
 
-            DrawModel(terrainModel, {-terrainScale.x/2,0,-terrainScale.z/2}, 1.0f, WHITE);
+            //DrawModel(terrainModel, {-terrainScale.x/2,0,-terrainScale.z/2}, 1.0f, WHITE);
+            //this draw call was eating my laptop alive. we gain 30 frames by chunking the terrain instead. Consider the water plane might be
+            //a big hog as well. 
+
+            float maxDrawDist = 10000.0f;     // tweak per scene
+            DrawTerrainGrid(terrain, camera, maxDrawDist);
 
             DrawModel(R.GetModel("waterModel"), {0, waterPos.y + (float)sin(GetTime()*0.9f)*0.9f, 0}, 1.0f, WHITE);
             DrawModel(R.GetModel("bottomPlane"), {0, waterHeightY - 100, 0}, 1.0f, DARKBLUE);

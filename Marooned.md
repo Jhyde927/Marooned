@@ -378,6 +378,46 @@ Made some decals have a velocity. When skelton swipes a sword at you the decal m
 
 Get a different tile texture for ceilings. 
 
+take away decal velocity. It looks dumb, and it doesn't make sense. They attack is localized to the one area while swinging it doesn't travel forward. It was a good idea to add velocity to decals however. The velocity parameters will be needed if I make ghost projectile a decal. 
+
+Make ghost projectile use decal velocity. 
+
+Does pirate attack only happen on a certain frame? is that why his first hit doesn't seem to connect?
+
+Holding block with sword and switching to blunderbuss while still holding block lets you block with the blunderbuss. x
+
+Skeleton can still become invincable if you freeze them. fix this. I think it's fixed but could it happen for pirates?
+
+Make another skelton death frame where he is half way falling over. 
+
+fixed pirate body disappearing immediately after death. death animation was set to 3 frames instead of 2
+
+pirates are still missing their first attack. 
+
+Dungeon lights not working for person testing it on Linux. It could be his hardware. He said he was on a laptop. Maybe doesn't support GLSL. Maybe slow load time effects the timing, and skips the frame we calculate lights? We need to load in all the geometry before we calculate the lights. Maybe wait like 0.2 seconds after loading geomtery then do lights? Impossible to test. 
+
+You can use potions while dead. x
+
+Gold uses raylib font. x
+
+you can sprint indefinitely. Consider removing stamina and just keep infinite run. 
+
+on laptop bullets seem to tunnel through enemies. maybe turn the speed back down to 2k
+
+island level on laptop is unplayable. the terrain shader is broken. Maybe I'm running bloom shader outside when I don't need to be. 
+
+Made the demo only the dungeon levels. At least it's something. Fix bullet tunneling asap though. For people with low end PCs. I didn't even think of people with laptops playing the game. I just assume every one has a 3080 by now. I figured my 1070 was way low end. Integrated grafics havn't gotten any better in 20 years. 
+
+Hiting start game should fade out to loading screen. How the hell would we do that?
+
+bring back destroy all vegitation button. -tried it on laptop. Makes 0 difference. the slow down isn't comming from vegitation. 
+
+If I switch to windows 11 is the terrain shader gonna be broke on this machine too? or is it because of the integrated graphics on the laptop just can't cut it. 
+
+
+working on terrain chunking may have found why lighting was broken unless loading from menu. Need to investigate further. Just added EndTextureMode() at the beginning of initLevel. If we were switching levels mid game loop. EndTextureMode() never got called and it polluted the next render texture. 
+
+
 
 
 

@@ -292,16 +292,14 @@ void ResourceManager::SetShaderValues(){
     Shader& fogShader = R.GetShader("fogShader");
     Shader& shadowShader = R.GetShader("shadowShader");
     Shader& waterShader = R.GetShader("waterShader");
-    Shader& terrainShader = R.GetShader("terrainShader");
+    //Shader& terrainShader = R.GetShader("terrainShader");
 
 
     // Sky
     //apply skyShader to sky model
-    R.GetModel("skyModel").materials[0].shader = R.GetShader("skyShader");
-
-    // Load & assign once
-    Shader sky = R.GetShader("skyShader");
+    Shader& sky = R.GetShader("skyShader");
     R.GetModel("skyModel").materials[0].shader = sky;
+
 
     // Cache uniform locations
     int locTime      = GetShaderLocation(sky, "time");
@@ -369,58 +367,18 @@ void ResourceManager::SetPortalShaderValues(){
 void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     // Load textures (tileable, power-of-two helps mips)
     Shader& terrainShader = R.GetShader("terrainShader");
-    Texture2D grassTex = R.GetTexture("grassTexture");
-    Texture2D sandTex  = R.GetTexture("sandTexture");
+    // Texture2D grassTex = R.GetTexture("grassTexture");
+    // Texture2D sandTex  = R.GetTexture("sandTexture");
+    
+    // sampler → unit
+    int u2=2;
 
-        // --- Assign shader to terrain material
-    //terrainModel.materials[0].shader = terrainShader;
+    int locOcc   = GetShaderLocation(terrainShader, "textureOcclusion");
 
-    for (int i = 0; i < terrainModel.materialCount; ++i)
-    {
-        terrainModel.materials[i].shader = terrainShader;
-    }
-
-
-        //tree shadows after tree generation
-    //Shader& terrainShader = R.GetShader("terrainShader");
-    terrainShader.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(terrainShader, "textureOcclusion");
-    //terrainModel.materials[0].shader = terrainShader;
-
-    // plug the shadow mask into the material's occlusion map
-    SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_OCCLUSION, gTreeShadowMask.rt.texture);
-
-    //EDITED FOR WINOWS 11 11/03/2025
-    GenTextureMipmaps(&grassTex);
-    GenTextureMipmaps(&sandTex);
-    SetTextureFilter(grassTex, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(sandTex,  TEXTURE_FILTER_TRILINEAR);
-    SetTextureWrap(grassTex, TEXTURE_WRAP_REPEAT);
-    SetTextureWrap(sandTex,  TEXTURE_WRAP_REPEAT);
+    SetShaderValue(terrainShader, locOcc,   &u2, SHADER_UNIFORM_INT);
 
 
-
-    // --- Look up sampler locations
-    int locGrassSampler = GetShaderLocation(terrainShader, "texGrass");
-    int locSandSampler  = GetShaderLocation(terrainShader, "texSand");
-    int locOccSampler   = GetShaderLocation(terrainShader, "textureOcclusion");
-
-    // --- Assign fixed texture units (0,1,2) to those samplers
-    int texUnitGrass = 0;
-    int texUnitSand  = 1;
-    int texUnitOcc   = 2;
-    SetShaderValue(terrainShader, locGrassSampler, &texUnitGrass, SHADER_UNIFORM_INT);
-    SetShaderValue(terrainShader, locSandSampler,  &texUnitSand,  SHADER_UNIFORM_INT);
-    SetShaderValue(terrainShader, locOccSampler,   &texUnitOcc,   SHADER_UNIFORM_INT);
-
-    //bind them this way
-    SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_ALBEDO,    grassTex);
-    SetMaterialTexture(&terrainModel.materials[0], MATERIAL_MAP_METALNESS, sandTex);
-
-    // --- Bind textures explicitly
-    // NOTE: SetShaderValueTexture() automatically activates the right slot
-    // SetShaderValueTexture(terrainShader, locGrassSampler, grassTex);
-    // SetShaderValueTexture(terrainShader, locSandSampler,  sandTex);
-    //SetShaderValueTexture(terrainShader, locOccSampler,   occlusionRT.texture);
+    SetShaderValueTexture(terrainShader, locOcc,   gTreeShadowMask.rt.texture); // unit 2
 
     // --- World bounds and tiling
     int locWorldMinXZ  = GetShaderLocation(terrainShader, "u_WorldMinXZ");
@@ -433,10 +391,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     SetShaderValue(terrainShader, locWorldMinXZ,  &t_worldMinXZ,  SHADER_UNIFORM_VEC2);
     SetShaderValue(terrainShader, locWorldSizeXZ, &t_worldSizeXZ, SHADER_UNIFORM_VEC2);
 
-    float grassTiles = 60.0f;
-    float sandTiles  = 20.0f;
-    SetShaderValue(terrainShader, locGrassTile, &grassTiles, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(terrainShader, locSandTile,  &sandTiles,  SHADER_UNIFORM_FLOAT);
+
 
     // --- Fog and sky
     Vector3 skyTop  = {0.55f, 0.75f, 1.00f};

@@ -1424,9 +1424,6 @@ void DrawDungeonBarrels() {
 }
 
 
-
-
-
 void DrawDungeonChests() {
    
     for (const ChestInstance& chest : chestInstances) {
@@ -1470,7 +1467,7 @@ void DrawDungeonFloor() {
 
     Model& floorModel = R.GetModel("floorTileGray");
     Model& lavaModel = R.GetModel("lavaTile");
-    const float cull_radius = 54000.0f;
+    const float cull_radius = 5400.0f;
 
     const Vector3 baseScale   = {700, 700, 700};
 
@@ -1483,7 +1480,12 @@ void DrawDungeonFloor() {
     }
 
     for (const FloorTile& lavaTile : lavaTiles){
-        DrawModelEx(lavaModel, lavaTile.position, {0, 1, 0}, 0.0f, baseScale, lavaTile.tint);
+        float dist = Vector3Distance(player.position, lavaTile.position);
+        if (dist < cull_radius){
+            DrawModelEx(lavaModel, lavaTile.position, {0, 1, 0}, 0.0f, baseScale, lavaTile.tint);
+
+        }
+
     }
 
 }

@@ -33,6 +33,8 @@ int main() {
         fflush(f);
     });
 
+
+
     drawCeiling = true; //debug no ceiling mode. drawCeiling is set by levelData so we can have some dungeons with and without ceilings. 
 
     InitWindow(screenWidth, screenHeight, "Marooned");
@@ -55,6 +57,8 @@ int main() {
 
     CameraSystem::Get().Init(startPosition);
     CameraSystem::Get().SetFOV(fovy);
+
+
 
     
     //main game loop
@@ -146,6 +150,9 @@ int main() {
         RenderFrame(camera, player, deltaTime); //draw everything
         
     }
+
+
+
 
     // Cleanup
     ClearLevel();

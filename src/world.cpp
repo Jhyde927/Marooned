@@ -14,15 +14,16 @@
 #include "assert.h"
 #include "lighting.h"
 #include "ui.h"
+#include "terrainChunking.h"
 
 
 
 GameState currentGameState = GameState::Menu;
 
 //global variables, clean these up somehow. 
-Model terrainModel;
+//Model terrainModel;
 Image heightmap;
-Mesh terrainMesh;
+//Mesh terrainMesh;
 Vector3 terrainScale = {16000.0f, 200.0f, 16000.0f}; //very large x and z, 
 
 TreeShadowMask gTreeShadowMask;
@@ -82,6 +83,11 @@ std::vector<DungeonEntrance> dungeonEntrances;
 
 
 void InitLevel(LevelData& level, Camera& camera) {
+    //We were never calling end texture mode when switching levels mid game loop. Causing problems. 
+    EndTextureMode();
+    EndShaderMode();
+    EndDrawing();
+
     isLoadingLevel = true;
     isDungeon = false;
     
@@ -100,25 +106,31 @@ void InitLevel(LevelData& level, Camera& camera) {
     bloomStrengthValue = 0.0f; //turn on bloom in dungeons
     SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "vignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
     SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
-    
+
     // Load and format the heightmap image
+    // terrainMesh = GenMeshHeightmap(heightmap, terrainScale);
+    // terrainModel = LoadModelFromMesh(terrainMesh);
+
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
-    
-    terrainMesh = GenMeshHeightmap(heightmap, terrainScale);
-    terrainModel = LoadModelFromMesh(terrainMesh);
 
+    generateVegetation();
+
+    terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 129, true);
+    SetShaderForAllChunks(terrain, R.GetShader("terrainShader"));
+    InitBoat(player_boat, boatPosition);
+    
+
+    
 
     dungeonEntrances = level.entrances; //get level entrances from level data
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
     GenerateEntrances();
-    generateVegetation();
 
 
-
-    if (!level.isDungeon) InitBoat(player_boat, boatPosition);
+    if (!level.isDungeon) 
     for (const auto& p : levels[levelIndex].overworldProps) {
         if (p.type == PropType::Boat){
             player_boat.position.x = p.x;
@@ -230,7 +242,9 @@ void UpdateFade(Camera& camera) {
             // Do the swap atomically here:
             if (queuedLevel != -1) {
                 currentGameState = GameState::Menu; // hack, switch to menu after fading out, if switch from menu is true imediatly load queued level
+                //InitLevel(levels[queuedLevel], camera);
                 switchFromMenu   = true;
+                //pendingLevelIndex = -1;
                 queuedLevel = -1;
             }
 
@@ -706,11 +720,14 @@ void ClearLevel() {
     ClearDungeon();
     bulletLights.clear();
     dungeonEntrances.clear();
-    
+
     RemoveAllVegetation();
 
-    if (terrainMesh.vertexCount > 0) UnloadMesh(terrainMesh); //unload mesh and heightmap when switching levels. if they exist
+    // if (terrainMesh.vertexCount > 0) UnloadMesh(terrainMesh); //unload mesh and heightmap when switching levels. if they exist
     if (heightmap.data != nullptr) UnloadImage(heightmap); 
+    UnloadTerrainGrid(terrain);
+    //UnloadRenderTexture(gTreeShadowMask.rt);
+
     isDungeon = false;
 
 }
