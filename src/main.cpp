@@ -15,8 +15,6 @@
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
 
-
-
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
@@ -59,7 +57,6 @@ int main() {
     CameraSystem::Get().SetFOV(fovy);
 
 
-
     
     //main game loop
     while (!WindowShouldClose()) {
@@ -69,8 +66,6 @@ int main() {
        // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
 
-
-        
         UpdateFade(camera); //always update fade
 
         //Main Menu - level select 

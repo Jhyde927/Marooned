@@ -218,20 +218,20 @@ void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDis
     // TraceLog(LOG_INFO, "Terrain chunks drawn: %d", drawn);
 }
 
-void SetShaderForAllChunks(TerrainGrid& T, Shader shader) {
-    for (auto& c : T.chunks) {
-        if (c.model.materialCount == 0) continue;
-        Material& m = c.model.materials[0];
-        m.shader = shader;
+// void SetShaderForAllChunks(TerrainGrid& T, Shader shader) {
+//     for (auto& c : T.chunks) {
+//         if (c.model.materialCount == 0) continue;
+//         Material& m = c.model.materials[0];
+//         m.shader = shader;
 
-        // ensure no maps are owned/used (we bind via uniforms or leave solid colors)
-        for (int i = 0; i < 12; ++i) {            // raylib 5.x uses 12 map slots
-            m.maps[i].texture.id = 0;
-            m.maps[i].value = 0.0f;
-            m.maps[i].color = WHITE;
-        }
-    }
-}
+//         // ensure no maps are owned/used (we bind via uniforms or leave solid colors)
+//         for (int i = 0; i < 12; ++i) {            // raylib 5.x uses 12 map slots
+//             m.maps[i].texture.id = 0;
+//             m.maps[i].value = 0.0f;
+//             m.maps[i].color = WHITE;
+//         }
+//     }
+// }
 
 static void DetachAllMapsFromChunks(TerrainGrid& T) {
     for (auto& c : T.chunks) {

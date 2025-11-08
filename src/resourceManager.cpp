@@ -264,8 +264,8 @@ void ResourceManager::LoadAllResources() {
 
     //generated models
     R.LoadModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
-    R.LoadModelFromMesh("waterModel",GenMeshPlane(30000, 30000, 1, 1));
-    R.LoadModelFromMesh("bottomPlane",GenMeshPlane(30000, 30000, 1, 1));
+    R.LoadModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
+    R.LoadModelFromMesh("bottomPlane",GenMeshPlane(160000, 160000, 1, 1));
     R.LoadModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1));
 
     //shaders
@@ -361,6 +361,47 @@ void ResourceManager::SetPortalShaderValues(){
     Vector3 cB = {0.5f, 0.2f, 1.0f};
     SetShaderValue(portal, loc_colorA, &cA, SHADER_UNIFORM_VEC3);
     SetShaderValue(portal, loc_colorB, &cB, SHADER_UNIFORM_VEC3);
+
+}
+
+void ResourceManager::SetWaterShaderValues(Camera& camera) {
+    Shader water = R.GetShader("waterShader");
+
+    Vector2 worldMinXZ  = { -terrainScale.x * 0.5f, -terrainScale.z * 0.5f };
+    Vector2 worldSizeXZ = {  terrainScale.x,          terrainScale.z       };
+
+    // Each frame (after you move the water patch to the camera)
+
+    float halfSize   = 8000.0f;   // make sure your water mesh is ~6000×6000
+    float fadeStart  = 10000.0f;
+    float fadeEnd    = 16000.0f;
+
+    // world rect you already have
+    Vector2 worldMin = worldMinXZ;              // (minX, minZ)
+    Vector2 worldMax = worldMin + worldSizeXZ;  // (maxX, maxZ)
+
+    float patchHalf = 8000.0f;     // same as u_PatchHalfSize
+    float feather   = 600.0f;      // ~the width of the edge fade band
+
+    // Clamp the center so the patch edge + feather never crosses the world edge
+    float minX = worldMin.x + (patchHalf - feather);
+    float maxX = worldMax.x - (patchHalf - feather);
+    float minZ = worldMin.y + (patchHalf - feather);
+    float maxZ = worldMax.y - (patchHalf - feather);
+
+    Vector2 centerXZ = {
+        Clamp(camera.position.x, minX, maxX),
+        Clamp(camera.position.z, minZ, maxZ)
+    };
+
+    SetShaderValue(water, GetShaderLocation(water, "u_WaterCenterXZ"), &centerXZ, SHADER_UNIFORM_VEC2);
+    SetShaderValue(water, GetShaderLocation(water, "u_PatchHalfSize"), &halfSize, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(water, GetShaderLocation(water, "u_FadeStart"),     &fadeStart, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(water, GetShaderLocation(water, "u_FadeEnd"),       &fadeEnd,   SHADER_UNIFORM_FLOAT);
+    SetShaderValue(water, GetShaderLocation(water, "cameraPos"),       &camera.position, SHADER_UNIFORM_VEC3);
+
+
+
 
 }
 
@@ -780,6 +821,7 @@ void ResourceManager::SetLightingShaderValues() {
 
 
 void ResourceManager::UpdateShaders(Camera& camera){
+    SetWaterShaderValues(camera); //update water every frame
     //runs every frame, updates all shaders
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     Shader& waterShader = R.GetShader("waterShader");

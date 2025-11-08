@@ -237,18 +237,21 @@ void RemoveAllVegetation() {
 
 
 void DrawTrees(const std::vector<TreeInstance>& trees, Camera& camera){
-    //sortTrees(camera); //sort trees by distance to camera
+    float cullDist = 15000;
     for (const TreeInstance* tree : sortedTrees) {
+        float dist = Vector3Distance(tree->position, camera.position);
+
         Vector3 pos = tree->position;
         pos.y += tree->yOffset;
         pos.x += tree->xOffset;
         pos.z += tree->zOffset;
 
         Model& treeModel = tree->useAltModel ? R.GetModel("palmTree") : R.GetModel("palm2");
+        if (dist < cullDist){
+            DrawModelEx(treeModel, pos, { 0, 1, 0 }, tree->rotationY,
+                        { tree->scale, tree->scale, tree->scale }, WHITE);
 
-        DrawModelEx(treeModel, pos, { 0, 1, 0 }, tree->rotationY,
-                    { tree->scale, tree->scale, tree->scale }, WHITE);
-
+        }
 
     }
 
@@ -256,7 +259,7 @@ void DrawTrees(const std::vector<TreeInstance>& trees, Camera& camera){
 }
 
 void DrawBushes(const std::vector<BushInstance>& bushes) {
-    float cullDistance = 10000.0f;
+    float cullDistance = 15000.0f;
     for (const auto& bush : bushes) {
         float distanceTo = Vector3Distance(player.position, bush.position);
 

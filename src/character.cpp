@@ -277,7 +277,7 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};
                 case CharacterState::Attack: return {2, 5, 0.2f, false};  
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
-                case CharacterState::Death:  return {4, 5, 0.15f, false};
+                case CharacterState::Death:  return {4, 5, 0.2f, false};
                 
                 default:                     return {0, 1, 1.0f, true};
             }
@@ -381,7 +381,7 @@ void Character::ChangeState(CharacterState next) {
     //if (clearPath) currentWorldPath.clear(); testing with this off to see if it fixes a bug where skeletons stop chasing and just stand there. 
     //is does fix the bug. clearing the path is causing enemies to stop and remain idle sometimes instead of chasing. 
     if (type == CharacterType::Raptor && state == CharacterState::Chase){
-        chaseDuration = GetRandomValue(5, 8);
+        chaseDuration = GetRandomValue(10, 20);
         playRaptorSounds(); //play a random tweet when switching to chase. 
     }
 

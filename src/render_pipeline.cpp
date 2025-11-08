@@ -40,11 +40,19 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
             DrawTerrainGrid(terrain, camera, maxDrawDist);
 
-            rlEnableBackfaceCulling();
-            rlDisableDepthMask();     // don’t write depth
-            DrawModel(R.GetModel("waterModel"), {0, waterPos.y + (float)sin(GetTime()*0.9f)*0.9f, 0}, 1.0f, WHITE);
-            DrawModel(R.GetModel("bottomPlane"), {0, waterHeightY - 100, 0}, 1.0f, DARKBLUE);
-            rlDisableBackfaceCulling();
+            // update position (keep your existing waterModel)
+            Vector3 waterCenter = { camera.position.x, waterHeightY, camera.position.z };
+            Matrix xform = MatrixTranslate(waterCenter.x, waterCenter.y + sinf(GetTime()*0.9f)*0.9f, waterCenter.z);
+            R.GetModel("waterModel").transform = xform;
+
+            Vector3 bottomCenter = { camera.position.x, waterHeightY - 100, camera.position.z };
+            R.GetModel("bottomPlane").transform = MatrixTranslate(bottomCenter.x, bottomCenter.y, bottomCenter.z);
+            DrawModel(R.GetModel("bottomPlane"), {0,0,0}, 1.0f, DARKBLUE);
+
+            // draw order/state (after opaque terrain)
+            rlEnableDepthTest();
+            rlDisableDepthMask();         // don’t write depth for transparent water
+            DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
             rlEnableDepthMask();
             
             DrawBoat(player_boat);

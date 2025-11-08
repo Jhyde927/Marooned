@@ -422,8 +422,8 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
     //UpdateLeavingFlag(player.position);
 
     // --- Simple deadbands ---
-    const float STALK_ENTER   = 2000.0f;  // engage if closer than this
-    const float STALK_EXIT    = 2400.0f;  // drop back to idle 
+    const float STALK_ENTER   = 3000.0f;  // engage if closer than this
+    const float STALK_EXIT    = 3400.0f;  // drop back to idle 
     const float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
     const float ATTACK_EXIT   = 300.0f;   // leave attack if beyond this 
     const float FLEE_ENTER    = 100.0f;   // too close -> run away

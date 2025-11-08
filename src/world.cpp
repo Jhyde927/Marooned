@@ -107,8 +107,8 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     generateVegetation();
 
-    terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 129, true);
-    SetShaderForAllChunks(terrain, R.GetShader("terrainShader"));
+    terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true);
+    //SetShaderForAllChunks(terrain, R.GetShader("terrainShader"));
     InitBoat(player_boat, boatPosition);
 
     dungeonEntrances = level.entrances; //get level entrances from level data
@@ -476,6 +476,8 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
         //std::cout << "generated raptor\n";
 
         Character raptor(spawnPos, R.GetTexture("raptorTexture"), 200, 200, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
+        raptor.maxHealth = 200;
+        raptor.currentHealth = raptor.maxHealth;
         enemies.push_back(raptor);
         enemyPtrs.push_back(&enemies.back()); 
         ++spawned;

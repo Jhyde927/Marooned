@@ -43,6 +43,7 @@ public:
     void SetLightingShaderValues();
     void SetTerrainShaderValues();
     void SetPortalShaderValues();
+    void SetWaterShaderValues(Camera& camera);
     void SetShaderValues();
     void EnsureScreenSizedRTs();
 
