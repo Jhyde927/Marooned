@@ -5,6 +5,7 @@
 #include "level.h"
 //#include "shadows.h"
 #include "vegetation.h"
+#include "terrainChunking.h"
 
 
 ResourceManager* ResourceManager::_instance = nullptr;
@@ -367,8 +368,43 @@ void ResourceManager::SetPortalShaderValues(){
 void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     // Load textures (tileable, power-of-two helps mips)
     Shader& terrainShader = R.GetShader("terrainShader");
-    // Texture2D grassTex = R.GetTexture("grassTexture");
-    // Texture2D sandTex  = R.GetTexture("sandTexture");
+
+    Shader& sh = R.GetShader("terrainShader");
+
+    sh.locs[SHADER_LOC_MAP_ALBEDO]    = GetShaderLocation(sh, "texGrass");
+    sh.locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(sh, "texSand");
+    sh.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(sh, "textureOcclusion");
+
+    Texture2D grass = R.GetTexture("grassTexture");
+    Texture2D sand  = R.GetTexture("sandTexture");
+
+    GenTextureMipmaps(&grass);
+    GenTextureMipmaps(&sand);
+    SetTextureFilter(grass, TEXTURE_FILTER_TRILINEAR);
+    SetTextureFilter(sand,  TEXTURE_FILTER_TRILINEAR);
+
+    SetTextureWrap(grass, TEXTURE_WRAP_REPEAT);
+    SetTextureWrap(sand,  TEXTURE_WRAP_REPEAT);
+
+    for (auto& c : terrain.chunks) {
+        if (c.model.materialCount == 0) continue;
+        Material& m = c.model.materials[0];
+        m.shader = sh;
+        SetMaterialTexture(&m, MATERIAL_MAP_ALBEDO,    grass);
+        SetMaterialTexture(&m, MATERIAL_MAP_METALNESS, sand);
+        SetMaterialTexture(&m, MATERIAL_MAP_OCCLUSION, gTreeShadowMask.rt.texture);
+    }
+
+    // world extents (whole island)
+    Vector2 minXZ = { -terrainScale.x*0.5f, -terrainScale.z*0.5f };
+    Vector2 sizeXZ= {  terrainScale.x,        terrainScale.z      };
+    SetShaderValue(sh, GetShaderLocation(sh,"u_WorldMinXZ"),  &minXZ,  SHADER_UNIFORM_VEC2);
+    SetShaderValue(sh, GetShaderLocation(sh,"u_WorldSizeXZ"), &sizeXZ, SHADER_UNIFORM_VEC2);
+
+    // tiling (start simple)
+    float grassTiles=60.0f, sandTiles=20.0f;
+    SetShaderValue(sh, GetShaderLocation(sh,"grassTiling"), &grassTiles, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(sh, GetShaderLocation(sh,"sandTiling"),  &sandTiles,  SHADER_UNIFORM_FLOAT);
     
     // sampler → unit
     int u2=2;
@@ -606,6 +642,12 @@ void ResourceManager::SetBloomShaderValues(){
     int locLB = GetShaderLocation(bloomShader, "lavaBoost");
     SetShaderValue(bloomShader, locLB, &lavaBoot, SHADER_UNIFORM_FLOAT);
 
+    vignetteStrengthValue = isDungeon ? 0.5 : 0.2f; //less of vignette outdoors.
+    bloomStrengthValue = 0.0f; //turn on bloom in dungeons
+    SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "vignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
+
+
 
 
     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uExposure"), &exposure, SHADER_UNIFORM_FLOAT);
@@ -703,7 +745,7 @@ void ResourceManager::SetLightingShaderValues() {
     };
     if (locGrid   >= 0) SetShaderValue(use, locGrid, grid, SHADER_UNIFORM_VEC4);
 
-    float dynStrength  = 0.8f;
+    float dynStrength  = 0.8f; //fine tuned
     float ambientBoost = 0.2f;
 
     if (!isDungeon) { // entrances fully lit

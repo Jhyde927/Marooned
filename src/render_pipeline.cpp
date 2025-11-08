@@ -37,11 +37,16 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //this draw call was eating my laptop alive. we gain 30 frames by chunking the terrain instead. Consider the water plane might be
             //a big hog as well. 
 
-            float maxDrawDist = 10000.0f;     // tweak per scene
+            float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
             DrawTerrainGrid(terrain, camera, maxDrawDist);
 
+            rlEnableBackfaceCulling();
+            rlDisableDepthMask();     // don’t write depth
             DrawModel(R.GetModel("waterModel"), {0, waterPos.y + (float)sin(GetTime()*0.9f)*0.9f, 0}, 1.0f, WHITE);
             DrawModel(R.GetModel("bottomPlane"), {0, waterHeightY - 100, 0}, 1.0f, DARKBLUE);
+            rlDisableBackfaceCulling();
+            rlEnableDepthMask();
+            
             DrawBoat(player_boat);
             BeginShaderMode(R.GetShader("cutoutShader"));
             DrawTrees(trees, camera); 

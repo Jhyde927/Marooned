@@ -85,8 +85,6 @@ std::vector<DungeonEntrance> dungeonEntrances;
 void InitLevel(LevelData& level, Camera& camera) {
     //We were never calling end texture mode when switching levels mid game loop. Causing problems. 
     EndTextureMode();
-    EndShaderMode();
-    EndDrawing();
 
     isLoadingLevel = true;
     isDungeon = false;
@@ -102,14 +100,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         level = levels[2];
     }
 
-    vignetteStrengthValue = 0.2f; //less of vignette outdoors.
-    bloomStrengthValue = 0.0f; //turn on bloom in dungeons
-    SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "vignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
 
-    // Load and format the heightmap image
-    // terrainMesh = GenMeshHeightmap(heightmap, terrainScale);
-    // terrainModel = LoadModelFromMesh(terrainMesh);
 
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
@@ -119,9 +110,6 @@ void InitLevel(LevelData& level, Camera& camera) {
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 129, true);
     SetShaderForAllChunks(terrain, R.GetShader("terrainShader"));
     InitBoat(player_boat, boatPosition);
-    
-
-    
 
     dungeonEntrances = level.entrances; //get level entrances from level data
 
