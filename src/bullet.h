@@ -1,5 +1,6 @@
 #pragma once
 
+#include <climits>
 #include "raylib.h"
 #include <vector>
 #include "emitter.h"
