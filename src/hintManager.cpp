@@ -1,4 +1,4 @@
-#include "HintManager.h"
+#include "hintManager.h"
 #include <algorithm>
 #include <sstream>
 #include "world.h"

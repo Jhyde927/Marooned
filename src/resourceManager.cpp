@@ -207,7 +207,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("backDrop",         "assets/screenshots/dungeon1.png");
     R.LoadTexture("smokeSheet",       "assets/sprites/smokeSheet.png");
     R.LoadTexture("bloodSheet",       "assets/sprites/bloodSheet.png");
-    R.LoadTexture("doorTexture",      "assets/sprites/door.png");
+    R.LoadTexture("doorTexture",      "assets/sprites/Door.png");
     R.LoadTexture("healthPotTexture", "assets/sprites/Healthpot.png");
     R.LoadTexture("keyTexture",       "assets/sprites/key.png");
     R.LoadTexture("swordBloody",      "assets/textures/swordBloody.png");
@@ -348,13 +348,20 @@ void ResourceManager::SetPortalShaderValues(){
     int loc_rings         = GetShaderLocation(portal, "u_rings");
     int loc_glowBoost     = GetShaderLocation(portal, "u_glowBoost");
 
+    float loc_speed_ptr[] {1.4f};
+    float loc_swirlStrength_ptr[] {1.2f};
+    float loc_swirlScale_ptr[] {12.0f};
+    float loc_edgeFeather_ptr[] {0.08f};
+    float loc_rings_ptr[] {0.7f};
+    float loc_glowBoost_ptr[] {0.8f};
+
     // One-time defaults
-    SetShaderValue(portal, loc_speed,         (float[]){1.4f}, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(portal, loc_swirlStrength, (float[]){1.2f}, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(portal, loc_swirlScale,    (float[]){12.0f}, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(portal, loc_edgeFeather,   (float[]){0.08f}, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(portal, loc_rings,         (float[]){0.7f}, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(portal, loc_glowBoost,     (float[]){0.8f}, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(portal, loc_speed,         loc_speed_ptr, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(portal, loc_swirlStrength, loc_swirlStrength_ptr, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(portal, loc_swirlScale,    loc_swirlScale_ptr, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(portal, loc_edgeFeather,   loc_edgeFeather_ptr, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(portal, loc_rings,         loc_rings_ptr, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(portal, loc_glowBoost,     loc_glowBoost_ptr, SHADER_UNIFORM_FLOAT);
 
     // Colors 
     Vector3 cA = {0.0f, 0.25f, 1.0f};

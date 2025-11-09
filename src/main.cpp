@@ -20,6 +20,10 @@ int main() {
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor. 
 
+    // Simply do not generate logs on Linux, everything is visible in the terminal
+    // and this code causes a segfault. Probably because of the C way to open files
+    // instead of using <fstream> header or buffer overflow
+#ifndef linux
     SetTraceLogLevel(LOG_ALL);
     SetTraceLogCallback([](int logLevel, const char* text, va_list args){
         static FILE* f = fopen("marooned_log.txt", "w"); // or "a" to append
@@ -30,6 +34,7 @@ int main() {
         fputc('\n', f);
         fflush(f);
     });
+#endif
 
 
 
