@@ -1,6 +1,7 @@
 # Marooned  
 
 **Marooned** is a first-person adventure/shooter set in the 1700s pirate era on a chain of Caribbean islands. The game combines open-world exploration with dungeon crawling. Fully 3d environments with 2D animated billboards. 
+https://jhyde.itch.io/marooned
 
 ![Gameplay Screenshot](assets/screenshots/TitleScreen.png)
 ![Gameplay demo](assets/screenshots/demo.gif)

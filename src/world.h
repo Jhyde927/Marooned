@@ -103,7 +103,7 @@ void generateRaptors(int amount, Vector3 centerPos, float radius);
 void generateTrex(int amount, Vector3 centerPos, float radius);
 //void BeginCustom3D(Camera3D camera, float farClip);
 void GenerateEntrances();
-void HandleWaves();
+void HandleWaves(Camera& camera);
 void UpdateEnemies(float deltaTime);
 void DrawEnemyShadows();
 void UpdateMuzzleFlashes(float deltaTime);

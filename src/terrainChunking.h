@@ -29,8 +29,5 @@ TerrainGrid BuildTerrainGridFromHeightmap(const Image& heightmapGray, Vector3 te
 // maxDrawDist is horizontal (XZ) distance in world units.
 void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDist);
 
-// Assign the same material (shader+textures) to every chunk.
-void SetShaderForAllChunks(TerrainGrid& T, Shader shader);
-
 // Free all GPU resources owned by the grid.
 void UnloadTerrainGrid(TerrainGrid& T);

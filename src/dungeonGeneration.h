@@ -267,6 +267,7 @@ void GenerateSkeletonsFromImage(float baseY);
 void GeneratePiratesFromImage(float baseY);
 void GenerateSpiderFromImage(float baseY);
 void GenerateGhostsFromImage(float baseY);
+void GenerateGiantSpiderFromImage(float baseY);
 
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);

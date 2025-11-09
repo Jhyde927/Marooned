@@ -153,6 +153,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GeneratePiratesFromImage(dungeonEnemyHeight);
         GenerateSpiderFromImage(dungeonEnemyHeight);
         GenerateGhostsFromImage(dungeonEnemyHeight);
+        GenerateGiantSpiderFromImage(dungeonEnemyHeight);
 
         if (levelIndex == 4) levels[0].startPosition = {-5653, 200, 6073}; //exit dungeon 3 to dungeon enterance 2 position.
 
@@ -297,12 +298,14 @@ void DrawEnemyShadows() {
 }
 
 
-void HandleWaves(){
+void HandleWaves(Camera& camera){
     //water
-    float wave = sin(GetTime() * 0.9f) * 0.9f;  // slow, subtle vertical motion
-    float animatedWaterLevel = waterHeightY + wave;
-    waterPos = {0, animatedWaterLevel, 0};
-    bottomPos = {0, waterHeightY - 100, 0};
+    // update position (keep your existing waterModel)
+    Vector3 waterCenter = { camera.position.x, waterHeightY, camera.position.z };
+    Matrix xform = MatrixTranslate(waterCenter.x, waterCenter.y + sinf(GetTime()*0.9f)*0.9f, waterCenter.z);
+    R.GetModel("waterModel").transform = xform;
+
+
 }
 
 

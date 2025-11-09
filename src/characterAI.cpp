@@ -31,6 +31,10 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             UpdateSkeletonAI(deltaTime, player); //spider uses same code as skeleton
             break;
 
+        case CharacterType::GiantSpider:
+            UpdateGiantSpiderAI(deltaTime, player);
+            break;
+
         case CharacterType::Ghost:
             UpdateSkeletonAI(deltaTime, player);
             break;
@@ -53,12 +57,128 @@ void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime
 }
 
 
+void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
+    float distance = Vector3Distance(position, player.position);
+
+    Vector2 start = WorldToImageCoords(position);
+    //Vector2 goal = WorldToImageCoords(player.position);
+    //changed vision to soley rely on world LOS. More forgiving 
+    playerVisible = false;
+    UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
+
+ 
+    switch (state){
+        case CharacterState::Idle: {
+            stateTimer += deltaTime;
+ 
+            Vector2 start = WorldToImageCoords(position);
+
+            // Transition to chase if player detected
+            if (distance < 4000.0f && stateTimer > 1.0f && playerVisible) {
+                AlertNearbySkeletons(position, 3000.0f);
+                ChangeState(CharacterState::Chase);
+                currentWorldPath.clear();
+
+                SetPath(start);
+            }
+
+            // Wander if idle too long
+            else if (stateTimer > 10.0f) {
+                Vector2 randomTile = GetRandomReachableTile(start, this);
+
+                if (IsWalkable(randomTile.x, randomTile.y, dungeonImg)) {
+                    if (TrySetRandomPatrolPath(start, this, currentWorldPath)) {
+                        ChangeState(CharacterState::Patrol);
+                        
+                    }
+                }
+            }
+
+            break;
+        }
+
+        case CharacterState::Chase: {
+
+            stateTimer += deltaTime;
+            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+
+            if (distance < 200.0f && canSee) {
+                ChangeState(CharacterState::Attack);
+
+            }
+            else if (distance > 4000.0f) {
+                ChangeState(CharacterState::Idle);
+
+            }
+            else {
+                const Vector2 curTile = WorldToImageCoords(player.position);
+                if (((int)curTile.x != (int)lastPlayerTile.x || (int)curTile.y != (int)lastPlayerTile.y)
+                    && pathCooldownTimer <= 0.0f)
+                {
+                    lastPlayerTile = curTile;
+                    pathCooldownTimer = 0.4f; // don’t spam BFS
+                    const Vector2 start = WorldToImageCoords(position);
+                    SetPath(start); 
+                }
+
+                // Move along current path
+                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f);
+            }
+
+        } break;
+
+        case CharacterState::Attack: {
+
+            if (distance > 350.0f) { 
+                ChangeState(CharacterState::Chase);
+
+            }
+
+            attackCooldown -= deltaTime;
+            if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible) { // make sure you can see what your attacking. 
+                attackCooldown = 0.8f; // 0.2 * 4 frames on animation for skele attack. 
+
+                // Play attack sound
+
+                    // Blocked!
+                if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
+                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
+                    SoundManager::GetInstance().Play(rand() % 2 ? "swordBlock" : "swordBlock2");
+
+      
+                } else  {
+                    // Player takes damage
+                    player.TakeDamage(10);
+                    
+                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                    SoundManager::GetInstance().Play(rand() % 2 ? "spiderBite2" : "spiderBite1");
+                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("biteSheet"), 4, 0.4f, 0.1f, 50.0f);
+
+                }
+                
+            }
+            break;
+        }
+
+
+        
+
+
+      
+    }
+
+}
 
 void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
     float distance = Vector3Distance(position, player.position);
 
     Vector2 start = WorldToImageCoords(position);
-    Vector2 goal = WorldToImageCoords(player.position);
+    //Vector2 goal = WorldToImageCoords(player.position);
     //changed vision to soley rely on world LOS. More forgiving 
     playerVisible = false;
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
@@ -123,8 +243,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f);
             }
         } break;
-
-
 
         case CharacterState::Attack: {
             //dont stand on the same tile as another skele when attacking
@@ -569,7 +687,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
     float pirateHeight = 160;
     playerVisible = false;
     Vector2 start = WorldToImageCoords(position);
-    Vector2 goal = WorldToImageCoords(player.position);
+    //Vector2 goal = WorldToImageCoords(player.position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
 

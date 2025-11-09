@@ -28,6 +28,7 @@ enum class Code {
     ChestSkyBlue,       // Sky Blue (0,128,255)
     SpiderDarkGray,     // Dark Gray (64,64,64)
     SpiderWebLightGray, // Light Gray (128,128,128)
+    GiantSpider,        // Medium Gray (96, 96, 96)
     MagicStaffDarkRed,  // Dark Red (128,0,0)
     GhostVeryLightGray, // Very light grey (200,200,200)
     LauncherTrapVermillion, // Vermillion (255,66,52)
@@ -62,6 +63,7 @@ constexpr Color ColorOf(Code c) {
         case Code::KeyGold:                return Make(255, 200, 0);
         case Code::ChestSkyBlue:           return Make(0, 128, 255);
         case Code::SpiderDarkGray:         return Make(64, 64, 64);
+        case Code::GiantSpider:            return Make(96, 96, 96);
         case Code::SpiderWebLightGray:     return Make(128, 128, 128);
         case Code::MagicStaffDarkRed:      return Make(128, 0, 0);
         case Code::GhostVeryLightGray:     return Make(200, 200, 200);

@@ -20,18 +20,16 @@ int main() {
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor. 
 
-    SetTraceLogLevel(LOG_ALL);
-    SetTraceLogCallback([](int logLevel, const char* text, va_list args){
-        static FILE* f = fopen("marooned_log.txt", "w"); // or "a" to append
-        if (!f) return;
-        char buf[4096];
-        vsnprintf(buf, sizeof(buf), text, args);
-        fputs(buf, f);
-        fputc('\n', f);
-        fflush(f);
-    });
-
-
+    // SetTraceLogLevel(LOG_ALL);
+    // SetTraceLogCallback([](int logLevel, const char* text, va_list args){
+    //     static FILE* f = fopen("marooned_log.txt", "w"); // or "a" to append
+    //     if (!f) return;
+    //     char buf[4096];
+    //     vsnprintf(buf, sizeof(buf), text, args);
+    //     fputs(buf, f);
+    //     fputc('\n', f);
+    //     fflush(f);
+    // });
 
     drawCeiling = true; //debug no ceiling mode. drawCeiling is set by levelData so we can have some dungeons with and without ceilings. 
 
@@ -118,7 +116,7 @@ int main() {
         UpdateLauncherTraps(deltaTime);
         UpdateDungeonChests();
         ApplyLavaDPS(player, deltaTime, 1);
-        HandleWaves();
+
         UpdateHintManager(deltaTime);
         
         //collisions

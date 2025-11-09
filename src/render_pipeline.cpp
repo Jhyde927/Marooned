@@ -26,6 +26,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         float nearclip = 30.0f;
         CameraSystem::Get().BeginCustom3D(camera, nearclip, farClip);
 
+        //skybox
         rlDisableBackfaceCulling(); rlDisableDepthMask(); rlDisableDepthTest();
         DrawModel(R.GetModel("skyModel"), camera.position, 10000.0f, WHITE);
         rlEnableDepthMask(); rlEnableDepthTest();
@@ -34,25 +35,18 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         if (!isDungeon) {
 
             //DrawModel(terrainModel, {-terrainScale.x/2,0,-terrainScale.z/2}, 1.0f, WHITE);
-            //this draw call was eating my laptop alive. we gain 30 frames by chunking the terrain instead. Consider the water plane might be
-            //a big hog as well. 
+            //this draw call was eating my laptop alive. we gain 30 frames by chunking the terrain instead. 
 
             float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
             DrawTerrainGrid(terrain, camera, maxDrawDist);
 
-            // update position (keep your existing waterModel)
-            Vector3 waterCenter = { camera.position.x, waterHeightY, camera.position.z };
-            Matrix xform = MatrixTranslate(waterCenter.x, waterCenter.y + sinf(GetTime()*0.9f)*0.9f, waterCenter.z);
-            R.GetModel("waterModel").transform = xform;
-
-            Vector3 bottomCenter = { camera.position.x, waterHeightY - 100, camera.position.z };
-            R.GetModel("bottomPlane").transform = MatrixTranslate(bottomCenter.x, bottomCenter.y, bottomCenter.z);
-            DrawModel(R.GetModel("bottomPlane"), {0,0,0}, 1.0f, DARKBLUE);
-
+            HandleWaves(camera);
             // draw order/state (after opaque terrain)
             rlEnableDepthTest();
             rlDisableDepthMask();         // don’t write depth for transparent water
+            rlEnableBackfaceCulling();
             DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
+            rlDisableBackfaceCulling();
             rlEnableDepthMask();
             
             DrawBoat(player_boat);
@@ -84,7 +78,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         DrawEnemyShadows();
         DrawBullets(camera);
         DrawCollectableWeapons(player, dt);
-        HandleWaves();
+
         // transparency last
 
         DrawTransparentDrawRequests(camera);

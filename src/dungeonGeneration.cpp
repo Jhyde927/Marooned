@@ -517,7 +517,7 @@ void GenerateDoorsFromArchways() {
         // Match position/rotation of archway
         Door door{};
         door.position = dw.position;
-        door.rotationY = dw.rotationY + DEG2RAD * 90.0f;
+        door.rotationY = dw.rotationY + DEG2RAD * 90.0f; //offset why? 
         door.isOpen = false;
         door.isPortal = dw.isPortal;
 
@@ -1171,6 +1171,37 @@ void GenerateGhostsFromImage(float baseY) {
                 enemies.push_back(ghost);
                 enemyPtrs.push_back(&enemies.back()); 
 
+            }
+        }
+    }
+
+
+}
+
+void GenerateGiantSpiderFromImage(float baseY) {
+
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            // Look for pure red pixels (255, 0, 0) → Skeleton spawn
+            if (current.r == 96 && current.g == 96 && current.b == 96) {
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+                Character giantSpider(
+                    spawnPos,
+                    R.GetTexture("GiantSpiderSheet"), 
+                    300, 300,         // frame width, height
+                    1,                // max frames
+                    1.0f, 0.5f,       // scale, speed
+                    0,                // initial animation frame
+                    CharacterType::GiantSpider
+                );
+                giantSpider.maxHealth = 200;
+                giantSpider.currentHealth = 200; //at least 2 shots. 4 sword swings 
+                
+                enemies.push_back(giantSpider);
+                enemyPtrs.push_back(&enemies.back()); 
             }
         }
     }

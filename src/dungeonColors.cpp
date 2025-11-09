@@ -67,6 +67,8 @@ static const std::unordered_map<std::string, Code> kNameToCode = {
     {"spiderdarkgray",          Code::SpiderDarkGray},
     {"darkgray",                Code::SpiderDarkGray},
 
+    {"giantSpider",             Code::GiantSpider},
+
     {"spiderweblightgray",      Code::SpiderWebLightGray},
     {"lightgray",               Code::SpiderWebLightGray},
 

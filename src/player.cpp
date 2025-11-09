@@ -18,7 +18,7 @@ MeleeWeapon meleeWeapon;
 MagicStaff magicStaff;
 
 
-//
+//Refactor this whole mess at some point. 
 void InitPlayer(Player& player, Vector3 startPosition) {
 
     player.position = startPosition;
