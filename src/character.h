@@ -93,7 +93,9 @@ public:
     //BoundingBox collider;
     int maxHealth = 150;
     int currentHealth = maxHealth;
-
+    float accumulateDamage = 0.0f;
+    float spiderAgroTimer = 0.0f;
+    bool spiderAgro = false;
     bool   isLeaving = false;          // choose "walk away" row vs "walk toward"
     float  prevDistToPlayer = -1.0f;   // for distance trend fallback
     Vector3 prevPos = {0,0,0};         // to compute velocity

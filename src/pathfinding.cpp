@@ -172,6 +172,177 @@ Character* GetTileOccupier(int x, int y, const std::vector<Character*>& skeleton
     return nullptr;
 }
 
+// Biases the target angle away from the player, otherwise identical to GetRetreatTile
+static Vector2 GetRetreatTileAwayFrom(
+    const Vector2& start,
+    const Vector2& playerTile,
+    const Character* self,
+    float targetDistance,
+    float tolerance,
+    int maxAttempts)
+{
+    for (int i = 0; i < maxAttempts; ++i)
+    {
+        // Base direction = away from player
+        float baseAngle = atan2f(start.y - playerTile.y, start.x - playerTile.x);
+        // Add a little randomness so it isn't perfectly straight
+        float angle = baseAngle + (GetRandomValue(-45, 45) * DEG2RAD);
+
+        float dist = targetDistance + GetRandomValue((int)-tolerance, (int)tolerance);
+
+        int rx = (int)(start.x + cosf(angle) * dist);
+        int ry = (int)(start.y + sinf(angle) * dist);
+
+        if (rx < 0 || ry < 0 || rx >= dungeonWidth || ry >= dungeonHeight) continue;
+        if (!walkable[rx][ry]) continue;
+        if (IsTileOccupied(rx, ry, enemyPtrs, self)) continue;
+
+        return { (float)rx, (float)ry };
+    }
+    return { -1, -1 };
+}
+
+// Simple ring sampler (no LOS) 
+static Vector2 GetRetreatTile(
+    const Vector2& start,
+    const Character* self,
+    float targetDistance,
+    float tolerance,
+    int maxAttempts)
+{
+    for (int i = 0; i < maxAttempts; ++i)
+    {
+        float angle = GetRandomValue(0, 359) * DEG2RAD;
+        float dist  = targetDistance + GetRandomValue((int)-tolerance, (int)tolerance);
+
+        int rx = (int)(start.x + cosf(angle) * dist);
+        int ry = (int)(start.y + sinf(angle) * dist);
+
+        if (rx < 0 || ry < 0 || rx >= dungeonWidth || ry >= dungeonHeight) continue;
+        if (!walkable[rx][ry]) continue;
+        if (IsTileOccupied(rx, ry, enemyPtrs, self)) continue;
+
+        return { (float)rx, (float)ry };
+    }
+    return { -1, -1 };
+}
+
+// Try to build a RETREAT path (away from player, no LOS requirement).
+// Returns false if no path could be built.
+// bool TrySetRetreatPath(
+//     const Vector2& startTile,
+//     const Vector2& playerTile,
+//     Character* self,
+//     std::vector<Vector3>& outPath,
+//     float targetDistance,     // e.g. 10.f
+//     float tolerance,          // e.g. 3.f
+//     int   maxAttempts,        // e.g. 100
+//     int   maxShrinkSteps  // fallback: shrink distance if space is tight
+// )
+// {
+//     if (isLoadingLevel) return false;
+
+//     Vector2 target = { -1, -1 };
+
+//     // 1) First try: biased away from player
+//     target = GetRetreatTileAwayFrom(startTile, playerTile, self, targetDistance, tolerance, maxAttempts);
+
+//     // 2) Fallback: unbiased ring
+//     if (target.x < 0)
+//         target = GetRetreatTile(startTile, self, targetDistance, tolerance, maxAttempts);
+
+//     // 3) Last resort: shrink distance band a few times
+//     float dist = targetDistance;
+//     int shrink = 0;
+//     while (target.x < 0 && shrink < maxShrinkSteps)
+//     {
+//         dist = std::max(2.0f, dist * 0.7f); // gently shrink, never below 2 tiles
+//         target = GetRetreatTileAwayFrom(startTile, playerTile, self, dist, tolerance, maxAttempts / 2);
+//         if (target.x < 0)
+//             target = GetRetreatTile(startTile, self, dist, tolerance, maxAttempts / 2);
+//         ++shrink;
+//     }
+
+//     if (target.x < 0) return false; // no valid tile at all
+
+//     if (!IsWalkable((int)target.x, (int)target.y, dungeonImg)) return false;
+
+//     std::vector<Vector2> tilePath = FindPath(startTile, target);
+//     if (tilePath.empty()) return false;
+
+//     outPath.clear();
+//     outPath.reserve(tilePath.size());
+//     for (const Vector2& tile : tilePath)
+//     {
+//         Vector3 worldPos = GetDungeonWorldPos((int)tile.x, (int)tile.y, tileSize, dungeonPlayerHeight);
+//         // Vertical offsets per character type (match your patrol helper)
+//         worldPos.y += 80.0f; // default skeleton offset
+//         if (self && self->type == CharacterType::Pirate) worldPos.y = 160.0f;
+//         outPath.push_back(worldPos);
+//     }
+
+//     return !outPath.empty();
+// }
+
+// Try to build a RETREAT path with a cap on path length.
+// Returns false if no acceptable path is found.
+bool TrySetRetreatPath(
+    const Vector2& startTile,
+    const Vector2& playerTile,
+    Character* self,
+    std::vector<Vector3>& outPath,
+    float targetDistance,     // e.g. 10
+    float tolerance,          // e.g. 3
+    int   maxAttempts,        // e.g. 100
+    int   maxPathLen,         // e.g. 30   <-- HARD CAP
+    int   maxShrinkSteps      // fallback: shrink distance band a bit
+)
+{
+    if (isLoadingLevel) return false;
+    //Get retreat tile and try to build a path. Cap the path length so the spider doesn't run out of the room. 
+    auto tryPickAndBuild = [&](float dist)->bool { //lambda
+        // 1) try biased-away
+        Vector2 candidate = GetRetreatTileAwayFrom(startTile, playerTile, self, dist, tolerance, maxAttempts);
+        if (candidate.x < 0) {
+            // 2) fallback ring
+            candidate = GetRetreatTile(startTile, self, dist, tolerance, maxAttempts);
+        }
+        if (candidate.x < 0) return false;
+
+        if (!IsWalkable((int)candidate.x, (int)candidate.y, dungeonImg)) return false;
+
+        std::vector<Vector2> tilePath = FindPath(startTile, candidate);
+        if (tilePath.empty()) return false;
+
+        // ❗ Cap the corridor distance (tiles along the path)
+        if ((int)tilePath.size() > maxPathLen) return false;
+
+        // Convert to world path
+        outPath.clear();
+        outPath.reserve(tilePath.size());
+        for (const Vector2& t : tilePath) {
+            Vector3 wp = GetDungeonWorldPos((int)t.x, (int)t.y, tileSize, dungeonPlayerHeight);
+            wp.y += 80.0f; // your per-type offsets
+            if (self && self->type == CharacterType::Pirate) wp.y = 160.0f;
+            outPath.push_back(wp);
+        }
+        return !outPath.empty();
+    };
+
+    // Try ideal distance first
+    if (tryPickAndBuild(targetDistance)) return true;
+
+    // Gently shrink target distance if space is tight, each time respecting maxPathLen
+    float dist = targetDistance;
+    for (int i = 0; i < maxShrinkSteps; ++i) {
+        dist = std::max(2.0f, dist * 0.75f);
+        if (tryPickAndBuild(dist)) return true;
+    }
+
+    return false;
+}
+
+
 
 
 Vector2 GetRandomReachableTile(const Vector2& start, const Character* self, int maxAttempts) {
@@ -216,7 +387,7 @@ bool TrySetRandomPatrolPath(const Vector2& start, Character* self, std::vector<V
     return !outPath.empty();
 }
 
-//TODO: Create a second worldLOSLeaky
+
 
 bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction, LOSMode mode)
 {

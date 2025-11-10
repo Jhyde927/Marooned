@@ -15,8 +15,21 @@ Vector2 TileToWorldCenter(Vector2 tile);
 bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction = 0.0f, LOSMode mode = LOSMode::AI);
 bool LineOfSightRaycast(Vector2 start, Vector2 end, const Image& dungeonMap, int maxSteps, float epsilon);
 bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int maxSteps, float epsilon);
+
 Vector2 GetRandomReachableTile(const Vector2& start, const Character* self, int maxAttempts = 100);
 bool TrySetRandomPatrolPath(const Vector2& start, Character* self, std::vector<Vector3>& outPath);
+bool TrySetRetreatPath(
+    const Vector2& startTile,
+    const Vector2& playerTile,
+    Character* self,
+    std::vector<Vector3>& outPath,
+    float targetDistance,     // e.g. 10
+    float tolerance,          // e.g. 3
+    int   maxAttempts,        // e.g. 100
+    int   maxPathLen,         // e.g. 30   <-- HARD CAP
+    int   maxShrinkSteps      // fallback: shrink distance band a bit
+);
+
 //std::vector<Vector2> SmoothPath(const std::vector<Vector2>& path, const Image& dungeonMap); We now use worldLOS
 std::vector<Vector3> SmoothWorldPath(const std::vector<Vector3>& worldPath);
 std::vector<Vector2> FindPath(Vector2 start, Vector2 goal);

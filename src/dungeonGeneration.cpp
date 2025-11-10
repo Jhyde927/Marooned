@@ -1191,14 +1191,14 @@ void GenerateGiantSpiderFromImage(float baseY) {
                 Character giantSpider(
                     spawnPos,
                     R.GetTexture("GiantSpiderSheet"), 
-                    300, 300,         // frame width, height
+                    300, 300,         // frame width, height //any bigger he would clip walls, scaling bigger doesn't work for some reason anyway
                     1,                // max frames
-                    1.0f, 0.5f,       // scale, speed
+                    1.0f, 0.5f,       // speed, scale
                     0,                // initial animation frame
                     CharacterType::GiantSpider
                 );
-                giantSpider.maxHealth = 200;
-                giantSpider.currentHealth = 200; //at least 2 shots. 4 sword swings 
+                giantSpider.maxHealth = 3000;
+                giantSpider.currentHealth = giantSpider.maxHealth; 
                 
                 enemies.push_back(giantSpider);
                 enemyPtrs.push_back(&enemies.back()); 
@@ -1262,8 +1262,9 @@ void GeneratePiratesFromImage(float baseY) {
                     CharacterType::Pirate
                 );
                 
+
                 pirate.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
-                pirate.currentHealth = 400;//bullets are 25 damage x 6 for the blunderbus. 150 if all the pellets hit 
+                pirate.currentHealth = 400;//bullets are 25 damage x 7 for the blunderbus. 175 if all the pellets hit 
                 enemies.push_back(pirate);
                 enemyPtrs.push_back(&enemies.back()); 
 

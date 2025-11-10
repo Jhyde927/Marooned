@@ -42,8 +42,7 @@ void GatherEnemies(Camera& camera) {
         // Slight camera-facing offset to avoid z-fighting
         Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, enemy->position));
         Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, 10.0f));
-       
-       
+
         //compensate for extreme billboard scaling, things shrink at a distance but not by much. 
         float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
         // Dynamic tint for damage

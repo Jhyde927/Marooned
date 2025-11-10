@@ -54,6 +54,23 @@ void Character::TakeDamage(int amount) {
 
     currentHealth -= amount;
 
+    accumulateDamage += amount;
+    if (accumulateDamage >= 200 && type == CharacterType::GiantSpider){
+        //run away until you take 200 damage
+        if (!spiderAgro){
+            spiderAgro = true;
+            accumulateDamage = 0.0f;
+
+        }
+    }
+    if (accumulateDamage >= 400 && type == CharacterType::GiantSpider){
+        if (spiderAgro){
+            spiderAgro = false;
+            accumulateDamage = 0.0f;
+
+        }
+    }
+
     if (currentHealth <= 0) { //die
 
         hitTimer = 5.0f; //stay red for five seconds testing //0.5f
@@ -192,7 +209,7 @@ static inline float   LenSqXZ(const Vector3& v){ return v.x*v.x + v.z*v.z; }
 void Character::UpdateLeavingFlag(const Vector3& playerPos)
 {
     // Tunables
-    constexpr float MIN_MOVE_EPS_SQ   = 50.0f; // how much squared motion counts as "moving" (units^2 per tick)
+    constexpr float MIN_MOVE_EPS_SQ   = 100.0f; // how much squared motion counts as "moving" (units^2 per tick)
     constexpr int   STREAK_TO_FLIP    = 3;    // require N consistent frames to flip
     constexpr float DIST_EPS          = 1.0f; // tiny epsilon to ignore micro distance jitter
 
@@ -319,7 +336,12 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Chase:
                 case CharacterState::Patrol:
                 case CharacterState::Reposition:
-                    return AnimDesc{1, 5, 0.2f, true}; // walk
+                case CharacterState::RunAway: 
+                    if (isLeaving){
+                        return AnimDesc {3, 4, 0.25f, true}; //run away
+                    }else{
+                        return AnimDesc{1, 5, 0.2f, true}; // walk
+                    }
 
                 case CharacterState::Freeze: return {0, 1, 1.0f, true};
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};

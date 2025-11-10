@@ -106,7 +106,7 @@ void HintManager::UpdateTutorial(){
         Advance();
     }
 
-    if (currentIndex == 6 && IsKeyPressed(KEY_LEFT_SHIFT)){
+    if (currentIndex == 6 && IsKeyPressed(KEY_LEFT_SHIFT)){ //run check
         Advance();
     }
 
@@ -120,15 +120,15 @@ void HintManager::UpdateTutorial(){
     }
 
     if (IsKeyPressed(KEY_ONE) && currentIndex == -1){ //clear on use healthpot
-        Clear(); //clears message and override and sets current index to -2
+        Clear(); //clears message and override and sets current index to -1
     }
 
-    if (IsKeyPressed(KEY_E)){
+    if (IsKeyPressed(KEY_E)){ //clears tutorial
         Clear();
         
     }
     
-    if (!isDungeon){
+    if (!isDungeon){ // hint e to interact when close to dungeon entrance. -it should disappear when further away.
         DungeonEntrance& e = dungeonEntrances[0];
         float distance = Vector3Distance(player.position, e.position);
         if (distance < 500 && currentIndex < 0){

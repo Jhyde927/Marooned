@@ -170,7 +170,7 @@ std::vector<LevelData> levels = {
         true, 
     },
         {
-        "Dungeon7",
+        "Dungeon7",  //spider boss
         "assets/heightmaps/blank.png",
         "assets/maps/map11.png",
         {0.0f, 300.0f, 0.0f},

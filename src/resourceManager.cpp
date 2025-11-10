@@ -237,6 +237,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("bulletHoleSheet",  "assets/sprites/bulletHoleSheet.png");
     R.LoadTexture("GiantSpiderSheet", "assets/sprites/giantSpiderSheet.png");
 
+    SetTextureFilter(R.GetTexture("GiantSpiderSheet"), TEXTURE_FILTER_POINT);
+
 
     // Models (registering with string keys)
     R.LoadModel("palmTree",       "assets/models/bigPalmTree.glb");

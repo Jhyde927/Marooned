@@ -428,7 +428,7 @@ void generateTrex(int amount, Vector3 centerPos, float radius) {
         }
 
         std::cout << "generated T-Rex\n";
-        Character Trex(spawnPos, R.GetTexture("trexSheet"), 300, 300, 1, 0.5, 1.0, 0, CharacterType::Trex);
+        Character Trex(spawnPos, R.GetTexture("trexSheet"), 300, 300, 1, 0.5f, 1.0, 0, CharacterType::Trex);
         Trex.maxHealth = 2000;
         Trex.currentHealth = Trex.maxHealth;
         enemies.push_back(Trex);

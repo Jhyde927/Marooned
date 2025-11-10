@@ -13,14 +13,13 @@
 #include "lighting.h"
 #include "hintManager.h"
 
-bool squareRes = false; // set true for 1280x1024, false for widescreen
+bool squareRes = true; // set true for 1280x1024, false for widescreen
 
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor. 
 
-<<<<<<< HEAD
     // SetTraceLogLevel(LOG_ALL);
     // SetTraceLogCallback([](int logLevel, const char* text, va_list args){
     //     static FILE* f = fopen("marooned_log.txt", "w"); // or "a" to append
@@ -31,25 +30,6 @@ int main() {
     //     fputc('\n', f);
     //     fflush(f);
     // });
-=======
-    // Simply do not generate logs on Linux, everything is visible in the terminal
-    // and this code causes a segfault. Probably because of the C way to open files
-    // instead of using <fstream> header or buffer overflow
-#ifndef linux
-    SetTraceLogLevel(LOG_ALL);
-    SetTraceLogCallback([](int logLevel, const char* text, va_list args){
-        static FILE* f = fopen("marooned_log.txt", "w"); // or "a" to append
-        if (!f) return;
-        char buf[4096];
-        vsnprintf(buf, sizeof(buf), text, args);
-        fputs(buf, f);
-        fputc('\n', f);
-        fflush(f);
-    });
-#endif
-
-
->>>>>>> 7159e2a76944ed831b903a34b28a21dbec8a38d3
 
     drawCeiling = true; //debug no ceiling mode. drawCeiling is set by levelData so we can have some dungeons with and without ceilings. 
 

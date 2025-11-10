@@ -61,12 +61,19 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
     float distance = Vector3Distance(position, player.position);
 
     Vector2 start = WorldToImageCoords(position);
-    //Vector2 goal = WorldToImageCoords(player.position);
-    //changed vision to soley rely on world LOS. More forgiving 
     playerVisible = false;
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
+    UpdateLeavingFlag(player.position);
 
- 
+    if (!spiderAgro){
+        spiderAgroTimer += deltaTime;
+        if (spiderAgroTimer >= 10.0f){ //dont runaway forever
+            spiderAgro = true;
+            spiderAgroTimer = 0.0f;
+            ChangeState(CharacterState::Chase); //doesn't need to see player to chase, allows him to sneak up on you. 
+        }
+    }
+
     switch (state){
         case CharacterState::Idle: {
             stateTimer += deltaTime;
@@ -74,7 +81,16 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
             Vector2 start = WorldToImageCoords(position);
 
             // Transition to chase if player detected
-            if (distance < 4000.0f && stateTimer > 1.0f && playerVisible) {
+            if (distance < 3000.0f && stateTimer > 1.0f && playerVisible) {
+                if (!spiderAgro){
+                    if (TrySetRetreatPath(start, WorldToImageCoords(player.position), this, currentWorldPath, 12, 3, 100, 30, 3)){
+                        
+                        ChangeState(CharacterState::RunAway);
+                        break;
+
+                    }
+                }
+
                 AlertNearbySkeletons(position, 3000.0f);
                 ChangeState(CharacterState::Chase);
                 currentWorldPath.clear();
@@ -82,17 +98,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 SetPath(start);
             }
 
-            // Wander if idle too long
-            else if (stateTimer > 10.0f) {
-                Vector2 randomTile = GetRandomReachableTile(start, this);
-
-                if (IsWalkable(randomTile.x, randomTile.y, dungeonImg)) {
-                    if (TrySetRandomPatrolPath(start, this, currentWorldPath)) {
-                        ChangeState(CharacterState::Patrol);
-                        
-                    }
-                }
-            }
+            //dont wander
 
             break;
         }
@@ -102,12 +108,28 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
             stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
+
+            if (isLeaving && rowIndex != 3){
+                SetAnimation(3, 4, 0.25, true);
+            }else if (!isLeaving && rowIndex != 1){
+                SetAnimation(1, 5, 0.2, true);
+            }
+
+            if (!spiderAgro){
+                if (TrySetRetreatPath(start, WorldToImageCoords(player.position), this, currentWorldPath, 12, 3, 100, 25, 3)){
+                    ChangeState(CharacterState::RunAway);
+                    break;
+
+                }
+            }
             if (distance < 200.0f && canSee) {
                 ChangeState(CharacterState::Attack);
+                break;
 
             }
             else if (distance > 4000.0f) {
                 ChangeState(CharacterState::Idle);
+                break;
 
             }
             else {
@@ -130,9 +152,31 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
         case CharacterState::Attack: {
 
             if (distance > 350.0f) { 
-                ChangeState(CharacterState::Chase);
+                if (spiderAgro){
+                     ChangeState(CharacterState::Chase);
+                     break;
+                }else{
+                    ChangeState(CharacterState::Idle);
+                    break;
+                }
 
             }
+
+            //dont stand on the same tile as another skele when attacking
+            Vector2 myTile = WorldToImageCoords(position);
+            Character* occupier = GetTileOccupier(myTile.x, myTile.y, enemyPtrs, this);
+
+            if (occupier && occupier != this) {
+                // Only the one with the "greater" pointer backs off
+                if (this > occupier) {
+                    ChangeState(CharacterState::Reposition);
+                    break;
+                } else {
+                    // Let the other one reposition — wait
+                    break;
+                }
+            }
+
 
             attackCooldown -= deltaTime;
             if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible) { // make sure you can see what your attacking. 
@@ -166,9 +210,73 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
         }
 
 
-        
+        case CharacterState::RunAway: {
+            stateTimer += deltaTime;
+
+            if (isLeaving && rowIndex != 3){
+                SetAnimation(3, 4, 0.25, true); //runaway
+            }else if (!isLeaving && rowIndex != 1){
+                SetAnimation(1, 5, 0.2, true); //walk
+            }
+
+            if (distance < 200.0f && canSee) {
+                ChangeState(CharacterState::Attack);
+                break;
+
+            }
+
+            if (distance < 3000.0f && spiderAgro){
+                ChangeState(CharacterState::Chase);
+                AlertNearbySkeletons(position, 3000.0f);
+                break;
+
+            }
+
+            if (!currentWorldPath.empty()) { 
+                Vector3 targetPos = currentWorldPath[0];
+                Vector3 dir = Vector3Normalize(Vector3Subtract(targetPos, position));
+                Vector3 move = Vector3Scale(dir, 900 * deltaTime); // faster than chase
+                position = Vector3Add(position, move);
+                rotationY = RAD2DEG * atan2f(dir.x, dir.z);
+                position.y = targetPos.y;
+
+                if (Vector3Distance(position, targetPos) < 100.0f) {
+                    currentWorldPath.erase(currentWorldPath.begin());
+                }
+            }
+            else {
+                ChangeState(CharacterState::Idle);
+            }
+
+            break;
 
 
+        }
+
+
+
+        case CharacterState::Stagger: {
+            stateTimer += deltaTime;
+            //do nothing
+
+            if (stateTimer >= 1.0f) {
+                canBleed = true;
+                ChangeState(CharacterState::Chase);
+                
+            }
+            break;
+        }
+
+        case CharacterState::Death: {
+            if (!isDead) {
+                ChangeState(CharacterState::Death);
+                isDead = true;
+                deathTimer = 0.0f;         // Start counting
+            }
+
+            deathTimer += deltaTime;
+            break;
+        }
       
     }
 
@@ -536,6 +644,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
     const float distance = Vector3Distance(position, player.position);
     UpdateRaptorVisibility(player, deltaTime);
+    UpdateLeavingFlag(player.position);
 
     //UpdateLeavingFlag(player.position);
 
@@ -578,13 +687,23 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::Patrol:
         {
-            UpdateLeavingFlag(player.position);
+            if (isLeaving && rowIndex != 3){ //check if leaving every frame not just on state change. 
+                SetAnimation(3, 4, 0.25, true); //runaway
+            }else if (!isLeaving && rowIndex != 1){
+                SetAnimation(1, 5, 0.2, true); //walk
+            }
+
             UpdatePatrol(deltaTime);
             break;   
         }
 
         case CharacterState::Chase:
         {
+            if (isLeaving && rowIndex != 3){
+                SetAnimation(3, 4, 0.25, true); //runaway
+            }else if (!isLeaving && rowIndex != 1){
+                SetAnimation(1, 5, 0.2, true); //walk
+            }
             
             UpdateChase(deltaTime);
           
@@ -636,7 +755,12 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::RunAway:
         {
-            UpdateLeavingFlag(player.position);
+
+            if (isLeaving && rowIndex != 3){
+                SetAnimation(3, 4, 0.25, true); //runaway
+            }else if (!isLeaving && rowIndex != 1){
+                SetAnimation(1, 5, 0.2, true); //walk
+            }
             UpdateRunaway(deltaTime);
 
             
@@ -690,7 +814,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
     //Vector2 goal = WorldToImageCoords(player.position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
-
+    UpdateLeavingFlag(player.position);
  
     switch (state){
         case CharacterState::Idle: {
@@ -727,6 +851,12 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         case CharacterState::Chase: {
             stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+
+            if (isLeaving && rowIndex != 5){
+                SetAnimation(5, 4, 0.25, true); //runaway
+            }else if (!isLeaving && rowIndex != 1){
+                SetAnimation(1, 4, 0.2, true); //walk
+            }
 
             if (distance < 250 && canSee){
                 ChangeState(CharacterState::MeleeAttack);
@@ -919,12 +1049,18 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         case CharacterState::Patrol: { //Pirate Patrol after every shot. 
             stateTimer += deltaTime;
             //ignore player while patroling to new tile. 
+
+            if (isLeaving && rowIndex != 5){ //we need to update isLeaving animation only if not already playing the correction anim. 
+                SetAnimation(5, 4, 0.25, true); //runaway
+            }else if (!isLeaving && rowIndex != 1){
+                SetAnimation(1, 4, 0.2, true); //walk
+            }
             
             // Advance along path (with repulsion)
             if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
                 Vector3 repel = ComputeRepulsionForce(enemyPtrs, 50, 500); // your existing call
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
-                UpdateLeavingFlag(player.position);
+
                 // Reached the end but still no LOS? stop chasing
                 if (currentWorldPath.empty() && !canSee) {
                     playerVisible = false;          // memory expires now that we arrived
