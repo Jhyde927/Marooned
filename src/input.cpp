@@ -23,7 +23,7 @@ void debugControls(Camera& camera, float deltaTime){
         std::cout << "Player Position: ";
         DebugPrintVector(player.position);
 
-        //Reloading lights live breaks them for what ever reason
+        //Reloading lights live, now works, still flashes dark for one frame though, so we can't really recalculate for door openings. 
         // isLoadingLevel = true;
         // InitDynamicLightmap(dungeonWidth * 4);
         // R.SetLightingShaderValues();

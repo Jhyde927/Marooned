@@ -39,11 +39,7 @@ cd Marooned
 ```bash
 make
 ```
-4. Run Marooned.exe
-
-## Usage
-The `assets` folder and all `.dll`/`.so`/`.a` files must be in the same folder in which the executable is run.
-  
+4. Run Marooned.exe. The assets folder and all .dll/.so/.a files must be in the same folder in which the executable is run.  
 
 ### Linux
 #### Prerequisites

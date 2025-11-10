@@ -18,12 +18,8 @@ bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int m
 
 Vector2 GetRandomReachableTile(const Vector2& start, const Character* self, int maxAttempts = 100);
 bool TrySetRandomPatrolPath(const Vector2& start, Character* self, std::vector<Vector3>& outPath);
-bool TrySetRetreatPath(
-    const Vector2& startTile,
-    const Vector2& playerTile,
-    Character* self,
-    std::vector<Vector3>& outPath,
-    float targetDistance,     // e.g. 10
+bool TrySetRetreatPath(const Vector2& startTile, const Vector2& playerTile, Character* self, std::vector<Vector3>& outPath, 
+    float targetDistance,     // e.g. 12
     float tolerance,          // e.g. 3
     int   maxAttempts,        // e.g. 100
     int   maxPathLen,         // e.g. 30   <-- HARD CAP

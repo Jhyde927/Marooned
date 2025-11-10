@@ -21,9 +21,8 @@
 GameState currentGameState = GameState::Menu;
 
 //global variables, clean these up somehow. 
-//Model terrainModel;
+
 Image heightmap;
-//Mesh terrainMesh;
 Vector3 terrainScale = {16000.0f, 200.0f, 16000.0f}; //very large x and z, 
 
 TreeShadowMask gTreeShadowMask;
@@ -83,7 +82,7 @@ std::vector<DungeonEntrance> dungeonEntrances;
 
 
 void InitLevel(LevelData& level, Camera& camera) {
-    //We were never calling end texture mode when switching levels mid game loop. Causing problems. 
+    //Make sure we end texture mode, was causing problems with terrain.
     EndTextureMode();
 
     isLoadingLevel = true;
@@ -216,39 +215,20 @@ void StartFadeInFromBlack() {
 }
 
 
-// Call this EVERY FRAME, regardless of game state:
+// Called every frame before any world/menu update or rendering
 void UpdateFade(Camera& camera) {
-
-    float dt = FadeDt(); //prevents loading time accumulating frames and skiping the fade.
-    fade = fadeValue;
+    const float dt = FadeDt();
     switch (gFadePhase) {
     case FadePhase::FadingOut:
-        fadeValue += fadeSpeed * dt;
+        fadeValue = fminf(1.0f, fadeValue + fadeSpeed * dt);
         if (fadeValue >= 1.0f) {
-            fadeValue = 1.0f;
-            gFadePhase = FadePhase::Swapping;
-
-            // Do the swap atomically here:
-            if (queuedLevel != -1) {
-                currentGameState = GameState::Menu; // hack, switch to menu after fading out, if switch from menu is true imediatly load queued level
-                //InitLevel(levels[queuedLevel], camera);
-                switchFromMenu   = true;
-                //pendingLevelIndex = -1;
-                queuedLevel = -1;
-            }
-
-            // Immediately proceed to fade in next frame
-            gFadePhase = FadePhase::FadingIn;
+            gFadePhase = FadePhase::Swapping;   // <-- stop here; main loop will do the swap
         }
         break;
 
     case FadePhase::FadingIn:
-        fadeValue -= fadeSpeed * dt;
-        
-        if (fadeValue <= 0.0f) {
-            fadeValue = 0.0f;
-           gFadePhase = FadePhase::Idle;
-        }
+        fadeValue = fmaxf(0.0f, fadeValue - fadeSpeed * dt);
+        if (fadeValue <= 0.0f) gFadePhase = FadePhase::Idle;
         break;
 
     case FadePhase::Swapping:
@@ -257,12 +237,19 @@ void UpdateFade(Camera& camera) {
         break;
     }
 
-    // Push uniform every frame so the shader always matches
-    Shader& fogShader = R.GetShader("fogShader");
-    SetShaderValue(fogShader, GetShaderLocation(fogShader, "fadeToBlack"),
-                   &fadeValue, SHADER_UNIFORM_FLOAT);
+    // Only touch the shader when we are not swapping
+    if (gFadePhase != FadePhase::Swapping) {
+        Shader& fogShader = R.GetShader("fogShader");
+        int loc = GetShaderLocation(fogShader, "fadeToBlack");
+        SetShaderValue(fogShader, loc, &fadeValue, SHADER_UNIFORM_FLOAT);
+    }
 }
 
+void RebindDynamicLightmapForFrame() {
+    const int DYN_UNIT = 1;
+    rlActiveTextureSlot(DYN_UNIT);
+    rlSetTexture(gDynamic.tex.id);
+}
 
 void InitDungeonLights(){
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
@@ -427,7 +414,7 @@ void generateTrex(int amount, Vector3 centerPos, float radius) {
             spawnPos.y = terrainHeight + spriteHeight / 2.0f;
         }
 
-        std::cout << "generated T-Rex\n";
+        //std::cout << "generated T-Rex\n";
         Character Trex(spawnPos, R.GetTexture("trexSheet"), 300, 300, 1, 0.5f, 1.0, 0, CharacterType::Trex);
         Trex.maxHealth = 2000;
         Trex.currentHealth = Trex.maxHealth;

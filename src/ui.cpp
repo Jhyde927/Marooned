@@ -369,10 +369,6 @@ void DrawMenu(int selectedOption, int levelIndex) {
                     menuFontSizeF, menuSpacing, WHITE, menuShadowPx, shadowCol);
 
 
-    float alpha = 1.0f; // 0..1
-    if (fade > 0.0f) DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, alpha));
-    //when we switch from menu, it was flashing the menu screen for 1 frame durring fade out. 
-    //So draw a black rectangle over the menu when fading. For some reason this function needs to run for the lights to work. 
 
 }
 

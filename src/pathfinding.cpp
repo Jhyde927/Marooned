@@ -227,62 +227,6 @@ static Vector2 GetRetreatTile(
     return { -1, -1 };
 }
 
-// Try to build a RETREAT path (away from player, no LOS requirement).
-// Returns false if no path could be built.
-// bool TrySetRetreatPath(
-//     const Vector2& startTile,
-//     const Vector2& playerTile,
-//     Character* self,
-//     std::vector<Vector3>& outPath,
-//     float targetDistance,     // e.g. 10.f
-//     float tolerance,          // e.g. 3.f
-//     int   maxAttempts,        // e.g. 100
-//     int   maxShrinkSteps  // fallback: shrink distance if space is tight
-// )
-// {
-//     if (isLoadingLevel) return false;
-
-//     Vector2 target = { -1, -1 };
-
-//     // 1) First try: biased away from player
-//     target = GetRetreatTileAwayFrom(startTile, playerTile, self, targetDistance, tolerance, maxAttempts);
-
-//     // 2) Fallback: unbiased ring
-//     if (target.x < 0)
-//         target = GetRetreatTile(startTile, self, targetDistance, tolerance, maxAttempts);
-
-//     // 3) Last resort: shrink distance band a few times
-//     float dist = targetDistance;
-//     int shrink = 0;
-//     while (target.x < 0 && shrink < maxShrinkSteps)
-//     {
-//         dist = std::max(2.0f, dist * 0.7f); // gently shrink, never below 2 tiles
-//         target = GetRetreatTileAwayFrom(startTile, playerTile, self, dist, tolerance, maxAttempts / 2);
-//         if (target.x < 0)
-//             target = GetRetreatTile(startTile, self, dist, tolerance, maxAttempts / 2);
-//         ++shrink;
-//     }
-
-//     if (target.x < 0) return false; // no valid tile at all
-
-//     if (!IsWalkable((int)target.x, (int)target.y, dungeonImg)) return false;
-
-//     std::vector<Vector2> tilePath = FindPath(startTile, target);
-//     if (tilePath.empty()) return false;
-
-//     outPath.clear();
-//     outPath.reserve(tilePath.size());
-//     for (const Vector2& tile : tilePath)
-//     {
-//         Vector3 worldPos = GetDungeonWorldPos((int)tile.x, (int)tile.y, tileSize, dungeonPlayerHeight);
-//         // Vertical offsets per character type (match your patrol helper)
-//         worldPos.y += 80.0f; // default skeleton offset
-//         if (self && self->type == CharacterType::Pirate) worldPos.y = 160.0f;
-//         outPath.push_back(worldPos);
-//     }
-
-//     return !outPath.empty();
-// }
 
 // Try to build a RETREAT path with a cap on path length.
 // Returns false if no acceptable path is found.
@@ -291,7 +235,7 @@ bool TrySetRetreatPath(
     const Vector2& playerTile,
     Character* self,
     std::vector<Vector3>& outPath,
-    float targetDistance,     // e.g. 10
+    float targetDistance,     // e.g. 12
     float tolerance,          // e.g. 3
     int   maxAttempts,        // e.g. 100
     int   maxPathLen,         // e.g. 30   <-- HARD CAP
@@ -299,7 +243,7 @@ bool TrySetRetreatPath(
 )
 {
     if (isLoadingLevel) return false;
-    //Get retreat tile and try to build a path. Cap the path length so the spider doesn't run out of the room. 
+
     auto tryPickAndBuild = [&](float dist)->bool { //lambda
         // 1) try biased-away
         Vector2 candidate = GetRetreatTileAwayFrom(startTile, playerTile, self, dist, tolerance, maxAttempts);

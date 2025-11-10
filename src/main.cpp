@@ -12,8 +12,10 @@
 #include "camera_system.h"
 #include "lighting.h"
 #include "hintManager.h"
+#include "rlgl.h"
 
-bool squareRes = true; // set true for 1280x1024, false for widescreen
+
+bool squareRes = false; // set true for 1280x1024, false for widescreen
 
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
@@ -66,37 +68,39 @@ int main() {
 
         UpdateFade(camera); //always update fade
 
+
+        if (gFadePhase == FadePhase::Swapping) {
+            UpdateMusicStream(SoundManager::GetInstance().GetMusic("jungleAmbience"));
+            // Block anything from touching old resources this frame.
+            InitLevel(levels[pendingLevelIndex], camera);
+            pendingLevelIndex = -1;
+
+            currentGameState = GameState::Playing;
+            gFadePhase = FadePhase::FadingIn;
+
+            //DrawMenu(selectedOption, levelIndex); //this is needed for mysterious reasons. without it lights don't work on level load. 
+            //SOlVED// drawmenu was drawing backdrop which was the first texture assigned in the game, it was assined to texture 0,
+            //the same texture the lightmap was assigned to. the 2d texture over rided the light map. Now implicetly set the light map to 1. 
+
+            continue;
+        }
+
         //Main Menu - level select 
         if (currentGameState == GameState::Menu) {
 
             UpdateMenu(camera);
-            
             UpdateMusicStream(SoundManager::GetInstance().GetMusic("jungleAmbience"));
-            if (switchFromMenu){ //HACK//// make lighting work on level load from door. When game state is menu, only menu code runs,
-            //enabling us to cleanly switch levels and lightmaps. 
-
-                InitLevel(levels[pendingLevelIndex], camera);
-                pendingLevelIndex = -1;
-                
-                switchFromMenu = false;
-                currentGameState = GameState::Playing;
-            } 
-
-
-      
-            //dont draw menu when doing the menu switching hack
             BeginDrawing();
-
             DrawMenu(selectedOption, levelIndex);
-
             EndDrawing();
-
-
             if (currentGameState == GameState::Quit) break;
-            
-
+        
             continue; // skip the rest of the game loop
         }
+
+              // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
+        RebindDynamicLightmapForFrame();  
+
 
         if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
         UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
@@ -116,7 +120,6 @@ int main() {
         UpdateLauncherTraps(deltaTime);
         UpdateDungeonChests();
         ApplyLavaDPS(player, deltaTime, 1);
-
         UpdateHintManager(deltaTime);
         
         //collisions
@@ -139,7 +142,6 @@ int main() {
         UpdatePlayer(player, deltaTime, camera);
         
         if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights);
-
         RenderFrame(camera, player, deltaTime); //draw everything
         
     }
