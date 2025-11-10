@@ -18,6 +18,34 @@
 
 ![Gameplay demo](assets/screenshots/demo.gif)
 ## Installation
+### 🪟 Windows
+#### Prerequisites
+Install:
+- [Git](https://git-scm.com/downloads)
+- [MinGW-w64](https://www.mingw-w64.org/) or another C++ compiler
+- [Raylib 5.5](https://www.raylib.com/)
+
+#### Build Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Jhyde927/Marooned.git
+
+2. Navigate to the repository:
+```bash
+cd Marooned
+```
+
+3. Build the project with Make:
+```bash
+make
+```
+4. Run Marooned.exe
+
+## Usage
+The `assets` folder and all `.dll`/`.so`/`.a` files must be in the same folder in which the executable is run.
+  
+
+### Linux
 #### Prerequisites
 You must install git, make (or cmake), a c++ compiler and raylib 5.5.
 #### Install Steps

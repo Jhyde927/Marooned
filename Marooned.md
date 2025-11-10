@@ -417,7 +417,49 @@ If I switch to windows 11 is the terrain shader gonna be broke on this machine t
 
 working on terrain chunking may have found why lighting was broken unless loading from menu. Need to investigate further. Just added EndTextureMode() at the beginning of initLevel. If we were switching levels mid game loop. EndTextureMode() never got called and it polluted the next render texture. 
 
+Huge optimization win. Drawing the terrain as one big model turns out was a bad idea. The game should have been running like 30 percent faster without that draw call. So we now do terrainChunking where the mesh gets split up into seperate models. Some really complicated code I don't understand breaks up the terrain mesh into model chunks that get saved to a vector of struct terrain chunk that has a model member. iterate the chunks and draw each one. They slightly overlap by one texel so there are no seams. 
 
+We were also loading this massive terrain model on dungeon levels for no reason. We have a dummy heightmap on dungeon levels. Some character code still references the heightmap, so we kinda still need the dummy unless I go through and find all the places we reference it and do a if isDungeon check. So i just made the blank dummy heightmap 64x64 instead of 4k. So we are loading a tiny little plane that never gets drawn just as a placeholder. 
+
+All these optimizations make the load times like instant. I am glad to know it was my stupid self that was fucking up and not a hardware problem. This restores my faith in computers and C++ as a fast language. If I tried to make this thing in Godot there is no way in hell it would run as fast as this, and I can still optimize way further. I don't even frustum cull yet. 
+
+chunk draw distance is set to 15k. this hides things poping in pretty well. The laptop only gets 20 frames with this draw distance and improves as it gets lower. Maybe I could make 2 builds, or a setting in the menu, like a slider for draw distance. I've seen that in games before. 
+
+Spider boss on level 7. the one with the big room and a single spider in it. Maybe this boss could become just another enemy in later dungeons. just take the existing sprite and scale it to 2.0? Still got plenty of tokens on ImgToImg to make a better looking boss spider. It could leave a trail of web. it could shoot web decals that freeze you in place allowing it to move in and attack. It would work like pirate where it moves into shooting range, stops and shoots. If there is a hit, only then move in for an attack. otherwise keep shitting out little spiders at a distance. Thats a way better boss fight than the t-rex. 
+
+Spider boss would need it's own state machine. We would need a spawn spider at position function. Maybe the hatch from eggs. That's an idea. spiders in general hatch from eggs on a timer once you enter a certain range. Killing the eggs immediatly would become the task when entering a room. Plus a cool hatching animation, and egg exploding animation when you destroy them. 
+
+Terrain textures aren't working since we switched to chunking the terrain. Maybe the vertex shader needs to use world UVs or something like that. I remember for lava we had to change the vertex shader to get the texture to spread across all tiles. Texture not spreading wasn't the problem with terrain tiles though. It was all black IIRC. Still the vertex shader would need to be changed. 
+
+-fixed terraint textures for chunked terrain. It looks glorious and it works on the laptop and frame rate improved I think. It also doesn't turn black when switching back and forth between dungeon and island a bunch. We asign each texture to a material slot like we were doing before. LLM kept lying to me saying that it was overkill. It's the only way it would work. I think before we just didn't have the correct vertex shader. I remember glancing at the vs and saying to myself looks good to me without really checking. 
+
+Raptor death is slightly too fast. x
+
+Optimized the water plane. Got rid of the bottom plane. Found it was not neccesary. saves drawing a 16k plane. 
+
+3d door models, that use the current door sprite. Very thin rectangle. It has a curved top, would transparency work?
+The door would rotate 90 degrees when opened. The open model wouldn't have collision, it could though. Your making a bounding box anyway basically when generating the model. Door is already a struct. Just add another member model to the door struct. generate the model first? Once on generateDoorways so we have the rotation. Where would the pivot be? it would have to rotate on Y 90 degrees but origin needs to be bottom corner not middle. 
+
+chatGPT is no good at spiders. 
+
+Got a decent comic book style giant spider. Maybe a little to cartoony bet was the best I could do. Made a whole sprite sheet. Need to rig it up. Idle case should be different. He should not chase unless, he's laid an egg, and is within a distance for a certain amount of seconds then he will chase and attack, then back off and lay another egg and repeat. Could reuse reposition state to reposition to another random tile like 1000 units away. 5 tiles away. 
+
+generate art of a spider egg hatching a baby spider. and also exploding like in the movie aliens.
+
+
+spider web projectile decal. 
+spider egg that hathes normal spiders. 
+regular barrier spider web spawner? in 1x1 hallways the spider could place web barriers. Make the boss fight inside a maze. when the spider runs away it doubles it's speed and takes off to the outside of the maze faster than the player can chase. 
+
+a vector of retreat positions we can randomly choose from for the spider to run to when retreating. Nope. Needs to be level agnostic. get random tile a certain distance away. 
+
+Implemented the run away, and chase behavior of giant spiders. Added spiderAgro bool and spiderAgroTimer, and accumulateDamage to Character class. Spider starts out not agro and will run away when you first see it. It picks a random distant tile, it tries to build a path to that tile, if it finds a path and the length of the path is less than 30 tiles, the state = runaway and it follows the path. It will continue to run away until it takes 200 damage, or the spiderAgroTimer is greater than 10 seconds. float accumulate damage tracks how much damage has been taken before switching to runaway or agro. if accumulateDamage > 400 spiderAgro = false, if accumulateDamage > 200 spiderAgro = true depending on agro state. 
+
+-we could add a distance check and timer check to runaway case. if agroTimer < 10 and !hasLayedEgg: lay egg, agro = true. You would need to chase him down and kill the eggs he...she is laying. Maybe boss spider can lay eggs and normal Giant spiders dont. So we could use generic giant spiders in later levels and have a boss one that lays eggs. 
+
+
+
+The boss arena is filled with little corridors and choke point with little nooks and crannies the spider can run to. There are spider webs blocking the paths. Spider can walk through spider webs, and player can't. 
 
 
 
