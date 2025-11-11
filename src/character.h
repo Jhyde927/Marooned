@@ -139,6 +139,6 @@ public:
 
     AnimDesc GetAnimFor(CharacterType type, CharacterState state);
 
-    void UpdateLeavingFlag(const Vector3& playerPos);
+    void UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos);
 };
 

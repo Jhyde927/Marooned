@@ -423,6 +423,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     magicStaff.isMoving = player.isMoving;
     meleeWeapon.Update(deltaTime);
     magicStaff.Update(deltaTime);
+
     UpdateMeleeHitbox(camera);
     UpdateFootsteps(deltaTime);
 
@@ -526,7 +527,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         if (!player.onBoard) HandlePlayerMovement(deltaTime);
     } 
 
-   
+    player.previousPosition = player.position;
 }
 
 void Player::TakeDamage(int amount){

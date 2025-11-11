@@ -153,7 +153,7 @@ void Character::Update(float deltaTime, Player& player ) {
  
     animationTimer += deltaTime;
     stateTimer += deltaTime;
-    previousPosition = position;
+
     float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale); //get groundY from heightmap
     if (isDungeon) groundY = dungeonPlayerHeight;
 
@@ -196,56 +196,67 @@ void Character::Update(float deltaTime, Player& player ) {
         hitTimer = 0.0f;
     }
 
-
+    previousPosition = position;
     eraseCharacters(); //clean up dead enemies
 
 }
 
-// Show the character's back when moving away
+// Show the character's back when moving away (robust vs player backpedal)
 static inline Vector3 XZ(const Vector3& v){ return {v.x, 0.0f, v.z}; }
 static inline float   DotXZ(const Vector3& a, const Vector3& b){ return a.x*b.x + a.z*b.z; }
 static inline float   LenSqXZ(const Vector3& v){ return v.x*v.x + v.z*v.z; }
 
-void Character::UpdateLeavingFlag(const Vector3& playerPos)
+void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos)
 {
     // Tunables
-    constexpr float MIN_MOVE_EPS_SQ   = 100.0f; // how much squared motion counts as "moving" (units^2 per tick)
-    constexpr int   STREAK_TO_FLIP    = 3;    // require N consistent frames to flip
-    constexpr float DIST_EPS          = 1.0f; // tiny epsilon to ignore micro distance jitter
+    constexpr float MIN_REL_MOVE_EPS_SQ = 4.0f; // how much *relative* motion counts as "moving" (units^2 per tick)
+    constexpr int   STREAK_TO_APPROACH  = 3;    // frames to confirm approaching
+    constexpr int   STREAK_TO_LEAVE     = 6;    // frames to confirm leaving (more conservative)
+    constexpr float DIST_EPS            = 1.0f; // small jitter epsilon for fallback
+    constexpr float NEAR_CONTACT        = 100.0f; // if closer than this, avoid flipping to "leaving" cheaply
 
     // Current vectors (XZ plane)
-    Vector3 toPlayer   = XZ( Vector3Subtract(playerPos, this->position) );
-    Vector3 deltaMove  = XZ( Vector3Subtract(this->position, this->prevPos) );
+    Vector3 r          = XZ( Vector3Subtract(playerPos, this->position) );                 // enemy -> player
+    Vector3 enemyStep  = XZ( Vector3Subtract(this->position, this->prevPos) );             // enemy Δ
+    Vector3 playerStep = XZ( Vector3Subtract(playerPos,        playerPrevPos) );           // player Δ
+    Vector3 relStep    = XZ( Vector3Subtract(enemyStep,        playerStep) );              // enemy relative to player (=-Δr)
 
-    bool decisionMade = false;
+    const float rLenSq = LenSqXZ(r);
 
-    // 1) Prefer velocity-based decision if we actually moved
-    if (LenSqXZ(deltaMove) > MIN_MOVE_EPS_SQ && LenSqXZ(toPlayer) > 0.0001f)
+    bool decided = false;
+
+    // 0) Near-contact guard: if very close, bias to "approach" to avoid popping
+    if (rLenSq < NEAR_CONTACT*NEAR_CONTACT) {
+        approachStreak++; leaveStreak = 0;
+        if (approachStreak >= STREAK_TO_APPROACH) { isLeaving = false; decided = true; }
+    }
+
+    // 1) Relative-motion test (primary)
+    if (!decided && LenSqXZ(relStep) > MIN_REL_MOVE_EPS_SQ && rLenSq > 1e-6f)
     {
-        // If movement has a positive dot toward the player → approaching; negative → leaving
-        const float d = DotXZ(deltaMove, toPlayer);
-        if (d > 0.0f) {        // moving toward player
-            approachStreak++;  leaveStreak = 0;
-            if (approachStreak >= STREAK_TO_FLIP) { isLeaving = false; decisionMade = true; }
-        } else if (d < 0.0f) { // moving away from player
-            leaveStreak++;     approachStreak = 0;
-            if (leaveStreak >= STREAK_TO_FLIP+10)  { isLeaving = true;  decisionMade = true; } //slightly more ticks to flip to isLeaving
+        const float s = DotXZ(r, relStep); // >0 => closing, <0 => separating
+        if (s > 0.0f) {
+            approachStreak++; leaveStreak = 0;
+            if (approachStreak >= STREAK_TO_APPROACH) { isLeaving = false; decided = true; }
+        } else if (s < 0.0f) {
+            leaveStreak++; approachStreak = 0;
+            if (leaveStreak >= STREAK_TO_LEAVE) { isLeaving = true; decided = true; }
         }
     }
 
-    // 2) Fallback: if barely moving, use distance trend (prevents flicker at path corners)
-    if (!decisionMade)
+    // 2) Fallback: tiny-motion distance trend (rare now)
+    if (!decided)
     {
-        float curDist = sqrtf(LenSqXZ(toPlayer));
+        float curDist = sqrtf(rLenSq);
         if (prevDistToPlayer >= 0.0f)
         {
             float delta = curDist - prevDistToPlayer;
-            if (delta > DIST_EPS) { // getting farther
-                leaveStreak++;     approachStreak = 0;
-                if (leaveStreak >= STREAK_TO_FLIP)  isLeaving = true;
-            } else if (delta < -DIST_EPS) { // getting closer
-                approachStreak++;  leaveStreak = 0;
-                if (approachStreak >= STREAK_TO_FLIP) isLeaving = false;
+            if (delta > DIST_EPS) {
+                leaveStreak++; approachStreak = 0;
+                if (leaveStreak >= STREAK_TO_LEAVE) isLeaving = true;
+            } else if (delta < -DIST_EPS) {
+                approachStreak++; leaveStreak = 0;
+                if (approachStreak >= STREAK_TO_APPROACH) isLeaving = false;
             }
         }
         prevDistToPlayer = curDist;
@@ -254,6 +265,7 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos)
     // Bookkeeping
     prevPos = this->position;
 }
+
 
 AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
     switch (type) {
@@ -280,16 +292,13 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Chase:
                 case CharacterState::Reposition:
                 case CharacterState::Orbit: 
+                case CharacterState::RunAway:
+                case CharacterState::Patrol:
                     return AnimDesc{1, 5, 0.12f, true}; // walk
 
                 
-                case CharacterState::RunAway:
-                case CharacterState::Patrol:
-                    if (isLeaving){
-                        return AnimDesc {3, 4, 0.12f, true};
-                    }else{
-                        return AnimDesc{1, 5, 0.12f, true}; // walk
-                    }
+
+
                 case CharacterState::Freeze: return {0, 1, 1.0f, true};
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};
                 case CharacterState::Attack: return {2, 5, 0.2f, false};  
@@ -337,12 +346,8 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Patrol:
                 case CharacterState::Reposition:
                 case CharacterState::RunAway: 
-                    if (isLeaving){
-                        return AnimDesc {3, 4, 0.25f, true}; //run away
-                    }else{
-                        return AnimDesc{1, 5, 0.2f, true}; // walk
-                    }
-
+                    return AnimDesc{1, 5, 0.2f, true}; // walk
+                
                 case CharacterState::Freeze: return {0, 1, 1.0f, true};
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};
                 case CharacterState::Attack: return {2, 4, 0.2f, false};  // 4 * 0.2 = 0.8s
@@ -372,13 +377,8 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
             switch (state) {
                 case CharacterState::Chase:
                 case CharacterState::Reposition:
-                    return AnimDesc{1, 4, 0.2f, true}; // walk
-
                 case CharacterState::Patrol:
-                    // Choose row depending on whether the pirate is walking toward or away
-                    return isLeaving
-                        ? AnimDesc{5, 4, 0.25f, true}   // walking away (show back)
-                        : AnimDesc{1, 4, 0.25f, true};  // walking toward (normal walk)
+                    return AnimDesc{1, 4, 0.2f, true}; // walk
 
                 case CharacterState::Freeze: return {0, 1, 1.0f, true};
                 case CharacterState::Idle:   return     {0, 1, 1.0f, true};
@@ -410,14 +410,9 @@ static inline bool StateUsesPath(CharacterState s) {
 
 void Character::ChangeState(CharacterState next) {
     if (state == next) return;  // no spam
-
-    // Auto-flush path when transitioning from a path-using state to a non-path state. 
-    //bool clearPath = StateUsesPath(state) && !StateUsesPath(next);
     state = next;
     stateTimer = 0.0f;
 
-    //if (clearPath) currentWorldPath.clear(); testing with this off to see if it fixes a bug where skeletons stop chasing and just stand there. 
-    //is does fix the bug. clearing the path is causing enemies to stop and remain idle sometimes instead of chasing. 
     if (type == CharacterType::Raptor && state == CharacterState::Chase){
         chaseDuration = GetRandomValue(10, 20);
         playRaptorSounds(); //play a random tweet when switching to chase. 

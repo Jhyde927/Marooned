@@ -220,10 +220,17 @@ void UpdateFade(Camera& camera) {
     const float dt = FadeDt();
     switch (gFadePhase) {
     case FadePhase::FadingOut:
-        fadeValue = fminf(1.0f, fadeValue + fadeSpeed * dt);
-        if (fadeValue >= 1.0f) {
-            gFadePhase = FadePhase::Swapping;   // <-- stop here; main loop will do the swap
+        if (pendingLevelIndex != -1){ //fade out to level
+            fadeValue = fminf(1.0f, fadeValue + fadeSpeed * dt);
+            if (fadeValue >= 1.0f) {
+                gFadePhase = FadePhase::Swapping;   // <-- stop here; main loop will do the swap
+            }
+
+        }else{ //fade out to spawn point
+            fadeValue = fminf(1.0f, fadeValue + fadeSpeed * dt);
+            if (fadeValue >= 1.0f) StartFadeInFromBlack();
         }
+
         break;
 
     case FadePhase::FadingIn:

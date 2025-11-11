@@ -63,7 +63,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
     Vector2 start = WorldToImageCoords(position);
     playerVisible = false;
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
-    UpdateLeavingFlag(player.position);
+    UpdateLeavingFlag(player.position, player.previousPosition);
 
     if (!spiderAgro){
         spiderAgroTimer += deltaTime;
@@ -151,13 +151,11 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
         case CharacterState::Attack: {
 
+
             if (distance > 350.0f) { 
                 if (spiderAgro){
                      ChangeState(CharacterState::Chase);
                      break;
-                }else{
-                    ChangeState(CharacterState::Idle);
-                    break;
                 }
 
             }
@@ -206,6 +204,10 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 }
                 
             }
+
+            if (!spiderAgro){
+                ChangeState(CharacterState::RunAway);
+            }
             break;
         }
 
@@ -219,7 +221,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 SetAnimation(1, 5, 0.2, true); //walk
             }
 
-            if (distance < 200.0f && canSee) {
+            if (distance < 200.0f && canSee && spiderAgro) {
                 ChangeState(CharacterState::Attack);
                 break;
 
@@ -644,7 +646,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
     const float distance = Vector3Distance(position, player.position);
     UpdateRaptorVisibility(player, deltaTime);
-    UpdateLeavingFlag(player.position);
+    UpdateLeavingFlag(player.position, player.previousPosition);
 
     //UpdateLeavingFlag(player.position);
 
@@ -814,7 +816,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
     //Vector2 goal = WorldToImageCoords(player.position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
-    UpdateLeavingFlag(player.position);
+    UpdateLeavingFlag(player.position, player.previousPosition);
  
     switch (state){
         case CharacterState::Idle: {

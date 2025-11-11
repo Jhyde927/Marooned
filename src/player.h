@@ -16,7 +16,7 @@ struct Player {
     Vector2 rotation;
     Vector3 forward;
     Vector3 startPosition;
-
+    Vector3 previousPosition;
     BoundingBox meleeHitbox;
     BoundingBox blockHitbox;
 
@@ -54,7 +54,7 @@ struct Player {
     float currentMana = maxMana;
     float maxStamina = 100.0f;
     float stamina = maxStamina;
-
+    
     float radius = 150.0f;
     float hitTimer = 0.0f;
     bool dying = false;
