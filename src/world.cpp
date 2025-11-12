@@ -104,13 +104,13 @@ void InitLevel(LevelData& level, Camera& camera) {
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
 
+    dungeonEntrances = level.entrances; //get level entrances from level data
     generateVegetation();
 
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true);
     //SetShaderForAllChunks(terrain, R.GetShader("terrainShader"));
     InitBoat(player_boat, boatPosition);
 
-    dungeonEntrances = level.entrances; //get level entrances from level data
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 

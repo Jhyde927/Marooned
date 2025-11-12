@@ -242,28 +242,28 @@ void ResourceManager::LoadAllResources() {
 
 
     // Models (registering with string keys)
-    R.LoadModel("palmTree",       "assets/models/bigPalmTree.glb");
-    R.LoadModel("palm2",          "assets/models/smallPalmTree.glb");
-    R.LoadModel("bush",           "assets/models/grass(stripped).glb");
-    R.LoadModel("boatModel",      "assets/models/boat.glb");
-    R.LoadModel("blunderbuss",    "assets/models/blunderbus.glb");
-    //R.LoadModel("floorTile",      "assets/models/floorTile.glb"); //unused? we made the tiles gray but then reverted them but kept the name. 
-    //R.LoadModel("doorWay",        "assets/models/doorWay.glb"); //fix this
-    R.LoadModel("floorTileGray",  "assets/models/floorTileGray.glb");
-    R.LoadModel("doorWayGray",    "assets/models/doorWayGray.glb");
-    //R.LoadModel("wall",           "assets/models/wall.glb");
-    R.LoadModel("wallSegment",    "assets/models/wallSegment.glb");
-    R.LoadModel("barrelModel",    "assets/models/barrel.glb");
-    R.LoadModel("swordModel",     "assets/models/sword.glb");
-    R.LoadModel("lampModel",      "assets/models/lamp.glb");
-    R.LoadModel("brokeBarrel",    "assets/models/brokeBarrel.glb");
-    R.LoadModel("chestModel",     "assets/models/chest.glb");
-    R.LoadModel("staffModel",     "assets/models/staff.glb");
-    R.LoadModel("fireballModel",  "assets/models/fireball.glb");
-    R.LoadModel("iceballModel",   "assets/models/iceBall.glb");
-    R.LoadModel("campFire",       "assets/models/campFire.glb");
-    R.LoadModel("stonePillar",    "assets/models/stonePillar.glb");
-    R.LoadModel("lavaTile",       "assets/models/lavaTileSquare.glb");
+    R.LoadModel("palmTree",       "assets/Models/bigPalmTree.glb");
+    R.LoadModel("palm2",          "assets/Models/smallPalmTree.glb");
+    R.LoadModel("bush",           "assets/Models/grass(stripped).glb");
+    R.LoadModel("boatModel",      "assets/Models/boat.glb");
+    R.LoadModel("blunderbuss",    "assets/Models/blunderbus.glb");
+    //R.LoadModel("floorTile",      "assets/Models/floorTile.glb"); //unused? we made the tiles gray but then reverted them but kept the name. 
+    //R.LoadModel("doorWay",        "assets/Models/doorWay.glb"); //fix this
+    R.LoadModel("floorTileGray",  "assets/Models/floorTileGray.glb");
+    R.LoadModel("doorWayGray",    "assets/Models/doorWayGray.glb");
+    //R.LoadModel("wall",           "assets/Models/wall.glb");
+    R.LoadModel("wallSegment",    "assets/Models/wallSegment.glb");
+    R.LoadModel("barrelModel",    "assets/Models/barrel.glb");
+    R.LoadModel("swordModel",     "assets/Models/sword.glb");
+    R.LoadModel("lampModel",      "assets/Models/lamp.glb");
+    R.LoadModel("brokeBarrel",    "assets/Models/brokeBarrel.glb");
+    R.LoadModel("chestModel",     "assets/Models/chest.glb");
+    R.LoadModel("staffModel",     "assets/Models/staff.glb");
+    R.LoadModel("fireballModel",  "assets/Models/fireball.glb");
+    R.LoadModel("iceballModel",   "assets/Models/iceBall.glb");
+    R.LoadModel("campFire",       "assets/Models/campFire.glb");
+    R.LoadModel("stonePillar",    "assets/Models/stonePillar.glb");
+    R.LoadModel("lavaTile",       "assets/Models/lavaTileSquare.glb");
 
 
     //generated models
