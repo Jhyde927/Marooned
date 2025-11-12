@@ -21,7 +21,7 @@ DungeonEntrance entranceToDungeon3 = {
 //Player Position: X=6294.27 Y=299.216 Z=5515.47
 DungeonEntrance entranceToDungeon4 = {
     {6294, 150, 5515},
-    6,
+    5,
     true
 };
 
@@ -34,9 +34,7 @@ DungeonEntrance entranceToDungeon11 = {
 
 
 std::vector<LevelData> levels = {
-    //we put middle island and river at the end of the list. Runs extremely slow on laptop. terrain shader was broken. Made a version with
-    //them at the end of the list and hard coded green and yellow solid color for grass and sand. So at least its not all white. They can 
-    //come back to the front of the list once they are optimized. 
+
     {
 
         "(Middle Island)", //display name
@@ -120,7 +118,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         4, 
-        5,
+        0,
         {},
         true,
     },

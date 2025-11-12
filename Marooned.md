@@ -442,7 +442,7 @@ The door would rotate 90 degrees when opened. The open model wouldn't have colli
 
 chatGPT is no good at spiders. 
 
-Got a decent comic book style giant spider. Maybe a little to cartoony bet was the best I could do. Made a whole sprite sheet. Need to rig it up. Idle case should be different. He should not chase unless, he's laid an egg, and is within a distance for a certain amount of seconds then he will chase and attack, then back off and lay another egg and repeat. Could reuse reposition state to reposition to another random tile like 1000 units away. 5 tiles away. 
+Got a decent comic book style giant spider. Maybe a little to cartoony but was the best I could do. Made a whole sprite sheet. Need to rig it up. Idle case should be different. He should not chase unless, he's laid an egg, and is within a distance for a certain amount of seconds then he will chase and attack, then back off and lay another egg and repeat. Could reuse reposition state to reposition to another random tile like 1000 units away. 5 tiles away. 
 
 generate art of a spider egg hatching a baby spider. and also exploding like in the movie aliens.
 
@@ -457,9 +457,21 @@ Implemented the run away, and chase behavior of giant spiders. Added spiderAgro 
 
 -we could add a distance check and timer check to runaway case. if agroTimer < 10 and !hasLayedEgg: lay egg, agro = true. You would need to chase him down and kill the eggs he...she is laying. Maybe boss spider can lay eggs and normal Giant spiders dont. So we could use generic giant spiders in later levels and have a boss one that lays eggs. 
 
-
-
 The boss arena is filled with little corridors and choke point with little nooks and crannies the spider can run to. There are spider webs blocking the paths. Spider can walk through spider webs, and player can't. 
+
+Spider runs away too much. make run away time 5 seconds. or maybe it's good. Maybe we should add little spiders to the mix for the time being and see how that feels. 
+
+make little spiders minature version of the big spider sprite? If we shink giant spider less than 300 it will get distorted. frameHeight...make the frame height of spiders 300, make scale 0.25? or make another spider sprite. 
+
+Fireballs hitting skeletons doesn't play explosion animation and does little damage to skeletons. Make it one shot them. 
+
+Solved level switch lighting bug. The gDyanmic.tex was assigned to texture0 by the shader. When loading the level not from menu, texture0 was being overridden by a 2d draw call. When we loaded from menu texture0 was set to backdrop texture, then gDynamic.tex got set to something other than 0 making it not get overwritten. or something. I guess we were assigning the lightmap texture to the first texture slot which is a bad idea. That bug has been there since the invention of the lighting system. We can now rebuild the light map live while the game is running. It still stutters and flahes dark for a frame so recalculating lighting on door opens doesn't seem doable. 
+
+fixed isLeaving flag. We now account for player movement vs enemy movement when determining the animation. The relative motion. When back peddaling with dinos chasing you it was showing their rear end. becuase player speed is faster than dino's speed. So it was like the dino was moving away from the player when player was moving away. This solves for all characters not just dino.
+
+Could add skeleton rear animation. But skeletons never retreat. same with little spiders. They reposition 1 tile when bunched up. It would look better for patrolling skeletons, they wouldn't be moonwalking. Low priority. 
+
+
 
 
 

@@ -35,7 +35,8 @@ enum class Code {
     DirectionYellowish,     // Yellowish (200,200,0)
     TimingMediumYellow1,    // (200,50,0)
     TimingMediumYellow2,    // (200,100,0)
-    TimingMediumYellow3     // (200,150,0)
+    TimingMediumYellow3,     // (200,150,0)
+    EventLocked,            // (0, 255, 128) spring green
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -72,6 +73,7 @@ constexpr Color ColorOf(Code c) {
         case Code::TimingMediumYellow1:    return Make(200, 50, 0);
         case Code::TimingMediumYellow2:    return Make(200, 100, 0);
         case Code::TimingMediumYellow3:    return Make(200, 150, 0);
+        case Code::EventLocked:            return Make(0, 255, 128);
     }
     // Fallback (should not happen)
     return Make(255, 0, 255);

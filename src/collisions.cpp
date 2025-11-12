@@ -623,7 +623,12 @@ void HandleDoorInteraction(Camera& camera) {
     if (!isWaiting && IsKeyPressed(KEY_E)) {
         for (size_t i = 0; i < doors.size(); ++i) {
             float distanceTo = Vector3Distance(doors[i].position, player.position);
-            if (distanceTo < 300) {
+            if (distanceTo < 250) {
+
+                if (doors[i].eventLocked){
+                    SoundManager::GetInstance().Play("lockedDoor");
+                    return;
+                }
 
                 // If locked and no key, deny access
                 if (doors[i].isLocked) {

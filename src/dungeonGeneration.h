@@ -64,6 +64,7 @@ struct DoorwayInstance {
     float bakedBrightness = 0.0f;
     int linkedLevelIndex = -1;
     std::vector<BoundingBox> sideColliders{};
+    bool eventLocked = false;
 
 };
 
@@ -82,7 +83,7 @@ struct Door {
     int tileX;
     int tileY;
     DoorType doorType = DoorType::Normal;
-
+    bool eventLocked = false;
 
     int linkedLevelIndex = -1; // -1 means no linked level
 };

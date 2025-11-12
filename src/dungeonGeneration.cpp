@@ -457,7 +457,9 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             bool lockedDoor = (current.r == 0 && current.g == 255 && current.b == 255); //CYAN
             bool portal = (current.r == 200 && current.g == 0 && current.b == 200); //portal 
 
-            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal) continue;
+            bool eventLocked = (current.r == 0   && current.g == 255 && current.b == 128); //spring-green
+
+            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal && !eventLocked) continue;
 
             // Check surrounding walls to determine door orientation
             Color left = dungeonPixels[y * dungeonWidth + (x - 1)];
@@ -496,6 +498,8 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
                 archway.linkedLevelIndex = levels[currentLevelIndex].nextLevel; //door to next level
             }else if (lockedDoor){ //Aqua
                 archway.isLocked = true; //locked door
+            }else if (eventLocked) {
+                archway.eventLocked = true;
             } else { //purple
                 archway.linkedLevelIndex = -1; //regular door
             }
@@ -520,13 +524,15 @@ void GenerateDoorsFromArchways() {
         door.rotationY = dw.rotationY + DEG2RAD * 90.0f; //offset why? 
         door.isOpen = false;
         door.isPortal = dw.isPortal;
-
+        door.eventLocked = dw.eventLocked;
         door.isLocked = dw.isLocked;
+
         door.doorTexture = R.GetTexture("doorTexture");
         door.scale = {300, 365, 1}; //stretch it taller
         door.tileX = dw.tileX;
         door.tileY = dw.tileY;
         door.sideColliders = dw.sideColliders; //side colliders for when door is open
+
         
         float halfWidth = 200.0f;   // Half of the 400-unit wide doorway
         float height = 365.0f;
@@ -1191,13 +1197,13 @@ void GenerateGiantSpiderFromImage(float baseY) {
                 Character giantSpider(
                     spawnPos,
                     R.GetTexture("GiantSpiderSheet"), 
-                    300, 300,         // frame width, height //any bigger he would clip walls, scaling bigger doesn't work for some reason anyway
+                    300, 300,         // frame width, height //any bigger he would clip walls on 1x1 hallways
                     1,                // max frames
-                    1.0f, 0.5f,       // speed, scale
+                    1.0f, 0.5f,       // speed, scale //scalling to anything other than 0.5 makes the animation not line up for mysterious reasons. 
                     0,                // initial animation frame
                     CharacterType::GiantSpider
                 );
-                giantSpider.maxHealth = 3000;
+                giantSpider.maxHealth = 2000; //3k was to much, try 2k
                 giantSpider.currentHealth = giantSpider.maxHealth; 
                 
                 enemies.push_back(giantSpider);

@@ -124,3 +124,4 @@ void UpdateWorldFrame(float dt, Player& player);
 void StartFadeOutToLevel(int levelIndex);
 void StartFadeInFromBlack(); 
 void RebindDynamicLightmapForFrame();
+void OpenEventLockedDoors();

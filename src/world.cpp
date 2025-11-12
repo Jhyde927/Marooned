@@ -220,7 +220,7 @@ void UpdateFade(Camera& camera) {
     const float dt = FadeDt();
     switch (gFadePhase) {
     case FadePhase::FadingOut:
-        if (pendingLevelIndex != -1){ //fade out to level
+        if (pendingLevelIndex != -1){ //fade out to next level
             fadeValue = fminf(1.0f, fadeValue + fadeSpeed * dt);
             if (fadeValue >= 1.0f) {
                 gFadePhase = FadePhase::Swapping;   // <-- stop here; main loop will do the swap
@@ -302,6 +302,17 @@ void HandleWaves(Camera& camera){
 
 }
 
+void OpenEventLockedDoors(){
+    //opens the door to next level on spider boss room. we can reuse this to open 1 event locked door per dungeon. 
+    //maybe make an event system. save eventLocked doors to a vector? or a map with an id. an event id or something. 
+    for (size_t i = 0; i < doors.size(); i++){
+        if (doors[i].eventLocked){
+            doors[i].eventLocked = false;
+            doors[i].isLocked = false;
+            //unlock all evenlocked doors. temporary solution. 
+        }
+    }
+}
 
 void removeAllCharacters(){
     enemies.clear();

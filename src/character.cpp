@@ -77,7 +77,8 @@ void Character::TakeDamage(int amount) {
         currentHealth = 0;
         isDead = true;
         deathTimer = 0.0f;
-        //state = CharacterState::Death;
+        if (type == CharacterType::GiantSpider && levelIndex == 8) OpenEventLockedDoors(); //open boss door when spider dies. abstract this 
+
         if (type == CharacterType::Ghost) SetAnimation(1, 7, 0.2);
 
         // Toward the *camera/player* in world space
@@ -104,7 +105,7 @@ void Character::TakeDamage(int amount) {
             canBleed = false;
             // Toward the *camera/player* in world space
             Vector3 toPlayer = Vector3Normalize(Vector3Subtract(player.position, position));
-            Vector3 newPos   = Vector3Add(position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
+            Vector3 newPos   = Vector3Add(position, Vector3Scale(toPlayer, 25.0f)); // 100 units in front of the enemy
             if (type == CharacterType::Skeleton || type == CharacterType::Ghost) {
                 bloodEmitter.EmitBlood(newPos, 10, WHITE);
             } else {

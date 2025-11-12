@@ -6,7 +6,7 @@ struct Particle {
     Vector3 velocity;
     float life;
     float maxLife;
-    float gavity;
+    float gravity;
     Color color;
     float size;
     bool active = false;

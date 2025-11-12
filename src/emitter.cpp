@@ -59,14 +59,14 @@ void Emitter::EmitBlood(Vector3 pos, int count, Color color) {
                 p.position = position;
 
                 p.color = color;
-                p.gavity = 200.0f;  
+                p.gravity = 600.0f;  
                 p.velocity = {
                     (float)GetRandomValue(-100, 100),
                     (float)GetRandomValue(50, 150),
                     (float)GetRandomValue(-100, 100)
                 };
 
-                p.maxLife = 1.5f;
+                p.maxLife = 2.0f;
                 p.life = p.maxLife;
                 p.size = 5.0f;
 
@@ -96,7 +96,7 @@ void Emitter::CreateParticle(Particle& p) {
     switch (particleType) {
         case ParticleType::Sparks:
             p.color = ORANGE;
-            p.gavity = 980.0f;
+            p.gravity = 980.0f;
             p.velocity = {
                 RandomFloat(-300, 300),
                 RandomFloat(300, 1000),
@@ -107,7 +107,7 @@ void Emitter::CreateParticle(Particle& p) {
         case ParticleType::FireTrail:
         {
             p.color = ORANGE;
-            p.gavity = 100.0f;
+            p.gravity = 100.0f;
 
             // Emit particles in a sphere around emitter position, not a point. 
             float radius = 20.0f; 
@@ -133,7 +133,7 @@ void Emitter::CreateParticle(Particle& p) {
 
         case ParticleType::Smoke:
             p.color = DARKGRAY;
-            p.gavity = -100.0f;
+            p.gravity = -100.0f;
             p.velocity = {
                 RandomFloat(-50, 50),
                 RandomFloat(-25, 25),
@@ -144,7 +144,7 @@ void Emitter::CreateParticle(Particle& p) {
         case ParticleType::IceMist:
 
             p.color = SKYBLUE;
-            p.gavity = -50.0f;
+            p.gravity = -50.0f;
             p.velocity = {
                 RandomFloat(-40, 40),
                 RandomFloat(-10, 20),
@@ -154,7 +154,7 @@ void Emitter::CreateParticle(Particle& p) {
 
         case ParticleType::IceBlast:
         p.color = SKYBLUE;
-        p.gavity = 980.0f; // rising slowly
+        p.gravity = 980.0f; // rising slowly
         p.velocity = {
             RandomFloat(-250, 250),
             RandomFloat(300, 1000),

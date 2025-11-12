@@ -271,9 +271,9 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
         case CharacterState::Death: {
             if (!isDead) {
-                ChangeState(CharacterState::Death);
                 isDead = true;
                 deathTimer = 0.0f;         // Start counting
+
             }
 
             deathTimer += deltaTime;

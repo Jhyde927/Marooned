@@ -5,7 +5,7 @@
 void Particle::Update(float dt) {
     if (!active) return;
 
-    velocity.y -= gavity * dt;
+    velocity.y -= gravity * dt;
     position = Vector3Add(position, Vector3Scale(velocity, dt));
     life -= dt;
 
