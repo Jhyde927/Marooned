@@ -673,23 +673,27 @@ void ResourceManager::SetLightingShaderValues() {
         gDynamic.sizeX ? 1.0f / gDynamic.sizeX : 0.0f,
         gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f
     };
+
+    // --- Dynamic lightmap sampler hookup --- Possible fix for Linux lights? 
+    const int DYN_UNIT = 1; // avoid 0 (UI will stomp 0 on some drivers)
+
+
+    if (locDynTex >= 0) {
+        // 1) sampler -> unit
+        SetShaderValue(use, locDynTex, &DYN_UNIT, SHADER_UNIFORM_INT);
+
+        // 2) let raylib track/bind this texture for that uniform
+        SetShaderValueTexture(use, locDynTex, gDynamic.tex);
+    }
     if (locGrid   >= 0) SetShaderValue(use, locGrid, grid, SHADER_UNIFORM_VEC4);
-
-    // choose a dedicated unit (avoid 0, which 2D/UI draws will stomp)
-    const int DYN_UNIT = 1;
-
-    // 1) set the sampler INT to the chosen unit
-    if (locDynTex >= 0) SetShaderValue(use, locDynTex, &DYN_UNIT, SHADER_UNIFORM_INT);
 
     // 2) bind your lightmap to that unit
     rlActiveTextureSlot(DYN_UNIT);
     rlSetTexture(gDynamic.tex.id);
 
-    // (optional but fine to keep; raylib will rebond for you too)
-    if (locDynTex >= 0) SetShaderValueTexture(use, locDynTex, gDynamic.tex);
 
     float dynStrength  = 0.8f; //fine tuned
-    float ambientBoost = 0.2f;
+    float ambientBoost = 0.25f;
 
     if (!isDungeon) { // entrances fully lit
         dynStrength  = 0.0f;

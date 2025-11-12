@@ -302,6 +302,7 @@ void InitDynamicLightmap(int res)
 
     // GPU texture
     Image img = GenImageColor(gDynamic.w, gDynamic.h, BLACK);
+    ImageFormat(&img, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8); // <- ensure RGBA8
     gDynamic.tex = LoadTextureFromImage(img);
     UnloadImage(img);
 

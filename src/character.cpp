@@ -99,13 +99,13 @@ void Character::TakeDamage(int amount) {
      
     } else {
         hitTimer = 0.5f; //tint red
-        ChangeState(CharacterState::Stagger);
-    
+        
+
         if (canBleed){
             canBleed = false;
             // Toward the *camera/player* in world space
             Vector3 toPlayer = Vector3Normalize(Vector3Subtract(player.position, position));
-            Vector3 newPos   = Vector3Add(position, Vector3Scale(toPlayer, 25.0f)); // 100 units in front of the enemy
+            Vector3 newPos   = Vector3Add(position, Vector3Scale(toPlayer, 25.0f)); // 25 units in front of the enemy
             if (type == CharacterType::Skeleton || type == CharacterType::Ghost) {
                 bloodEmitter.EmitBlood(newPos, 10, WHITE);
             } else {
@@ -114,7 +114,7 @@ void Character::TakeDamage(int amount) {
         }
         //SetAnimation(4, 1, 1.0f); // Use first frame of death anim for 1 second. for all enemies
         
-
+        
         AlertNearbySkeletons(position, 3000.0f);
 
         if (type == CharacterType::Pirate){
@@ -125,7 +125,11 @@ void Character::TakeDamage(int amount) {
             SoundManager::GetInstance().PlaySoundAtPosition("dinoHit", position, player.position, 0.0f, 4000.0f); //raptor and skeletons
         }else if (type == CharacterType::Trex){
             SoundManager::GetInstance().Play(GetRandomValue(0, 1) == 0 ? "TrexHurt2" : "TrexHurt");
+        }else if (type == CharacterType::GiantSpider){
+            SoundManager::GetInstance().Play("spiderDeath");
         }
+
+        ChangeState(CharacterState::Stagger); //stagger last
         
     }
 }

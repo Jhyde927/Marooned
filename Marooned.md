@@ -463,13 +463,17 @@ Spider runs away too much. make run away time 5 seconds. or maybe it's good. May
 
 make little spiders minature version of the big spider sprite? If we shink giant spider less than 300 it will get distorted. frameHeight...make the frame height of spiders 300, make scale 0.25? or make another spider sprite. 
 
-Fireballs hitting skeletons doesn't play explosion animation and does little damage to skeletons. Make it one shot them. 
+Fireballs hitting skeletons doesn't play explosion animation and does little damage to skeletons. Make it one shot them. x
 
 Solved level switch lighting bug. The gDyanmic.tex was assigned to texture0 by the shader. When loading the level not from menu, texture0 was being overridden by a 2d draw call. When we loaded from menu texture0 was set to backdrop texture, then gDynamic.tex got set to something other than 0 making it not get overwritten. or something. I guess we were assigning the lightmap texture to the first texture slot which is a bad idea. That bug has been there since the invention of the lighting system. We can now rebuild the light map live while the game is running. It still stutters and flahes dark for a frame so recalculating lighting on door opens doesn't seem doable. 
 
 fixed isLeaving flag. We now account for player movement vs enemy movement when determining the animation. The relative motion. When back peddaling with dinos chasing you it was showing their rear end. becuase player speed is faster than dino's speed. So it was like the dino was moving away from the player when player was moving away. This solves for all characters not just dino.
 
 Could add skeleton rear animation. But skeletons never retreat. same with little spiders. They reposition 1 tile when bunched up. It would look better for patrolling skeletons, they wouldn't be moonwalking. Low priority. 
+
+shooting the Giant spider should close the entrance to the arena. and lock it. Easy on take damage if giant spider lock door ....how to get door. just close all doors. lock all doors. void CloseAndLockAllDoors();...or just get the dang door position some how. DO we iterate top to bottom? when building the level? -hard coded doors[5] we iterate the dungeons top to bottom and it was the 6th one down. it sets the door to closed and sets it to eventLocked. 
+
+When entering the Giant spider boss arena, once the spider takes damage the door closes and even locks. trapping you in there with the spider. What if the spider exits the room before you deal any damage to him. Maybe it should trigger on first sight. x
 
 
 

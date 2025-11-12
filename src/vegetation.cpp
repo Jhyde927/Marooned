@@ -36,21 +36,20 @@ void generateVegetation(){
     float treeHeightThreshold = terrainScale.y * 0.8f;
     float bushHeightThreshold = terrainScale.y * 0.9f;
     heightmapPixels = (unsigned char*)heightmap.data; //for iterating heightmap data for tree placement
-    // 🌴 Generate the trees
+    // Generate the trees
     trees = GenerateTrees(heightmap, heightmapPixels, terrainScale, treeSpacing, minTreeSpacing, treeHeightThreshold);
 
 
 
-    // 🌴 Filter trees based on final height cutoff
+    //Filter trees based on final height cutoff
     trees = FilterTreesAboveHeightThreshold(trees, heightmap, heightmapPixels, terrainScale, treeHeightThreshold);
 
     bushes = GenerateBushes(heightmap, heightmapPixels, terrainScale, treeSpacing, bushHeightThreshold);
     bushes = FilterBushsAboveHeightThreshold(bushes, heightmap, heightmapPixels, terrainScale, bushHeightThreshold);
 
-    // Copy tree pointers into a separate list so we can sort them by distance
-    // without modifying the original `trees` vector (which holds the actual data)
-    for (const auto& tree : trees) { //solves tree leaf glitches. 
-        sortedTrees.push_back(&tree);
+
+    for (const auto& tree : trees) { 
+        sortedTrees.push_back(&tree); //trees no longer need to be sorted, alpha cutoff shader solves the issue. 
     }
 
     // Define world XZ bounds from your terrainScale (centered at origin)
@@ -67,17 +66,13 @@ void generateVegetation(){
 
     BuildTreeShadowMask_Tex(gTreeShadowMask, trees, R.GetTexture("treeShadow"));
 
-    // Bake
-    // BuildTreeShadowMask(gTreeShadowMask, trees,
-    //     /*baseRadiusMeters*/ 4.5f,  /*darknessCenter*/ 0.55f, /*rings*/ 10);
-
     
 }
 
 std::vector<TreeInstance> GenerateTrees(Image& heightmap, unsigned char* pixels, Vector3 terrainScale,
                                         float treeSpacing, float minTreeSpacing, float treeHeightThreshold) {
     std::vector<TreeInstance> trees;
-    Vector3 ePos = dungeonEntrances[0].position; 
+
     float startClearRadiusSq = 700.0f;
     for (int z = 0; z < heightmap.height; z += (int)treeSpacing) {
         for (int x = 0; x < heightmap.width; x += (int)treeSpacing) {
@@ -187,7 +182,7 @@ std::vector<BushInstance> GenerateBushes(Image& heightmap, unsigned char* pixels
                 bush.yOffset = ((float)GetRandomValue(-200, 200)) / 100.0f;     // -2.0 to 2.0
                 bush.xOffset = ((float)GetRandomValue(-bushSpacing*2, bushSpacing*2));
                 bush.zOffset = ((float)GetRandomValue(-bushSpacing*2, bushSpacing*2)); //space them out wider, then cull more aggresively. 
-                bush.cullFactor = 1.09f; //agressively cull bushes. 
+                bush.cullFactor = 1.09f; //agressively cull bushes. as high as it can be before no bushes
 
                 if (GetRandomValue(1,4) > 1){
                     bushes.push_back(bush);

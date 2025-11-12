@@ -82,6 +82,12 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
             // Transition to chase if player detected
             if (distance < 3000.0f && stateTimer > 1.0f && playerVisible) {
+
+                if (type == CharacterType::GiantSpider && levelIndex == 8){ //lock the door when spider sees player
+                    if (doors[5].isOpen) doors[5].isOpen = false;
+                    if (!doors[5].eventLocked) doors[5].eventLocked = true; //event lock the door behind the player until the spider dies. 
+                }
+
                 if (!spiderAgro){
                     if (TrySetRetreatPath(start, WorldToImageCoords(player.position), this, currentWorldPath, 12, 3, 100, 30, 3)){
                         
@@ -96,6 +102,8 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 currentWorldPath.clear();
 
                 SetPath(start);
+
+
             }
 
             //dont wander

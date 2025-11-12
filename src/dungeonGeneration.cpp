@@ -499,7 +499,7 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             }else if (lockedDoor){ //Aqua
                 archway.isLocked = true; //locked door
             }else if (eventLocked) {
-                archway.eventLocked = true;
+                archway.eventLocked = true; //unlock on giant spider death ect..
             } else { //purple
                 archway.linkedLevelIndex = -1; //regular door
             }
@@ -593,123 +593,6 @@ BoundingBox MakeAABBFromSkirt(const WallInstance& s, int dir)
     }
     return bb;
 }
-
-
-
-// // dir: 0=+X (east), 1=-X (west), 2=+Z (south), 3=-Z (north)
-// static inline void AddSkirtEdgeEx(
-//     int x, int y, int dir, float baseY,
-//     float yBottom, float yTop,            // world Y of bottom/top of the skirt
-//     float lipOut, float extraThick,       // shift toward floor + extra thickness
-//     Color tint, bool addCollider)
-// {
-//     if (yTop <= yBottom) return;
-
-//     // Endpoints on the edge between the two tiles
-//     Vector3 a, b;
-//     switch (dir) {
-//         case 0: // east: (x,y)->(x+1,y)
-//             a = GetDungeonWorldPos(x,     y, tileSize, baseY); a.x += tileSize*0.5f; a.z -= tileSize*0.5f;
-//             b = GetDungeonWorldPos(x + 1, y, tileSize, baseY); b.x -= tileSize*0.5f; b.z += tileSize*0.5f;
-//             break;
-//         case 1: // west: (x-1,y)->(x,y)
-//             a = GetDungeonWorldPos(x - 1, y, tileSize, baseY); a.x += tileSize*0.5f; a.z += tileSize*0.5f;
-//             b = GetDungeonWorldPos(x,     y, tileSize, baseY); b.x -= tileSize*0.5f; b.z -= tileSize*0.5f;
-//             break;
-//         case 2: // south: (x,y)->(x,y+1)
-//             a = GetDungeonWorldPos(x, y,     tileSize, baseY); a.x += tileSize*0.5f; a.z += tileSize*0.5f;
-//             b = GetDungeonWorldPos(x, y + 1, tileSize, baseY); b.x -= tileSize*0.5f; b.z -= tileSize*0.5f;
-//             break;
-//         default: // north: (x,y-1)->(x,y)
-//             a = GetDungeonWorldPos(x, y - 1, tileSize, baseY); a.x -= tileSize*0.5f; a.z += tileSize*0.5f;
-//             b = GetDungeonWorldPos(x, y,     tileSize, baseY); b.x += tileSize*0.5f; b.z -= tileSize*0.5f;
-//             break;
-//     }
-
-//     const float WALL_MODEL_HEIGHT    = 400.0f;   // your wall mesh Y size
-//     const float WALL_MODEL_THICKNESS = 50.0f;    // your wall mesh native “thickness” (X or Z)
-
-//     Vector3 mid = Vector3Lerp(a, b, 0.5f);
-//     mid.y = 0.5f * (yBottom + yTop);
-
-//     // outward points from lava toward the non-lava neighbor
-//     Vector3 outward = {0,0,0};
-//     switch (dir) {
-//         case 0: outward = { -1, 0,  0 }; break; // east edge -> floor is west
-//         case 1: outward = { +1, 0,  0 }; break; // west edge -> floor is east
-//         case 2: outward = {  0, 0, -1 }; break; // south edge -> floor is north
-//         default:outward = {  0, 0, +1 }; break; // north edge -> floor is south
-//     }
-
-//     // shift toward the floor side so the slab tucks under the wall base
-//     mid = Vector3Add(mid, Vector3Scale(outward, lipOut));
-
-//     // build instance
-//     WallInstance skirt{};
-//     skirt.position  = mid;
-//     skirt.rotationY = (dir < 2) ? 0.0f : 90.0f;     // edges along Z use rot 0°, along X use 90°
-//     skirt.tint      = tint;
-
-//     // thickness axis is perpendicular to edge direction
-//     float thicknessScale = (WALL_MODEL_THICKNESS + extraThick) / WALL_MODEL_THICKNESS;
-//     if (dir < 2) { // edge runs along Z -> fatten X
-//         skirt.scale = { thicknessScale, (yTop - yBottom) / WALL_MODEL_HEIGHT, 1.0f };
-//     } else {       // edge runs along X -> fatten Z
-//         skirt.scale = { 1.0f, (yTop - yBottom) / WALL_MODEL_HEIGHT, thicknessScale };
-//     }
-
-//     wallInstances.push_back(skirt);
-
-//     if (addCollider) {
-//         BoundingBox bb = MakeAABBFromSkirt(skirt, dir);
-//         wallRunColliders.push_back({ skirt.position, skirt.position, 0.0f, bb });
-//     }
-// }
-
-// static inline bool IsWall(Color c) { return (c.r==0 && c.g==0 && c.b==0); }
-// // If your lava mask already handles lava, you can also derive IsLava from it.
-
-// void GenerateLavaSkirtsFromMask(float baseY) {
-//     const float lavaBottom = baseY - 420.0f;
-//     const float skirtTop   = baseY - 20.0f;     // your existing tall-skirt top
-//     const float topCapBot  = baseY+50;     // short “cap” hugging the floor
-//     const float topCapTop  = baseY +  200.0f;
-
-//     for (int y = 0; y < dungeonHeight; ++y) {
-//         for (int x = 0; x < dungeonWidth; ++x) {
-//             if (lavaMask[Idx(x,y)] == 0) continue;
-
-//             // neighbors
-//             const int nx[4] = { x+1, x-1, x,   x   };
-//             const int ny[4] = { y,   y,   y+1, y-1 };
-//             for (int dir = 0; dir < 4; ++dir) {
-//                 int px = nx[dir], py = ny[dir];
-//                 if (!InBounds(px, py, dungeonWidth, dungeonHeight)) continue;
-//                 if (lavaMask[Idx(px,py)] == 1) continue; // only boundaries
-
-//                 // --- main tall skirt (visual + collider)
-//                 AddSkirtEdgeEx(
-//                     x,y,dir, baseY,
-//                     lavaBottom, skirtTop,
-//                     tileSize * 0.125f,    // lipOut toward floor
-//                     tileSize * 0.50f,     // extra thickness to eat shelf
-//                     WHITE, true);
-
-//                 // --- if neighbor is a WALL, add a second short cap up near the floor
-//                 Color neighbor = dungeonPixels[py * dungeonWidth + px];
-//                 if (IsWall(neighbor)) {
-//                     AddSkirtEdgeEx(
-//                         x,y,dir, baseY,
-//                         topCapBot, topCapTop,   // ~45 units tall
-//                         tileSize * 0.22f,       // push a bit more under the wall lip
-//                         tileSize * 0.75f,       // even thicker to fully cover shelf
-//                         WHITE, true);           // collider too (or false if visual-only)
-//                 }
-//             }
-//         }
-//     }
-// }
-
 
 
 // Make one vertical liner on edge between (x,y) and its neighbor in DIR

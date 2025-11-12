@@ -369,14 +369,14 @@ void CheckBulletHits(Camera& camera) {
 
                 }
                 
-                else if (!b.IsEnemy() && (b.type == BulletType::Fireball)){
+                else if (b.type == BulletType::Fireball){ //dont check if b.isEnemy, all fireballs hit enemies. 
                     enemy->TakeDamage(25);
                     
                     b.pendingExplosion = true;
                     b.explosionTimer = 0.04f; // short delay //so it blows up inside the enemy not on the top of their head. 
                     // Don't call b.Explode() yet //called in updateFireball
 
-                }else if (!b.IsEnemy() && (b.type == BulletType::Iceball)){
+                }else if (b.type == BulletType::Iceball){
                     //enemy->TakeDamage(25);
                     enemy->ChangeState(CharacterState::Freeze);
                     b.pendingExplosion = true;
@@ -625,7 +625,7 @@ void HandleDoorInteraction(Camera& camera) {
             float distanceTo = Vector3Distance(doors[i].position, player.position);
             if (distanceTo < 250) {
 
-                if (doors[i].eventLocked){
+                if (doors[i].eventLocked){ //no access until world event triggers OpenEventLockedDoors()
                     SoundManager::GetInstance().Play("lockedDoor");
                     return;
                 }
@@ -655,13 +655,12 @@ void HandleDoorInteraction(Camera& camera) {
                     previousLevelIndex = levelIndex;
                     isWaiting = false;
                     openTimer = 0.0f;
-                    //fadeIn = true;
-                    //isFading = true;
+
                     pendingLevelIndex = doors[i].linkedLevelIndex;
                     StartFadeOutToLevel(pendingLevelIndex);
                     isLoadingLevel = true; //stops updating characters, prevents crash on level switch.
                     currentGameState = GameState::LoadingLevel; 
-                    if (levelIndex == 4) unlockEntrances = true;
+                    if (levelIndex == 4) unlockEntrances = true; //unlock dungeon entrances after seeing dungeon3 (index 4)
 
                 }
 

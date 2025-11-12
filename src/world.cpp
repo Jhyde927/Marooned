@@ -50,9 +50,9 @@ float vignetteIntensity = 0.0f;
 float vignetteFade = 0.0f;
 float vignetteStrengthValue = 0.2;
 float bloomStrengthValue = 0.0;
-bool isFading = false;
+//bool isFading = false;
 float fadeSpeed = 1.0f; // units per second
-bool fadeIn = true; 
+//bool fadeIn = true; 
 float tileSize = 200;
 bool switchFromMenu = false;
 int selectedOption = 0;
@@ -67,6 +67,7 @@ bool playerInit = false;
 bool hasStaff = false;
 float fade = 0.0f;
 bool isFullscreen = true;
+
 FadePhase gFadePhase = FadePhase::Idle;
 
 //std::vector<Bullet> activeBullets;
@@ -188,6 +189,8 @@ void InitLevel(LevelData& level, Camera& camera) {
 
 }
 
+static float fadeValue = 0.0;   // 0 = clear, 1 = black
+static int queuedLevel = -1;
 
 inline float FadeDt() {
     // Use unpaused time, but cap it to avoid spikes
@@ -196,10 +199,8 @@ inline float FadeDt() {
     return dt;
 }
 
-// fix me, put some where more sane. 
-static float fadeValue = 0.0;   // 0 = clear, 1 = black
-//static float fadeSpeed = 1.5f;    // tweak to taste
-static int   queuedLevel = -1;
+
+
 
 
 void StartFadeOutToLevel(int levelIndex) {
@@ -217,10 +218,13 @@ void StartFadeInFromBlack() {
 
 // Called every frame before any world/menu update or rendering
 void UpdateFade(Camera& camera) {
+
     const float dt = FadeDt();
     switch (gFadePhase) {
     case FadePhase::FadingOut:
+        player.canMove = false;
         if (pendingLevelIndex != -1){ //fade out to next level
+            player.canMove = false;
             fadeValue = fminf(1.0f, fadeValue + fadeSpeed * dt);
             if (fadeValue >= 1.0f) {
                 gFadePhase = FadePhase::Swapping;   // <-- stop here; main loop will do the swap
@@ -235,7 +239,12 @@ void UpdateFade(Camera& camera) {
 
     case FadePhase::FadingIn:
         fadeValue = fmaxf(0.0f, fadeValue - fadeSpeed * dt);
-        if (fadeValue <= 0.0f) gFadePhase = FadePhase::Idle;
+        if (fadeValue <= 0.0f){
+            gFadePhase = FadePhase::Idle;
+            player.canMove = true;
+
+        } 
+
         break;
 
     case FadePhase::Swapping:
@@ -261,10 +270,12 @@ void RebindDynamicLightmapForFrame() {
 void InitDungeonLights(){
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
 
-    ResourceManager::Get().SetLightingShaderValues();
-
     BuildStaticLightmapOnce(dungeonLights);
     BuildDynamicLightmapFromFrameLights(frameLights); // build dynamic light map once for good luck.
+
+    ResourceManager::Get().SetLightingShaderValues();
+
+
 
 }
 
