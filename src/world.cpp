@@ -34,7 +34,8 @@ bool isDungeon = false;
 unsigned char* heightmapPixels = nullptr;
 Player player = {};
 Vector3 startPosition = {5475.0f, 300.0f, -5665.0f}; //middle island start pos
-Vector3 boatPosition = {-4356.28, -20.0, 5027.92};
+Vector3 boatPosition = {-3727.55f,-20.0f, 5860.31f}; //set in level not here
+
 Vector3 playerSpawnPoint = {0,0,0};
 Vector3 waterPos = {0, 0, 0};
 int pendingLevelIndex = -1; //wait to switch level until faded out. UpdateFade() needs to know the next level index. 
@@ -50,9 +51,9 @@ float vignetteIntensity = 0.0f;
 float vignetteFade = 0.0f;
 float vignetteStrengthValue = 0.2;
 float bloomStrengthValue = 0.0;
-//bool isFading = false;
+
 float fadeSpeed = 1.0f; // units per second
-//bool fadeIn = true; 
+
 float tileSize = 200;
 bool switchFromMenu = false;
 int selectedOption = 0;
@@ -104,28 +105,16 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
+    terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
 
     dungeonEntrances = level.entrances; //get level entrances from level data
-    generateVegetation();
-
-    terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true);
-    //SetShaderForAllChunks(terrain, R.GetShader("terrainShader"));
-    InitBoat(player_boat, boatPosition);
-
+    generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances. 
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
     GenerateEntrances();
 
-
-    if (!level.isDungeon) 
-    for (const auto& p : levels[levelIndex].overworldProps) {
-        if (p.type == PropType::Boat){
-            player_boat.position.x = p.x;
-            player_boat.position.z = p.z;
-        }
-    }
-
+    InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     TutorialSetup();
 
     if (level.isDungeon){
@@ -644,7 +633,7 @@ void DrawOverworldProps() {
             (p.type == PropType::FirePit)? "campFire": "barrelModel";
 
         //std::cout << modelKey << "\n";
-        Vector3 propPos = {p.x, 300, p.z};
+        Vector3 propPos = p.position;
         float propY = GetHeightAtWorldPosition(propPos, heightmap, terrainScale);
         propPos.y = propY;
         DrawModelEx(R.GetModel(modelKey), propPos,

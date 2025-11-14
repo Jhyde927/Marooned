@@ -197,25 +197,67 @@ TerrainGrid BuildTerrainGridFromHeightmap(const Image& heightmapGray, Vector3 te
     return T;
 }
 
+void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float maxDrawDist,int maxChunksToDraw,std::vector<ChunkDrawInfo>& outList){
+    //bootleg fustom culling and more. 
+    outList.clear();
+    Vector3 camForward = Vector3Normalize(
+        Vector3Subtract(cam.target, cam.position)
+    );
+
+    float halfFovDeg = 60.0f; // chunks are big
+    float halfFovRad = halfFovDeg * PI / 180.0f;
+    float cosHalfFov = cosf(halfFovRad);
+
+    float maxDrawDistSq = maxDrawDist * maxDrawDist;
+
+    const float NEAR_CHUNK_DIST    = 1600.0f;
+    const float NEAR_CHUNK_DIST_SQ = NEAR_CHUNK_DIST * NEAR_CHUNK_DIST;
+
+    // 1) Collect candidates
+    for (const TerrainChunk& c : T.chunks) {
+        Vector3 toChunk = Vector3Subtract(c.center, cam.position);
+        float distSq = Vector3LengthSqr(toChunk);
+        if (distSq > maxDrawDistSq) continue;
+
+        // Always include very close chunks
+        if (distSq < NEAR_CHUNK_DIST_SQ || distSq < 0.0001f) {
+            outList.push_back({ &c, distSq });
+            continue;
+        }
+
+        Vector3 dirToChunk = Vector3Normalize(toChunk);
+        float dot = Vector3DotProduct(camForward, dirToChunk);
+        if (dot < cosHalfFov) continue; // outside view cone
+
+        outList.push_back({ &c, distSq });
+    }
+
+    // 2) Sort by distance (closest first)
+    std::sort(outList.begin(), outList.end(),
+        [](const ChunkDrawInfo& a, const ChunkDrawInfo& b){
+            return a.distSq < b.distSq;
+        });
+
+    // 3) Hard cap count
+    if ((int)outList.size() > maxChunksToDraw) {
+        outList.resize(maxChunksToDraw);
+    }
+}
+
+
 void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDist) {
-    // rlEnableDepthTest();
-    // rlEnableDepthMask();
+
     rlEnableBackfaceCulling();
 
-    const Vector2 camXZ{ cam.position.x, cam.position.z };
-    // (Optional) collect stats
-    // int drawn = 0;
+    static std::vector<ChunkDrawInfo> drawList;
+    BuildTerrainChunkDrawList(T, cam, maxDrawDist, /*maxChunksToDraw=*/250, drawList);
 
-    for (const TerrainChunk& c : T.chunks) {
-        const Vector2 ctrXZ{ c.center.x, c.center.z };
-        if (Vector2Distance(camXZ, ctrXZ) <= maxDrawDist) {
-            DrawModel(c.model, Vector3Zero(), 1.0f, WHITE);
-            // ++drawn;
-        }
+    for (const ChunkDrawInfo& info : drawList) {
+        const TerrainChunk* c = info.chunk;
+        DrawModel(c->model, Vector3Zero(), 1.0f, WHITE);
     }
 
     rlDisableBackfaceCulling();
-    // TraceLog(LOG_INFO, "Terrain chunks drawn: %d", drawn);
 }
 
 
@@ -250,10 +292,10 @@ static void SafeDestroyModel(Model& m) {
     m.materialCount = 0;
 }
 
-// Replace your UnloadTerrainGrid with:
+
 void UnloadTerrainGrid(TerrainGrid& T) {
     for (auto& c : T.chunks) {
-        SafeDestroyModel(c.model);
+        SafeDestroyModel(c.model); //was crashing when trying to unload chunked terrain models. 
     }
 
     T.chunks.clear();

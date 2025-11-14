@@ -15,6 +15,7 @@
 #include "rlgl.h"
 
 
+
 bool squareRes = false; // set true for 1280x1024, false for widescreen
 
 int main() { 
@@ -68,9 +69,8 @@ int main() {
 
         UpdateFade(camera); //always update fade
 
-
+        //Switch Levels
         if (gFadePhase == FadePhase::Swapping) {
-            UpdateMusicStream(SoundManager::GetInstance().GetMusic("jungleAmbience"));
             // Block anything from touching old resources this frame.
             InitLevel(levels[pendingLevelIndex], camera);
             pendingLevelIndex = -1;
@@ -80,7 +80,7 @@ int main() {
 
             //DrawMenu(selectedOption, levelIndex); //this is needed for mysterious reasons. without it lights don't work on level load. 
             //SOlVED// drawmenu was drawing backdrop which was the first texture assigned in the game, it was assined to texture 0,
-            //the same texture the lightmap was assigned to. the 2d texture over rided the light map. Now implicetly set the light map to 1. 
+            //the same texture the lightmap was assigned to. the 2d texture over rided the light map. Now set it to 1 every frame before 3d 
 
             continue;
         }
@@ -98,7 +98,7 @@ int main() {
             continue; // skip the rest of the game loop
         }
 
-              // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
+        // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
         RebindDynamicLightmapForFrame();  
 
 

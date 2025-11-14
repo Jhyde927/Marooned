@@ -187,11 +187,11 @@ void ResourceManager::LoadAllResources() {
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     //render textures
     // ResourceManager init once
-    auto& scene = R.LoadRenderTexture("sceneTexture", screenResolution.x, screenResolution.y);
+    RenderTexture& scene = R.LoadRenderTexture("sceneTexture", screenResolution.x, screenResolution.y);
     SetTextureFilter(scene.texture, TEXTURE_FILTER_BILINEAR);
     SetTextureWrap(scene.texture, TEXTURE_WRAP_CLAMP);
 
-    auto& post = R.LoadRenderTexture("postProcessTexture", screenResolution.x, screenResolution.y);
+    RenderTexture& post = R.LoadRenderTexture("postProcessTexture", screenResolution.x, screenResolution.y);
     SetTextureFilter(post.texture, TEXTURE_FILTER_BILINEAR);
     SetTextureWrap(post.texture, TEXTURE_WRAP_CLAMP);
 
@@ -238,8 +238,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("bulletHoleSheet",  "assets/sprites/bulletHoleSheet.png");
     R.LoadTexture("GiantSpiderSheet", "assets/sprites/giantSpiderSheet.png");
 
-    SetTextureFilter(R.GetTexture("GiantSpiderSheet"), TEXTURE_FILTER_POINT);
-
 
     // Models (registering with string keys)
     R.LoadModel("palmTree",       "assets/Models/bigPalmTree.glb");
@@ -247,11 +245,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("bush",           "assets/Models/grass(stripped).glb");
     R.LoadModel("boatModel",      "assets/Models/boat.glb");
     R.LoadModel("blunderbuss",    "assets/Models/blunderbus.glb");
-    //R.LoadModel("floorTile",      "assets/Models/floorTile.glb"); //unused? we made the tiles gray but then reverted them but kept the name. 
-    //R.LoadModel("doorWay",        "assets/Models/doorWay.glb"); //fix this
     R.LoadModel("floorTileGray",  "assets/Models/floorTileGray.glb");
     R.LoadModel("doorWayGray",    "assets/Models/doorWayGray.glb");
-    //R.LoadModel("wall",           "assets/Models/wall.glb");
     R.LoadModel("wallSegment",    "assets/Models/wallSegment.glb");
     R.LoadModel("barrelModel",    "assets/Models/barrel.glb");
     R.LoadModel("swordModel",     "assets/Models/sword.glb");
@@ -269,21 +264,21 @@ void ResourceManager::LoadAllResources() {
     //generated models
     R.LoadModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
     R.LoadModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
-    //R.LoadModelFromMesh("bottomPlane",GenMeshPlane(160000, 160000, 1, 1));
-    R.LoadModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1));
+    R.LoadModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
 
     //shaders
-    R.LoadShader("terrainShader", "assets/shaders/height_color.vs",      "assets/shaders/height_color.fs");
-    R.LoadShader("fogShader",     /*vsPath=*/"",                         "assets/shaders/fog_postprocess.fs");
-    R.LoadShader("shadowShader",  "assets/shaders/shadow_decal.vs",      "assets/shaders/shadow_decal.fs");
-    R.LoadShader("skyShader",     "assets/shaders/skybox.vs",            "assets/shaders/skybox.fs");
-    R.LoadShader("waterShader",   "assets/shaders/water.vs",             "assets/shaders/water.fs");
-    R.LoadShader("bloomShader",   /*vsPath=*/"",                         "assets/shaders/bloom.fs");
-    R.LoadShader("cutoutShader",                        "",              "assets/shaders/leaf_cutout.fs");
-    R.LoadShader("lightingShader","assets/shaders/lighting_baked_xz.vs", "assets/shaders/lighting_baked_xz.fs");
-    R.LoadShader("lavaShader",    "assets/shaders/lava_world.vs",        "assets/shaders/lava_world.fs");
-    R.LoadShader("treeShader", "assets/shaders/treeShader.vs",           "assets/shaders/treeShader.fs");
-    R.LoadShader("portalShader", "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
+    R.LoadShader("terrainShader",  "assets/shaders/height_color.vs",       "assets/shaders/height_color.fs");
+    R.LoadShader("fogShader",      /*vsPath=*/"",                          "assets/shaders/fog_postprocess.fs");
+    R.LoadShader("shadowShader",   "assets/shaders/shadow_decal.vs",       "assets/shaders/shadow_decal.fs");
+    R.LoadShader("skyShader",      "assets/shaders/skybox.vs",             "assets/shaders/skybox.fs");
+    R.LoadShader("waterShader",    "assets/shaders/water.vs",              "assets/shaders/water.fs");
+    R.LoadShader("bloomShader",    /*vsPath=*/"",                          "assets/shaders/bloom.fs");
+    R.LoadShader("cutoutShader",   /*vsPath=*/"",                          "assets/shaders/leaf_cutout.fs");
+    R.LoadShader("lightingShader", "assets/shaders/lighting_baked_xz.vs",  "assets/shaders/lighting_baked_xz.fs");
+    R.LoadShader("lavaShader",     "assets/shaders/lava_world.vs",         "assets/shaders/lava_world.fs");
+    R.LoadShader("treeShader",     "assets/shaders/treeShader.vs",         "assets/shaders/treeShader.fs");
+    R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
+
 
 
 }

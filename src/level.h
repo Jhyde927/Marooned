@@ -9,7 +9,7 @@ enum class PropType { Barrel, FirePit, Boat};
 
 struct PropSpawn {
     PropType type;
-    float x, z;        // author in XZ; we'll resolve Y from heightmap
+    Vector3 position; // x, z;        // author in XZ; we'll resolve Y from heightmap //why is this not just a position. where do we set the y value? 
     float yawDeg = 0;  // rotation around Y
     float scale  = 1.f;
 };

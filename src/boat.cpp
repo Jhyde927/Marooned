@@ -17,6 +17,13 @@ void InitBoat(Boat& boat, Vector3 startPos) {
     boat.playerOnBoard = false;
     boat.beached = false;
     boat.previousBoatPosition = startPos;
+
+    for (const auto& p : levels[levelIndex].overworldProps) {
+        if (p.type == PropType::Boat){
+            player_boat.position.x = p.position.x;
+            player_boat.position.z = p.position.z;
+        }
+    }
 }
 
 void UpdateBoat(Boat& boat, float deltaTime) {

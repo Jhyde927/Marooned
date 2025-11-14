@@ -44,9 +44,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             // draw order/state (after opaque terrain)
             rlEnableDepthTest();
             rlDisableDepthMask();         // don’t write depth for transparent water
-            rlEnableBackfaceCulling();
             DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
-            rlDisableBackfaceCulling();
             rlEnableDepthMask();
             
             DrawBoat(player_boat);

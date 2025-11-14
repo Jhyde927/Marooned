@@ -6,6 +6,12 @@ struct TerrainChunk {
     Model      model;     // GPU model for this chunk
     BoundingBox aabb;     // world-space bounds (computed from mesh)
     Vector3    center;    // world-space center (for cheap distance cull)
+    float   radius;   // bounding sphere radius
+};
+
+struct ChunkDrawInfo {
+    const TerrainChunk* chunk;
+    float distSq;
 };
 
 struct TerrainGrid {
@@ -28,6 +34,7 @@ TerrainGrid BuildTerrainGridFromHeightmap(const Image& heightmapGray, Vector3 te
 // Draw with a simple distance ring (fast + good enough to start).
 // maxDrawDist is horizontal (XZ) distance in world units.
 void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDist);
+void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float maxDrawDist,int maxChunksToDraw,std::vector<ChunkDrawInfo>& outList);
 
 // Free all GPU resources owned by the grid.
 void UnloadTerrainGrid(TerrainGrid& T);

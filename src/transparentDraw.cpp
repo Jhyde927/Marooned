@@ -25,7 +25,7 @@ void GatherEnemies(Camera& camera) {
     //gather functions replace character.draw()
     //Everything 2d is saved to a vector of struct drawRequests. We save all the info needed to draw the billboard or quad to the drawRequest struct.
     //and push to the vector. Then sort the drawRequests based on distance and draw in that order. This prevents billboards occluding each other. 
-
+    //This has become redundant. writing to depth sorts them alpha cutoff shader prevents transparent parts occluding other billboards 
     for (Character* enemy : enemyPtrs) {
         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
 

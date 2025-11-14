@@ -59,9 +59,7 @@ extern float waterHeightY;
 extern float ceilingHeight;
 extern bool switchFromMenu;
 extern float tileSize;
-// extern bool isFading;
-// extern float fadeSpeed; // units per second
-// extern bool fadeIn;     // true = fade in (to black), false = fade out (to visible)
+
 extern bool first;
 extern float dungeonEnemyHeight;
 extern float ElapsedTime;

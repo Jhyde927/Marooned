@@ -301,7 +301,7 @@ void DrawMenu(int selectedOption, int levelIndex) {
 
     ClearBackground(BLACK);
    
-    Texture2D backDrop = R.GetTexture("backDrop");
+    Texture2D backDrop = R.GetTexture("backDrop"); //first texture of the game. 
     // choose contain or cover
     bool cover = false; // true = fill screen (crop), false = fit inside (letterbox)
 
