@@ -9,6 +9,7 @@
 #include "vector"
 #include "rlgl.h"
 #include "algorithm"
+#include "spiderEgg.h"
 
 std::vector<BillboardDrawRequest> billboardRequests;
 
@@ -80,6 +81,32 @@ void GatherCollectables(Camera& camera, const std::vector<Collectable>& collecta
             dist,
             0.0f
         });
+    }
+}
+
+void GatherSpiderEggDrawRequests(Camera& camera)
+{
+    for (SpiderEgg& egg : eggs) {
+        float dist = Vector3Distance(camera.position, egg.position);
+        Rectangle src {
+            (float)(egg.currentFrame * egg.frameWidth),
+            (float)(egg.currentRow   * egg.frameHeight),
+            (float)egg.frameWidth,
+            (float)egg.frameHeight
+        };
+
+        BillboardDrawRequest req {};
+        req.type      = BillboardType::Billboard_FacingCamera;
+        req.position  = egg.position;
+        req.texture   = egg.texture;
+        req.sourceRect = src;
+        req.size      = egg.frameWidth * egg.scale;
+        req.tint      = (egg.hitFlashTimer > 0 ? RED : WHITE);
+        req.rotationY = egg.rotationY;
+        req.isPortal  = false;
+        req.distanceToCamera = dist;
+
+        billboardRequests.push_back(req);
     }
 }
 
@@ -239,6 +266,7 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
     GatherDecals(camera, decals);
     GatherMuzzleFlashes(camera, activeMuzzleFlashes);
     GatherCollectables(camera, collectables);
+    GatherSpiderEggDrawRequests(camera);
 }
 
 void DrawTransparentDrawRequests(Camera& camera) {

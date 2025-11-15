@@ -168,8 +168,6 @@ static void SubtileVis2x2(float vis[2][2],
 }
 
 
-
-
 // // --- Static bake: tile-first stamping with 2×2 sub-tile LOS near occluders ---
 void StampLight_StaticBase_Subtile2x2_ToBuffer(std::vector<Color>& outBuf, int bufW, int bufH,
                                                const Vector3& lightPos, float radius, Color color)

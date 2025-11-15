@@ -5,7 +5,7 @@
 std::vector<PropSpawn> overworldProps;
 
 DungeonEntrance entranceToDungeon1 = {
-    {0, 200, 0}, // position
+    {0, 180, 0}, // position
     2, // linkedLevelIndex
     false, //islocked
 };
@@ -13,7 +13,7 @@ DungeonEntrance entranceToDungeon1 = {
 
 //Player Position: X=-5653.32 Y=289.804 Z=6073.24
 DungeonEntrance entranceToDungeon3 = {
-    {-5653, 150, 6073}, 
+    {-5484.34, 180, -5910.67},//{-5653, 150, 6073}
     4,
     true
 };
@@ -50,7 +50,7 @@ std::vector<LevelData> levels = {
         2, //next level, index 2
         {
             { PropType::FirePit,  Vector3{5200.f, 0.0f, -5600.f},  0.f, 100.0f }, // outdoor props
-            { PropType::Boat,     Vector3{-3767.0f,-20, 5199.0f}},
+            { PropType::Boat,     Vector3{-4368.62, -20, -4036.75}}, //Vector3{-3767.0f,-20, 5199.0f}}
         
         },
         true, //ceiling default is true. doesn't matter for islands. 

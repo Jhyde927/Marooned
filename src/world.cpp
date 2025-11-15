@@ -143,6 +143,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateSpiderFromImage(dungeonEnemyHeight);
         GenerateGhostsFromImage(dungeonEnemyHeight);
         GenerateGiantSpiderFromImage(dungeonEnemyHeight);
+        GenerateSpiderEggFromImage(dungeonEnemyHeight);
 
         if (levelIndex == 4) levels[0].startPosition = {-5653, 200, 6073}; //exit dungeon 3 to dungeon enterance 2 position.
 

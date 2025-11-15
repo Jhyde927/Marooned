@@ -231,12 +231,13 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("sandTexture",      "assets/textures/sand.png");
     R.LoadTexture("trexSheet",        "assets/sprites/trexSheet.png");
     R.LoadTexture("blockSheet",       "assets/sprites/blockSheet2.png");
-    R.LoadTexture("playerSlashSheet",       "assets/sprites/playerSlashSheet.png");
+    R.LoadTexture("playerSlashSheet", "assets/sprites/playerSlashSheet.png");
     R.LoadTexture("slashSheet",       "assets/sprites/slashSheet.png");
     R.LoadTexture("slashSheetLeft",   "assets/sprites/slashSheetLeft.png");
     R.LoadTexture("biteSheet",        "assets/sprites/biteSheet.png");
     R.LoadTexture("bulletHoleSheet",  "assets/sprites/bulletHoleSheet.png");
     R.LoadTexture("GiantSpiderSheet", "assets/sprites/giantSpiderSheet.png");
+    R.LoadTexture("spiderEggSheet",   "assets/sprites/spiderEggSheet.png");
 
 
     // Models (registering with string keys)

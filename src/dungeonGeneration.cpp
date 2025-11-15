@@ -13,6 +13,7 @@
 #include "dungeonColors.h"
 #include "lighting.h"
 #include <cstdint>
+#include "spiderEgg.h"
 
 std::vector<uint8_t> lavaMask; // width*height, 1 = lava, 0 = not
 
@@ -1029,6 +1030,42 @@ void GenerateSpiderFromImage(float baseY) {
                 
                 enemies.push_back(spider);
                 enemyPtrs.push_back(&enemies.back()); 
+            }
+        }
+    }
+
+}
+
+void GenerateSpiderEggFromImage(float baseY) {
+    for (int y = 0; y < dungeonHeight; ++y) {
+        for (int x = 0; x < dungeonWidth; ++x) {
+
+            Color c = dungeonPixels[y * dungeonWidth + x];
+
+            bool isEgg = (c.r == 128 && c.g == 255 && c.b == 0); // Slime Green
+
+            if (isEgg) {
+                Vector3 worldPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+                // Get the egg sprite sheet from your ResourceManager
+                Texture2D& eggTex = R.GetTexture("spiderEggSheet");
+
+                // These numbers depend on how you lay out the sprite sheet
+                int frameW       = 200;
+                int frameH       = 200;
+                int framesPerRow = 3;
+                float scale      = 0.5f;
+
+                SpiderEgg& egg = SpawnSpiderEgg(worldPos, eggTex, frameW, frameH, framesPerRow, scale);
+
+                // Optional tuning per-egg:
+                egg.hatchDelay   = 6.0f;   // seconds after player triggers it
+                egg.maxHealth    = 150.0f;
+                egg.health       = egg.maxHealth;
+                egg.rowDormant   = 0;
+                egg.rowHatching  = 1;
+                egg.rowHusk      = 2;
+                egg.rowDestroyed = 3;
             }
         }
     }

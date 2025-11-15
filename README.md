@@ -1,6 +1,6 @@
 # Marooned
 ![Game Screenshot](assets/screenshots/dungeon1.png)
-**Marooned** is a 3D FPS adventure dungeon crawler set in the 1700s pirate era on a chain of Caribbean islands. The player is marooned on an island with only a sword, a blunderbuss and a health potion. They have to fight off pirates, go through multiple dungeons and fight a boss to escape.
+**Marooned** is a 3D first person adventure game set in the 1700s pirate era on a island full of dinosaurs. Below the islands are dungeons crawling with skeletons, and worse. Armed with only a rusty sword and your trusty blunderbuss, make your way through the dungeons to fight the boss at the end of the demo. 
 
 ### Table of Contents
 - [Features](#features)
@@ -10,9 +10,11 @@
 - [License](#license)
 
 ## Features
+- Fully 3D environments.
+- 2D "billboard" enemies with unique AI.
+- Over world island maps generated from 4k grayscale images. 
+- Dungeons generated from PNG image pixel by pixel.
 - Combat with a blunderbuss, sword and a magic staff.
-- Multiple enemies with unique AI.
-- Dungeons.
 - Collectible weapons, potions and gold.
 - A boss at the end of the game.
 
@@ -39,7 +41,9 @@ cd Marooned
 ```bash
 make
 ```
-4. Run Marooned.exe. The assets folder and all .dll/.so/.a files must be in the same folder in which the executable is run.  
+4. Run Marooned.exe. The assets folder and all .dll/.so/.a files must be in the same folder in which the executable is run. 
+
+
 
 ### Linux
 #### Prerequisites

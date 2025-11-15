@@ -59,16 +59,18 @@ void Emitter::EmitBlood(Vector3 pos, int count, Color color) {
                 p.position = position;
 
                 p.color = color;
-                p.gravity = 600.0f;  
+                p.gravity = 800.0f + GetRandomValue(-200, 200);  
+
+                // Directionless for now; you can bias this later
                 p.velocity = {
-                    (float)GetRandomValue(-100, 100),
-                    (float)GetRandomValue(50, 150),
-                    (float)GetRandomValue(-100, 100)
+                    (float)GetRandomValue(-120, 120),
+                    (float)GetRandomValue(80, 500),
+                    (float)GetRandomValue(-120, 120)
                 };
 
-                p.maxLife = 2.0f;
-                p.life = p.maxLife;
-                p.size = 5.0f;
+                p.maxLife = 0.4f + GetRandomValue(0, 80) / 100.0f; // 0.4–1.2 sec
+                p.life    = p.maxLife;
+                p.size    = 3.0f + GetRandomValue(0, 25) / 10.0f;  // 3–5.5
 
                 break;
             }

@@ -464,7 +464,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
 
     // === Swimming Check ===
-    if (player.position.y <= waterHeightY + player.height / 2.0f) { //player.height is the mid point not the feet. 
+    if (player.position.y <= waterHeightY + player.height / 2.0f && !player.onBoard) { //player.height is the mid point not the feet. 
         player.isSwimming = true;
         player.canRun = false;
         UpdateSwimSounds(deltaTime);
