@@ -1,11 +1,13 @@
 # Marooned
 ![Game Screenshot](assets/screenshots/dungeon1.png)
+
 **Marooned** is a 3D first person adventure game set in the 1700s pirate era on a island full of dinosaurs. Below the islands are dungeons crawling with skeletons, and worse. Armed with only a rusty sword and your trusty blunderbuss, make your way through the dungeons to fight the boss at the end of the demo. 
 
 ### Table of Contents
 - [Features](#features)
 - [Installation](#installation)
-- [Usage](#usage)
+- - [Windows](#windows)
+- - [Linux](#linux)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -20,7 +22,7 @@
 
 ![Gameplay demo](assets/screenshots/demo.gif)
 ## Installation
-### 🪟 Windows
+### Windows
 #### Prerequisites
 Install:
 - [Git](https://git-scm.com/downloads)
@@ -29,9 +31,9 @@ Install:
 
 #### Build Steps
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/Jhyde927/Marooned.git
-
+```bash
+git clone https://github.com/Jhyde927/Marooned.git
+```
 2. Navigate to the repository:
 ```bash
 cd Marooned
@@ -41,13 +43,23 @@ cd Marooned
 ```bash
 make
 ```
-4. Run Marooned.exe. The assets folder and all .dll/.so/.a files must be in the same folder in which the executable is run. 
-
-
+4. Run `Marooned.exe`. The assets folder and all `.dll` files must be in the same folder in which the executable is run. 
 
 ### Linux
 #### Prerequisites
-You must install git, make (or cmake), a c++ compiler and raylib 5.5.
+You must install git, make (or cmake), a c++ compiler and raylib 5.5. Example on Ubuntu-based distributions:
+```bash
+sudo apt update
+sudo apt install git make cmake gcc g++
+sudo apt install build-essential libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev # Required for building raylib
+git clone https://github.com/raysan5/raylib.git
+cd raylib
+mkdir -p build
+cd build
+cmake ..
+make
+sudo make install
+```
 #### Install Steps
 1. Clone the repository:
 ```bash
@@ -63,20 +75,16 @@ cd Marooned
 ```bash
 make
 ```
-The executable will be found in `Marooned.exe` or `Marooned`, depending on your OS. Or, alternatively, build with CMake for Linux:
+Or build with CMake:
 ```bash
+mkdir -p build
 cd build
 cmake ..
 make
 ```
-And install library files (`.so`, `.a`) if necessary:
-```bash
-make install
-```
-If building with CMake, the executable will be found in `build/marooned`. The CMake file is strictly for Linux builds. If something didn't work, please open an issue and describe what went wrong.
+You can install library files using `make install`, but it is not required for running the program.
 
-## Usage
-Simply run the executable file after building. The `assets` folder and all `.dll`/`.so`/`.a` files must be in the same folder in which the executable is run.
+4. Run `Marooned` or `build/marooned` depending on how you built. The assets folder and all `.so`/`.a` files (if ran `make install`) must be in the same folder in which the executable is run.
 
 ## Contributing
 Feel free to create PRs or issues. To create a PR:
