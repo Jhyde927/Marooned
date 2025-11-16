@@ -1036,6 +1036,24 @@ void GenerateSpiderFromImage(float baseY) {
 
 }
 
+void SpawnSpiderFromEgg(Vector3 spawnPos){
+    Character spider(
+        spawnPos,
+        R.GetTexture("spiderSheet"), 
+        200, 200,         // frame width, height
+        1,                // max frames
+        0.5f, 0.5f,       // scale, speed
+        0,                // initial animation frame
+        CharacterType::Spider
+    );
+    spider.maxHealth = 100;
+    spider.currentHealth = 100; //2 sword attacks
+    
+    enemies.push_back(spider);
+    enemyPtrs.push_back(&enemies.back()); 
+
+}
+
 void GenerateSpiderEggFromImage(float baseY) {
     for (int y = 0; y < dungeonHeight; ++y) {
         for (int x = 0; x < dungeonWidth; ++x) {
@@ -1059,8 +1077,8 @@ void GenerateSpiderEggFromImage(float baseY) {
                 SpiderEgg& egg = SpawnSpiderEgg(worldPos, eggTex, frameW, frameH, framesPerRow, scale);
 
                 // Optional tuning per-egg:
-                egg.hatchDelay   = 6.0f;   // seconds after player triggers it
-                egg.maxHealth    = 150.0f;
+                egg.hatchDelay   = 5.0f;   // seconds after player triggers it
+                egg.maxHealth    = 100.0f;
                 egg.health       = egg.maxHealth;
                 egg.rowDormant   = 0;
                 egg.rowHatching  = 1;
@@ -1648,7 +1666,7 @@ void ClearDungeon() {
     doorways.clear();
     collectables.clear();
     decals.clear();
-   
+    eggs.clear();
     for (ChestInstance& chest : chestInstances) {
         UnloadModelAnimations(chest.animations, chest.animCount);
     }

@@ -13,10 +13,11 @@
 #include "lighting.h"
 #include "hintManager.h"
 #include "rlgl.h"
+#include "spiderEgg.h"
 
 
 
-bool squareRes = false; // set true for 1280x1024, false for widescreen
+bool squareRes = true; // set true for 1280x1024, false for widescreen
 
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
@@ -71,18 +72,14 @@ int main() {
 
         //Switch Levels
         if (gFadePhase == FadePhase::Swapping) {
-            // Block anything from touching old resources this frame.
+
             InitLevel(levels[pendingLevelIndex], camera);
             pendingLevelIndex = -1;
 
             currentGameState = GameState::Playing;
             gFadePhase = FadePhase::FadingIn;
 
-            //DrawMenu(selectedOption, levelIndex); //this is needed for mysterious reasons. without it lights don't work on level load. 
-            //SOlVED// drawmenu was drawing backdrop which was the first texture assigned in the game, it was assined to texture 0,
-            //the same texture the lightmap was assigned to. the 2d texture over rided the light map. Now set it to 1 every frame before 3d 
-
-            continue;
+            continue; // Block anything from touching old resources this frame.
         }
 
         //Main Menu - level select 
@@ -118,7 +115,9 @@ int main() {
         UpdateBoat(player_boat, deltaTime);
         UpdateCollectables(deltaTime); 
         UpdateLauncherTraps(deltaTime);
+
         UpdateDungeonChests();
+        UpdateSpiderEggs(deltaTime, player.position);
         ApplyLavaDPS(player, deltaTime, 1);
         UpdateHintManager(deltaTime);
         
@@ -134,9 +133,7 @@ int main() {
 
         //gather up everything 2d and put it into a vector of struct drawRequests, then we sort and draw every billboard/quad in the game.
         GatherTransparentDrawRequests(camera, deltaTime);
-
         controlPlayer = CameraSystem::Get().IsPlayerMode();
-
         // Update camera based on player
         UpdateWorldFrame(deltaTime, player);
         UpdatePlayer(player, deltaTime, camera);
@@ -146,16 +143,12 @@ int main() {
         
     }
 
-
-
-
     // Cleanup
     ClearLevel();
     ResourceManager::Get().UnloadAll();
     SoundManager::GetInstance().UnloadAll();
     CloseAudioDevice();
     CloseWindow();
-
 
     //system("pause"); // ← waits for keypress
     return 0;

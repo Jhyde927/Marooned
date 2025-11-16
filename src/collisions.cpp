@@ -3,10 +3,10 @@
 #include "world.h"
 #include "dungeonGeneration.h"
 #include "sound_manager.h"
-
 #include "resourceManager.h"
 #include "raymath.h"
 #include "pathfinding.h"
+#include "spiderEgg.h"
 
 
 
@@ -316,6 +316,12 @@ void HandleMeleeHitboxCollision(Camera& camera) {
         }
     }
 
+    for (SpiderEgg& egg : eggs){
+        if (CheckCollisionBoxes(egg.collider, player.meleeHitbox)){
+            DamageSpiderEgg(egg, 50.0f, player.position);
+        }
+    }
+
 
 }
 
@@ -390,6 +396,23 @@ void CheckBulletHits(Camera& camera) {
                 }
 
                 
+            }
+        }
+
+
+        for (SpiderEgg& egg : eggs){
+            if (CheckCollisionBoxSphere(egg.collider, b.position, b.radius)){
+                if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
+                    DamageSpiderEgg(egg, 100, player.position);
+                    b.Explode(camera);
+                    break;
+                }else{
+                    DamageSpiderEgg(egg, 25, player.position);
+                    b.Erase();
+                    break;
+
+                }
+
             }
         }
 

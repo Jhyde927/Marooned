@@ -15,6 +15,7 @@
 #include "lighting.h"
 #include "ui.h"
 #include "terrainChunking.h"
+#include "spiderEgg.h"
 
 
 
@@ -614,6 +615,10 @@ void UpdateDecals(float deltaTime){
 void DrawBloodParticles(Camera& camera){
     for (Character* enemy : enemyPtrs) { //draw enemy blood, blood is 3d so draw before billboards. 
             enemy->bloodEmitter.Draw(camera);
+    }
+
+    for (SpiderEgg& egg : eggs){
+        egg.gooEmitter.Draw(camera);
     }
 }
 

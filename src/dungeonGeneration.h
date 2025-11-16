@@ -270,7 +270,7 @@ void GenerateSpiderFromImage(float baseY);
 void GenerateGhostsFromImage(float baseY);
 void GenerateGiantSpiderFromImage(float baseY);
 void GenerateSpiderEggFromImage(float baseY);
-
+void SpawnSpiderFromEgg(Vector3 spawnPos);
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
 void GatherFrameLights();

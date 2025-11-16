@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include <vector>
+#include "emitter.h"
 
 
 
@@ -19,6 +20,8 @@ struct SpiderEgg {
     // Position / world
     Vector3 position{};
     float rotationY = 0.0f;
+
+    Emitter gooEmitter;
 
     // Health
     float maxHealth = 100.0f;
@@ -48,6 +51,7 @@ struct SpiderEgg {
 
     float scale = 1.0f;
     float hitFlashTimer = 0.0f;
+    float flashCooldown = 0.0f;
 
     SpiderEggState state = SpiderEggState::Dormant;
 
@@ -57,8 +61,9 @@ struct SpiderEgg {
 
 extern std::vector<SpiderEgg> eggs;
 
+void DamageSpiderEgg(SpiderEgg& egg, float amount, Vector3 playerPos);
 void ClearSpiderEggs();
-
+void UpdateSpiderEggs(float dt, const Vector3& playerPos);
 SpiderEgg& SpawnSpiderEgg(Vector3 pos,
                            Texture2D texture,
                            int frameW,
