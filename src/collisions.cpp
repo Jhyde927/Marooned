@@ -155,6 +155,14 @@ void SpiderWebCollision(){
     }
 }
 
+void SpiderEggCollision(){
+    for (SpiderEgg& egg: eggs){
+        if (egg.state != SpiderEggState::Destroyed && CheckCollisionBoxSphere(egg.collider, player.position, player.radius)){
+            ResolveBoxSphereCollision(egg.collider, player.position, player.radius);
+        }
+    }
+}
+
 
 void DoorCollision(){
     for (Door& door : doors){//player collision
@@ -246,7 +254,7 @@ void HandleEnemyPlayerCollision(Player* player) {
 
 
 void HandleMeleeHitboxCollision(Camera& camera) {
-
+    //we never check if meleeHitbox is active, this could result in telefragging anything on top of playerpos, enemy bounding boxes prevent this
     for (BarrelInstance& barrel : barrelInstances){
         if (barrel.destroyed) continue;
         int tileX = GetDungeonImageX(barrel.position.x, tileSize, dungeonWidth);
@@ -318,7 +326,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
 
     for (SpiderEgg& egg : eggs){
         if (CheckCollisionBoxes(egg.collider, player.meleeHitbox)){
-            DamageSpiderEgg(egg, 50.0f, player.position);
+            if (egg.state != SpiderEggState::Destroyed) DamageSpiderEgg(egg, 50.0f, player.position);
         }
     }
 
@@ -727,6 +735,7 @@ void UpdateCollisions(Camera& camera){
     pillarCollision();
     launcherCollision();
     HandleMeleeHitboxCollision(camera);
+    SpiderEggCollision();
 }
 
 

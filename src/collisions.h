@@ -25,3 +25,4 @@ void SpiderWebCollision();
 void ChestCollision();
 void pillarCollision(); 
 void launcherCollision();
+void SpiderEggCollision();

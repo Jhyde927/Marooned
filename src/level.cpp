@@ -118,12 +118,12 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         4, 
-        0,
+        0, //exit to middle island
         {},
         true,
     },
     {
-        "Dungeon4",
+        "Dungeon4", //enter from island
         "assets/heightmaps/blank.png",
         "assets/maps/map8.png",
         {0.0f, 300.0f, 0.0f},
@@ -132,7 +132,7 @@ std::vector<LevelData> levels = {
         0, 
         true, //isDungeon is true
         {},
-        5, //skip, was the first dungeon from entrance 2
+        5, 
         6,
         {},
         true,
@@ -147,7 +147,7 @@ std::vector<LevelData> levels = {
         0, 
         true, //isDungeon is true
         {},
-        6, //start here from entrance 3. 
+        6, 
         8, //skip dungeon 6/map10/index7
         {}, 
         true, 

@@ -253,20 +253,28 @@ void UpdateFade(Camera& camera) {
 }
 
 void RebindDynamicLightmapForFrame() {
-    const int DYN_UNIT = 1;
-    rlActiveTextureSlot(DYN_UNIT);
-    rlSetTexture(gDynamic.tex.id);
+    // const int DYN_UNIT = 1;
+    // rlActiveTextureSlot(DYN_UNIT);
+    // rlSetTexture(gDynamic.tex.id);
+
+    Shader lightingShader = R.GetShader("lightingShader");
+    int locDynTex = GetShaderLocation(lightingShader, "dynamicGridTex");
+    if (locDynTex >= 0) {
+        SetShaderValueTexture(lightingShader, locDynTex, gDynamic.tex);
+    }
 }
 
 void InitDungeonLights(){
+    // Reserve texture unit 0 for 2D/UI so the dungeon lightmap
+    // will consistently be assigned to a higher texture slot by raylib.
+    Texture2D dummyTex = R.GetTexture("blank"); 
+    DrawTexture(dummyTex, 0, 0, WHITE);
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
 
     BuildStaticLightmapOnce(dungeonLights);
     BuildDynamicLightmapFromFrameLights(frameLights); // build dynamic light map once for good luck.
 
     ResourceManager::Get().SetLightingShaderValues();
-
-
 
 }
 

@@ -28,7 +28,7 @@ struct SpiderEgg {
     float health    = 100.0f;
 
     // Hatching behavior
-    float hatchDelay = 5.0f;   // seconds after triggered
+    float hatchDelay = 3.0f;   // seconds after triggered
     float hatchTimer = 0.0f;
     bool  triggered  = false;
     bool  spiderSpawned = false;

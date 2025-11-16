@@ -68,8 +68,6 @@ public:
     float deathTimer = 0.0f;
     float attackCooldown = 0.0f;
     float chaseDuration = 0.0f;
-    float orbitDuration = 6.0f;
-    int orbitDirCW;
     float hitTimer = 0.0f;
     float freezeTimer = 0.0f;
     float runawayAngleOffset = 0.0f;
@@ -95,6 +93,7 @@ public:
     int currentHealth = maxHealth;
     float accumulateDamage = 0.0f;
     float spiderAgroTimer = 0.0f;
+    bool canLayEgg = true;
     bool spiderAgro = false;
     bool   isLeaving = false;          // choose "walk away" row vs "walk toward"
     float  prevDistToPlayer = -1.0f;   // for distance trend fallback

@@ -1036,6 +1036,8 @@ void GenerateSpiderFromImage(float baseY) {
 
 }
 
+
+
 void SpawnSpiderFromEgg(Vector3 spawnPos){
     Character spider(
         spawnPos,

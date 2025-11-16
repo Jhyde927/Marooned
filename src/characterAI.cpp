@@ -7,6 +7,7 @@
 #include "sound_manager.h"
 #include "resourceManager.h"
 #include "utilities.h"
+#include "spiderEgg.h"
 
 void Character::UpdateAI(float deltaTime, Player& player) {
     switch (type) {
@@ -69,6 +70,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
         spiderAgroTimer += deltaTime;
         if (spiderAgroTimer >= 10.0f){ //dont runaway forever
             spiderAgro = true;
+            canLayEgg = true; // too much? 
             spiderAgroTimer = 0.0f;
             ChangeState(CharacterState::Chase); //doesn't need to see player to chase, allows him to sneak up on you. 
         }
@@ -255,6 +257,11 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 }
             }
             else {
+                if (canLayEgg){
+                    canLayEgg = false;
+                    SpawnSpiderEgg(position, R.GetTexture("spiderEggSheet"), 200, 200, 3, 0.5f);
+                }
+
                 ChangeState(CharacterState::Idle);
             }
 
@@ -667,10 +674,6 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
     const float FLEE_EXIT     = 3000.0f;   // far enough -> stop fleeing
     const float VISION_ENTER = 4000.0f;
 
-    //playerVisible = distance < VISION_ENTER;
-
-    // --- Placeholder for steering output (fill later) ---
-    //Vector3 desiredVel = {0,0,0};   // compute with Seek/Arrive/Orbit/Flee later
 
     switch (state)
     {
@@ -717,11 +720,6 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
             
             UpdateChase(deltaTime);
           
-        } break;
-
-        case CharacterState::Orbit:
-{           //we never use this. 
-
         } break;
 
 

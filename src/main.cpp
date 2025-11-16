@@ -17,7 +17,7 @@
 
 
 
-bool squareRes = true; // set true for 1280x1024, false for widescreen
+bool squareRes = false; // set true for 1280x1024, false for widescreen
 
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
@@ -96,7 +96,7 @@ int main() {
         }
 
         // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
-        RebindDynamicLightmapForFrame();  
+        RebindDynamicLightmapForFrame(); 
 
 
         if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;

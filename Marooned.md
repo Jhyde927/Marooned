@@ -473,7 +473,35 @@ Could add skeleton rear animation. But skeletons never retreat. same with little
 
 shooting the Giant spider should close the entrance to the arena. and lock it. Easy on take damage if giant spider lock door ....how to get door. just close all doors. lock all doors. void CloseAndLockAllDoors();...or just get the dang door position some how. DO we iterate top to bottom? when building the level? -hard coded doors[5] we iterate the dungeons top to bottom and it was the 6th one down. it sets the door to closed and sets it to eventLocked. 
 
-When entering the Giant spider boss arena, once the spider takes damage the door closes and even locks. trapping you in there with the spider. What if the spider exits the room before you deal any damage to him. Maybe it should trigger on first sight. x
+When entering the Giant spider boss arena, once the spider takes damage the door closes and even locks. trapping you in there with the spider. What if the spider exits the room before you deal any damage to him. Maybe it should trigger on first sight. x  -Spider now triggers on first sight. inside idle case. spider doesn't patrol, so we can better control the encounter. 
+
+Added bootleg frustum culling. We use math to project a cone in front of the camera and cull all chunks outside of it. Chunks beneath player were also being culled so added a non cull zone around the camera. It's speeds up the lap top on island levels by minimum 5 frames up to like 30 frames faster. Depending on how many chunks are being culled. This might make it a pain to play with an inconsistant frame rate. If your standing on the side of the island looking out to sea, it gets almost 60. So I don't think culling the tree this way as well would make much of a difference. We could drawModelInstanced the terrain as well I think. So it would be like 1 draw call instead of 250. Oh we also added a hard limit to the number of chunks we render. closest chunks get drawn first out until the limit. This is what gives it that minimum 5 frame boost because we are culling the island on the opposite side of middle island because we run out of chunks, not because distance. 
+
+I tried making the chunk super big. As to make less draw calls. but if the tiles get too big they don't conform to the terrain. So you get huge seams. I made the chunks size 193 instead of 129 was the best I could do. The number needs to be a multiple of something I forget. 
+
+Redo little spider sprite. 
+
+make spider egg. 
+
+started on spider egg. It is it's own struct. not a part of Character class. PNG image color is slime green 
+(128, 255, 0) spiderEggSheet has 3 frames for each row. needs to be filled with frames because we use 1 frames per row variable. So idle would be 3 of the same idle frame. eggs have their own bounding box we need to check against bullets and sword and staff. Need to try again to genereate exploding egg animation. Have "dormant" frame and "hatching". 
+
+Eggs have health. If egg health <= 0; change state to destroy, which plays destroy anim then changes state to husk. 
+Eggs have a trigger and hatch delay timer. They should be triggered when player is within a radius and has LOS. Timer runs to 0 then chagne state to hatching, spawn spider at the center of the egg's tile in world coords. 
+
+would spawning a spider in vision of player be a problem? shoudn't be. 
+
+Need to make boss spider lay eggs. At the spiders retreat tile, if can lay egg, lay egg. 
+
+Eggs start dormant, when player is closer than 300, the start "awakening", after five seconds they are "hatching" after the hatching animation play we switch to state "husk". No matter the state, if the egg's health drops below 0 we switch state to destroyed. The destroyed animation is just 1 frame for now. We would need another timer to play the animation. Maybe just reuse hatching timer. 
+
+Had a bug where standing on top of the egg destroyed it. Because we weren't checking if melee hitbox was active. if melee hitbox isn't active, it's extents shrink to 0 right at players pos. do it can still deal damage at the exact player position if we don't check active. Basically telefragging anything on top of player. Since I added collision to the eggs the player can never be right on top of it, but I check for melee hitbox active anyway, consider doing this for all enemies, and barrels. 
+
+Make the eggs activate on LOS. x
+
+Make the giant spider lay eggs. x - giant spider can lay an egg after running away for 10 seconds. only if the 10 seconds are up does it lay not if it takes enough damage in that time. So it seems to work pretty well. I thought I needed a egg laying timer, but it seems pretty good as is. We spawn the egg based on tile x, y so the egg is always centered. Easier than I thought it would be. 
+
+Tried one more lighting fix for linux. I now assign a dummy texture before setting lightmap uniform. The dummy draw assigns the dummy texture to slot 0, making the lightmap texture use a slot > 0. So then we don't have to us rl calls to assign it every frame. Although if this were the issue it should have worked being loaded from menu. LLM says there is nothing wrong shader side. says it has to be uniforms. 
 
 
 

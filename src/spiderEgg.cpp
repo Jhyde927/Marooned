@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "dungeonGeneration.h"
 #include "sound_manager.h"
+#include "pathfinding.h"
 
 std::vector<SpiderEgg> eggs;
 
@@ -109,6 +110,13 @@ void UpdateSpiderEggs(float dt, const Vector3& playerPos)
     
     for (SpiderEgg& egg : eggs) {
         egg.gooEmitter.UpdateBlood(dt);
+        //check for player LOS and distance
+        float distanceTo = Vector3Distance(egg.position, playerPos);
+        if (HasWorldLineOfSight(egg.position, playerPos, 0.1) && distanceTo < 3000.0f && !egg.triggered && egg.state != SpiderEggState::Destroyed){
+            egg.triggered = true;
+            egg.hatchTimer = egg.hatchDelay;
+            egg.state = SpiderEggState::Awakening;
+        }
 
         // Hit flash timer
         egg.hitFlashTimer = std::max(0.0f, egg.hitFlashTimer - dt);
@@ -143,8 +151,8 @@ void UpdateSpiderEggs(float dt, const Vector3& playerPos)
 
             // If we are NOT red and cooldown is over → pulse again
             if (egg.hitFlashTimer <= 0.0f && egg.flashCooldown <= 0.0f) {
-                egg.hitFlashTimer = 0.30f;   // time tinted red
-                egg.flashCooldown = 0.40f;   // delay before next pulse starts
+                egg.hitFlashTimer = 0.60f;   // time tinted red
+                egg.flashCooldown = 0.80f;   // delay before next pulse starts
             }
         }
 
