@@ -141,6 +141,11 @@ void UpdateSpiderEggs(float dt, const Vector3& playerPos)
                     egg.currentFrame = 0;    // start at beginning of hatching anim
                     egg.frameTimer   = 0.0f;
 
+                    // Toward the *camera/player* in world space
+                    Vector3 toPlayer = Vector3Normalize(Vector3Subtract(playerPos, egg.position));
+                    Vector3 newPos   = Vector3Add(egg.position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
+                    egg.gooEmitter.EmitBlood(newPos, 25, GREEN); //goo particles when hatching
+
 
                 }
             }

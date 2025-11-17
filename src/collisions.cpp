@@ -292,23 +292,16 @@ void HandleMeleeHitboxCollision(Camera& camera) {
 
     for (Character* enemy : enemyPtrs){ //iterate all enemyPtrs
         if (enemy->isDead) continue;
-        if (enemy->hitTimer > 0.0f) continue;
+        //if (enemy->hitTimer > 0.0f) continue; //unreliable, switch to using unique melee attack id. 
 
-        if (CheckCollisionBoxes(enemy->GetBoundingBox(), player.meleeHitbox)){
+        if (CheckCollisionBoxes(enemy->GetBoundingBox(), player.meleeHitbox) && enemy->lastAttackid != player.attackId){
+            enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
             enemy->TakeDamage(50);
             PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
 
             if (enemy->type != CharacterType::Skeleton && enemy->type != CharacterType::Ghost){ //skeles and ghosts dont bleed.  
                 if (enemy->currentHealth <= 0){
                     meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordBloody");
-                    //spawning decals here doesn't work for whatever reason
-
-                    Vector3 camDir = Vector3Normalize(Vector3Subtract(enemy->position, camera.position));
-                    Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, -100.0f));
-                    offsetPos.y += 10; 
-                    decals.emplace_back(offsetPos, DecalType::Blood, R.GetTexture("bloodSheet"), 7, 0.7f, 0.1f, 60.0f);
-                    
-                    
                 } 
             }
             if (player.activeWeapon == WeaponType::Sword) SoundManager::GetInstance().Play("swordHit");
@@ -325,8 +318,11 @@ void HandleMeleeHitboxCollision(Camera& camera) {
     }
 
     for (SpiderEgg& egg : eggs){
-        if (CheckCollisionBoxes(egg.collider, player.meleeHitbox)){
-            if (egg.state != SpiderEggState::Destroyed) DamageSpiderEgg(egg, 50.0f, player.position);
+        if (CheckCollisionBoxes(egg.collider, player.meleeHitbox) && egg.state != SpiderEggState::Destroyed){
+            if (egg.lastAttackId != player.attackId){ //each melee attack as a unique id incremented each swing. 
+                egg.lastAttackId = player.attackId;// a more robust way a limiting damage once per swing. Consider using this for enemies
+                DamageSpiderEgg(egg, 50.0f, player.position);
+            } 
         }
     }
 
@@ -348,8 +344,8 @@ void CheckBulletHits(Camera& camera) {
                 continue;
             }
             if (b.IsEnemy()) {
-                //b.kill(camera);
-                b.BulletHole(camera);
+
+                b.BulletHole(camera); //show bullet whole decal infront of player. 
                 player.TakeDamage(25);
                 continue;
             }
@@ -364,18 +360,6 @@ void CheckBulletHits(Camera& camera) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
                     enemy->TakeDamage(25);
 
-                    if (enemy->isDead){
-                        if (enemy->type == CharacterType::Skeleton || enemy->type == CharacterType::Ghost){
-                            b.Erase();
-                            break;
-
-                        }else{
-                            b.Blood(camera); //blood decal on death
-                            b.Erase();
-                            break;
-                            //b.Erase();
-                        }
-                    }
 
                     //b.BulletHole(camera, true);
                     b.Erase();

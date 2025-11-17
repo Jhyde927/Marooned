@@ -126,7 +126,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawText("Loading...", GetScreenWidth()/2 - MeasureText("Loading...", 20)/2,
                      GetScreenHeight()/2, 20, WHITE);
         } else {
-            //health mana stam bars
+            //health mana stam bars UI
             if (controlPlayer){
                 DrawHUDBars(player);
                 if (player.activeWeapon == WeaponType::MagicStaff) DrawMagicIcon();
@@ -134,30 +134,30 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);
                 DrawTextEx(pieces, goldText.c_str(), { 32, (float)GetScreenHeight() - 120 }, 30.0f, 1.0f, GOLD);
                 
-                //DrawText(TextFormat("Gold: %d", (int)player.displayedGold), 32, GetScreenHeight()-120, 30, GOLD);
-                
                 player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64);
                 DrawHints();
 
             } 
 
-            if (debugInfo) {
+            if (debugInfo) { //Press ~ for debug mode. 
                 DrawTimer(ElapsedTime);
 
                 DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 30, 20, WHITE);
-                    // Debug info about the texture itself
+
+                    // Debug lightmap texture
                 DrawText(
                     TextFormat("dynTex id:%d  %dx%d", gDynamic.tex.id, gDynamic.w, gDynamic.h),
-                    10, 60, 20, RED
-                );
+                    10, 60, 20, RED);
 
                 // Just to see the box where it *should* draw
-                DrawRectangleLines(0, 0, gDynamic.w * 4, gDynamic.h * 4, RED);
+                DrawRectangleLines(0, 0, gDynamic.w * 2, gDynamic.h * 2, RED);
 
                 // Visualize the dynamic lightmap big enough to notice
                 if (gDynamic.tex.id != 0) {
-                    DrawTextureEx(gDynamic.tex, { 0, 0 }, 0.0f, 4.0f, WHITE);
+                    DrawTextureEx(gDynamic.tex, { 0, 0 }, 0.0f, 2.0f, WHITE);
                 }
+
+                //show FPS over top of lightmap
                 DrawText(TextFormat("%d FPS", GetFPS()), 10, 10, 20, WHITE);
 
             }

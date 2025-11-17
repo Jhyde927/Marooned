@@ -65,6 +65,7 @@ public:
     bool hasFired = false;
     bool animationLoop;
     bool canSee;
+    int lastAttackid = -1;
     float deathTimer = 0.0f;
     float attackCooldown = 0.0f;
     float chaseDuration = 0.0f;

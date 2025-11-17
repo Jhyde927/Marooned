@@ -30,12 +30,12 @@ void debugControls(Camera& camera, float deltaTime){
             //Reloading lights live, now works, still flashes dark for one frame though, so we can't really recalculate for door openings. 
             isLoadingLevel = true;
             InitDynamicLightmap(dungeonWidth * 4);
-            R.SetLightingShaderValues();
+           
             BuildStaticLightmapOnce(dungeonLights);
-            //BuildDynamicLightmapFromFrameLights(frameLights);
+            R.SetLightingShaderValues();
             isLoadingLevel = false;
             LogDynamicLightmapNonBlack("testing: ");
-            
+
         
         }
 

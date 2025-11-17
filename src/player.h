@@ -24,7 +24,7 @@ struct Player {
 
     const float ACCEL_GROUND   = 8000.0f;   // how fast we reach target speed
     const float DECEL_GROUND   = 7000.0f;   // how fast we slow to zero
-    const float ACCEL_AIR      = 3500.0f;    // small air control
+    const float ACCEL_AIR      = 1500.0f;    // small air control
     const float FRICTION_AIR   = 0.01f;    // bleed a bit of air speed
     const float GRAVITY        = -980.0f;
 
@@ -54,7 +54,7 @@ struct Player {
     float currentMana = maxMana;
     float maxStamina = 100.0f;
     float stamina = maxStamina;
-    
+    int attackId = 0; //incremented every melee attack for a unique id. 
     float radius = 150.0f;
     float hitTimer = 0.0f;
     bool dying = false;

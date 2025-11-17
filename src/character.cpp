@@ -88,6 +88,11 @@ void Character::TakeDamage(int amount) {
             bloodEmitter.EmitBlood(newPos, 20, WHITE);
         } else {
             bloodEmitter.EmitBlood(newPos, 20, RED);
+
+            Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+            Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 50.0f));
+            offsetPos.y += 10; 
+            decals.emplace_back(offsetPos, DecalType::Blood, R.GetTexture("bloodSheet"), 7, 0.7f, 0.1f, 60.0f);
         }
 
         ChangeState(CharacterState::Death);

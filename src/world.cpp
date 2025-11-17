@@ -253,15 +253,15 @@ void UpdateFade(Camera& camera) {
 }
 
 void RebindDynamicLightmapForFrame() {
-    // const int DYN_UNIT = 1;
-    // rlActiveTextureSlot(DYN_UNIT);
-    // rlSetTexture(gDynamic.tex.id);
+    const int DYN_UNIT = 1;
+    rlActiveTextureSlot(DYN_UNIT);
+    rlSetTexture(gDynamic.tex.id);
 
-    Shader lightingShader = R.GetShader("lightingShader");
-    int locDynTex = GetShaderLocation(lightingShader, "dynamicGridTex");
-    if (locDynTex >= 0) {
-        SetShaderValueTexture(lightingShader, locDynTex, gDynamic.tex);
-    }
+    // Shader lightingShader = R.GetShader("lightingShader");
+    // int locDynTex = GetShaderLocation(lightingShader, "dynamicGridTex");
+    // if (locDynTex >= 0) {
+    //     SetShaderValueTexture(lightingShader, locDynTex, gDynamic.tex);
+    // }
 }
 
 void InitDungeonLights(){

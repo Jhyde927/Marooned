@@ -252,7 +252,7 @@ void DrawHUDBars(const Player& player) {
 
     DrawTrapezoidBar(leftX(hp.width),   yHP,   hpDisp,   (float)player.maxHealth, hp);
     DrawTrapezoidBar(leftX(manaBar.width), yMana, manaDisp, manaMax,manaBar);
-    DrawTrapezoidBar(leftX(stam.width), yStam, stamDisp, staminaMax,stam);
+    DrawTrapezoidBar(leftX(stam.width), yStam, stamDisp, staminaMax,stam);  
 }
 
 static Rectangle FitTextureDest(const Texture2D& tex, int screenW, int screenH, bool cover)

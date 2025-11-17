@@ -223,7 +223,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         11, 
-        12, //go from portal to river, skip last 2 for demo
+        1, //go from portal to river, skip last 2 for demo
         {}, 
         false, 
     },

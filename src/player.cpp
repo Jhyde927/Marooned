@@ -417,6 +417,8 @@ void TryQueuedJump(){
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
+
+
     HandleMouseLook(deltaTime);
     weapon.Update(deltaTime);
     weapon.isMoving = player.isMoving;
@@ -444,7 +446,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     float goldLerpSpeed = 5.0f;
     player.displayedGold += (player.gold - player.displayedGold) * goldLerpSpeed * deltaTime;
 
-    if (player.running && player.isMoving && player.grounded && player.stamina > 0.0f) {
+    if (player.running && player.isMoving && player.stamina > 0.0f) {
         player.stamina -= deltaTime * 30.0f; // drain rate
         if (player.stamina <= 0.0f) {
             player.stamina = 0.0f;
@@ -454,7 +456,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     else {
         // Recover stamina
         player.stamina += deltaTime * 20.0f; // regen rate
-        if (player.stamina > 0.0f) {
+        if (player.stamina > 50.0f) {
             player.canRun = true; // can run as soon as some stamina is back
         }
         if (player.stamina >= player.maxStamina) {
@@ -470,29 +472,11 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         UpdateSwimSounds(deltaTime);
     } else {
         player.isSwimming = false;
-        player.canRun = true;
+        if (player.stamina > 50.0) player.canRun = true;
     }
 
 
-    // === Ground Check ===
-    
-    player.groundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
-    
-    if (isDungeon) {
-        player.groundY = dungeonPlayerHeight;
-        if (player.overLava) {
-            player.groundY -= 150.0f; // or LAVA_DROP
-        }
-    }
-    float feetY = player.position.y - player.height / 2.0f;
 
-    if (feetY <= player.groundY + 5.0f) { //+5 buffer for uneven terrain. 
-        player.grounded = true;
-        player.velocity.y = 0;
-        player.position.y = player.groundY + player.height / 2.0f;
-    } else {
-        player.grounded = false;
-    }
 
     //start the dying process. 
     if (player.dying) {
@@ -527,6 +511,26 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         HandleKeyboardInput(deltaTime, camera);
         if (!player.onBoard) HandlePlayerMovement(deltaTime);
     } 
+
+    // === Ground Check ===
+    //check gound after moving, use clamped deltaTime. 
+    player.groundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
+    
+    if (isDungeon) {
+        player.groundY = dungeonPlayerHeight;
+        if (player.overLava) {
+            player.groundY -= 150.0f; // or LAVA_DROP
+        }
+    }
+    float feetY = player.position.y - player.height / 2.0f;
+
+    if (feetY <= player.groundY + 5.0f) { //+5 buffer for uneven terrain. 
+        player.grounded = true;
+        player.velocity.y = 0;
+        player.position.y = player.groundY + player.height / 2.0f;
+    } else {
+        player.grounded = false;
+    }
 
     player.previousPosition = player.position;
 }

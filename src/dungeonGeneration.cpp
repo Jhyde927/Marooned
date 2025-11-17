@@ -1079,7 +1079,7 @@ void GenerateSpiderEggFromImage(float baseY) {
                 SpiderEgg& egg = SpawnSpiderEgg(worldPos, eggTex, frameW, frameH, framesPerRow, scale);
 
                 // Optional tuning per-egg:
-                egg.hatchDelay   = 5.0f;   // seconds after player triggers it
+
                 egg.maxHealth    = 100.0f;
                 egg.health       = egg.maxHealth;
                 egg.rowDormant   = 0;

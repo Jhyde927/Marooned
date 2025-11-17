@@ -64,6 +64,9 @@ int main() {
     while (!WindowShouldClose()) {
         ElapsedTime += GetFrameTime();
         float deltaTime = GetFrameTime();
+
+        // Clamp dt so physics never sees a huge value on a hitch
+        if (deltaTime > 0.05f) deltaTime = 0.05f;   // 50 ms, ~20 FPS minimum step
         
        // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
@@ -96,7 +99,7 @@ int main() {
         }
 
         // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
-        //RebindDynamicLightmapForFrame(); 
+        RebindDynamicLightmapForFrame(); 
 
 
         if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;

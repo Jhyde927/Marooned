@@ -291,7 +291,7 @@ void MeleeWeapon::EndBlock() {
 void MeleeWeapon::StartSwing(Camera& camera) {
     if (timeSinceLastSwing >= cooldown && !blocking) {
         PlaySwipe();
-
+        player.attackId++; //for unique id each attack, so eggs are only damaged once. 
         swinging = true;
         swingTimer = 0.0f;
         timeSinceLastSwing = 0.0f;
@@ -365,7 +365,6 @@ void MagicStaff::PlaySwipe(){
 
     lastIndex = index;
     std::string stepKey = swipes[index];
-
     SoundManager::GetInstance().Play(stepKey);
 
 }
@@ -373,6 +372,7 @@ void MagicStaff::PlaySwipe(){
 void MagicStaff::StartSwing(Camera& camera) {
     if (swinging || timeSinceLastSwing < cooldown) return;
     PlaySwipe();
+    player.attackId++;
     swinging = true;
     swingTimer = 0.0f;
     hitboxActive = false;

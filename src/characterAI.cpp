@@ -941,7 +941,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                     FireBullet(position, player.position, 1200.0f, 3.0f, true);
                     hasFired = true;
                     attackCooldown = 1.5f;
-                    //SoundManager::GetInstance().Play("shotgun");
                     SoundManager::GetInstance().PlaySoundAtPosition("musket", position, player.position, 1.0, 2000);
                 }
 
@@ -972,7 +971,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             stateTimer += deltaTime;
 
             // Wait until animation is done to apply damage
-            if (stateTimer >= 0.5f && !hasFired) { // 5 frames * 0.12s = 0.6s make it 0.5
+            if (currentFrame == 2 && !hasFired) { // only apply damage on frame 2
                 hasFired = true; //reusing hasfired for sword attack. I think this is ok?
 
                 if (distance < 280.0f && playerVisible) {
@@ -1001,7 +1000,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
             // Exit state after full animation plays
             if (stateTimer >= 1.5f) {
-                if (distance > 300.0f) {
+                if (distance > 280.0f) {
                     Vector2 start = WorldToImageCoords(position);
                     if (TrySetRandomPatrolPath(start, this, currentWorldPath)){
                         ChangeState(CharacterState::Patrol);

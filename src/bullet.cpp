@@ -278,7 +278,7 @@ void Bullet::BulletHole(Camera& camera, bool enemy){
 void Bullet::Blood(Camera& camera){
     //spawn blood decals at bullet position, if it's not a skeleton.
     Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
-    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
 
     decals.emplace_back(offsetPos, DecalType::Blood, R.GetTexture("bloodSheet"), 7, 1.0f, 0.1f, 60.0f);
 

@@ -27,6 +27,8 @@ struct SpiderEgg {
     float maxHealth = 100.0f;
     float health    = 100.0f;
 
+    int lastAttackId = -1;
+
     // Hatching behavior
     float hatchDelay = 3.0f;   // seconds after triggered
     float hatchTimer = 0.0f;
