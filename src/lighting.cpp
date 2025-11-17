@@ -417,8 +417,17 @@ void BuildStaticLightmapOnce(const std::vector<LightSource>& dungeonLights)
         p.b = (unsigned char)(p.b * 0.65f);
     }
 
-    BuildLavaMaskAlphaFromImage(dungeonImg);
+    //BuildLavaMaskAlphaFromImage(dungeonImg);
         
+}
+
+void DebugUploadLightmapOpaque()
+{
+    std::vector<Color> tmp = gDynamic.pixels;
+    for (auto &px : tmp) {
+        px.a = 255;        // force opaque for HUD visualization
+    }
+    UpdateTexture(gDynamic.tex, tmp.data());
 }
 
 void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLights)
@@ -457,8 +466,12 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
         StampDynamicLight(L.pos, L.range, c);
         // No occlusion for fireballs, too expensive. 
     }
-
+    // if (debugInfo){
+    //     DebugUploadLightmapOpaque();
+    // } else{
     UpdateTexture(gDynamic.tex, gDynamic.pixels.data());
+    //}
+
 
 }
 

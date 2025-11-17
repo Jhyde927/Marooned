@@ -40,21 +40,21 @@ void main() {
     // Sample lightmap once: RGB = dynamic light, A = lava mask
     vec4 lm = texture(dynamicGridTex, lmUV);
     vec3 dyn = lm.rgb;
-    float lavaMask = lm.a; // 0..1
+    //float lavaMask = lm.a; // 0..1
 
     // Base lighting (same as before)
     vec3 L = clamp(dyn * dynStrength + vec3(ambientBoost), 0.0, 1.0);
 
     // If drawing ceilings, add lava glow based on alpha mask
-    if (isCeiling == 1) {
-        // Vertical attenuation so glow fades the higher the ceiling
-        float distY = max(0.0, vWorldPos.y - ceilHeight);
-        float atten = exp(-distY / lavaFalloff); // exponential falloff
+    // if (isCeiling == 1) {
+    //     // Vertical attenuation so glow fades the higher the ceiling
+    //     float distY = max(0.0, vWorldPos.y - ceilHeight);
+    //     float atten = exp(-distY / lavaFalloff); // exponential falloff
 
-        // Add emissive red/orange glow
-        vec3 lavaGlow = vec3(1.0, 0.25, 0.0) * lavaMask * lavaCeilStrength * atten;
-        L = clamp(L + lavaGlow, 0.0, 1.0);
-    }
+    //     // Add emissive red/orange glow
+    //     vec3 lavaGlow = vec3(1.0, 0.25, 0.0) * lavaMask * lavaCeilStrength * atten;
+    //     L = clamp(L + lavaGlow, 0.0, 1.0);
+    // }
 
     // Shade final
     finalColor = vec4(base * L, alpha);

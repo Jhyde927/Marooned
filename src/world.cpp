@@ -155,7 +155,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         InitDungeonLights();
     }
 
-    ResourceManager::Get().SetLightingShaderValues();
+    //ResourceManager::Get().SetLightingShaderValues();
     ResourceManager::Get().SetPortalShaderValues();
     isLoadingLevel = false;
 
@@ -269,8 +269,8 @@ void InitDungeonLights(){
     // will consistently be assigned to a higher texture slot by raylib.
     Texture2D dummyTex = R.GetTexture("blank"); 
     DrawTexture(dummyTex, 0, 0, WHITE);
-    InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
 
+    InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
     BuildStaticLightmapOnce(dungeonLights);
     BuildDynamicLightmapFromFrameLights(frameLights); // build dynamic light map once for good luck.
 

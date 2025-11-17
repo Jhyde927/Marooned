@@ -38,7 +38,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //this draw call was eating my laptop alive. we gain 30 frames by chunking the terrain instead. 
 
             float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
-            DrawTerrainGrid(terrain, camera, maxDrawDist);
+
+            DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
 
             HandleWaves(camera);
             // draw order/state (after opaque terrain)
@@ -55,7 +56,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonDoorways();          
             DrawOverworldProps();
         } else {
-
+            //draw the dungeon
             DrawDungeonFloor();
             DrawDungeonWalls();
             DrawDungeonDoorways();
@@ -142,9 +143,22 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
             if (debugInfo) {
                 DrawTimer(ElapsedTime);
-                DrawText(TextFormat("%d FPS", GetFPS()), 10, 10, 20, WHITE);
-                DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 30, 20, WHITE);
 
+                DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 30, 20, WHITE);
+                    // Debug info about the texture itself
+                DrawText(
+                    TextFormat("dynTex id:%d  %dx%d", gDynamic.tex.id, gDynamic.w, gDynamic.h),
+                    10, 60, 20, RED
+                );
+
+                // Just to see the box where it *should* draw
+                DrawRectangleLines(0, 0, gDynamic.w * 4, gDynamic.h * 4, RED);
+
+                // Visualize the dynamic lightmap big enough to notice
+                if (gDynamic.tex.id != 0) {
+                    DrawTextureEx(gDynamic.tex, { 0, 0 }, 0.0f, 4.0f, WHITE);
+                }
+                DrawText(TextFormat("%d FPS", GetFPS()), 10, 10, 20, WHITE);
 
             }
             

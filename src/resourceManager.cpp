@@ -675,7 +675,7 @@ void ResourceManager::SetLightingShaderValues() {
 
     // --- Dynamic lightmap sampler hookup --- Possible fix for Linux lights? 
     //const int DYN_UNIT = 1; // avoid 0 (UI will stomp 0 on some drivers)
-    
+
     //we now set a dummy texture to take slot 1 every time. in initlights
 
     // Sampler -> texture unit index
@@ -765,7 +765,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     float dungeonDarkness = -0.1f;//it darkens the gun model as well, so go easy. negative number brightens it. 
     float dungeonContrast = 1.00f; //makes darks darker. 
 
-    int isDungeonVal = isDungeon ? 1 : 0;
+    int isDungeonVal = isDungeon ? 1 : 0; 
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "resolution"), &screenResolution, SHADER_UNIFORM_VEC2);
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "isDungeon"), &isDungeonVal, SHADER_UNIFORM_INT);
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "dungeonDarkness"), &dungeonDarkness, SHADER_UNIFORM_FLOAT);

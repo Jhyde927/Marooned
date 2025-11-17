@@ -22,8 +22,10 @@ bool squareRes = false; // set true for 1280x1024, false for widescreen
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
-    //normally start 1600x900 window, toggle fullscreen to fit to monitor. 
-
+    //normally start 1600x900 window, toggle fullscreen to fit to monitor.
+    
+    
+    //debug log to text file. 
     // SetTraceLogLevel(LOG_ALL);
     // SetTraceLogCallback([](int logLevel, const char* text, va_list args){
     //     static FILE* f = fopen("marooned_log.txt", "w"); // or "a" to append
@@ -57,8 +59,6 @@ int main() {
 
     CameraSystem::Get().Init(startPosition);
     CameraSystem::Get().SetFOV(fovy);
-
-
     
     //main game loop
     while (!WindowShouldClose()) {
@@ -68,7 +68,7 @@ int main() {
        // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
 
-        UpdateFade(camera); //always update fade
+        UpdateFade(camera); //always update fade regardless of state
 
         //Switch Levels
         if (gFadePhase == FadePhase::Swapping) {
@@ -96,7 +96,7 @@ int main() {
         }
 
         // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
-        RebindDynamicLightmapForFrame(); 
+        //RebindDynamicLightmapForFrame(); 
 
 
         if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
@@ -137,6 +137,7 @@ int main() {
         // Update camera based on player
         UpdateWorldFrame(deltaTime, player);
         UpdatePlayer(player, deltaTime, camera);
+
         
         if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights);
         RenderFrame(camera, player, deltaTime); //draw everything
