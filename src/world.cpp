@@ -255,7 +255,7 @@ void UpdateFade(Camera& camera) {
 void RebindDynamicLightmapForFrame() {
     const int DYN_UNIT = 1;
     rlActiveTextureSlot(DYN_UNIT);
-    rlSetTexture(gDynamic.tex.id);
+    rlSetTexture(gDynamic.tex.id); //works when resetting lights with L. other way and it breaks. 
 
     // Shader lightingShader = R.GetShader("lightingShader");
     // int locDynTex = GetShaderLocation(lightingShader, "dynamicGridTex");

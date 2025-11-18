@@ -417,8 +417,6 @@ void TryQueuedJump(){
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
-
-
     HandleMouseLook(deltaTime);
     weapon.Update(deltaTime);
     weapon.isMoving = player.isMoving;
@@ -447,7 +445,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     player.displayedGold += (player.gold - player.displayedGold) * goldLerpSpeed * deltaTime;
 
     if (player.running && player.isMoving && player.stamina > 0.0f) {
-        player.stamina -= deltaTime * 30.0f; // drain rate
+        if (!debugInfo) player.stamina -= deltaTime * 30.0f; // drain rate
         if (player.stamina <= 0.0f) {
             player.stamina = 0.0f;
             player.canRun = false; // forced stop

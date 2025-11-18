@@ -99,7 +99,7 @@ int main() {
         }
 
         // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
-        RebindDynamicLightmapForFrame(); 
+        RebindDynamicLightmapForFrame(); //this makes lights work when reset. 
 
 
         if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;

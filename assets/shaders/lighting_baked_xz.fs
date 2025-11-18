@@ -27,6 +27,20 @@ void main()
     vec3 base  = baseS.rgb * colDiffuse.rgb;
     float alpha = baseS.a * colDiffuse.a;
 
+    // ------------------------------------------------------------
+    // LINUX FALLBACK LIGHTING (UNCOMMENT FOR LINUX BUILDS)
+    //
+    // This ignores the dynamic lightmap entirely and applies
+    // a constant medium-brightness lighting so the dungeon
+    // is visible even if the lightmap texture fails to load.
+    //
+    // vec3 L = vec3(0.50);   // 50% brightness //<- uncomment these 3 lines. 
+    // finalColor = vec4(base * L, alpha);
+    // return;
+    //
+    // ------------------------------------------------------------
+    //comment out every thing below this when using fallback lighting. 
+
     // Compute UVs into the baked+dynamically-updated lightmap
     float u = (vWorldPos.x - gridBounds.x) * gridBounds.z;
     float v = (vWorldPos.z - gridBounds.y) * gridBounds.w;
@@ -41,6 +55,51 @@ void main()
     // Apply to albedo
     finalColor = vec4(base * L, alpha);
 }
+
+
+// #version 330
+
+// in vec2 vUV;
+// in vec3 vWorldPos;
+// in vec4 vColor;      // Provided by raylib but unused for dungeon floors
+
+// out vec4 finalColor;
+
+// uniform sampler2D texture0;     // Albedo (tile texture)
+// uniform vec4      colDiffuse;   // Usually WHITE
+
+// // Dynamic lightmap (RGB = lighting)
+// uniform sampler2D dynamicGridTex;
+
+// // XZ-world → UV scaling
+// // { minX, minZ, invSizeX, invSizeZ }
+// uniform vec4 gridBounds;
+
+// // Lighting controls
+// uniform float dynStrength;     // brightness multiplier
+// uniform float ambientBoost;    // constant ambient
+
+// void main() 
+// {
+//     // Sample albedo
+//     vec4 baseS = texture(texture0, vUV);
+//     vec3 base  = baseS.rgb * colDiffuse.rgb;
+//     float alpha = baseS.a * colDiffuse.a;
+
+//     // Compute UVs into the baked+dynamically-updated lightmap
+//     float u = (vWorldPos.x - gridBounds.x) * gridBounds.z;
+//     float v = (vWorldPos.z - gridBounds.y) * gridBounds.w;
+//     vec2 lmUV = clamp(vec2(u, v), 0.0, 1.0);
+
+//     // Sample dynamic light (RGB only)
+//     vec3 dyn = texture(dynamicGridTex, lmUV).rgb;
+
+//     // Final lighting factor
+//     vec3 L = clamp(dyn * dynStrength + vec3(ambientBoost), 0.0, 1.0);
+
+//     // Apply to albedo
+//     finalColor = vec4(base * L, alpha);
+// }
 
 
 // #version 330

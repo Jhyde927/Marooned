@@ -150,11 +150,11 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                     10, 60, 20, RED);
 
                 // Just to see the box where it *should* draw
-                DrawRectangleLines(0, 0, gDynamic.w * 2, gDynamic.h * 2, RED);
+                DrawRectangleLines(0, 0, gDynamic.w, gDynamic.h, RED);
 
                 // Visualize the dynamic lightmap big enough to notice
                 if (gDynamic.tex.id != 0) {
-                    DrawTextureEx(gDynamic.tex, { 0, 0 }, 0.0f, 2.0f, WHITE);
+                    DrawTextureEx(gDynamic.tex, { 0, 0 }, 0.0f, 1.0f, WHITE);
                 }
 
                 //show FPS over top of lightmap
