@@ -82,9 +82,13 @@ cd build
 cmake ..
 make
 ```
-You can install library files using `make install`, but it is not required for running the program.
-
 4. Run `Marooned` or `build/marooned` depending on how you built. The assets folder and all `.so`/`.a` files (if ran `make install`) must be in the same folder in which the executable is run.
+
+It is also possible to create a full Linux build for distribution by running
+```bash
+./linux_build.sh
+```
+
 
 ## Contributing
 Feel free to create PRs or issues. To create a PR:

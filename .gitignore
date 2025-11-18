@@ -7,3 +7,5 @@
 *.d
 raylib/
 build/
+/*.tar.gz
+/*.zip
