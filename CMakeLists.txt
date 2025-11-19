@@ -1,6 +1,3 @@
-# For building a Linux executable with all libraries
-# This is not meant for Windows or MacOS
-
 cmake_minimum_required(VERSION 3.10)
 project(marooned VERSION 1.0.0)
 
@@ -15,9 +12,3 @@ set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJ
 
 find_package(raylib REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
-
-install(FILES /lib/x86_64-linux-gnu/libstdc++.so.6
-              /lib/x86_64-linux-gnu/libm.so.6
-              /lib/x86_64-linux-gnu/libgcc_s.so.1
-              /lib/x86_64-linux-gnu/libc.so.6
-              DESTINATION ${PROJECT_SOURCE_DIR}/build)
