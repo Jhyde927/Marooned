@@ -36,6 +36,12 @@ enum class TrapType {
 
 struct GridCoord { int x; int y; }; // image-space coords used for worldToGrid
 
+struct SimpleLight { //foward shader light
+    Vector3 pos;
+    float   radius;
+    Color   color;      // 0–255
+    float   intensity;  // 0..1
+};
 
 struct Fire {
     int fireFrame = 0;
@@ -197,6 +203,7 @@ extern std::vector<LightSample> frameLights;
 extern std::vector<LauncherTrap> launchers;
 extern std::vector<PillarInstance> pillars;
 extern std::vector<Fire> fires;
+extern std::vector<SimpleLight> gDungeonLightsForward;
 extern std::vector<LightSource> dungeonLights;
 extern std::vector<LightSource> bulletLights;
 extern std::vector<WallRun> wallRunColliders;
@@ -227,6 +234,7 @@ void GenerateSpiderWebs(float baseY);
 void GenerateChests(float baseY); 
 void GenerateLaunchers(float baseY);
 void GenerateLightSources(float baseY);
+void GenerateLightSourcesForward(float baseY);
 void GenerateDoorways( float baseY, int currentLevelIndex);
 void GenerateDoorsFromArchways();
 void GeneratePotions(float baseY);

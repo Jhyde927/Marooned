@@ -267,7 +267,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
     R.LoadModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
     R.LoadModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
-
+    R.LoadModelFromMesh("bottomPlane",GenMeshPlane(16000, 160000, 1, 1));
+    
     //shaders
     R.LoadShader("terrainShader",  "assets/shaders/height_color.vs",       "assets/shaders/height_color.fs");
     R.LoadShader("fogShader",      /*vsPath=*/"",                          "assets/shaders/fog_postprocess.fs");
@@ -280,10 +281,89 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("lavaShader",     "assets/shaders/lava_world.vs",         "assets/shaders/lava_world.fs");
     R.LoadShader("treeShader",     "assets/shaders/treeShader.vs",         "assets/shaders/treeShader.fs");
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
+    R.LoadShader("lightingForward", "assets/shaders/lighting_forward.vs",  "assets/shaders/lighting_forward.fs");
 
 
 
 }
+
+static int locLightCount    = -1;
+static int locLightPosRad   = -1;
+static int locLightColInt   = -1;
+static int locAmbient       = -1;
+
+void ResourceManager::InitForwardLightingUniforms()
+{
+    Shader sh = R.GetShader("lightingForward"); // whatever name you loaded it as
+
+    locLightCount  = GetShaderLocation(sh, "uLightCount");
+    locLightPosRad = GetShaderLocation(sh, "uLightPosRadius");
+    locLightColInt = GetShaderLocation(sh, "uLightColorIntensity");
+    locAmbient     = GetShaderLocation(sh, "uAmbient");
+}
+
+void ResourceManager::UploadDungeonLightsToShader()
+{
+    Shader sh = R.GetShader("lightingForward");
+
+    const int MAX_LIGHTS = 32;
+
+    Vector4 posRadius[MAX_LIGHTS];
+    Vector4 colIntensity[MAX_LIGHTS];
+
+    int count = 0;
+    for (const SimpleLight& L : gDungeonLightsForward)
+    {
+        if (count >= MAX_LIGHTS) break;
+
+        posRadius[count] = { L.pos.x, L.pos.y, L.pos.z, L.radius };
+
+        float r = L.color.r / 255.0f;
+        float g = L.color.g / 255.0f;
+        float b = L.color.b / 255.0f;
+        colIntensity[count] = { r, g, b, L.intensity };
+
+        ++count;
+    }
+
+    float ambient = 0.25f; // similar to your old ambientBoost
+
+    if (locAmbient >= 0)
+        SetShaderValue(sh, locAmbient, &ambient, SHADER_UNIFORM_FLOAT);
+
+    if (locLightCount >= 0)
+        SetShaderValue(sh, locLightCount, &count, SHADER_UNIFORM_INT);
+
+    if (count > 0)
+    {
+        if (locLightPosRad >= 0)
+            SetShaderValueV(sh, locLightPosRad,
+                            &posRadius[0].x, SHADER_UNIFORM_VEC4, count);
+
+        if (locLightColInt >= 0)
+            SetShaderValueV(sh, locLightColInt,
+                            &colIntensity[0].x, SHADER_UNIFORM_VEC4, count);
+    }
+}
+
+void ResourceManager::SetForwardLightingShaderValues() {
+    Shader& lightingShader = R.GetShader("lightingForward");
+    Model& floorModel   = R.GetModel("floorTileGray");
+    Model& wallModel    = R.GetModel("wallSegment");
+    Model& doorwayModel = R.GetModel("doorWayGray");
+    Model& launcherModel = R.GetModel("stonePillar");
+    Model& barrelModel  = R.GetModel("barrelModel");
+    Model& brokeModel   = R.GetModel("brokeBarrel");
+
+    for (int i = 0; i < wallModel.materialCount; i++)    wallModel.materials[i].shader   = lightingShader;
+    for (int i = 0; i < doorwayModel.materialCount; i++) doorwayModel.materials[i].shader= lightingShader;
+    for (int i = 0; i < floorModel.materialCount; ++i)   floorModel.materials[i].shader  = lightingShader;
+    for (int i = 0; i < launcherModel.materialCount; ++i)launcherModel.materials[i].shader = lightingShader;
+    for (int i = 0; i < barrelModel.materialCount; ++i)  barrelModel.materials[i].shader = lightingShader;
+    for (int i = 0; i < brokeModel.materialCount; ++i)   brokeModel.materials[i].shader  = lightingShader;
+
+}
+
 
 
 
@@ -637,9 +717,11 @@ void ResourceManager::SetLavaShaderValues(){
     SetShaderValue(lavaShader, locScale, &uvsPerWorldUnit, SHADER_UNIFORM_FLOAT);
 }
 
-void ResourceManager::SetLightingShaderValues() {
-    Shader& lightingShader = R.GetShader("lightingShader");
 
+
+void ResourceManager::SetLightingShaderValues() {
+    
+    Shader& lightingShader = R.GetShader("lightingShader");
     Model& floorModel   = R.GetModel("floorTileGray");
     Model& wallModel    = R.GetModel("wallSegment");
     Model& doorwayModel = R.GetModel("doorWayGray");
@@ -655,6 +737,7 @@ void ResourceManager::SetLightingShaderValues() {
     for (int i = 0; i < brokeModel.materialCount; ++i)   brokeModel.materials[i].shader  = lightingShader;
 
     Shader use = floorModel.materials[0].shader;
+    
 
     int locGrid   = GetShaderLocation(use, "gridBounds");
     int locDynTex = GetShaderLocation(use, "dynamicGridTex");
@@ -683,6 +766,7 @@ void ResourceManager::SetLightingShaderValues() {
     float ambientBoost = 0.25f;
     if (locDynStr >= 0) SetShaderValue(use, locDynStr, &dynStrength,  SHADER_UNIFORM_FLOAT);
     if (locAmb    >= 0) SetShaderValue(use, locAmb,    &ambientBoost, SHADER_UNIFORM_FLOAT);
+
 
 }
 

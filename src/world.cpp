@@ -123,7 +123,8 @@ void InitLevel(LevelData& level, Camera& camera) {
         drawCeiling = level.hasCeiling;
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
-        GenerateLightSources(floorHeight);
+        //GenerateLightSources(floorHeight);
+        GenerateLightSourcesForward(floorHeight);
         GenerateFloorTiles(floorHeight);//80
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
@@ -152,7 +153,11 @@ void InitLevel(LevelData& level, Camera& camera) {
         R.SetBloomShaderValues();
 
         //XZ dynamic lightmap + shader lighting with occlusion
-        InitDungeonLights();
+        //InitDungeonLights();
+
+        //forward lighting test
+        ResourceManager::Get().InitForwardLightingUniforms();
+        ResourceManager::Get().SetForwardLightingShaderValues();
     }
 
     //ResourceManager::Get().SetLightingShaderValues();

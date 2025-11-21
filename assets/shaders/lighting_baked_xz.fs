@@ -54,6 +54,7 @@ void main()
 
     // Apply to albedo
     finalColor = vec4(base * L, alpha);
+    //finalColor = vec4(lmUV, 0.0, alpha); mango UV test
 }
 
 

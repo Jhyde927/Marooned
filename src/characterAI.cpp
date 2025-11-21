@@ -66,6 +66,10 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateLeavingFlag(player.position, player.previousPosition);
 
+    if (currentHealth <= 0.0f){
+        state = CharacterState::Death;
+    }
+
     if (!spiderAgro){
         spiderAgroTimer += deltaTime;
         if (spiderAgroTimer >= 10.0f){ //dont runaway forever

@@ -31,7 +31,8 @@ std::vector<Door> doors;
 
 std::vector<PillarInstance> pillars;
 std::vector<WallRun> wallRunColliders;
-std::vector<LightSource> dungeonLights; //static lights. 
+std::vector<LightSource> dungeonLights; //static lights.
+std::vector<SimpleLight> gDungeonLightsForward; //forward static lights 
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
 
@@ -1226,7 +1227,7 @@ void GenerateLightSources(float baseY) {
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
-
+            
             // Check for yellow (pure R + G, no B)
             if (current.r == 255 && current.g == 255 && current.b == 0) {
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
@@ -1250,6 +1251,45 @@ void GenerateLightSources(float baseY) {
 
 
 }
+
+void GenerateLightSourcesForward(float baseY) {
+    dungeonLights.clear();
+    gDungeonLightsForward.clear();
+    pillars.clear();
+    fires.clear();
+
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            // Check for yellow (pure R + G, no B)
+            if (current.r == 255 && current.g == 255 && current.b == 0) {
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+                dungeonLights.push_back({ pos });
+
+                // --- existing pillar/fire stuff ---
+                BoundingBox box;
+                box.min = Vector3Subtract(pos, Vector3{50.0f, 0.0f, 50.0f});
+                box.max = Vector3Add(pos, Vector3{50.0f, 100.0f, 50.0f});
+                pillars.push_back({ pos, 1.0f, box });
+
+                Fire newFire;
+                newFire.fireFrame = GetRandomValue(0, 59);
+                fires.push_back(newFire);
+
+                // --- new forward-light entry ---
+                SimpleLight L;
+                L.pos       = pos;
+                L.radius    = 1600.0f;   // tweak to taste
+                L.color     = { 255, 255, 255, 255 }; // warm torch color
+                L.intensity = 0.5f;     // scalar multiplier
+                gDungeonLightsForward.push_back(L);
+            }
+        }
+    }
+}
+
 
 
 

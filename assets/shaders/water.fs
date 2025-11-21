@@ -25,8 +25,8 @@ void main()
     float distanceToCam = length(fragPosition - cameraPos);
     float depthFactor = clamp((distanceToCam - 500.0) / 6000.0, 0.0, 1.0);
 
-    vec3 shallowColor = vec3(0.25, 0.5, 0.75);
-    vec3 deepColor    = vec3(0.1, 0.25, 0.65);
+    vec3 shallowColor = vec3(0.25, 0.6, 0.77);
+    vec3 deepColor    = vec3(0.1, 0.35, 0.68);
 
     vec3 waterColor = mix(shallowColor, deepColor, depthFactor) * brightness;
 
@@ -44,7 +44,7 @@ void main()
     float alpha = mix(0.8, 0.0, fade);
     vec3 finalRGB = mix(waterColor, vec3(0.0), fade * 0.2);
 
-    finalColor = vec4(finalRGB, alpha);
+    finalColor = vec4(finalRGB, 1.0); //fully opaque to hide culled under water chunks
 }
 
 

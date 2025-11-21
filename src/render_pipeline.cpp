@@ -46,6 +46,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             rlEnableDepthTest();
             rlDisableDepthMask();         // don’t write depth for transparent water
             DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
+            //DrawModel(R.GetModel("bottomPlane"), {0,-100,0}, 1.0f, BLUE);
             rlEnableDepthMask();
             
             DrawBoat(player_boat);
@@ -56,6 +57,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonDoorways();          
             DrawOverworldProps();
         } else {
+
+            ResourceManager::Get().UploadDungeonLightsToShader();  // <- before drawing dungeon
             //draw the dungeon
             DrawDungeonFloor();
             DrawDungeonWalls();

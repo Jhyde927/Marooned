@@ -212,12 +212,15 @@ void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float ma
 
     const float NEAR_CHUNK_DIST    = 1600.0f;
     const float NEAR_CHUNK_DIST_SQ = NEAR_CHUNK_DIST * NEAR_CHUNK_DIST;
+    const float WATER_HEIGHT       = 55.0f; //cull underwater tiles. --looks bad, not worth? 
 
     // 1) Collect candidates
     for (const TerrainChunk& c : T.chunks) {
         Vector3 toChunk = Vector3Subtract(c.center, cam.position);
         float distSq = Vector3LengthSqr(toChunk);
         if (distSq > maxDrawDistSq) continue;
+
+        if (c.aabb.max.y < WATER_HEIGHT && !player.isSwimming) continue;
 
         // Always include very close chunks
         if (distSq < NEAR_CHUNK_DIST_SQ || distSq < 0.0001f) {

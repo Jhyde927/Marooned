@@ -142,7 +142,7 @@ int main() {
         UpdatePlayer(player, deltaTime, camera);
 
         
-        if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights);
+        //if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights);
         RenderFrame(camera, player, deltaTime); //draw everything
         
     }
