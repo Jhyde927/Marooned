@@ -397,6 +397,42 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
 
 }
 
+void AddFrameLightsToForwardList() {
+
+        // Keep only static lights, clearing all dynamic ones every frame. 
+    gDungeonLightsForward.resize(gStaticLightCount);
+
+        // Add the player light FIRST (so it comes before bullets)
+    {
+        SimpleLight L;
+        L.pos       = player.position;          // or player.cameraPos
+        L.radius    = lightConfig.playerRadius; 
+        L.intensity = lightConfig.playerIntensity;
+        L.color     = V3ToColor(lightConfig.playerColor); 
+        gDungeonLightsForward.push_back(L);
+    }
+
+
+    for (const LightSample& s : frameLights)
+    {
+        SimpleLight L;
+
+        L.pos       = s.pos;
+        L.radius    = s.range;
+        L.intensity = s.intensity;
+
+        // Convert vec3 (0..1) to Color (0..255)
+        unsigned char r = (unsigned char)Clamp(s.color.x * 255.0f, 0.0f, 255.0f);
+        unsigned char g = (unsigned char)Clamp(s.color.y * 255.0f, 0.0f, 255.0f);
+        unsigned char b = (unsigned char)Clamp(s.color.z * 255.0f, 0.0f, 255.0f);
+
+        L.color = { r, g, b, 255 };
+
+        gDungeonLightsForward.push_back(L);
+    }
+
+}
+
 //forward lighting
 
 void BuildStaticOcclusionTexture()
@@ -412,16 +448,7 @@ void BuildStaticOcclusionTexture()
     int texW = subtilesX;
     int texH = subtilesZ * staticCount;
 
-    // 2. Allocate CPU buffer of Color for the whole thing, init to fully visible (or fully blocked).
-    //    Your choice here:
-    //    - "0" = default no light, only where LOS exists gets vis>0
-    //    - "1" = default visible, and you only zero where LOS says it's blocked
-    //    To be close to stamping behavior, treat outside radius as 0 visibility.
-    //    So starting from 0 is reasonable.
     std::vector<Color> occPixels((size_t)texW * texH, {0, 0, 0, 255});
-
-    // default fully visible: R=G=B=255
-    //std::vector<Color> occPixels((size_t)texW * texH, {255, 255, 255, 255});
 
     // 3. For each STATIC light, build its layer
     for (int li = 0; li < staticCount; ++li)
@@ -514,7 +541,7 @@ void BuildStaticOcclusionTexture()
     gDungeonOcclusionTex = LoadTextureFromImage(occImg);
 
     // (Optional) set texture filtering to nearest to avoid cross-texel bleeding
-    SetTextureFilter(gDungeonOcclusionTex, TEXTURE_FILTER_ANISOTROPIC_16X);
+    SetTextureFilter(gDungeonOcclusionTex, TEXTURE_FILTER_TRILINEAR);
     
 
     // 5. Bind to dungeon materials via MATERIAL_MAP_OCCLUSION

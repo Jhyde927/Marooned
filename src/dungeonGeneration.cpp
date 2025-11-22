@@ -1675,30 +1675,7 @@ BoundingBox MakeDoorBoundingBox(Vector3 position, float rotationY, float halfWid
 
 
 
-void AddFrameLightsToForwardList() {
 
-        // Keep only static lights, clearing all dynamic ones every frame. 
-    gDungeonLightsForward.resize(gStaticLightCount);
-
-    for (const LightSample& s : frameLights)
-    {
-        SimpleLight L;
-
-        L.pos       = s.pos;
-        L.radius    = s.range;
-        L.intensity = s.intensity;
-
-        // Convert vec3 (0..1) to Color (0..255)
-        unsigned char r = (unsigned char)Clamp(s.color.x * 255.0f, 0.0f, 255.0f);
-        unsigned char g = (unsigned char)Clamp(s.color.y * 255.0f, 0.0f, 255.0f);
-        unsigned char b = (unsigned char)Clamp(s.color.z * 255.0f, 0.0f, 255.0f);
-
-        L.color = { r, g, b, 255 };
-
-        gDungeonLightsForward.push_back(L);
-    }
-
-}
 
 void GatherFrameLights() {
     //each bullet has a struct called light. Check bullet lights and add info to LightSample struct and add to framelight vector.

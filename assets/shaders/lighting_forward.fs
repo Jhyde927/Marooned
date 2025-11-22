@@ -50,51 +50,44 @@ uniform float uTileSize;         // world size of one tile (same tileSize as CPU
 uniform int   uSubtilesX;        // dungeonWidth * 2
 uniform int   uSubtilesZ;        // dungeonHeight * 2
 
-// Fetch visibility (0..1) for a given static light index and world position.
-// Returns 1.0 if no occlusion tex is bound or indices out of range.
+
 float SampleOcclusion(int lightIndex, vec2 fragXZ)
 {
     if (lightIndex < 0 || lightIndex >= uStaticLightCount) return 1.0;
 
-    // Convert world pos to tile-space
-    vec2 rel = (fragXZ - uDungeonMinXZ) / uTileSize; // in tiles
+    vec2 rel = (fragXZ - uDungeonMinXZ) / uTileSize;
     float tx = floor(rel.x);
     float tz = floor(rel.y);
 
-    // Quick bounds check
     if (tx < 0.0 || tz < 0.0) return 1.0;
     if (tx >= float(uSubtilesX) * 0.5 || tz >= float(uSubtilesZ) * 0.5) return 1.0;
 
-    // Local position inside tile (0..1)
     float lx = rel.x - tx;
     float lz = rel.y - tz;
 
-    // Choose 2x2 subtile index (0 or 1 in each axis)
     int sx = (lx < 0.5) ? 0 : 1;
     int sz = (lz < 0.5) ? 0 : 1;
 
-    // Compute subtile coords in grid
-    int subX = int(tx) * 2 + sx;        // 0 .. uSubtilesX-1
-    int subZ = int(tz) * 2 + sz;        // 0 .. uSubtilesZ-1
+    int subX = int(tx) * 2 + sx;
+    int subZ = int(tz) * 2 + sz;
 
-    // Offset by layer for this static light
     int layerOffset = lightIndex * uSubtilesZ;
     int texY = layerOffset + subZ;
 
-    // Guard against out-of-range
     if (subX < 0 || subX >= uSubtilesX) return 1.0;
-    // texture height is uSubtilesZ * MAX_STATIC_LIGHTS; texY should be within that
-    // If not, just treat as fully visible
-    // (we rely on CPU to build enough layers)
-    ivec2 texelCoord = ivec2(subX, texY);
 
-    // texelFetch uses integer texel coords, no filtering.
-    // Assumes occlusion texture is RGBA with R in 0..1 holding visibility.
-    //float vis = texelFetch(textureOcclusion, texelCoord, 0).r;
-    //float vis = texelFetch(textureOcclusion, ivec2(subX, subZ), 0).r;
-    float vis = texelFetch(texture3, ivec2(subX, texY), 0).r;
+    // ---- NEW: normalized UVs for bilinear sampling ----
+    float texW = float(uSubtilesX);
+    float texH = float(uSubtilesZ * uStaticLightCount);
+
+    // sample at texel centers
+    vec2 occlUV = vec2((float(subX) + 0.5) / texW,
+                       (float(texY) + 0.5) / texH);
+
+    float vis = texture(texture3, occlUV).r;
     return vis;
 }
+
 
 void main()
 {
@@ -132,6 +125,8 @@ void main()
         // ---- NEW: occlusion factor ----
         // For ALL lights we compute falloff,
         // but only STATIC lights (i < uStaticLightCount) get occlusion applied.
+
+        
         float vis = 1.0;
         if (i < uStaticLightCount)
         {

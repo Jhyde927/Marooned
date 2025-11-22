@@ -7,6 +7,7 @@
 #include "vegetation.h"
 #include "terrainChunking.h"
 #include "rlgl.h"
+#include "utilities.h"
 
 
 ResourceManager* ResourceManager::_instance = nullptr;
@@ -326,6 +327,8 @@ void ResourceManager::UploadDungeonLightsToShader()
 
         ++count;
     }
+
+
 
     float ambient = lightConfig.ambient; // similar to your old ambientBoost
 

@@ -284,5 +284,4 @@ void SpawnSpiderFromEgg(Vector3 spawnPos);
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
 void GatherFrameLights();
-void AddFrameLightsToForwardList();
 void ClearDungeon();

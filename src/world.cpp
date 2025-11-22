@@ -155,12 +155,12 @@ void InitLevel(LevelData& level, Camera& camera) {
         //XZ dynamic lightmap + shader lighting with occlusion
         //InitDungeonLights();
 
-        //forward lighting test
+        //forward lighting 
         ResourceManager::Get().InitForwardLightingUniforms();
         ResourceManager::Get().SetForwardLightingShaderValues();
         InitDungeonLightingBounds();
         ResourceManager::Get().InitForwardLightingShaderParams();
-        gStaticLightCount = gDungeonLightsForward.size();
+
         BuildStaticOcclusionTexture();
 
     }

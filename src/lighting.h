@@ -23,13 +23,13 @@ struct BakedLightmap {
 struct LightingConfig
 {
     // ----- Forward lighting -----
-    float ambient            = 0.2f;  // uAmbient
+    float ambient            = 0.15f;  // uAmbient
     float maxLightingClamp   = 2.0f;   // clamp upper bound in shader
     float falloffStrength    = 1.0f;   // optional multiplier if you add it later
 
     // ----- Static torch lights -----
-    float staticRadius       = 1600.0f;  // world units
-    float staticIntensity    = 0.6f;    // scalar multiplier
+    float staticRadius       = 3000.0f;  // world units
+    float staticIntensity    = 0.4f;    // scalar multiplier
     Vector3 staticColor      = {1.0f, 0.95f, 1.0f}; //slight purple tint
 
     // ----- Dynamic (frame) lights -----
@@ -37,6 +37,10 @@ struct LightingConfig
     float dynamicIntensity= 0.5f;
     Vector3 dynamicFireColor      = {1.0f, 0.3f, 0.0f}; // red glow
     Vector3 dynamicIceColor       = {0.0f, 0.7f, 1.0f}; //ice glow blue
+
+    Vector3 playerColor     = {1.0f, 1.0f, 1.0f};
+    float   playerRadius    = 400.0f;
+    float   playerIntensity = 0.4f;
 
     // ----- Occlusion / visibility mask -----
     int   losNumRays         = 13;
@@ -66,3 +70,4 @@ void LogDynamicLightmapNonBlack(const char* tag);
 
 void BuildStaticOcclusionTexture();
 void InitDungeonLightingBounds();
+void AddFrameLightsToForwardList();
