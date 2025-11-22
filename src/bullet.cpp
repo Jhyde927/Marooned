@@ -9,6 +9,7 @@
 #include "utilities.h"
 #include "dungeonGeneration.h"
 #include "pathfinding.h"
+#include "lighting.h"
 
 
 Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletType t, float r, bool launch)
@@ -393,11 +394,11 @@ void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, b
     Bullet& b = activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Fireball, 20.0f, launcher);
 
     b.light.active     = true;
-    b.light.color      = (b.type==BulletType::Fireball)? Vector3{0.99f,0.0f,0.0f} : Vector3{0.0f,0.7f,0.9f};
-    b.light.range      = 400.0f;
-    b.light.intensity  = 0.5;
+    b.light.color      = (b.type==BulletType::Fireball)? lightConfig.dynamicFireColor : lightConfig.dynamicIceColor;
+    b.light.range      = lightConfig.dynamicRange;
+    b.light.intensity  = lightConfig.dynamicIntensity;
     b.light.detachOnDeath = true;
-    b.light.lifeTime   = 0.25f; // short glow after death
+    b.light.lifeTime   = 0.15f; // short glow after death
 
     SoundManager::GetInstance().PlaySoundAtPosition((rand() % 2 == 0 ? "flame1" : "flame2"), origin, player.position, 0.0f, 3000.0f);
 
@@ -411,11 +412,11 @@ void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bo
     Bullet& b = activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Iceball, 20.0f);
 
     b.light.active     = true;
-    b.light.color      = (b.type==BulletType::Fireball)? Vector3{1.0f,0.15f,0.0f} : Vector3{0.0f,0.7f,0.9f};
-    b.light.range      = 500.0f;
-    b.light.intensity  = 0.75;
+    b.light.color      = lightConfig.dynamicIceColor;
+    b.light.range      = lightConfig.dynamicRange;
+    b.light.intensity  = lightConfig.dynamicIntensity;
     b.light.detachOnDeath = true;
-    b.light.lifeTime   = 0.25f; // short glow after death
+    b.light.lifeTime   = 0.15f; // short glow after death
 
     SoundManager::GetInstance().Play("iceMagic");
 }

@@ -10,6 +10,8 @@ out vec4 finalColor;
 uniform sampler2D texture0;   // Albedo (tile texture)
 uniform vec4      colDiffuse; // Usually WHITE
 
+
+
 // ---- Simple forward lights ----
 
 #define MAX_LIGHTS 32
@@ -33,6 +35,67 @@ float smootherStep(float x)
     return x * x * (3.0 - 2.0 * x);
 }
 
+// ---- Occlusion (visibility mask) ----
+
+// Each static light gets its own "layer" in the occlusion texture.
+// Texture layout (integer texel space):
+//   width  = subtilesX  (dungeonWidth * 2)
+//   height = subtilesZ * MAX_STATIC_LIGHTS
+// Layer i occupies rows [i*subtilesZ .. (i+1)*subtilesZ-1]
+//uniform sampler2D textureOcclusion;
+uniform sampler2D texture3;
+uniform int   uStaticLightCount; // how many lights at start of array are STATIC
+uniform vec2  uDungeonMinXZ;     // (minX, minZ) of dungeon in world space
+uniform float uTileSize;         // world size of one tile (same tileSize as CPU)
+uniform int   uSubtilesX;        // dungeonWidth * 2
+uniform int   uSubtilesZ;        // dungeonHeight * 2
+
+// Fetch visibility (0..1) for a given static light index and world position.
+// Returns 1.0 if no occlusion tex is bound or indices out of range.
+float SampleOcclusion(int lightIndex, vec2 fragXZ)
+{
+    if (lightIndex < 0 || lightIndex >= uStaticLightCount) return 1.0;
+
+    // Convert world pos to tile-space
+    vec2 rel = (fragXZ - uDungeonMinXZ) / uTileSize; // in tiles
+    float tx = floor(rel.x);
+    float tz = floor(rel.y);
+
+    // Quick bounds check
+    if (tx < 0.0 || tz < 0.0) return 1.0;
+    if (tx >= float(uSubtilesX) * 0.5 || tz >= float(uSubtilesZ) * 0.5) return 1.0;
+
+    // Local position inside tile (0..1)
+    float lx = rel.x - tx;
+    float lz = rel.y - tz;
+
+    // Choose 2x2 subtile index (0 or 1 in each axis)
+    int sx = (lx < 0.5) ? 0 : 1;
+    int sz = (lz < 0.5) ? 0 : 1;
+
+    // Compute subtile coords in grid
+    int subX = int(tx) * 2 + sx;        // 0 .. uSubtilesX-1
+    int subZ = int(tz) * 2 + sz;        // 0 .. uSubtilesZ-1
+
+    // Offset by layer for this static light
+    int layerOffset = lightIndex * uSubtilesZ;
+    int texY = layerOffset + subZ;
+
+    // Guard against out-of-range
+    if (subX < 0 || subX >= uSubtilesX) return 1.0;
+    // texture height is uSubtilesZ * MAX_STATIC_LIGHTS; texY should be within that
+    // If not, just treat as fully visible
+    // (we rely on CPU to build enough layers)
+    ivec2 texelCoord = ivec2(subX, texY);
+
+    // texelFetch uses integer texel coords, no filtering.
+    // Assumes occlusion texture is RGBA with R in 0..1 holding visibility.
+    //float vis = texelFetch(textureOcclusion, texelCoord, 0).r;
+    //float vis = texelFetch(textureOcclusion, ivec2(subX, subZ), 0).r;
+    float vis = texelFetch(texture3, ivec2(subX, texY), 0).r;
+    return vis;
+}
+
 void main()
 {
     // Base albedo
@@ -43,15 +106,15 @@ void main()
     // Start with ambient
     vec3 lighting = vec3(uAmbient);
 
-    // We only care about XZ plane for distance
+    // We only care about XZ plane for distance and occlusion
     vec2 fragXZ = vWorldPos.xz;
 
     for (int i = 0; i < uLightCount && i < MAX_LIGHTS; ++i)
     {
-        vec3 lp     = uLightPosRadius[i].xyz;
+        vec3 lp      = uLightPosRadius[i].xyz;
         float radius = uLightPosRadius[i].w;
 
-        vec3 color   = uLightColorIntensity[i].rgb;
+        vec3 color    = uLightColorIntensity[i].rgb;
         float intensity = uLightColorIntensity[i].a;
 
         if (radius <= 0.0 || intensity <= 0.0)
@@ -66,11 +129,66 @@ void main()
         float t = 1.0 - (dist * dist) / (radius * radius);
         float falloff = smootherStep(t);
 
-        lighting += color * (intensity * falloff);
+        // ---- NEW: occlusion factor ----
+        // For ALL lights we compute falloff,
+        // but only STATIC lights (i < uStaticLightCount) get occlusion applied.
+        float vis = 1.0;
+        if (i < uStaticLightCount)
+        {
+            vis = SampleOcclusion(i, fragXZ);
+            if (vis <= 0.0)
+                continue;
+        }
+
+        lighting += color * (intensity * falloff * vis);
     }
 
     // Clamp a bit so it doesn't blow out
     lighting = clamp(lighting, 0.0, 2.0);
 
     finalColor = vec4(base * lighting, alpha);
+
+
 }
+
+// void main()
+// {
+//     // Base albedo
+//     vec4 baseS = texture(texture0, vUV);
+//     vec3 base  = baseS.rgb * colDiffuse.rgb;
+//     float alpha = baseS.a * colDiffuse.a;
+
+//     // Start with ambient
+//     vec3 lighting = vec3(uAmbient);
+
+//     // We only care about XZ plane for distance
+//     vec2 fragXZ = vWorldPos.xz;
+
+//     for (int i = 0; i < uLightCount && i < MAX_LIGHTS; ++i)
+//     {
+//         vec3 lp     = uLightPosRadius[i].xyz;
+//         float radius = uLightPosRadius[i].w;
+
+//         vec3 color   = uLightColorIntensity[i].rgb;
+//         float intensity = uLightColorIntensity[i].a;
+
+//         if (radius <= 0.0 || intensity <= 0.0)
+//             continue;
+
+//         vec2 Lxz = fragXZ - lp.xz;
+//         float dist = length(Lxz);
+//         if (dist >= radius)
+//             continue;
+
+//         // Same idea as your lightmap: smooth falloff from center to edge
+//         float t = 1.0 - (dist * dist) / (radius * radius);
+//         float falloff = smootherStep(t);
+
+//         lighting += color * (intensity * falloff);
+//     }
+
+//     // Clamp a bit so it doesn't blow out
+//     lighting = clamp(lighting, 0.0, 2.0);
+
+//     finalColor = vec4(base * lighting, alpha);
+// }

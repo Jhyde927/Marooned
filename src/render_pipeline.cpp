@@ -57,7 +57,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonDoorways();          
             DrawOverworldProps();
         } else {
-
+            AddFrameLightsToForwardList();
             ResourceManager::Get().UploadDungeonLightsToShader();  // <- before drawing dungeon
             //draw the dungeon
             DrawDungeonFloor();

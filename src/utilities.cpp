@@ -34,6 +34,19 @@ Vector3 LerpVec3(Vector3 a, Vector3 b, float t) {
     };
 }
 
+Vector3 ColorToV3(Color c) {
+    return { c.r/255.0f, c.g/255.0f, c.b/255.0f };
+}
+
+Color V3ToColor(Vector3 v, float a) {
+    return {
+        (unsigned char)(Clamp(v.x,0,1)*255),
+        (unsigned char)(Clamp(v.y,0,1)*255),
+        (unsigned char)(Clamp(v.z,0,1)*255),
+        (unsigned char)(Clamp(a,0,1)*255)
+    };
+}
+
 
 Color ColorLerpFast(Color a, Color b, float t) {
     t = Clamp01(t);

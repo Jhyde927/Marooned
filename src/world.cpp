@@ -158,6 +158,11 @@ void InitLevel(LevelData& level, Camera& camera) {
         //forward lighting test
         ResourceManager::Get().InitForwardLightingUniforms();
         ResourceManager::Get().SetForwardLightingShaderValues();
+        InitDungeonLightingBounds();
+        ResourceManager::Get().InitForwardLightingShaderParams();
+        gStaticLightCount = gDungeonLightsForward.size();
+        BuildStaticOcclusionTexture();
+
     }
 
     //ResourceManager::Get().SetLightingShaderValues();

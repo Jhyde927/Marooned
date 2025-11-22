@@ -13,102 +13,8 @@ BakedLightmap gDynamic;
 
 static std::vector<Color> gStaticBase;   // same w*h as gDynamic
 
-
-// --- Helper: stamp a soft radial mask into ALPHA with max-combine
-static inline void StampLavaMaskToAlpha(int tileX, int tileY, float radiusTiles = 0.55f)
-{
-    if (dungeonWidth <= 0 || dungeonHeight <= 0 || gDynamic.w <= 0 || gDynamic.h <= 0) return;
-
-    // dynamic grid scale: texels per tile (assumes divisible)
-    const int sx = gDynamic.w / dungeonWidth;
-    const int sy = gDynamic.h / dungeonHeight;
-
-    // Center of this tile in lightmap texels (center of texels)
-    const float cx = (tileX + 0.5f) * sx;
-    const float cy = (tileY + 0.5f) * sy;
-
-    // Radius in texels (soft falloff to 0 at the rim)
-    const float r  = radiusTiles * 0.5f * (sx + sy); // average to be safe if non-square
-    const float r2 = r * r;
-
-    int minx = (int)floorf(cx - r); if (minx < 0) minx = 0;
-    int maxx = (int)ceilf (cx + r); if (maxx > gDynamic.w - 1) maxx = gDynamic.w - 1;
-    int miny = (int)floorf(cy - r); if (miny < 0) miny = 0;
-    int maxy = (int)ceilf (cy + r); if (maxy > gDynamic.h - 1) maxy = gDynamic.h - 1;
-
-    for (int y = miny; y <= maxy; ++y) {
-        const float py = (y + 0.5f) - cy;
-        for (int x = minx; x <= maxx; ++x) {
-            const float px = (x + 0.5f) - cx;
-            const float d2 = px*px + py*py;
-            if (d2 > r2) continue;
-
-            // Smooth falloff (1 at center -> 0 at radius)
-            float t = 1.0f - sqrtf(d2) / r;
-            // Optional ease for a nicer shoulder:
-            t = t * t * (3.0f - 2.0f * t); // smoothstep(0,1)
-
-            unsigned char v = (unsigned char)(t * 255.0f);
-            Color &p = gStaticBase[(size_t)y * gDynamic.w + x];
-            if (v > p.a) p.a = v; // MAX-combine for masks
-        }
-    }
-}
-
-// --- Optional: tiny dilation to help thin edges survive mips
-static inline void DilateAlphaOnce()
-{
-    std::vector<unsigned char> tmp((size_t)gDynamic.w * gDynamic.h, 0);
-    for (int y = 0; y < gDynamic.h; ++y) {
-        for (int x = 0; x < gDynamic.w; ++x) {
-            unsigned char m = 0;
-            for (int dy = -1; dy <= 1; ++dy) {
-                int yy = y + dy; if (yy < 0 || yy >= gDynamic.h) continue;
-                for (int dx = -1; dx <= 1; ++dx) {
-                    int xx = x + dx; if (xx < 0 || xx >= gDynamic.w) continue;
-                    m = (unsigned char) (m > gStaticBase[(size_t)yy * gDynamic.w + xx].a
-                                         ? m : gStaticBase[(size_t)yy * gDynamic.w + xx].a);
-                }
-            }
-            tmp[(size_t)y * gDynamic.w + x] = m;
-        }
-    }
-    for (int i = 0, n = (int)tmp.size(); i < n; ++i) gStaticBase[(size_t)i].a = tmp[(size_t)i];
-}
-
-// --- Build lava into ALPHA from your dungeon image (pixel convention: 200,0,0)
-static inline void BuildLavaMaskAlphaFromImage(const Image& dungeonImg)
-{
-    // Start with alpha = 0 (A now has meaning)
-    for (Color &p : gStaticBase) p.a = 0;
-
-    int lavaCount = 0;
-    for (int ty = 0; ty < dungeonHeight; ++ty) {
-        for (int tx = 0; tx < dungeonWidth; ++tx) {
-            Color px = GetImageColor(dungeonImg, tx, ty);
-            const bool isLava = (px.r == 200 && px.g == 0 && px.b == 0);
-            if (!isLava) continue;
-            ++lavaCount;
-
-            int fx = dungeonWidth  - 1 - tx;  // mirror X
-            int fy = dungeonHeight - 1 - ty;  // mirror Y
-            StampLavaMaskToAlpha(fx, fy, /*radiusTiles=*/0.65f);
-            //StampLavaMaskToAlpha(tx, ty, /*radiusTiles=*/0.65f); // slightly > tile center for nicer mips
-        }
-    }
-
-    // A tiny dilate helps distant mips hold the glow
-    //DilateAlphaOnce();
-
-    TraceLog(LOG_INFO, "[lava alpha] tiles=%d  scale=%dx%d  dyn=%dx%d",
-            lavaCount,
-            gDynamic.w / dungeonWidth, gDynamic.h / dungeonHeight,
-            gDynamic.w, gDynamic.h);
-}
-
-
-
-
+Texture2D gDungeonOcclusionTex; //forward
+LightingConfig lightConfig;
 
 
 // Returns 0..1 visibility from light -> tileCenter using a small perpendicular ray fan.
@@ -158,11 +64,11 @@ static void SubtileVis2x2(float vis[2][2],
             Vector3 subCenter = { cx + offs[sx], floorY, cz + offs[sy] };
             // reuse your TileVisibilityWorldRay(lightPos, tileCenter, numRays, spread, originY, targetY, eps)
             vis[sy][sx] = TileVisibilityWorldRay(lightPos, subCenter,
-                                                 /*numRays=*/6,
-                                                 /*spreadMeters=*/0.25f*tileSize,
-                                                 /*originYOffset=*/2.0f,
-                                                 /*targetYOffset=*/2.0f,
-                                                 /*epsilonFrac=*/0.01f);
+                                                 /*numRays=*/lightConfig.losNumRays,
+                                                 /*spreadMeters=*/lightConfig.losSpreadFrac*tileSize,
+                                                 /*originYOffset=*/lightConfig.losOriginY,
+                                                 /*targetYOffset=*/lightConfig.losTargetY,
+                                                 /*epsilonFrac=*/lightConfig.losEpsilonFrac);
         }
     }
 }
@@ -275,6 +181,22 @@ static void ComputeDungeonXZBounds(int dungeonWidth, int dungeonHeight, float ti
     outMinZ = minZ;
     outSizeX = (maxX - minX);
     outSizeZ = (maxZ - minZ);
+}
+
+void InitDungeonLightingBounds()
+{
+    // World-space mapping for this level (XZ bounds)
+    ComputeDungeonXZBounds(
+        dungeonWidth,
+        dungeonHeight,
+        tileSize,
+        floorHeight,          // same baseY you use for floors
+        gDynamic.minX,
+        gDynamic.minZ,
+        gDynamic.sizeX,
+        gDynamic.sizeZ
+    );
+
 }
 
 void InitDynamicLightmap(int res)
@@ -474,6 +396,148 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
 
 
 }
+
+//forward lighting
+
+void BuildStaticOcclusionTexture()
+{
+
+    // 1. Decide dims
+    int subtilesX = dungeonWidth * 2;
+    int subtilesZ = dungeonHeight * 2;
+
+    const int MAX_STATIC_LIGHTS = 32; // must match GLSL MAX_LIGHTS & "static" limit
+
+    int staticCount = (int)gStaticLightCount;
+    int texW = subtilesX;
+    int texH = subtilesZ * staticCount;
+
+    // 2. Allocate CPU buffer of Color for the whole thing, init to fully visible (or fully blocked).
+    //    Your choice here:
+    //    - "0" = default no light, only where LOS exists gets vis>0
+    //    - "1" = default visible, and you only zero where LOS says it's blocked
+    //    To be close to stamping behavior, treat outside radius as 0 visibility.
+    //    So starting from 0 is reasonable.
+    std::vector<Color> occPixels((size_t)texW * texH, {0, 0, 0, 255});
+
+    // default fully visible: R=G=B=255
+    //std::vector<Color> occPixels((size_t)texW * texH, {255, 255, 255, 255});
+
+    // 3. For each STATIC light, build its layer
+    for (int li = 0; li < staticCount; ++li)
+    {
+        const SimpleLight& L = gDungeonLightsForward[li]; // static lights first
+
+        const Vector3 lightPos = L.pos;
+        const float   radius   = L.radius;
+        //const float   floorHeight = floorHeight; // whatever you used before for SubtileVis2x2
+
+        float radius2 = radius * radius;
+
+        // Decide tile bounds to consider (like your stamp function)
+        int lx = (int)floorf((lightPos.x - gDynamic.minX) / tileSize);
+        int lz = (int)floorf((lightPos.z - gDynamic.minZ) / tileSize);
+        int R  = (int)ceilf(radius / tileSize);
+
+        int tx0 = std::max(0, lx - R);
+        int tx1 = std::min(dungeonWidth  - 1, lx + R);
+        int tz0 = std::max(0, lz - R);
+        int tz1 = std::min(dungeonHeight - 1, lz + R);
+
+        // For each tile in range, compute 2x2 visibility
+        for (int tz = tz0; tz <= tz1; ++tz)
+        {
+            for (int tx = tx0; tx <= tx1; ++tx)
+            {
+                // Tile center
+                float cx = gDynamic.minX + (tx + 0.5f) * tileSize;
+                float cz = gDynamic.minZ + (tz + 0.5f) * tileSize;
+
+                // Circle cull (center)
+                float cdx = cx - lightPos.x;
+                float cdz = cz - lightPos.z;
+                if (cdx*cdx + cdz*cdz > radius2)
+                    continue;
+
+                float vis2x2[2][2];
+                SubtileVis2x2(vis2x2, lightPos, cx, cz, tileSize, floorHeight*2);
+
+                // If all zero, skip
+                if (vis2x2[0][0]==0 && vis2x2[0][1]==0 &&
+                    vis2x2[1][0]==0 && vis2x2[1][1]==0)
+                {
+                    continue;
+                }
+
+                for (int sy = 0; sy < 2; ++sy)
+                {
+                    for (int sx = 0; sx < 2; ++sx)
+                    {
+                        float vis = vis2x2[sy][sx];
+                        if (vis <= 0.0f) continue;
+
+                        int subX = tx * 2 + sx;
+                        int subZ = tz * 2 + sy;
+
+                        int imgY = li * subtilesZ + subZ;
+                        int imgX = subX;
+
+                        if (imgX < 0 || imgX >= subtilesX) continue;
+
+                        Color& p = occPixels[(size_t)imgY * texW + imgX];
+
+                        // You can choose to overwrite or max with existing.
+                        // Max makes sense if LOS is run multiple times, but here we just set it.
+                        unsigned char v = (unsigned char)std::round(vis * 255.0f);
+                        p.r = v;
+                        p.g = v;
+                        p.b = v;
+                    }
+                }
+            }
+        }
+    }
+
+    // 4. Upload to an Image and then to a Texture
+    Image occImg = {
+        .data = occPixels.data(),
+        .width = texW,
+        .height = texH,
+        .mipmaps = 1,
+        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+    };
+
+    // You probably want a global Texture2D gDungeonOcclusionTex;
+    if (gDungeonOcclusionTex.id != 0)
+        UnloadTexture(gDungeonOcclusionTex);
+
+    gDungeonOcclusionTex = LoadTextureFromImage(occImg);
+
+    // (Optional) set texture filtering to nearest to avoid cross-texel bleeding
+    SetTextureFilter(gDungeonOcclusionTex, TEXTURE_FILTER_ANISOTROPIC_16X);
+    
+
+    // 5. Bind to dungeon materials via MATERIAL_MAP_OCCLUSION
+    Model& floorModel   = R.GetModel("floorTileGray");
+    Model& wallModel    = R.GetModel("wallSegment");
+    Model& doorwayModel = R.GetModel("doorWayGray");
+    Model& launcherModel= R.GetModel("stonePillar");
+    Model& barrelModel  = R.GetModel("barrelModel");
+    Model& brokeModel   = R.GetModel("brokeBarrel");
+
+    auto setOcc = [&](Model& m) {
+        for (int i = 0; i < m.materialCount; ++i)
+            m.materials[i].maps[MATERIAL_MAP_OCCLUSION].texture = gDungeonOcclusionTex;
+    };
+
+    setOcc(floorModel);
+    setOcc(wallModel);
+    setOcc(doorwayModel);
+    setOcc(launcherModel);
+    setOcc(barrelModel);
+    setOcc(brokeModel);
+}
+
 
 
 

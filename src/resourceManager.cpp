@@ -294,6 +294,7 @@ static int locAmbient       = -1;
 
 void ResourceManager::InitForwardLightingUniforms()
 {
+    InitDungeonLightingBounds();
     Shader sh = R.GetShader("lightingForward"); // whatever name you loaded it as
 
     locLightCount  = GetShaderLocation(sh, "uLightCount");
@@ -326,7 +327,7 @@ void ResourceManager::UploadDungeonLightsToShader()
         ++count;
     }
 
-    float ambient = 0.25f; // similar to your old ambientBoost
+    float ambient = lightConfig.ambient; // similar to your old ambientBoost
 
     if (locAmbient >= 0)
         SetShaderValue(sh, locAmbient, &ambient, SHADER_UNIFORM_FLOAT);
@@ -345,6 +346,42 @@ void ResourceManager::UploadDungeonLightsToShader()
                             &colIntensity[0].x, SHADER_UNIFORM_VEC4, count);
     }
 }
+
+void ResourceManager::InitForwardLightingShaderParams()
+{
+    Shader sh = R.GetShader("lightingForward");
+
+    int locDungMin  = GetShaderLocation(sh, "uDungeonMinXZ");
+    int locTileSize = GetShaderLocation(sh, "uTileSize");
+    int locSubX     = GetShaderLocation(sh, "uSubtilesX");
+    int locSubZ     = GetShaderLocation(sh, "uSubtilesZ");
+    int locStaticCount = GetShaderLocation(sh, "uStaticLightCount");
+
+    Vector2 dungeonMinXZ = { gDynamic.minX, gDynamic.minZ };
+    int subtilesX = dungeonWidth  * 2;
+    int subtilesZ = dungeonHeight * 2;
+
+    sh.locs[SHADER_LOC_MAP_DIFFUSE]   = GetShaderLocation(sh, "texture0");
+    sh.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(sh, "texture3");
+
+
+
+
+    if (locDungMin >= 0)
+        SetShaderValue(sh, locDungMin, &dungeonMinXZ.x, SHADER_UNIFORM_VEC2);
+    if (locTileSize >= 0)
+        SetShaderValue(sh, locTileSize, &tileSize, SHADER_UNIFORM_FLOAT);
+    if (locSubX >= 0)
+        SetShaderValue(sh, locSubX, &subtilesX, SHADER_UNIFORM_INT);
+    if (locSubZ >= 0)
+        SetShaderValue(sh, locSubZ, &subtilesZ, SHADER_UNIFORM_INT);
+
+    int staticCount = (int)gStaticLightCount;
+    if (locStaticCount >= 0)
+        SetShaderValue(sh, locStaticCount, &staticCount, SHADER_UNIFORM_INT);
+}
+
+
 
 void ResourceManager::SetForwardLightingShaderValues() {
     Shader& lightingShader = R.GetShader("lightingForward");

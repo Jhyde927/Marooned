@@ -46,12 +46,12 @@ public:
     void SetWaterShaderValues(Camera& camera);
     void SetShaderValues();
     void EnsureScreenSizedRTs();
-    
+
     void UploadDungeonLightsToShader();
     void InitForwardLightingUniforms();
 
     void SetForwardLightingShaderValues();
-
+    void InitForwardLightingShaderParams();
 
     // Clean-up
     void UnloadAll();

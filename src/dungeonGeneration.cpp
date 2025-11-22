@@ -44,6 +44,8 @@ int dungeonHeight = 0;
 float lavaTimer = 0.0f;
 float tickDamage = 0.5;
 
+size_t gStaticLightCount = 0; 
+
 using namespace dungeon;
 
 //Dungeon Legend
@@ -1253,7 +1255,6 @@ void GenerateLightSources(float baseY) {
 }
 
 void GenerateLightSourcesForward(float baseY) {
-    dungeonLights.clear();
     gDungeonLightsForward.clear();
     pillars.clear();
     fires.clear();
@@ -1281,13 +1282,15 @@ void GenerateLightSourcesForward(float baseY) {
                 // --- new forward-light entry ---
                 SimpleLight L;
                 L.pos       = pos;
-                L.radius    = 1600.0f;   // tweak to taste
-                L.color     = { 255, 255, 255, 255 }; // warm torch color
-                L.intensity = 0.5f;     // scalar multiplier
+                L.radius    = lightConfig.staticRadius;   // tweak to taste
+                L.color     = V3ToColor(lightConfig.staticColor); // warm torch color
+                L.intensity = lightConfig.staticIntensity;     // scalar multiplier
                 gDungeonLightsForward.push_back(L);
             }
         }
     }
+
+    gStaticLightCount = gDungeonLightsForward.size(); // remember how many statics we have
 }
 
 
@@ -1670,6 +1673,33 @@ BoundingBox MakeDoorBoundingBox(Vector3 position, float rotationY, float halfWid
     return { boxMin, boxMax };
 }
 
+
+
+void AddFrameLightsToForwardList() {
+
+        // Keep only static lights, clearing all dynamic ones every frame. 
+    gDungeonLightsForward.resize(gStaticLightCount);
+
+    for (const LightSample& s : frameLights)
+    {
+        SimpleLight L;
+
+        L.pos       = s.pos;
+        L.radius    = s.range;
+        L.intensity = s.intensity;
+
+        // Convert vec3 (0..1) to Color (0..255)
+        unsigned char r = (unsigned char)Clamp(s.color.x * 255.0f, 0.0f, 255.0f);
+        unsigned char g = (unsigned char)Clamp(s.color.y * 255.0f, 0.0f, 255.0f);
+        unsigned char b = (unsigned char)Clamp(s.color.z * 255.0f, 0.0f, 255.0f);
+
+        L.color = { r, g, b, 255 };
+
+        gDungeonLightsForward.push_back(L);
+    }
+
+}
+
 void GatherFrameLights() {
     //each bullet has a struct called light. Check bullet lights and add info to LightSample struct and add to framelight vector.
     frameLights.clear();
@@ -1693,6 +1723,8 @@ void GatherFrameLights() {
         }
     }
 }
+
+
 
 
 

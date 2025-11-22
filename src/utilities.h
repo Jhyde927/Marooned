@@ -14,7 +14,10 @@ float LerpExp(float current, float target, float lambda, float dt);
 Vector2 LerpV2(Vector2 a, Vector2 b, float t);
 Vector3 LerpVec3(Vector3 a, Vector3 b, float t);
 void DebugPrintVector(const Vector3& v);
+Vector3 ColorToV3(Color c);
+
 //color
+Color V3ToColor(Vector3 v, float a=1.0f);
 Color ColorLerpFast(Color a, Color b, float t);
 Color LerpColor(Color a, Color b, float t);
 Vector3 Limit(Vector3 v, float maxLen);

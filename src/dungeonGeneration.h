@@ -224,6 +224,8 @@ extern int dungeonHeight;
 extern float playerLightRange;
 extern float playerLightIntensity;
 
+extern size_t gStaticLightCount;  // global or dungeon-level
+
 void UpdateDungeonChests();
 void LoadDungeonLayout(const std::string& imagePath); // Just loads and caches image
 void GenerateFloorTiles(float baseY);
@@ -282,4 +284,5 @@ void SpawnSpiderFromEgg(Vector3 spawnPos);
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
 void GatherFrameLights();
+void AddFrameLightsToForwardList();
 void ClearDungeon();
