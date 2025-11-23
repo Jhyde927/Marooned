@@ -1233,8 +1233,9 @@ void GenerateLightSources(float baseY) {
             // Check for yellow (pure R + G, no B)
             if (current.r == 255 && current.g == 255 && current.b == 0) {
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
-
-                dungeonLights.push_back({ pos });
+                LightSource L = MakeStaticTorch(pos);
+                std::cout << L.intensity << "intense\n";
+                dungeonLights.push_back(L);
 
                 // Create a 100x100x100 bounding box centered on pos
                 BoundingBox box;
@@ -1473,8 +1474,10 @@ void DrawDungeonCeiling(){
     rlEnableBackfaceCulling();
     for (CeilingTile& tile : ceilingTiles){
         float dist = Vector3Distance(player.position, tile.position);
-        if (dist < cull_radius){
+        if (dist < cull_radius && !debugInfo){
             DrawModelEx(ceilingModel, tile.position, {1,0,0}, 180.0f, Vector3{700, 700, 700}, tile.tint);
+        }else{
+            DrawModelEx(ceilingModel, tile.position, {1,0,0}, 180.0f, Vector3{700, 700, 700}, tile.tint); //dont cull in debug. 
         }
 
     }
@@ -1494,8 +1497,10 @@ void DrawDungeonFloor() {
 
     for (const FloorTile& tile : floorTiles) {
         float dist = Vector3Distance(player.position, tile.position);
-        if (dist < cull_radius){
+        if (dist < cull_radius && !debugInfo){
             DrawModelEx(floorModel, tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);    
+        }else{
+            DrawModelEx(floorModel, tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);   
         }
         
     }
@@ -1516,9 +1521,11 @@ void DrawDungeonWalls() {
     
     for (const WallInstance& _wall : wallInstances) {
         float distanceTo = Vector3Distance(player.position, _wall.position);
-        if (distanceTo < cullRadius){
+        if (distanceTo < cullRadius && !debugInfo){
             DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
 
+        }else{
+            DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
         }
 
 
@@ -1684,11 +1691,13 @@ void GatherFrameLights() {
 
     for (const Bullet& b : activeBullets) {
         if (!b.light.active) continue;
+        if (b.light.age > 0.75) continue; //wait to stop lights 
 
         LightSample s;
         s.color     = b.light.color;
         s.range     = b.light.range;
         s.intensity = b.light.intensity;
+        if (b.exploded) s.range = s.range * 2; //increase light range when exploding. 
 
         s.pos = b.light.detached ? b.light.posWhenDetached
                                  : b.GetPosition();
@@ -1718,6 +1727,8 @@ void ClearDungeon() {
     collectables.clear();
     decals.clear();
     eggs.clear();
+    frameLights.clear();
+    gDungeonLightsForward.clear();
     for (ChestInstance& chest : chestInstances) {
         UnloadModelAnimations(chest.animations, chest.animCount);
     }

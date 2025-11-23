@@ -99,7 +99,7 @@ int main() {
         }
 
         // Ensure lightmap texture is bound to the unit your sampler uses (e.g., 1)
-        RebindDynamicLightmapForFrame(); //this makes lights work when reset. 
+        //RebindDynamicLightmapForFrame(); //this makes lights work when reset. 
 
 
         if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
@@ -142,7 +142,7 @@ int main() {
         UpdatePlayer(player, deltaTime, camera);
 
         
-        //if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights);
+        if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights);
         RenderFrame(camera, player, deltaTime); //draw everything
         
     }

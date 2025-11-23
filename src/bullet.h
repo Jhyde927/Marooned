@@ -16,7 +16,7 @@ enum class BulletType {
 struct BulletLight {
     bool   active = false;        // has light?
     Vector3 color = {1,1,1};      // 0..1
-    float  range = 0.0f;           // > 0
+    float  range = 400.0f;           // > 0
     float  intensity = 0.0f;       // >= 0
 
     // Optional post-explosion glow

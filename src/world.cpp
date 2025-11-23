@@ -123,8 +123,8 @@ void InitLevel(LevelData& level, Camera& camera) {
         drawCeiling = level.hasCeiling;
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
-        //GenerateLightSources(floorHeight);
-        GenerateLightSourcesForward(floorHeight);
+        GenerateLightSources(floorHeight);
+        //GenerateLightSourcesForward(floorHeight);
         GenerateFloorTiles(floorHeight);//80
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
@@ -147,21 +147,20 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateGiantSpiderFromImage(dungeonEnemyHeight);
         GenerateSpiderEggFromImage(dungeonEnemyHeight);
 
-        if (levelIndex == 4) levels[0].startPosition = {-5653, 200, 6073}; //exit dungeon 3 to dungeon enterance 2 position.
+        if (levelIndex == 4) levels[0].startPosition = {-5484.34, 180, -5910.67}; //exit dungeon 3 to dungeon enterance 2 position.
 
         R.SetLavaShaderValues();
         R.SetBloomShaderValues();
 
         //XZ dynamic lightmap + shader lighting with occlusion
-        //InitDungeonLights();
+        InitDungeonLights();
 
         //forward lighting 
-        ResourceManager::Get().InitForwardLightingUniforms();
-        ResourceManager::Get().SetForwardLightingShaderValues();
-        InitDungeonLightingBounds();
-        ResourceManager::Get().InitForwardLightingShaderParams();
+        // ResourceManager::Get().InitForwardLightingUniforms();
+        // ResourceManager::Get().SetForwardLightingShaderValues();
 
-        BuildStaticOcclusionTexture();
+        // ResourceManager::Get().InitForwardLightingShaderParams();
+        //BuildStaticOcclusionTexture();
 
     }
 
@@ -275,11 +274,11 @@ void RebindDynamicLightmapForFrame() {
 }
 
 void InitDungeonLights(){
-    // Reserve texture unit 0 for 2D/UI so the dungeon lightmap
-    // will consistently be assigned to a higher texture slot by raylib.
+
+    //InitDungeonLightingBounds();
     Texture2D dummyTex = R.GetTexture("blank"); 
     DrawTexture(dummyTex, 0, 0, WHITE);
-
+    
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
     BuildStaticLightmapOnce(dungeonLights);
     BuildDynamicLightmapFromFrameLights(frameLights); // build dynamic light map once for good luck.
@@ -533,8 +532,8 @@ void UpdateMuzzleFlashes(float deltaTime) {
         activeMuzzleFlashes.end());
 
     // Light while any flash is active
-    player.lightIntensity = activeMuzzleFlashes.empty() ? 0.5f : 0.25f;
-    player.lightRange = activeMuzzleFlashes.empty() ? 400.0f : 1600.0f;
+    lightConfig.playerIntensity = activeMuzzleFlashes.empty() ? 0.5f : 0.25f;
+    lightConfig.playerRadius = activeMuzzleFlashes.empty() ? 400.0f : 1600.0f;
 }
 
 void UpdateBullets(Camera& camera, float dt) {
@@ -542,21 +541,17 @@ void UpdateBullets(Camera& camera, float dt) {
         if (b.IsAlive()) {
             b.Update(camera, dt);
             // (optional) animate b.light.intensity/b.light.range while flying
-        } else {
+        }
+        if (b.exploded){
             // First frame of death: convert to glow if requested
             if (b.light.active && b.light.detachOnDeath && !b.light.detached) {
                 b.light.detached = true;
                 b.light.age = 0.f;
                 b.light.posWhenDetached = b.GetPosition();  // freeze at death position
+
             }
             if (b.light.detached) {
                 b.light.age += dt;
-                float t = 1.0f - (b.light.age / b.light.lifeTime);
-                if (t <= 0.f) {
-                    b.light.active = false;      // glow ended
-                } else {
-                    // optional: b.light.intensity = baseIntensity * t;
-                }
             }
         }
     }

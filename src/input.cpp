@@ -34,7 +34,6 @@ void debugControls(Camera& camera, float deltaTime){
             BuildStaticLightmapOnce(dungeonLights);
             R.SetLightingShaderValues();
             isLoadingLevel = false;
-            LogDynamicLightmapNonBlack("testing: ");
 
         
         }

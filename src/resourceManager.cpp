@@ -368,7 +368,9 @@ void ResourceManager::InitForwardLightingShaderParams()
     sh.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(sh, "texture3");
 
 
-
+    int locN = GetShaderLocation(sh, "uSubtilesPerTile");
+    int N = 2;
+    SetShaderValue(sh, locN, &N, SHADER_UNIFORM_INT);
 
     if (locDungMin >= 0)
         SetShaderValue(sh, locDungMin, &dungeonMinXZ.x, SHADER_UNIFORM_VEC2);
@@ -760,32 +762,46 @@ void ResourceManager::SetLavaShaderValues(){
 
 
 void ResourceManager::SetLightingShaderValues() {
-    
-    Shader& lightingShader = R.GetShader("lightingShader");
-    Model& floorModel   = R.GetModel("floorTileGray");
-    Model& wallModel    = R.GetModel("wallSegment");
-    Model& doorwayModel = R.GetModel("doorWayGray");
-    Model& launcherModel = R.GetModel("stonePillar");
-    Model& barrelModel  = R.GetModel("barrelModel");
-    Model& brokeModel   = R.GetModel("brokeBarrel");
 
-    for (int i = 0; i < wallModel.materialCount; i++)    wallModel.materials[i].shader   = lightingShader;
-    for (int i = 0; i < doorwayModel.materialCount; i++) doorwayModel.materials[i].shader= lightingShader;
-    for (int i = 0; i < floorModel.materialCount; ++i)   floorModel.materials[i].shader  = lightingShader;
-    for (int i = 0; i < launcherModel.materialCount; ++i)launcherModel.materials[i].shader = lightingShader;
-    for (int i = 0; i < barrelModel.materialCount; ++i)  barrelModel.materials[i].shader = lightingShader;
-    for (int i = 0; i < brokeModel.materialCount; ++i)   brokeModel.materials[i].shader  = lightingShader;
+    Shader& lightingShader = R.GetShader("lightingShader");
+
+    Model& floorModel    = R.GetModel("floorTileGray");
+    Model& wallModel     = R.GetModel("wallSegment");
+    Model& doorwayModel  = R.GetModel("doorWayGray");
+    Model& launcherModel = R.GetModel("stonePillar");
+    Model& barrelModel   = R.GetModel("barrelModel");
+    Model& brokeModel    = R.GetModel("brokeBarrel");
+
+    // assign shader to all dungeon materials
+    for (int i = 0; i < wallModel.materialCount; i++)      wallModel.materials[i].shader   = lightingShader;
+    for (int i = 0; i < doorwayModel.materialCount; i++)  doorwayModel.materials[i].shader= lightingShader;
+    for (int i = 0; i < floorModel.materialCount; ++i)    floorModel.materials[i].shader  = lightingShader;
+    for (int i = 0; i < launcherModel.materialCount; ++i) launcherModel.materials[i].shader = lightingShader;
+    for (int i = 0; i < barrelModel.materialCount; ++i)   barrelModel.materials[i].shader = lightingShader;
+    for (int i = 0; i < brokeModel.materialCount; ++i)    brokeModel.materials[i].shader  = lightingShader;
+
+    // IMPORTANT: map EMISSION -> texture4 sampler in shader
+    lightingShader.locs[SHADER_LOC_MAP_EMISSION] =
+        GetShaderLocation(lightingShader, "texture4");
+
+    // bind the lightmap to EMISSION slot for every model
+    auto setLightmap = [&](Model& m){
+        for (int i = 0; i < m.materialCount; ++i){
+            m.materials[i].maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+        }
+    };
+    setLightmap(floorModel);
+    setLightmap(wallModel);
+    setLightmap(doorwayModel);
+    setLightmap(launcherModel);
+    setLightmap(barrelModel);
+    setLightmap(brokeModel);
 
     Shader use = floorModel.materials[0].shader;
-    
 
     int locGrid   = GetShaderLocation(use, "gridBounds");
-    int locDynTex = GetShaderLocation(use, "dynamicGridTex");
     int locDynStr = GetShaderLocation(use, "dynStrength");
     int locAmb    = GetShaderLocation(use, "ambientBoost");
-
-    TraceLog(LOG_INFO, "lighting locs grid=%d dynTex=%d dynStr=%d amb=%d",
-             locGrid, locDynTex, locDynStr, locAmb);
 
     float grid[4] = {
         gDynamic.minX, gDynamic.minZ,
@@ -793,95 +809,13 @@ void ResourceManager::SetLightingShaderValues() {
         gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f
     };
 
-    TraceLog(LOG_INFO, "gridBounds: minX=%.2f minZ=%.2f invSizeX=%.6f invSizeZ=%.6f",
-            gDynamic.minX, gDynamic.minZ,
-            gDynamic.sizeX ? 1.0f / gDynamic.sizeX : 0.0f,
-            gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f);
+    if (locGrid >= 0) SetShaderValue(use, locGrid, grid, SHADER_UNIFORM_VEC4);
 
-    if (locGrid   >= 0) SetShaderValue(use, locGrid, grid, SHADER_UNIFORM_VEC4);
-
-    if (locDynTex >= 0) SetShaderValueTexture(use, locDynTex, gDynamic.tex);
-
-    float dynStrength  = 0.8f;
-    float ambientBoost = 0.25f;
+    float dynStrength  = lightConfig.dynStrength;
+    float ambientBoost = lightConfig.ambient;
     if (locDynStr >= 0) SetShaderValue(use, locDynStr, &dynStrength,  SHADER_UNIFORM_FLOAT);
     if (locAmb    >= 0) SetShaderValue(use, locAmb,    &ambientBoost, SHADER_UNIFORM_FLOAT);
-
-
 }
-
-// void ResourceManager::SetLightingShaderValues() {
-//     Shader& lightingShader = R.GetShader("lightingShader");
-
-//     Model& floorModel   = R.GetModel("floorTileGray");
-//     Model& wallModel    = R.GetModel("wallSegment");
-//     Model& doorwayModel = R.GetModel("doorWayGray");
-//     Model& launcherModel = R.GetModel("stonePillar");
-//     Model& barrelModel = R.GetModel("barrelModel");
-//     Model& brokeModel = R.GetModel("brokeBarrel");
-//     // Bind shader to models
-//     for (int i = 0; i < wallModel.materialCount; i++)    wallModel.materials[i].shader = lightingShader;
-//     for (int i = 0; i < doorwayModel.materialCount; i++) doorwayModel.materials[i].shader = lightingShader;
-//     for (int i = 0; i < floorModel.materialCount; ++i)   floorModel.materials[i].shader = lightingShader;
-//     for (int i = 0; i < launcherModel.materialCount; ++i)   launcherModel.materials[i].shader = lightingShader;
-//     for (int i = 0; i < barrelModel.materialCount; ++i)   barrelModel.materials[i].shader = lightingShader;
-//     for (int i = 0; i < brokeModel.materialCount; ++i)   brokeModel.materials[i].shader = lightingShader;
-//     //consider weapon models, probably would be too dark though. 
-
-//     // Use one material's shader handle to set uniforms (shared Shader)
-//     Shader use = floorModel.materials[0].shader;
-
-//     // Existing uniforms
-//     int locGrid   = GetShaderLocation(use, "gridBounds");
-//     int locDynTex = GetShaderLocation(use, "dynamicGridTex");
-//     int locDynStr = GetShaderLocation(use, "dynStrength");
-//     int locAmb    = GetShaderLocation(use, "ambientBoost");
-
-//     TraceLog(LOG_INFO, "lighting locs grid=%d dynTex=%d dynStr=%d amb=%d",
-//             locGrid, locDynTex, locDynStr, locAmb);
-
-//     float grid[4] = {
-//         gDynamic.minX, gDynamic.minZ,
-//         gDynamic.sizeX ? 1.0f / gDynamic.sizeX : 0.0f,
-//         gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f
-//     };
-
-//     if (locGrid   >= 0) SetShaderValue(use, locGrid, grid, SHADER_UNIFORM_VEC4);
-
-
-//     if (locDynTex >= 0) {
-//         SetShaderValueTexture(use, locDynTex, gDynamic.tex);
-//     }
-
-//     float dynStrength  = 0.8f; //fine tuned
-//     float ambientBoost = 0.25f;
-
-
-//     if (locDynStr >= 0) SetShaderValue(use, locDynStr, &dynStrength,  SHADER_UNIFORM_FLOAT);
-//     if (locAmb    >= 0) SetShaderValue(use, locAmb,    &ambientBoost, SHADER_UNIFORM_FLOAT);
-
-//     if (locDynTex >= 0) SetShaderValueTexture(use, locDynTex, gDynamic.tex);
-
-//     // --- New lava/ceiling uniforms ---
-//     // int locIsCeil   = GetShaderLocation(use, "isCeiling");        // int
-//     // int locLavaStr  = GetShaderLocation(use, "lavaCeilStrength"); // float
-//     // int locCeilH    = GetShaderLocation(use, "ceilHeight");       // float
-//     // int locLavaFall = GetShaderLocation(use, "lavaFalloff");      // float
-
-//     // // Sensible defaults (you can tweak live)
-//     // int   isCeilDefault   = 0;                 // floors by default
-//     // float lavaCeilStrength= 0.15f;             // try 0.4–0.7
-//     // float ceilH           = ceilingHeight;     // your world Y for ceilings
-//     // float lavaFalloff     = 600.0f;            // how fast ceiling glow fades with height
-
-//     // if (locIsCeil   >= 0) SetShaderValue(use, locIsCeil,   &isCeilDefault,    SHADER_UNIFORM_INT);
-//     // if (locLavaStr  >= 0) SetShaderValue(use, locLavaStr,  &lavaCeilStrength, SHADER_UNIFORM_FLOAT);
-//     // if (locCeilH    >= 0) SetShaderValue(use, locCeilH,    &ceilH,            SHADER_UNIFORM_FLOAT);
-//     // if (locLavaFall >= 0) SetShaderValue(use, locLavaFall, &lavaFalloff,      SHADER_UNIFORM_FLOAT);
-// }
-
-
-
 
 void ResourceManager::UpdateShaders(Camera& camera){
     SetWaterShaderValues(camera); //update water every frame

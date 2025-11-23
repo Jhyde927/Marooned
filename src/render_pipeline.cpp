@@ -57,8 +57,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonDoorways();          
             DrawOverworldProps();
         } else {
-            AddFrameLightsToForwardList();
-            ResourceManager::Get().UploadDungeonLightsToShader();  // <- before drawing dungeon
+            //AddFrameLightsToForwardList();
+            //ResourceManager::Get().UploadDungeonLightsToShader();  // <- before drawing dungeon
             //draw the dungeon
             DrawDungeonFloor();
             DrawDungeonWalls();
@@ -153,11 +153,11 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                     10, 60, 20, RED);
 
                 // Just to see the box where it *should* draw
-                DrawRectangleLines(0, 0, gDynamic.w, gDynamic.h, RED);
+                //DrawRectangleLines(250, 0, gDynamic.w, gDynamic.h, RED);
 
                 // Visualize the dynamic lightmap big enough to notice
                 if (gDynamic.tex.id != 0) {
-                    DrawTextureEx(gDynamic.tex, { 0, 0 }, 0.0f, 1.0f, WHITE);
+                    DrawTextureEx(gDynamic.tex, { 32, 96 }, 0.0f, 1.0f, WHITE);
                 }
 
                 //show FPS over top of lightmap

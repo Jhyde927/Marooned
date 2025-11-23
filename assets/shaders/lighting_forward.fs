@@ -49,44 +49,80 @@ uniform vec2  uDungeonMinXZ;     // (minX, minZ) of dungeon in world space
 uniform float uTileSize;         // world size of one tile (same tileSize as CPU)
 uniform int   uSubtilesX;        // dungeonWidth * 2
 uniform int   uSubtilesZ;        // dungeonHeight * 2
+uniform int uSubtilesPerTile;
 
-
-float SampleOcclusion(int lightIndex, vec2 fragXZ)
+float SampleOcclusion(vec2 fragXZ)
 {
-    if (lightIndex < 0 || lightIndex >= uStaticLightCount) return 1.0;
-
     vec2 rel = (fragXZ - uDungeonMinXZ) / uTileSize;
     float tx = floor(rel.x);
     float tz = floor(rel.y);
 
+    int N = uSubtilesPerTile;
+
+    float tilesX = float(uSubtilesX) / float(N);
+    float tilesZ = float(uSubtilesZ) / float(N);
+
     if (tx < 0.0 || tz < 0.0) return 1.0;
-    if (tx >= float(uSubtilesX) * 0.5 || tz >= float(uSubtilesZ) * 0.5) return 1.0;
+    if (tx >= tilesX || tz >= tilesZ) return 1.0;
 
     float lx = rel.x - tx;
     float lz = rel.y - tz;
 
-    int sx = (lx < 0.5) ? 0 : 1;
-    int sz = (lz < 0.5) ? 0 : 1;
+    int sx = int(floor(lx * float(N))); sx = clamp(sx, 0, N-1);
+    int sz = int(floor(lz * float(N))); sz = clamp(sz, 0, N-1);
 
-    int subX = int(tx) * 2 + sx;
-    int subZ = int(tz) * 2 + sz;
+    int subX = int(tx) * N + sx;
+    int subZ = int(tz) * N + sz;
 
-    int layerOffset = lightIndex * uSubtilesZ;
-    int texY = layerOffset + subZ;
-
-    if (subX < 0 || subX >= uSubtilesX) return 1.0;
-
-    // ---- NEW: normalized UVs for bilinear sampling ----
     float texW = float(uSubtilesX);
-    float texH = float(uSubtilesZ * uStaticLightCount);
+    float texH = float(uSubtilesZ);
 
-    // sample at texel centers
     vec2 occlUV = vec2((float(subX) + 0.5) / texW,
-                       (float(texY) + 0.5) / texH);
+                       (float(subZ) + 0.5) / texH);
 
-    float vis = texture(texture3, occlUV).r;
-    return vis;
+    return texture(texture3, occlUV).r;
 }
+
+// float SampleOcclusion(int lightIndex, vec2 fragXZ)
+// {
+//     if (lightIndex < 0 || lightIndex >= uStaticLightCount) return 1.0;
+
+//     vec2 rel = (fragXZ - uDungeonMinXZ) / uTileSize;
+//     float tx = floor(rel.x);
+//     float tz = floor(rel.y);
+
+//     int N = 2;   // or pass as uniform
+
+//     // --- FIXED TILE BOUNDS ---
+//     float tilesX = float(uSubtilesX) / float(N);
+//     float tilesZ = float(uSubtilesZ) / float(N);
+
+//     if (tx < 0.0 || tz < 0.0) return 1.0;
+//     if (tx >= tilesX || tz >= tilesZ) return 1.0;
+
+//     // local offset inside tile
+//     float lx = rel.x - tx;
+//     float lz = rel.y - tz;
+
+//     // --- NxN picking ---
+//     int sx = int(floor(lx * float(N))); sx = clamp(sx, 0, N-1);
+//     int sz = int(floor(lz * float(N))); sz = clamp(sz, 0, N-1);
+
+//     int subX = int(tx) * N + sx;
+//     int subZ = int(tz) * N + sz;
+
+//     int layerOffset = lightIndex * uSubtilesZ;
+//     int texY = layerOffset + subZ;
+
+//     float texW = float(uSubtilesX);
+//     float texH = float(uSubtilesZ * uStaticLightCount);
+
+//     vec2 occlUV = vec2((float(subX) + 0.5) / texW,
+//                        (float(texY) + 0.5) / texH);
+
+//     return texture(texture3, occlUV).r;
+// }
+
 
 
 void main()
@@ -130,9 +166,9 @@ void main()
         float vis = 1.0;
         if (i < uStaticLightCount)
         {
-            vis = SampleOcclusion(i, fragXZ);
-            if (vis <= 0.0)
-                continue;
+            vis = SampleOcclusion(fragXZ);
+            float cutoff = 0.1f;   // start here, tweak
+            if (vis < cutoff) vis = 0.0f;
         }
 
         lighting += color * (intensity * falloff * vis);

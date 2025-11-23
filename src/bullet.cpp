@@ -402,7 +402,7 @@ void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, b
 
     SoundManager::GetInstance().PlaySoundAtPosition((rand() % 2 == 0 ? "flame1" : "flame2"), origin, player.position, 0.0f, 3000.0f);
 
-
+    
 }
 
 void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy) {
