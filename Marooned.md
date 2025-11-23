@@ -503,7 +503,48 @@ Make the giant spider lay eggs. x - giant spider can lay an egg after running aw
 
 Tried one more lighting fix for linux. I now assign a dummy texture before setting lightmap uniform. The dummy draw assigns the dummy texture to slot 0, making the lightmap texture use a slot > 0. So then we don't have to us rl calls to assign it every frame. Although if this were the issue it should have worked being loaded from menu. LLM says there is nothing wrong shader side. says it has to be uniforms. 
 
+blood decals are slightly occluding the enemy sprite, mostly spiders. Do we spawn the decal ontop of the enemy position or slightly ahead of it? -We were spawning decals on bullet hit from bullet code. Moved the decal spawning to happen once on character takeDamage. Solves occlusion problem and simplifies bullet code.
 
+spawn goo particles on egg hatch. x
+
+made player melee attack id that gets incremented every swing. we check if the enemies last attack id != player attack id as to only apply damage once per swing. This is better than checking if hitTimer <= 0. For both enemies and eggs.
+Could give enemies their own attack ids for hitting player once. Maybe a unique id for each bullet. 
+
+Removed glow on ceiling tiles above lava. Lava levels all have no ceiling anyway. It simplifies the lighting. and the alpha channel stuff could be the problem. 
+
+In debug mode we draw the lightmap texture in the corner of the screen. debugging was showing a problem with alpha channel lava glow potentially. Ceilings were all tinted red when lights were not working. means alpha was being set to 1. Because the texture wasn't correct? If we were setting the dyn.tex.alpha to 0, but using a different texture in the texture slot, the other texture's alpha would be 1 making the ceilings red. That means on linux the texture was getting squashed even when loading from menu. Is it because we are doing 2d calls before and after 3d. like the lightmap tex gets crushed by the 2d draws at the end of the render frame? Either way the debug lightmap draw should show if the lightmap is getting crushed. the size of the texture would not be 128x128 and the debug texture would be all black? all white? transparent? it's alpha would be 1 and it's rbg would be whatever the texture that is crushing it is. 
+
+set pirate to only apply damage on frame 2. still missing his first attack.  
+
+
+Ok we will try with limited sprint. Make infinite sprint on debug mode, maybe even a button for speed increase like running in debug makes max speed even faster. x - made sprinte drain 50 percent less. recharge stays the same. So drain and recharge are both 20 * deltaTime. 
+
+added culling to underwater chunks. x
+
+testing on laptop found that dungeon 3 still spits you out on little island, not dugneon entrance 2. fix this now
+
+Giant spider turned invincible on death some how. 
+
+Finaly found a solution to lighting not working on Linux. Just make a whole new lighting system from scratch.
+Forward Lighting. We no long have to bind a texture that the shader can read, which was the problem. I'm sure I could have found a solution to the bug if I kept looking for another week or so, but I had a fix that would work now so I did it. We still use a texture as an occlusion map. It's bound to the materials slot 3 on each model, then the shader reads from the material slot? not a custom texture. and that's why it works I guess.
+
+The new forward lighting is worse resolution that what we had before. This is the price we pay for cross platform. Maybe one day I will find out what we were doing wrong with the lightmap but until then we have working occluded lights for both windows and linux. 
+
+I made the range of the lights 3000 instead of 1600. I think it makes it look more natural. Light travels forever in real life not just 1600 units. With the new forward lighting it looks batter that way. We don't get as cool of shadows on the floor tiles, but we get occluded walls pretty well with the longer range. 
+
+All told it took about 8 hours. The original lighting took me 3 weeks. All the scaffolding was in place it just needed a new shader which LLM writes all of. 
+
+    sh.locs[SHADER_LOC_MAP_DIFFUSE]   = GetShaderLocation(sh, "texture0");
+    sh.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(sh, "texture3");
+
+not setting these kept me up till 2am debugging until it worked. 
+
+We could have just bound the original lightmap texture to a material slot like we do here. -yes
+
+Reverted to lightmap using emissive material slot on all the dungeon materials. 
+We set wallModel.material[4] = lightmapTexture instead of binding the texture to a custom unit texture. That's how it is supposed to be done. LLM was just binding it to a custom unit texture because it didn't have the context to see the models I was using. I even got a second opinion from another LLM and it never suggested binding to material slot. Even though that's the way it's done. Should have just read the documentation.
+
+Reverting back to lightmap texture gives us much better resolution shadows, and works on Linux. 
 
 
 

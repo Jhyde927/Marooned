@@ -32,7 +32,7 @@ std::vector<Door> doors;
 std::vector<PillarInstance> pillars;
 std::vector<WallRun> wallRunColliders;
 std::vector<LightSource> dungeonLights; //static lights.
-std::vector<SimpleLight> gDungeonLightsForward; //forward static lights 
+
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
 
@@ -1255,47 +1255,6 @@ void GenerateLightSources(float baseY) {
 
 }
 
-void GenerateLightSourcesForward(float baseY) {
-    gDungeonLightsForward.clear();
-    pillars.clear();
-    fires.clear();
-
-    for (int y = 0; y < dungeonHeight; y++) {
-        for (int x = 0; x < dungeonWidth; x++) {
-            Color current = dungeonPixels[y * dungeonWidth + x];
-
-            // Check for yellow (pure R + G, no B)
-            if (current.r == 255 && current.g == 255 && current.b == 0) {
-                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
-
-                dungeonLights.push_back({ pos });
-
-                // --- existing pillar/fire stuff ---
-                BoundingBox box;
-                box.min = Vector3Subtract(pos, Vector3{50.0f, 0.0f, 50.0f});
-                box.max = Vector3Add(pos, Vector3{50.0f, 100.0f, 50.0f});
-                pillars.push_back({ pos, 1.0f, box });
-
-                Fire newFire;
-                newFire.fireFrame = GetRandomValue(0, 59);
-                fires.push_back(newFire);
-
-                // --- new forward-light entry ---
-                SimpleLight L;
-                L.pos       = pos;
-                L.radius    = lightConfig.staticRadius;   // tweak to taste
-                L.color     = V3ToColor(lightConfig.staticColor); // warm torch color
-                L.intensity = lightConfig.staticIntensity;     // scalar multiplier
-                gDungeonLightsForward.push_back(L);
-            }
-        }
-    }
-
-    gStaticLightCount = gDungeonLightsForward.size(); // remember how many statics we have
-}
-
-
-
 
 // Returns true if world point is inside the dungeon bounds.
 // world → image grid (with your X/Z flips baked in)
@@ -1474,10 +1433,8 @@ void DrawDungeonCeiling(){
     rlEnableBackfaceCulling();
     for (CeilingTile& tile : ceilingTiles){
         float dist = Vector3Distance(player.position, tile.position);
-        if (dist < cull_radius && !debugInfo){
+        if (dist < cull_radius){ //always cull ceilings
             DrawModelEx(ceilingModel, tile.position, {1,0,0}, 180.0f, Vector3{700, 700, 700}, tile.tint);
-        }else{
-            DrawModelEx(ceilingModel, tile.position, {1,0,0}, 180.0f, Vector3{700, 700, 700}, tile.tint); //dont cull in debug. 
         }
 
     }
@@ -1680,40 +1637,6 @@ BoundingBox MakeDoorBoundingBox(Vector3 position, float rotationY, float halfWid
     return { boxMin, boxMax };
 }
 
-
-
-
-
-void GatherFrameLights() {
-    //each bullet has a struct called light. Check bullet lights and add info to LightSample struct and add to framelight vector.
-    frameLights.clear();
-    frameLights.reserve(activeBullets.size()); // upper bound
-
-    for (const Bullet& b : activeBullets) {
-        if (!b.light.active) continue;
-        if (b.light.age > 0.75) continue; //wait to stop lights 
-
-        LightSample s;
-        s.color     = b.light.color;
-        s.range     = b.light.range;
-        s.intensity = b.light.intensity;
-        if (b.exploded) s.range = s.range * 2; //increase light range when exploding. 
-
-        s.pos = b.light.detached ? b.light.posWhenDetached
-                                 : b.GetPosition();
-
-        // sanity checks (avoid NaN/zero range)
-        if (s.range > 0.f && isfinite(s.range) &&
-            isfinite(s.pos.x) && isfinite(s.pos.y) && isfinite(s.pos.z)) {
-            frameLights.push_back(s);
-        }
-    }
-}
-
-
-
-
-
 void ClearDungeon() {
     wallRunColliders.clear();
     floorTiles.clear();
@@ -1728,7 +1651,7 @@ void ClearDungeon() {
     decals.clear();
     eggs.clear();
     frameLights.clear();
-    gDungeonLightsForward.clear();
+
     for (ChestInstance& chest : chestInstances) {
         UnloadModelAnimations(chest.animations, chest.animCount);
     }

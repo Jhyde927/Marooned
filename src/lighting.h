@@ -45,17 +45,12 @@ struct LightingConfig
 // Global instance (defined in lightingConfig.cpp)
 extern LightingConfig lightConfig;
 extern BakedLightmap gDynamic; 
-extern Texture2D gDungeonOcclusionTex;
+
 
 LightSource MakeStaticTorch(Vector3 pos); 
 
 float SmoothFalloff(float d, float radius);
-
+void GatherFrameLights();
 void InitDynamicLightmap(int res);
 void BuildStaticLightmapOnce(const std::vector<LightSource>& dungeonLights);
 void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLights);
-void LogDynamicLightmapNonBlack(const char* tag);
-
-void BuildStaticOcclusionTexture();
-void InitDungeonLightingBounds();
-void AddFrameLightsToForwardList();

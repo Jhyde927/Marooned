@@ -12,8 +12,6 @@
 
 ResourceManager* ResourceManager::_instance = nullptr;
 
-
-
 void ResourceManager::ensureFallback_() const {
     if (_fallbackReady) return;
     Image img = GenImageChecked(64, 64, 8, 8, MAGENTA, BLACK);
@@ -282,132 +280,10 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("lavaShader",     "assets/shaders/lava_world.vs",         "assets/shaders/lava_world.fs");
     R.LoadShader("treeShader",     "assets/shaders/treeShader.vs",         "assets/shaders/treeShader.fs");
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
-    R.LoadShader("lightingForward", "assets/shaders/lighting_forward.vs",  "assets/shaders/lighting_forward.fs");
 
 
 
 }
-
-static int locLightCount    = -1;
-static int locLightPosRad   = -1;
-static int locLightColInt   = -1;
-static int locAmbient       = -1;
-
-void ResourceManager::InitForwardLightingUniforms()
-{
-    InitDungeonLightingBounds();
-    Shader sh = R.GetShader("lightingForward"); // whatever name you loaded it as
-
-    locLightCount  = GetShaderLocation(sh, "uLightCount");
-    locLightPosRad = GetShaderLocation(sh, "uLightPosRadius");
-    locLightColInt = GetShaderLocation(sh, "uLightColorIntensity");
-    locAmbient     = GetShaderLocation(sh, "uAmbient");
-}
-
-void ResourceManager::UploadDungeonLightsToShader()
-{
-    Shader sh = R.GetShader("lightingForward");
-
-    const int MAX_LIGHTS = 32;
-
-    Vector4 posRadius[MAX_LIGHTS];
-    Vector4 colIntensity[MAX_LIGHTS];
-
-    int count = 0;
-    for (const SimpleLight& L : gDungeonLightsForward)
-    {
-        if (count >= MAX_LIGHTS) break;
-
-        posRadius[count] = { L.pos.x, L.pos.y, L.pos.z, L.radius };
-
-        float r = L.color.r / 255.0f;
-        float g = L.color.g / 255.0f;
-        float b = L.color.b / 255.0f;
-        colIntensity[count] = { r, g, b, L.intensity };
-
-        ++count;
-    }
-
-
-
-    float ambient = lightConfig.ambient; // similar to your old ambientBoost
-
-    if (locAmbient >= 0)
-        SetShaderValue(sh, locAmbient, &ambient, SHADER_UNIFORM_FLOAT);
-
-    if (locLightCount >= 0)
-        SetShaderValue(sh, locLightCount, &count, SHADER_UNIFORM_INT);
-
-    if (count > 0)
-    {
-        if (locLightPosRad >= 0)
-            SetShaderValueV(sh, locLightPosRad,
-                            &posRadius[0].x, SHADER_UNIFORM_VEC4, count);
-
-        if (locLightColInt >= 0)
-            SetShaderValueV(sh, locLightColInt,
-                            &colIntensity[0].x, SHADER_UNIFORM_VEC4, count);
-    }
-}
-
-void ResourceManager::InitForwardLightingShaderParams()
-{
-    Shader sh = R.GetShader("lightingForward");
-
-    int locDungMin  = GetShaderLocation(sh, "uDungeonMinXZ");
-    int locTileSize = GetShaderLocation(sh, "uTileSize");
-    int locSubX     = GetShaderLocation(sh, "uSubtilesX");
-    int locSubZ     = GetShaderLocation(sh, "uSubtilesZ");
-    int locStaticCount = GetShaderLocation(sh, "uStaticLightCount");
-
-    Vector2 dungeonMinXZ = { gDynamic.minX, gDynamic.minZ };
-    int subtilesX = dungeonWidth  * 2;
-    int subtilesZ = dungeonHeight * 2;
-
-    sh.locs[SHADER_LOC_MAP_DIFFUSE]   = GetShaderLocation(sh, "texture0");
-    sh.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(sh, "texture3");
-
-
-    int locN = GetShaderLocation(sh, "uSubtilesPerTile");
-    int N = 2;
-    SetShaderValue(sh, locN, &N, SHADER_UNIFORM_INT);
-
-    if (locDungMin >= 0)
-        SetShaderValue(sh, locDungMin, &dungeonMinXZ.x, SHADER_UNIFORM_VEC2);
-    if (locTileSize >= 0)
-        SetShaderValue(sh, locTileSize, &tileSize, SHADER_UNIFORM_FLOAT);
-    if (locSubX >= 0)
-        SetShaderValue(sh, locSubX, &subtilesX, SHADER_UNIFORM_INT);
-    if (locSubZ >= 0)
-        SetShaderValue(sh, locSubZ, &subtilesZ, SHADER_UNIFORM_INT);
-
-    int staticCount = (int)gStaticLightCount;
-    if (locStaticCount >= 0)
-        SetShaderValue(sh, locStaticCount, &staticCount, SHADER_UNIFORM_INT);
-}
-
-
-
-void ResourceManager::SetForwardLightingShaderValues() {
-    Shader& lightingShader = R.GetShader("lightingForward");
-    Model& floorModel   = R.GetModel("floorTileGray");
-    Model& wallModel    = R.GetModel("wallSegment");
-    Model& doorwayModel = R.GetModel("doorWayGray");
-    Model& launcherModel = R.GetModel("stonePillar");
-    Model& barrelModel  = R.GetModel("barrelModel");
-    Model& brokeModel   = R.GetModel("brokeBarrel");
-
-    for (int i = 0; i < wallModel.materialCount; i++)    wallModel.materials[i].shader   = lightingShader;
-    for (int i = 0; i < doorwayModel.materialCount; i++) doorwayModel.materials[i].shader= lightingShader;
-    for (int i = 0; i < floorModel.materialCount; ++i)   floorModel.materials[i].shader  = lightingShader;
-    for (int i = 0; i < launcherModel.materialCount; ++i)launcherModel.materials[i].shader = lightingShader;
-    for (int i = 0; i < barrelModel.materialCount; ++i)  barrelModel.materials[i].shader = lightingShader;
-    for (int i = 0; i < brokeModel.materialCount; ++i)   brokeModel.materials[i].shader  = lightingShader;
-
-}
-
-
-
 
 void ResourceManager::SetShaderValues(){
     //outdoor shaders + bloom, tonemap, saturation, foliage alpha cutoff , shadowTex, water

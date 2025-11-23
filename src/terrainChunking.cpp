@@ -198,13 +198,13 @@ TerrainGrid BuildTerrainGridFromHeightmap(const Image& heightmapGray, Vector3 te
 }
 
 void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float maxDrawDist,int maxChunksToDraw,std::vector<ChunkDrawInfo>& outList){
-    //bootleg fustom culling and more. 
+    //bootleg fustum culling and more. 
     outList.clear();
     Vector3 camForward = Vector3Normalize(
         Vector3Subtract(cam.target, cam.position)
     );
 
-    float halfFovDeg = 60.0f; // chunks are big
+    float halfFovDeg = 60.0f; // 45 default player fov, set to 60 to cover big chunks popping in. 
     float halfFovRad = halfFovDeg * PI / 180.0f;
     float cosHalfFov = cosf(halfFovRad);
 
@@ -212,7 +212,7 @@ void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float ma
 
     const float NEAR_CHUNK_DIST    = 1600.0f;
     const float NEAR_CHUNK_DIST_SQ = NEAR_CHUNK_DIST * NEAR_CHUNK_DIST;
-    const float WATER_HEIGHT       = 55.0f; //cull underwater tiles. --looks bad, not worth? 
+    const float WATER_HEIGHT       = 55.0f; //cull underwater tiles. 
 
     // 1) Collect candidates
     for (const TerrainChunk& c : T.chunks) {

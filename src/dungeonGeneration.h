@@ -219,7 +219,6 @@ extern std::vector<LightSample> frameLights;
 extern std::vector<LauncherTrap> launchers;
 extern std::vector<PillarInstance> pillars;
 extern std::vector<Fire> fires;
-extern std::vector<SimpleLight> gDungeonLightsForward;
 extern std::vector<LightSource> dungeonLights;
 extern std::vector<LightSource> bulletLights;
 extern std::vector<WallRun> wallRunColliders;
@@ -299,5 +298,5 @@ void GenerateSpiderEggFromImage(float baseY);
 void SpawnSpiderFromEgg(Vector3 spawnPos);
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
-void GatherFrameLights();
+
 void ClearDungeon();

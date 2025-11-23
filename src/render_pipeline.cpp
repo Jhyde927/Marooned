@@ -34,19 +34,15 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
         if (!isDungeon) {
 
-            //DrawModel(terrainModel, {-terrainScale.x/2,0,-terrainScale.z/2}, 1.0f, WHITE);
-            //this draw call was eating my laptop alive. we gain 30 frames by chunking the terrain instead. 
-
             float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
 
             DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
 
-            HandleWaves(camera);
-            // draw order/state (after opaque terrain)
+            HandleWaves(camera); //update water plane bob. 
+ 
             rlEnableDepthTest();
             rlDisableDepthMask();         // don’t write depth for transparent water
             DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
-            //DrawModel(R.GetModel("bottomPlane"), {0,-100,0}, 1.0f, BLUE);
             rlEnableDepthMask();
             
             DrawBoat(player_boat);
@@ -57,8 +53,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonDoorways();          
             DrawOverworldProps();
         } else {
-            //AddFrameLightsToForwardList();
-            //ResourceManager::Get().UploadDungeonLightsToShader();  // <- before drawing dungeon
             //draw the dungeon
             DrawDungeonFloor();
             DrawDungeonWalls();
