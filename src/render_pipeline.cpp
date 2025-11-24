@@ -30,7 +30,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         rlDisableBackfaceCulling(); rlDisableDepthMask(); rlDisableDepthTest();
         DrawModel(R.GetModel("skyModel"), camera.position, 10000.0f, WHITE);
         rlEnableDepthMask(); rlEnableDepthTest();
-        rlSetBlendMode(BLEND_ALPHA);
+        BeginBlendMode(BLEND_ALPHA);
+        
 
         if (!isDungeon) {
 

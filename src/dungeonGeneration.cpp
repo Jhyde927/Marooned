@@ -1589,7 +1589,7 @@ void UpdateBarrelTints(Vector3 playerPos) {
 
 void UpdateDoorTints(Vector3 playerPos) {
     if (!isDungeon) return;
-    const float maxLightDistance = 4000.0f;
+    const float maxLightDistance = 5000.0f;
     const float minBrightness = 0.2f;
 
     Vector3 baseDoorColor = {0.8f, 0.6f, 0.4f}; // warm wood tone

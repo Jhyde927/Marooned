@@ -26,3 +26,6 @@ void ChestCollision();
 void pillarCollision(); 
 void launcherCollision();
 void SpiderEggCollision();
+void BulletParticleBounce(Bullet& b, Color c);
+void BulletParticleRicochetNormal(Bullet& b, Vector3 n, Color c);
+bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera);

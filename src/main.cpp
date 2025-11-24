@@ -15,7 +15,7 @@
 #include "rlgl.h"
 #include "spiderEgg.h"
 
-
+//wise words
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
 
@@ -23,19 +23,6 @@ int main() {
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor.
-    
-    
-    //debug log to text file. 
-    // SetTraceLogLevel(LOG_ALL);
-    // SetTraceLogCallback([](int logLevel, const char* text, va_list args){
-    //     static FILE* f = fopen("marooned_log.txt", "w"); // or "a" to append
-    //     if (!f) return;
-    //     char buf[4096];
-    //     vsnprintf(buf, sizeof(buf), text, args);
-    //     fputs(buf, f);
-    //     fputc('\n', f);
-    //     fflush(f);
-    // });
 
     drawCeiling = true; //debug no ceiling mode. drawCeiling is set by levelData so we can have some dungeons with and without ceilings. 
 
@@ -82,7 +69,7 @@ int main() {
             currentGameState = GameState::Playing;
             gFadePhase = FadePhase::FadingIn;
 
-            continue; // Block anything from touching old resources this frame.
+            continue; // Block anything from touching old resources this frame. skip the rest of game loop. 
         }
 
         //Main Menu - level select 
@@ -122,8 +109,8 @@ int main() {
         
         //collisions
         UpdateCollisions(camera);
-
         HandleDoorInteraction(camera);
+
         HandleWeaponTints();
         if (isDungeon){
             

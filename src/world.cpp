@@ -527,10 +527,7 @@ void UpdateMuzzleFlashes(float deltaTime) {
 
 void UpdateBullets(Camera& camera, float dt) {
     for (Bullet& b : activeBullets) {
-        if (b.IsAlive()) {
-            b.Update(camera, dt);
-            // (optional) animate b.light.intensity/b.light.range while flying
-        }
+        b.Update(camera, dt);
         if (b.exploded){
             // First frame of death: convert to glow if requested
             if (b.light.active && b.light.detachOnDeath && !b.light.detached) {
@@ -546,13 +543,20 @@ void UpdateBullets(Camera& camera, float dt) {
     }
 }
 
-
-void EraseBullets(){
-    activeBullets.erase( //erase dead bullets. 
+void EraseBullets() {
+    activeBullets.erase(
         std::remove_if(activeBullets.begin(), activeBullets.end(),
-                    [](const Bullet& b) { return !b.IsAlive(); }),
-        activeBullets.end());
+            [](const Bullet& b) { return b.IsDone(); }),
+        activeBullets.end()
+    );
 }
+
+// void EraseBullets(){
+//     activeBullets.erase( //erase dead bullets. 
+//         std::remove_if(activeBullets.begin(), activeBullets.end(),
+//                     [](const Bullet& b) { return !b.IsAlive(); }),
+//         activeBullets.end());
+// }
 
 void UpdateCollectables(float deltaTime) { 
     for (size_t i = 0; i < collectables.size(); i++) {
@@ -626,9 +630,7 @@ void DrawBloodParticles(Camera& camera){
 
 void DrawBullets(Camera& camera) {
     for (const Bullet& b : activeBullets) {
-        if (b.IsAlive()){
-             b.Draw(camera);
-        }
+        b.Draw(camera);
     }
 
 }

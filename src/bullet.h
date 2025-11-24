@@ -40,6 +40,7 @@ public:
     bool fireball = false;
     float age;
     float maxLifetime;
+    float timeSinceImpact = 0.0f;
     float timer;
     float gravity = 300.0f;
     float radius = 25.0f;
@@ -60,7 +61,7 @@ public:
     bool IsEnemy() const;
     bool isFireball() const;
     bool isExploded() const;
-
+    bool IsDone() const;
     void Blood(Camera& camera);
     void Explode(Camera& camera);
     void BulletHole(Camera& camera, bool enemy = false);

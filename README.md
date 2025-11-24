@@ -1,7 +1,7 @@
 # Marooned
 ![Game Screenshot](assets/screenshots/dungeon1.png)
 
-**Marooned** is a 3D first person adventure game set in the 1700s pirate era on a island full of dinosaurs. Below the islands are dungeons crawling with skeletons, and worse. Armed with only a rusty sword and your trusty blunderbuss, make your way through the dungeons to fight the boss at the end of the demo. 
+**Marooned** is a 3D first person adventure game set in the 1700s pirate era on a island full of dinosaurs. Below the islands are dungeons crawling with skeletons, spiders, and worse. Armed with only a rusty sword and your trusty blunderbuss, make your way through the dungeons to fight the boss at the end of the demo. 
 
 ### Table of Contents
 - [Features](#features)
@@ -18,7 +18,7 @@
 - Dungeons generated from PNG image pixel by pixel.
 - Combat with a blunderbuss, sword and a magic staff.
 - Collectible weapons, potions and gold.
-- A boss at the end of the game.
+- Multiple boss fights. 
 
 ![Gameplay demo](assets/screenshots/demo.gif)
 ## Installation

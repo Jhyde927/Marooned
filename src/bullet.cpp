@@ -10,6 +10,7 @@
 #include "dungeonGeneration.h"
 #include "pathfinding.h"
 #include "lighting.h"
+#include "collisions.h"
 
 
 Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletType t, float r, bool launch)
@@ -28,7 +29,7 @@ Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletTyp
 
 
 void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
-    if (!alive) return;
+    //if (!alive) return;
 
     // Gravity-based arc
     
@@ -87,7 +88,8 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
     // Handle floor/ceiling/terrain collision
     if (isDungeon) {
         if (drawCeiling && position.y >= ceilingHeight){
-            kill(camera);
+            //kill(camera);
+            BulletParticleRicochetNormal(*this, {0, -1, 0}, GRAY);
         }
 
 
@@ -106,15 +108,17 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
 
         // Continuous check to avoid tunneling
         if (prevPosition.y > killFloorY && position.y <= killFloorY) {
-
-            kill(camera);
+            //BulletParticleBounce(*this, GRAY);
+            BulletParticleRicochetNormal(*this, {0, 1, 0}, GRAY);
+            //kill(camera);
             return;
         }
     } else {
         // Overworld: terrain height varies; sampling each frame is fine.
         float h = GetHeightAtWorldPosition(position, heightmap, terrainScale);
         if (prevPosition.y > h && position.y <= h) {
-            kill(camera);
+            BulletParticleBounce(*this, GRAY);
+            //kill(camera);
             return;
         }
     }
@@ -124,8 +128,13 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
 
 
 void Bullet::Update(Camera& camera, float deltaTime) {
+    fireEmitter.Update(deltaTime);
+    sparkEmitter.Update(deltaTime); 
 
-    if (!alive) return;
+    if (!alive){
+        timeSinceImpact += deltaTime;
+        return;
+    } 
 
     prevPosition = position;
 
@@ -133,9 +142,10 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     if (type == BulletType::Fireball) {
         
         fireEmitter.SetParticleType(ParticleType::Smoke);
-        fireEmitter.Update(deltaTime);
+
         sparkEmitter.SetParticleType(ParticleType::FireTrail);
-        sparkEmitter.Update(deltaTime);
+        sparkEmitter.UpdateTrail(deltaTime);
+        fireEmitter.UpdateTrail(deltaTime);
         UpdateMagicBall(camera, deltaTime);
 
         if (!exploded && explosionTriggered) {
@@ -158,8 +168,9 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     else if (type == BulletType::Iceball){
         sparkEmitter.SetParticleType(ParticleType::IceMist);
         fireEmitter.SetParticleType(ParticleType::IceMist);
-        fireEmitter.Update(deltaTime);
-        sparkEmitter.Update(deltaTime); 
+        fireEmitter.UpdateTrail(deltaTime);
+        sparkEmitter.UpdateTrail(deltaTime);
+
         UpdateMagicBall(camera, deltaTime);
 
         if (!exploded && explosionTriggered) {
@@ -182,8 +193,16 @@ void Bullet::Update(Camera& camera, float deltaTime) {
 
 
     // Standard bullet movement (non-fireball)
-    if (!IsEnemy() && type == BulletType::Default)
+    if (!IsEnemy() && type == BulletType::Default){
+        fireEmitter.UpdateTrail(deltaTime); //smoke trail update
         velocity.y -= gravity * deltaTime;
+        fireEmitter.SetParticleType(ParticleType::Smoke);
+        fireEmitter.SetPosition(position);
+        fireEmitter.SetParticleSize(2.0f);
+        fireEmitter.SetEmissionRate(8.0f);
+
+    }
+
 
     position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
     age += deltaTime;
@@ -196,28 +215,38 @@ void Bullet::Update(Camera& camera, float deltaTime) {
 
 
 void Bullet::Draw(Camera& camera) const {
-    if (!alive) return;
+    fireEmitter.Draw(camera); //explosion particles
+    sparkEmitter.Draw(camera); //firetrail
+
+    if (exploded) return;
+
     if (type == BulletType::Fireball){
-        fireEmitter.Draw(camera); //explosion particles 
-        //bullet remains alive until timeSinceExplosion = 2.0f, always draw explosion particles.  
-        
-        if (!exploded){
+         
             //dont draw the ball or firetrail if it's exploded. 
-            DrawModelEx(R.GetModel("fireballModel"), position, { 0, 1, 0 }, spinAngle, { 20.0f, 20.0f, 20.0f }, WHITE);
-            sparkEmitter.Draw(camera); //firetrail
-        } 
+        DrawModelEx(R.GetModel("fireballModel"), position, { 0, 1, 0 }, spinAngle, { 20.0f, 20.0f, 20.0f }, WHITE);
+            
+        
         
     }else if (type == BulletType::Iceball){
-        fireEmitter.Draw(camera);
-
-        if (!exploded){
-            DrawModelEx(R.GetModel("iceballModel"), position, { 0, 1, 0 }, spinAngle, { 25.0f, 25.0f, 25.0f }, WHITE);
-            sparkEmitter.Draw(camera);
+        
+        DrawModelEx(R.GetModel("iceballModel"), position, { 0, 1, 0 }, spinAngle, { 25.0f, 25.0f, 25.0f }, WHITE);
             
-        } 
-    } else{
+            
+   
+    } else{ //regular bullets
         DrawSphere(position, 1.5f, WHITE); 
     }
+}
+
+bool Bullet::IsDone() const
+{
+    if (alive) return false; //keep updating and drawing particles
+
+    if (type == BulletType::Fireball || type == BulletType::Iceball)
+        return age >= 2.0f;
+
+    // regular bullets: keep a short impact window
+    return timeSinceImpact >= 3.0f;
 }
 
 bool Bullet::IsExpired() const {
@@ -254,9 +283,10 @@ void Bullet::kill(Camera& camera){
     Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
     Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
 
-    decals.emplace_back(offsetPos, DecalType::Smoke, R.GetTexture("smokeSheet"), 7, 0.8f, 0.1f, 25.0f);
+    //decals.emplace_back(offsetPos, DecalType::Smoke, R.GetTexture("smokeSheet"), 7, 0.8f, 0.1f, 25.0f);
 
     alive = false;
+    exploded = true;
     
 }
 
@@ -270,7 +300,7 @@ void Bullet::BulletHole(Camera& camera, bool enemy){
     Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, forward));
 
     decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("bulletHoleSheet"), 5, 1.0f, 0.2f, size);
-
+    exploded = true;
     alive = false; //kill the bullet
 
 }

@@ -16,8 +16,23 @@ void Emitter::SetPosition(Vector3 newPos) {
     position = newPos;
 }
 
-void Emitter::Update(float dt) { 
-    
+void Emitter::SetColor(Color c){
+    color = c;
+}
+
+void Emitter::SetParticleSize(float p_size){
+    size = p_size;
+}
+
+void Emitter::SetEmissionRate(float emRate){
+    emissionRate = emRate;
+}
+
+void Emitter::SetVelocity(Vector3 vel){
+    velocity = vel;
+}
+
+void Emitter::UpdateTrail(float dt){
     if (emissionRate > 0.0f) {
         timeSinceLastEmit += dt;
 
@@ -27,6 +42,10 @@ void Emitter::Update(float dt) {
             timeSinceLastEmit = 0.0f;
         }
     }
+
+}
+
+void Emitter::Update(float dt) { 
 
     for (auto& p : particles) {
         p.Update(dt);
@@ -92,6 +111,14 @@ void Emitter::EmitParticles(int count) {
 }
 
 void Emitter::CreateParticle(Particle& p) {
+
+    Color smokeColor = {
+        (unsigned char)(0.6f * 255),
+        (unsigned char)(0.6f * 255),
+        (unsigned char)(0.6f * 255),
+        (unsigned char)(1) 
+    };
+
     p.active = true;
     p.position = position;
 
@@ -134,7 +161,8 @@ void Emitter::CreateParticle(Particle& p) {
         break;
 
         case ParticleType::Smoke:
-            p.color = DARKGRAY;
+
+            p.color = smokeColor;
             p.gravity = -100.0f;
             p.velocity = {
                 RandomFloat(-50, 50),
@@ -142,6 +170,20 @@ void Emitter::CreateParticle(Particle& p) {
                 RandomFloat(-50, 50)
             };
             break;
+
+
+        case ParticleType::Impact: {
+            p.color = color;
+            p.gravity = 500;
+            p.velocity = velocity;
+            // p.velocity = {
+            //     RandomFloat(-200, 200),
+            //     RandomFloat(-200, 200),
+            //     RandomFloat(-200, 200)
+
+            // };
+            break;
+        }
 
         case ParticleType::IceMist:
 
@@ -172,7 +214,7 @@ void Emitter::CreateParticle(Particle& p) {
 
     p.maxLife = 1.5f;
     p.life = p.maxLife;
-    p.size = 8.0f;
+    p.size = size;
 }
 
 
