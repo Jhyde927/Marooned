@@ -19,8 +19,8 @@ LightingConfig lightConfig =
     0.9f,   // dynStrength
 
     2100.0f,  // staticRadius
-    0.7f,     // staticIntensity
-    {0.85f, 0.7f, 0.6f}, // staticColor
+    0.6f,     // staticIntensity
+    {0.95f, 0.8f, 0.9f}, // staticColor
 
     400.0f,   // dynamicRange
     0.5f,     // dynamicIntensity

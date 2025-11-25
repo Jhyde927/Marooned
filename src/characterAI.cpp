@@ -368,8 +368,9 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                     SetPath(start); 
                 }
 
+                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
                 // Move along current path
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f);
+                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100, repel);
             }
         } break;
 
@@ -892,10 +893,12 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             // 3) Plan path toward current target when cooldown allows
             if (pathCooldownTimer <= 0.0f) {
                 if (canSee) {
-                    SetPathTo(player.position);
+                    SetPath(start);
+                    //SetPathTo(player.position);
                     pathCooldownTimer = 0.4f;
                 } else if (playerVisible) {       // still within memory window
                     SetPathTo(lastKnownPlayerPos);
+                    
                     pathCooldownTimer = 0.4f;
                 }
             }
@@ -903,7 +906,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
             // 4) Advance along path (with repulsion)
             if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 50, 500); // your existing call
+                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
 
                 // Reached the end but still no LOS? stop chasing
@@ -1069,7 +1072,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             
             // Advance along path (with repulsion)
             if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 50, 500); // your existing call
+                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
 
                 // Reached the end but still no LOS? stop chasing
@@ -1189,7 +1192,7 @@ void Character::AlertNearbySkeletons(Vector3 alertOrigin, float radius) {
         if (!LineOfSightRaycast(originTile, targetTile, dungeonImg, 60, 0.0f)) continue;
 
         // Passed all checks → alert the skeleton
-        other.ChangeState(CharacterState::Chase);
+        other.ChangeState(CharacterState::Chase); //chase player regardless of LOS
 
     }
 }
@@ -1201,21 +1204,21 @@ void Character::SetPath(Vector2 start)
     // 1) Find tile path (same as before)
     Vector2 goal = WorldToImageCoords(player.position);
     std::vector<Vector2> tilePath = FindPath(start, goal);
-
+    std::vector<Vector2> smoothTiles = SmoothTilePath(tilePath, dungeonImg);
     // 2) Convert tile centers to world points (y based on type)
     std::vector<Vector3> worldPath;
-    worldPath.reserve(tilePath.size());
-    for (const Vector2& tile : tilePath) {
+    worldPath.reserve(smoothTiles.size());
+    for (const Vector2& tile : smoothTiles) {
         Vector3 wp = GetDungeonWorldPos(tile.x, tile.y, tileSize, dungeonPlayerHeight);
         wp.y = (type == CharacterType::Pirate) ? 160.0f : 180.0f; // pirate height
         worldPath.push_back(wp);
     }
 
     // 3) Smooth in world space using your LOS
-    std::vector<Vector3> smoothed = SmoothWorldPath(worldPath);
+    //std::vector<Vector3> smoothed = SmoothWorldPath(worldPath);
 
     // 4) Store
-    currentWorldPath = std::move(smoothed);
+    currentWorldPath = std::move(worldPath);
 }
 
 //move with repulsion
@@ -1266,7 +1269,7 @@ void Character::SetPathTo(const Vector3& goalWorld) {
     Vector2 start = WorldToImageCoords(position);
     Vector2 goal  = WorldToImageCoords(goalWorld);
 
-    std::vector<Vector2> tilePath = FindPath(start, goal);
+    std::vector<Vector2> tilePath = SmoothTilePath(FindPath(start, goal), dungeonImg);
 
     currentWorldPath.clear();
     currentWorldPath.reserve(tilePath.size());
@@ -1279,11 +1282,6 @@ void Character::SetPathTo(const Vector3& goalWorld) {
         currentWorldPath.push_back(worldPos);
     }
 
-    // 3) Smooth in world space using your LOS
-    std::vector<Vector3> smoothed = SmoothWorldPath(currentWorldPath);
-
-    // 4) Store
-    currentWorldPath = std::move(smoothed);
 }
 
 // Call this for raptors/Trex (overworld)
@@ -1374,7 +1372,7 @@ void Character::UpdateRunaway(float deltaTime)
     Vector3 vFlee   = FleeXZ(position, player.position, MAX_SPEED);
 
     
-    Vector3 vSep    = ComputeRepulsionForce(enemyPtrs, /*radius*/200, /*strength*/600);
+    Vector3 vSep    = ComputeRepulsionForce(enemyPtrs, /*radius*/300, /*strength*/600);
     vSep            = Limit(vSep, SEP_CAP);
 
     

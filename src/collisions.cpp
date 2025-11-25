@@ -20,6 +20,56 @@ bool CheckCollisionPointBox(Vector3 point, BoundingBox box) {
     );
 }
 
+// Returns true if we resolved a collision (i.e., boxes overlapped)
+bool ResolveBoxBoxCollisionXZ(const BoundingBox& enemyBox, const BoundingBox& wallBox, Vector3& enemyPos)
+{
+    // Check overlap first
+    if (!CheckCollisionBoxes(enemyBox, wallBox))
+        return false;
+
+    // Compute centers
+    Vector3 eCenter = {
+        (enemyBox.min.x + enemyBox.max.x) * 0.5f,
+        (enemyBox.min.y + enemyBox.max.y) * 0.5f,
+        (enemyBox.min.z + enemyBox.max.z) * 0.5f
+    };
+    Vector3 wCenter = {
+        (wallBox.min.x + wallBox.max.x) * 0.5f,
+        (wallBox.min.y + wallBox.max.y) * 0.5f,
+        (wallBox.min.z + wallBox.max.z) * 0.5f
+    };
+
+    // Half-sizes
+    float eHalfX = (enemyBox.max.x - enemyBox.min.x) * 0.5f;
+    float eHalfZ = (enemyBox.max.z - enemyBox.min.z) * 0.5f;
+
+    float wHalfX = (wallBox.max.x - wallBox.min.x) * 0.5f;
+    float wHalfZ = (wallBox.max.z - wallBox.min.z) * 0.5f;
+
+    // Delta between centers
+    float dx = eCenter.x - wCenter.x;
+    float dz = eCenter.z - wCenter.z;
+
+    // Penetration depths on X and Z
+    float penX = (eHalfX + wHalfX) - fabsf(dx);
+    float penZ = (eHalfZ + wHalfZ) - fabsf(dz);
+
+    // Push out along the smaller penetration axis
+    if (penX < penZ)
+    {
+        float signX = (dx < 0) ? -1.0f : 1.0f;
+        enemyPos.x += signX * penX;
+    }
+    else
+    {
+        float signZ = (dz < 0) ? -1.0f : 1.0f;
+        enemyPos.z += signZ * penZ;
+    }
+
+    return true;
+}
+
+
 void ResolveBoxSphereCollision(const BoundingBox& box, Vector3& position, float radius) {
     // Clamp player position to the inside of the box
     float closestX = Clamp(position.x, box.min.x, box.max.x);
@@ -199,6 +249,17 @@ void HandleEnemyPlayerCollision(Player* player) {
     }
 }
 
+void EnemyWallCollision(){
+    for (Character* enemy : enemyPtrs) {
+        if (enemy->isDead) continue;
+        for (auto& wall : wallRunColliders){
+            if (CheckCollisionBoxes(enemy->GetBoundingBox(), wall.bounds)){
+                ResolveBoxBoxCollisionXZ(enemy->GetBoundingBox(), wall.bounds, enemy->position);
+            }
+        }
+    }
+}
+
 
 void HandleMeleeHitboxCollision(Camera& camera) {
     //we never check if meleeHitbox is active, this could result in telefragging anything on top of playerpos, enemy bounding boxes prevent this
@@ -300,6 +361,29 @@ static inline Vector3 AABBHitNormal(const BoundingBox& box, const Vector3& p)
     return n; // already unit for axis-aligned faces
 }
 
+void BulletRicochetPuff(Bullet& b, Vector3 dir, Color c)
+{
+    b.fireEmitter.SetParticleSize(6.0f);
+    b.fireEmitter.SetColor(c);
+
+    // Scale dir down so puff is subtle
+    Vector3 base = Vector3Scale(dir, 0.15f);
+
+    // Random jitter (same vibe you already like)
+    float r = 50.0f;
+    Vector3 jitter = {
+        (float)GetRandomValue(-r, r),
+        (float)GetRandomValue(-r, r),
+        (float)GetRandomValue(-r, r)
+    };
+
+    Vector3 puffVel = Vector3Add(base, jitter);
+
+    b.fireEmitter.SetVelocity(puffVel);
+    b.fireEmitter.EmitBurst(b.position, 2, ParticleType::Impact);
+}
+
+
 void BulletParticleRicochetNormal(Bullet& b, Vector3 n, Color c)
 {
     b.fireEmitter.SetParticleSize(6.0f);
@@ -327,7 +411,7 @@ void BulletParticleRicochetNormal(Bullet& b, Vector3 n, Color c)
     Vector3 smokeVel = Vector3Add(base, jitter);
 
     b.fireEmitter.SetVelocity(smokeVel);
-    b.fireEmitter.EmitBurst(b.position, 2, ParticleType::Impact);
+    //b.fireEmitter.EmitBurst(b.position, 2, ParticleType::Impact);
 
     b.exploded = true;
     b.alive = false;
@@ -359,6 +443,38 @@ void BulletParticleBounce(Bullet& b, Color c){
     b.exploded = true;
     b.alive = false;
 }
+
+bool TryBulletRicochet(Bullet& b, Vector3 n, float damp, float minSpeed, float headOnCosThreshold)
+{
+    // Normalize inputs
+    n = Vector3Normalize(n);
+
+    Vector3 v = b.velocity;
+    float speed = Vector3Length(v);
+    if (speed < minSpeed) return false; // too slow to matter
+
+    Vector3 vNorm = Vector3Scale(v, 1.0f / speed);
+
+    // If hit is too head-on, don't ricochet
+    float cosAngle = fabsf(Vector3DotProduct(vNorm, n)); // 1=head-on, 0=grazing
+    if (cosAngle > headOnCosThreshold) return false;
+
+    // Reflect velocity: v' = v - 2*dot(v,n)*n
+    float d = Vector3DotProduct(v, n);
+    Vector3 reflected = Vector3Subtract(v, Vector3Scale(n, 2.0f * d));
+
+    // Damp energy
+    reflected = Vector3Scale(reflected, damp);
+
+    // Apply new velocity
+    b.velocity = reflected;
+
+    // Push bullet out of the wall a bit to avoid immediate re-collision
+    b.position = Vector3Add(b.position, Vector3Scale(n, 2.0f));
+
+    return true;
+}
+
 
 
 
@@ -393,11 +509,11 @@ void CheckBulletHits(Camera& camera) {
             bool isGhost = (enemy->type == CharacterType::Ghost);
             if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), b.GetPosition(), b.GetRadius())) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
-                    enemy->TakeDamage(25);
+                    //enemy->TakeDamage(25);
+                    enemy->TakeDamage((int)b.ComputeDamage());
                     BoundingBox box = enemy->GetBoundingBox();
-                    Vector3 hitNormal = AABBHitNormal(box, b.position);
-                    Color hitColor = (isGhost || isSkeleton) ? LIGHTGRAY : RED;
-                    BulletParticleRicochetNormal(b, hitNormal, hitColor); //ricochet off enemies aswell. 
+                    Vector3 n = AABBHitNormal(box, b.position);
+                    TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy. 
                     break;
 
                 }
@@ -435,7 +551,8 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     DamageSpiderEgg(egg, 25, player.position);
-                    BulletParticleBounce(b, GREEN);
+                    Vector3 n = AABBHitNormal(egg.collider, b.position);
+                    TryBulletRicochet(b, n);
                     break;
 
                 }
@@ -448,16 +565,27 @@ void CheckBulletHits(Camera& camera) {
         // 🔹 3. Hit walls
         for (WallRun& w : wallRunColliders) {
             if (CheckCollisionPointBox(pos, w.bounds)) {
-                if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
+
+                if (b.type == BulletType::Fireball || b.type == BulletType::Iceball) {
                     b.Explode(camera);
                     break;
-                }else{
-                    Vector3 n = AABBHitNormal(w.bounds, b.position);
-                    BulletParticleRicochetNormal(b, n, GRAY);
-                    break;
-
                 }
 
+                // Default bullets: try ricochet
+                Vector3 n = AABBHitNormal(w.bounds, b.position);
+                TryBulletRicochet(b, n);
+
+                //DECIDE what you want to do. Does it look better with extra particles on hit? or is it too noisy. 
+
+                // if (TryBulletRicochet(b, n)) {
+                //     // bounced: puff in reflected direction
+                //     BulletRicochetPuff(b, Vector3Normalize(b.velocity), GRAY);
+                // } else {
+                //     // no bounce: do your normal impact puff + kill bullet
+                //     BulletParticleRicochetNormal(b, n, GRAY); // this one sets alive=false
+                // }
+
+                break;
             }
         }
 
@@ -469,7 +597,8 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     Vector3 n = AABBHitNormal(d.collider, b.position);
-                    BulletParticleRicochetNormal(b, n, GRAY);
+                    //BulletParticleRicochetNormal(b, n, GRAY);
+                    TryBulletRicochet(b, n);
                     break;
 
                 }
@@ -482,7 +611,8 @@ void CheckBulletHits(Camera& camera) {
                         break;
                     }else{
                         Vector3 n = AABBHitNormal(side, b.position);
-                        BulletParticleRicochetNormal(b, n, GRAY);
+                        TryBulletRicochet(b, n);
+                        //BulletParticleRicochetNormal(b, n, GRAY);
                         break;
 
                     }
@@ -500,7 +630,9 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     Vector3 n = AABBHitNormal(pillar.bounds, b.position);
-                    BulletParticleRicochetNormal(b, n, GRAY);
+                    TryBulletRicochet(b, n);
+
+                    //BulletParticleRicochetNormal(b, n, GRAY); 
                     break;
 
                 }
@@ -515,7 +647,8 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     Vector3 n = AABBHitNormal(web.bounds, b.position);
-                    BulletParticleRicochetNormal(b, n, GRAY);
+                    TryBulletRicochet(b, n);
+                    //BulletParticleRicochetNormal(b, n, GRAY);
                     break;
 
                 }
@@ -531,63 +664,69 @@ void CheckBulletHits(Camera& camera) {
     }
 }
 
-// returns true if a regular (non-AoE) bullet should stop after this pass
-bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera) {
-    const bool isAOE = (b.type == BulletType::Fireball || b.type == BulletType::Iceball);
-    bool hitAnything = false;
 
-    for (BarrelInstance& barrel : barrelInstances) {
+bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
+{
+    bool hitSomething = false;
+    for (BarrelInstance& barrel : barrelInstances)
+    {
         if (barrel.destroyed) continue;
+        if (CheckCollisionBoxSphere(barrel.bounds, b.GetPosition(), b.GetRadius()))
+        {
+            hitSomething = true;
+            if (b.type == BulletType::Fireball || b.type == BulletType::Iceball)
+            {
+                b.Explode(camera);
+            }
+            else
+            {
+                Vector3 n = AABBHitNormal(barrel.bounds, b.position);
+                TryBulletRicochet(b, n);
+                //BulletParticleRicochetNormal(b, n, GRAY);
+                //b.kill(camera);        // normal bullets die
+            }
 
-        if (CheckCollisionBoxSphere(barrel.bounds, b.GetPosition(), b.GetRadius())) {
-            hitAnything = true;
-
-            Vector3 n = AABBHitNormal(barrel.bounds, b.position);
-            BulletParticleRicochetNormal(b, n, GRAY);
-
-            // Mark and open the tile
+            // Destroy barrel + drop loot
             barrel.destroyed = true;
+
             int tileX = GetDungeonImageX(barrel.position.x, tileSize, dungeonWidth);
             int tileY = GetDungeonImageY(barrel.position.z, tileSize, dungeonHeight);
 
             if (tileX >= 0 && tileX < dungeonWidth &&
                 tileY >= 0 && tileY < dungeonHeight)
             {
-                if (!walkable[tileX][tileY]) {
-                    walkable[tileX][tileY] = true;
-                }
+                walkable[tileX][tileY] = true;
             }
 
-
-
-            // Play SFX
             SoundManager::GetInstance().Play("barrelBreak");
 
-
             Vector3 dropPos{ barrel.position.x, barrel.position.y + 100.0f, barrel.position.z };
-            if (barrel.containsPotion) {
-                collectables.emplace_back(CollectableType::HealthPotion, dropPos, R.GetTexture("healthPotTexture"), 40);
-            } else if (barrel.containsMana) {
-                collectables.emplace_back(CollectableType::ManaPotion, dropPos, R.GetTexture("manaPotion"), 40);
-            } else if (barrel.containsGold) {
+            if (barrel.containsPotion)
+            {
+                collectables.emplace_back(CollectableType::HealthPotion, dropPos, 
+                                          R.GetTexture("healthPotTexture"), 40);
+            }
+            else if (barrel.containsMana)
+            {
+                collectables.emplace_back(CollectableType::ManaPotion, dropPos, 
+                                          R.GetTexture("manaPotion"), 40);
+            }
+            else if (barrel.containsGold)
+            {
                 Collectable gold(CollectableType::Gold, dropPos, R.GetTexture("coinTexture"), 40);
                 gold.value = GetRandomValue(1, 100);
                 collectables.push_back(gold);
             }
-            // For non-AoE bullets, stop after the first hit this frame
-            if (!isAOE) break;
+
+            if (!b.alive) 
+                return true; // stop processing this bullet
         }
     }
 
-    // After processing all overlaps, resolve the bullet
-    if (hitAnything) {
-        if (isAOE) b.Explode(camera);
-        else       b.kill(camera);
-    }
-
-    // Tell caller whether to stop iterating this bullet
-    return hitAnything && !isAOE;
+    // No more logic needed — if the bullet is alive, caller continues. 
+    return hitSomething; 
 }
+
 
 bool CheckBulletHitsTree(const TreeInstance& tree, const Vector3& bulletPos) {
     Vector3 treeBase = {
@@ -809,6 +948,7 @@ void UpdateCollisions(Camera& camera){
     CheckBulletHits(camera); //bullet collision
     TreeCollision(camera); //player and raptor vs tree
     WallCollision();
+    EnemyWallCollision();
     DoorCollision();
     SpiderWebCollision();
     barrelCollision();

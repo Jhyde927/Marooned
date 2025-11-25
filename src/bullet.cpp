@@ -28,6 +28,30 @@ Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletTyp
 {}
 
 
+static inline unsigned char LerpByte(unsigned char a, unsigned char b, float t) {
+    return (unsigned char)(a + (b - a) * t);
+}
+
+
+Color BulletHeatColor(float t)
+{
+    // key colors
+    Color hot   = {255, 255, 255, 255}; // bright yellowish white
+    Color orange= {255, 160,  40, 200};
+    Color yellow   = {255,  255,  0, 255};
+    Color gray =  {200, 200, 200, 100};
+    Color gone  = {220,  200,  200,   0}; // same hue, alpha 0
+
+    if (t < 0.33f) {
+        return LerpColor(hot, yellow, t / 0.33f);
+    } else if (t < 0.66f) {
+        return LerpColor(yellow, gray, (t - 0.33f) / 0.33f);
+    } else {
+        return LerpColor(gray, gone, (t - 0.66f) / 0.34f);
+    }
+}
+
+
 void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
     //if (!alive) return;
 
@@ -88,8 +112,9 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
     // Handle floor/ceiling/terrain collision
     if (isDungeon) {
         if (drawCeiling && position.y >= ceilingHeight){
-            //kill(camera);
-            BulletParticleRicochetNormal(*this, {0, -1, 0}, GRAY);
+            Vector3 n = {0, 1, 0};
+            TryBulletRicochet(*this, n);
+
         }
 
 
@@ -108,17 +133,18 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
 
         // Continuous check to avoid tunneling
         if (prevPosition.y > killFloorY && position.y <= killFloorY) {
-            //BulletParticleBounce(*this, GRAY);
-            BulletParticleRicochetNormal(*this, {0, 1, 0}, GRAY);
-            //kill(camera);
+            Vector3 n = {0, 1, 0};
+            TryBulletRicochet(*this, n);
+
             return;
         }
     } else {
         // Overworld: terrain height varies; sampling each frame is fine.
         float h = GetHeightAtWorldPosition(position, heightmap, terrainScale);
         if (prevPosition.y > h && position.y <= h) {
-            BulletParticleBounce(*this, GRAY);
-            //kill(camera);
+            Vector3 n = {0, 1, 0};
+            TryBulletRicochet(*this, n);
+
             return;
         }
     }
@@ -133,10 +159,9 @@ void Bullet::Update(Camera& camera, float deltaTime) {
 
     if (!alive){
         timeSinceImpact += deltaTime;
-        return;
     } 
 
-    prevPosition = position;
+
 
     // Fireball logic
     if (type == BulletType::Fireball) {
@@ -198,18 +223,26 @@ void Bullet::Update(Camera& camera, float deltaTime) {
         velocity.y -= gravity * deltaTime;
         fireEmitter.SetParticleType(ParticleType::Smoke);
         fireEmitter.SetPosition(position);
-        fireEmitter.SetParticleSize(2.0f);
-        fireEmitter.SetEmissionRate(8.0f);
+        fireEmitter.SetParticleSize(1.0f);
+        fireEmitter.SetEmissionRate(4.0f);
 
     }
 
-
+    prevPosition = position;
     position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
     age += deltaTime;
 
     if (age >= maxLifetime && !exploded) alive = false;
 
+
     HandleBulletWorldCollision(camera);
+
+    float speed = Vector3Length(velocity);
+    if (speed < 800.0f) {   //  ~ one bounce theoretically
+        alive = false;
+        exploded = true;
+        
+    }
 }
 
 
@@ -234,7 +267,11 @@ void Bullet::Draw(Camera& camera) const {
             
    
     } else{ //regular bullets
-        DrawSphere(position, 1.5f, WHITE); 
+        float t = Clamp(age / 1.0, 0.0f, 1.0f);
+        Color heat = BulletHeatColor(t);//shrapnel cools off over time
+
+        if (age < 0.25) DrawSphere(position, 3.5f, heat); //make the bullets pop more, with a sphere to simulate glowing flack. 
+        DrawCube(position, 3, 3, 3, heat); 
     }
 }
 
@@ -246,7 +283,7 @@ bool Bullet::IsDone() const
         return age >= 2.0f;
 
     // regular bullets: keep a short impact window
-    return timeSinceImpact >= 3.0f;
+    return timeSinceImpact >= 0.25f;
 }
 
 bool Bullet::IsExpired() const {
@@ -315,6 +352,26 @@ void Bullet::Blood(Camera& camera){
 
     alive = false;
 
+}
+
+float Bullet::ComputeDamage()
+{
+    float speed = Vector3Length(velocity);
+
+    // No damage if speed is below a threshold (tune this)
+    if (speed < 1000.0f) {
+        return 0.0f;
+    }
+
+    // Protect against divide-by-zero or uninitialized shots
+    float denom = (initialSpeed > 1.0f) ? initialSpeed : 1.0f;
+
+    float vFactor = speed / denom;
+
+    // clamp to [0,1]
+    vFactor = Clamp(vFactor, 0.0f, 1.0f);
+
+    return baseDamage * vFactor;
 }
 
 
@@ -404,7 +461,13 @@ void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int p
         dir = Vector3Normalize(dir);
 
         Vector3 velocity = Vector3Scale(dir, speed);
-        activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Default);
+
+        Bullet b = {origin, velocity, lifetime, enemy, BulletType::Default};
+
+        b.initialSpeed = Vector3Length(b.velocity); //set initial speed. Why cant we just use max speed again? 
+        if (b.initialSpeed < 1.0f) b.initialSpeed = 1.0f;
+
+        activeBullets.emplace_back(b);
 
     }
 }

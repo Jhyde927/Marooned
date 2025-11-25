@@ -26,7 +26,7 @@ bool TrySetRetreatPath(const Vector2& startTile, const Vector2& playerTile, Char
     int   maxShrinkSteps      // fallback: shrink distance band a bit
 );
 
-//std::vector<Vector2> SmoothPath(const std::vector<Vector2>& path, const Image& dungeonMap); We now use worldLOS
+std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath, const Image& dungeonMap);
 std::vector<Vector3> SmoothWorldPath(const std::vector<Vector3>& worldPath);
 std::vector<Vector2> FindPath(Vector2 start, Vector2 goal);
 

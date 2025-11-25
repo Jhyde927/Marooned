@@ -8,6 +8,7 @@
 #include "character.h"
 #include "utilities.h"
 
+
 std::vector<std::vector<bool>> walkable; //grid of bools that mark walkabe/unwalkable tiles. 
 
 std::vector<Vector2> FindPath(Vector2 start, Vector2 goal) {
@@ -353,7 +354,7 @@ bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction, LOSMod
                 if (hit.hit && hit.distance + epsilon < maxDistance) return false;
             }
         }
-        // Optionally also block by door jambs/side colliders for AI (feels more "real"):
+        //also block by door side colliders for AI 
         for (const DoorwayInstance& dw : doorways) {
             for (const BoundingBox& sc : dw.sideColliders) {
                 RayCollision hit = GetRayCollisionBox(ray, sc);
@@ -456,10 +457,106 @@ bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int m
     return false;
 }
 
+
+// Supercover Bresenham LOS.
+// Returns true ONLY if the straight line from start->end stays in walkable space.
+bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap)
+{
+    int x0 = (int)start.x;
+    int y0 = (int)start.y;
+    int x1 = (int)end.x;
+    int y1 = (int)end.y;
+
+    int dx = abs(x1 - x0);
+    int dy = abs(y1 - y0);
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+
+    int err = dx - dy;
+
+    // First tile must be walkable
+    if (!IsWalkable(x0, y0, dungeonMap)) return false;
+
+    while (!(x0 == x1 && y0 == y1))
+    {
+        int e2 = err * 2;
+
+        int prevX = x0;
+        int prevY = y0;
+
+        bool stepX = false;
+        bool stepY = false;
+
+        if (e2 > -dy) { err -= dy; x0 += sx; stepX = true; }
+        if (e2 <  dx) { err += dx; y0 += sy; stepY = true; }
+
+        // Supercover: when we move diagonally, also check the two side tiles
+        // to prevent “cutting through corners”.
+        if (stepX && stepY)
+        {
+            // We crossed a corner; both adjacent orthogonal tiles must be clear.
+            if (!IsWalkable(prevX + sx, prevY, dungeonMap)) return false;
+            if (!IsWalkable(prevX, prevY + sy, dungeonMap)) return false;
+        }
+
+        if (!IsWalkable(x0, y0, dungeonMap)) return false;
+    }
+
+    return true;
+}
+
+
+// Tunables for tile-space smoothing
+static constexpr int   kMaxLookaheadTiles = 12;   // how many nodes ahead to consider
+static constexpr int   kMaxLosSteps       = 128;  // ray steps for LOS (>= dungeon max dimension * 4 is fine)
+static constexpr float kLosEpsilon        = 0.01f; // small epsilon for your raycast
+
+std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath, const Image& dungeonMap)
+{
+    std::vector<Vector2> out;
+    if (tilePath.empty()) return out;
+
+    const size_t N = tilePath.size();
+    size_t i = 0;
+
+    while (i < N)
+    {
+        // Always keep current tile
+        out.push_back(tilePath[i]);
+
+        size_t furthest = i;
+        const size_t maxJ = std::min(N - 1, i + (size_t)kMaxLookaheadTiles);
+
+        // Search backwards from farthest candidate to nearest
+        for (size_t j = maxJ; j > i; --j)
+        {
+            // If LOS says yes, we can skip straight there
+            if (TileLineOfSight(tilePath[i], tilePath[j],
+                                   dungeonMap))
+            {
+                furthest = j;
+                break; // take the longest valid skip
+            }
+        }
+
+        // Advance
+        if (furthest == i) ++i;   // couldn't skip
+        else i = furthest;        // jump to farthest visible
+    }
+
+    // Ensure destination present
+    if (out.empty() || out.back().x != tilePath.back().x || out.back().y != tilePath.back().y)
+        out.push_back(tilePath.back());
+
+    return out;
+}
+
+
+
 // Tunables
-static constexpr int   kMaxLookahead = 8;      // tiles/waypoints ahead to try
-static constexpr float kMaxSkipDist  = 12.0f;  // meters (or your world units)
-static constexpr float kEpsFraction  = 0.01f;  // 1% of segment length
+static constexpr int   kMaxLookahead = 8;       // Try up to 14 nodes ahead
+static constexpr float kMaxSkipDist  = 800.0f;  // ~7 tiles worth of distance
+static constexpr float kEpsFraction  = 0.02f;    // More robust ray marching
 
 std::vector<Vector3> SmoothWorldPath(const std::vector<Vector3>& worldPath)
 {

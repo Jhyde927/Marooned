@@ -17,14 +17,12 @@
 
 //wise words
 
-bool squareRes = false; // set true for 1280x1024, false for widescreen
+bool squareRes = true; // set true for 1280x1024, false for widescreen
 
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor.
-
-    drawCeiling = true; //debug no ceiling mode. drawCeiling is set by levelData so we can have some dungeons with and without ceilings. 
 
     InitWindow(screenWidth, screenHeight, "Marooned");
 

@@ -51,6 +51,7 @@ void Character::playRaptorSounds(){
 
 void Character::TakeDamage(int amount) {
     if (isDead) return;
+    if (amount <= 0) return;
 
     currentHealth -= amount;
 

@@ -19,6 +19,6 @@ void Particle::Draw(Camera3D& camera) const {
     if (!active) return;
 
     Vector2 screenPos = GetWorldToScreen(position, camera);
-    //DrawSphere(position, 5.0f, color);
+    //DrawSphere(position, size, color);
     DrawCube(position, size, size, size, color); //cubes look better i guess. 
 }

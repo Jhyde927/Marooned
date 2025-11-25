@@ -546,6 +546,39 @@ We set wallModel.material[4] = lightmapTexture instead of binding the texture to
 
 Reverting back to lightmap texture gives us much better resolution shadows, and works on Linux. 
 
+fixed fireball light staying lit too long. -Added increase in fireball light range when explosion happens. 
+
+Start making new and improved maps. Double wide hallways with lots of pillars next to light sources for good shadows. 
+Uneven, non symetrical maps, less long hallways, more like level 12. 
+
+Keepers: Dungeon1, Dungeon2, Dungeon7, Dungeon9, Dungeon10, Dungeon12, 
+
+make 3d door model with door texture applied swing open on hinge. 
+
+selective light map occlusion rebuild on affected door open. As to not cause a hitch in the game on door open. 
+
+work on ghost. Make updateGhostAI. generate a better ghost sprite. 
+
+raptors still show their ass while running toward player. Favor forward facing even more. 
+
+Added small transparent smoke particles to default bullets. Added BulletParticleBounce function that takes a bullet and a color as arguments. sets alive to false exploded to true. keep updating particles if exploded, just don't draw or update bullet position. Creates particles that bounce off the opposite direction by getting the negated vec3
+
+
+Added particles that bounce back from the wall when you shoot it. We get the normal direction from the AABB of th wall collider. Since everything is on a grid we can just know the normal of the wall collider. Ceilings and floors and vec3(0,1,0) and vec3(0, -1, 0) so it's super easy to make things bounce. That gives me the idea to make the blunderbuss bullets ricochet. 
+
+make blunderbuss into a proper flack cannon. 
+hasBounced 
+bounceCount
+
+make bullets damage based on bullet velocity. a single bouncing pellet could finish off a skeleton. that's fine. We wouldn't need to count bounces to set damage. just halve the velocity = half the damage. 
+
+    float speed = Vector3Length(velocity);
+    float vFactor = speed / maxSpeed;
+
+    vFactor = Clamp(vFactor, 0.0f, 1.0f);
+
+    return baseDamage * vFactor;
+
 
 
 

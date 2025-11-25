@@ -67,6 +67,7 @@ public:
     void BulletHole(Camera& camera, bool enemy = false);
     void HandleBulletWorldCollision(Camera& camera);
 
+    float ComputeDamage();
     float GetRadius() const { return radius; }
     bool pendingExplosion = false;
     float explosionTimer = 0.0f;
@@ -77,6 +78,9 @@ public:
     int curTileX = INT_MIN, curTileY = INT_MIN;
     float killFloorY = 0;          // Y at which to kill this bullet in the current tile
     bool tileIsLava = false;              // cached flag for current tile
+
+    float   baseDamage = 15.0f;
+    float   initialSpeed = 1.0f;  // set when fired
 
 
 };
