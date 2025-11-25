@@ -250,14 +250,16 @@ void HandleEnemyPlayerCollision(Player* player) {
 }
 
 void EnemyWallCollision(){
-    for (Character* enemy : enemyPtrs) {
-        if (enemy->isDead) continue;
-        for (auto& wall : wallRunColliders){
-            if (CheckCollisionBoxes(enemy->GetBoundingBox(), wall.bounds)){
-                ResolveBoxBoxCollisionXZ(enemy->GetBoundingBox(), wall.bounds, enemy->position);
-            }
-        }
-    }
+
+    //NO enemy/wall collision, just makes them get stuck sometimes. Enemy natually can't move through walls because of pathfinding. 
+    // for (Character* enemy : enemyPtrs) {
+    //     if (enemy->isDead) continue;
+    //     for (auto& wall : wallRunColliders){
+    //         if (CheckCollisionBoxes(enemy->GetBoundingBox(), wall.bounds)){
+    //             ResolveBoxSphereCollision(wall.bounds, enemy->position, 30);
+    //         }
+    //     }
+    // }
 }
 
 
@@ -457,7 +459,12 @@ bool TryBulletRicochet(Bullet& b, Vector3 n, float damp, float minSpeed, float h
 
     // If hit is too head-on, don't ricochet
     float cosAngle = fabsf(Vector3DotProduct(vNorm, n)); // 1=head-on, 0=grazing
-    if (cosAngle > headOnCosThreshold) return false;
+    if (cosAngle > headOnCosThreshold){
+        //b.alive = false;
+        //b.exploded = true;
+        //b.velocity = {0};
+        return false;
+    } 
 
     // Reflect velocity: v' = v - 2*dot(v,n)*n
     float d = Vector3DotProduct(v, n);
@@ -513,7 +520,7 @@ void CheckBulletHits(Camera& camera) {
                     enemy->TakeDamage((int)b.ComputeDamage());
                     BoundingBox box = enemy->GetBoundingBox();
                     Vector3 n = AABBHitNormal(box, b.position);
-                    TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy. 
+                    TryBulletRicochet(b, n, 0.6f, 500, 0.99); //0.9 cosign makes headon bullets get absorbed by enemy. 
                     break;
 
                 }
@@ -552,7 +559,7 @@ void CheckBulletHits(Camera& camera) {
                 }else{
                     DamageSpiderEgg(egg, 25, player.position);
                     Vector3 n = AABBHitNormal(egg.collider, b.position);
-                    TryBulletRicochet(b, n);
+                    TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy. 
                     break;
 
                 }
@@ -573,7 +580,7 @@ void CheckBulletHits(Camera& camera) {
 
                 // Default bullets: try ricochet
                 Vector3 n = AABBHitNormal(w.bounds, b.position);
-                TryBulletRicochet(b, n);
+                TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
 
                 //DECIDE what you want to do. Does it look better with extra particles on hit? or is it too noisy. 
 
@@ -598,7 +605,7 @@ void CheckBulletHits(Camera& camera) {
                 }else{
                     Vector3 n = AABBHitNormal(d.collider, b.position);
                     //BulletParticleRicochetNormal(b, n, GRAY);
-                    TryBulletRicochet(b, n);
+                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
                     break;
 
                 }
@@ -611,7 +618,7 @@ void CheckBulletHits(Camera& camera) {
                         break;
                     }else{
                         Vector3 n = AABBHitNormal(side, b.position);
-                        TryBulletRicochet(b, n);
+                        TryBulletRicochet(b, n, 0.6f, 80.0f, 1.0f); //always bounce off side colliders to avoid them tunneling through
                         //BulletParticleRicochetNormal(b, n, GRAY);
                         break;
 
@@ -630,7 +637,7 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     Vector3 n = AABBHitNormal(pillar.bounds, b.position);
-                    TryBulletRicochet(b, n);
+                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
 
                     //BulletParticleRicochetNormal(b, n, GRAY); 
                     break;
@@ -647,7 +654,7 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     Vector3 n = AABBHitNormal(web.bounds, b.position);
-                    TryBulletRicochet(b, n);
+                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.9f);
                     //BulletParticleRicochetNormal(b, n, GRAY);
                     break;
 
@@ -681,7 +688,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             else
             {
                 Vector3 n = AABBHitNormal(barrel.bounds, b.position);
-                TryBulletRicochet(b, n);
+                TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
                 //BulletParticleRicochetNormal(b, n, GRAY);
                 //b.kill(camera);        // normal bullets die
             }

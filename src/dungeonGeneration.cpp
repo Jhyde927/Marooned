@@ -421,7 +421,7 @@ void GenerateSideColliders(Vector3 pos, float rotationY, DoorwayInstance& archwa
     };
 
     // 4️⃣ Dimensions for the side walls
-    float sideWidth = 20.0f;
+    float sideWidth = 50.0f;
     float sideHeight = 400.0f;
     float sideDepth = 50.0f;
 

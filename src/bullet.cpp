@@ -40,12 +40,12 @@ Color BulletHeatColor(float t)
     Color orange= {255, 160,  40, 200};
     Color yellow   = {255,  255,  0, 255};
     Color gray =  {200, 200, 200, 100};
-    Color gone  = {220,  200,  200,   0}; // same hue, alpha 0
+    Color gone  = {100,  100,  100,   255}; // dark gray 
 
     if (t < 0.33f) {
-        return LerpColor(hot, yellow, t / 0.33f);
+        return LerpColor(yellow, orange, t / 0.33f);
     } else if (t < 0.66f) {
-        return LerpColor(yellow, gray, (t - 0.33f) / 0.33f);
+        return LerpColor(orange, gray, (t - 0.33f) / 0.33f);
     } else {
         return LerpColor(gray, gone, (t - 0.66f) / 0.34f);
     }
@@ -113,7 +113,7 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
     if (isDungeon) {
         if (drawCeiling && position.y >= ceilingHeight){
             Vector3 n = {0, 1, 0};
-            TryBulletRicochet(*this, n);
+            TryBulletRicochet(*this, n, 0.6f, 500, 0.99);
 
         }
 
@@ -134,7 +134,7 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
         // Continuous check to avoid tunneling
         if (prevPosition.y > killFloorY && position.y <= killFloorY) {
             Vector3 n = {0, 1, 0};
-            TryBulletRicochet(*this, n);
+            TryBulletRicochet(*this, n, 0.6f, 500, 0.99);
 
             return;
         }
@@ -143,7 +143,7 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
         float h = GetHeightAtWorldPosition(position, heightmap, terrainScale);
         if (prevPosition.y > h && position.y <= h) {
             Vector3 n = {0, 1, 0};
-            TryBulletRicochet(*this, n);
+            TryBulletRicochet(*this, n, 0.6f, 500, 0.99);
 
             return;
         }
@@ -270,8 +270,8 @@ void Bullet::Draw(Camera& camera) const {
         float t = Clamp(age / 1.0, 0.0f, 1.0f);
         Color heat = BulletHeatColor(t);//shrapnel cools off over time
 
-        if (age < 0.25) DrawSphere(position, 3.5f, heat); //make the bullets pop more, with a sphere to simulate glowing flack. 
-        DrawCube(position, 3, 3, 3, heat); 
+        if (age < 0.25) DrawCube(position, 3.5, 3.5, 3.5, heat);//DrawSphere(position, 3.5f, heat); //make the bullets pop more, with a sphere to simulate glowing flack. 
+        DrawCube(position, size, size, size, heat); 
     }
 }
 
@@ -386,11 +386,12 @@ void Bullet::Explode(Camera& camera) {
         SoundManager::GetInstance().PlaySoundAtPosition("explosion", position, player.position, player.rotation.y, 3000.0f);
         
         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
-        Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+        Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
         if (type == BulletType::Fireball){
             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
             fireEmitter.EmitBurst(position, 200, ParticleType::Sparks);
-
+            Vector3 forward = Vector3Negate(Vector3Normalize(velocity));
+            ExplodeShrapnelSphere(position, 50, 2000.0f, 1.0f, false);
         }else if (type == BulletType::Iceball){
             
             fireEmitter.EmitBurst(position, 200, ParticleType::IceBlast);
@@ -439,6 +440,97 @@ void Bullet::Explode(Camera& camera) {
 
 }
 
+// // Random unit vector in a hemisphere oriented around 'forward'
+// static inline Vector3 RandomHemisphereDirection(Vector3 forward)
+// {
+//     forward = Vector3Normalize(forward);
+
+//     // z (cosθ) in [0,1] ensures hemisphere (not full sphere)
+//     float z = RandomFloat(0.0f, 1.0f);
+
+//     // random azimuth 0 → 2π
+//     float theta = RandomFloat(0.0f, 2.0f * PI);
+
+//     float r = sqrtf(fmaxf(0.0f, 1.0f - z*z));
+
+//     // Local hemisphere direction around +Z axis
+//     Vector3 local = {
+//         r * cosf(theta),
+//         z,
+//         r * sinf(theta)
+//     };
+
+//     // Build an orthonormal basis so we can rotate 'local' into 'forward'
+//     Vector3 up = {0, 1, 0};
+
+//     // If forward is almost vertical, pick a different up
+//     if (fabsf(Vector3DotProduct(forward, up)) > 0.99f)
+//         up = {1, 0, 0};
+
+//     Vector3 right = Vector3Normalize(Vector3CrossProduct(up, forward));
+//     Vector3 newUp = Vector3CrossProduct(forward, right);
+
+//     // Transform local (in hemisphere space) into world space
+//     Vector3 worldDir = {
+//         right.x   * local.x + newUp.x * local.z + forward.x * local.y,
+//         right.y   * local.x + newUp.y * local.z + forward.y * local.y,
+//         right.z   * local.x + newUp.z * local.z + forward.z * local.y
+//     };
+
+//     return Vector3Normalize(worldDir);
+// }
+
+// // Fireball shrapnel burst in a hemisphere (forward-biased)
+// void ExplodeShrapnelHemisphere(Vector3 origin, Vector3 forward,int pelletCount,float speed,float lifetime, bool enemy)
+// {
+//     forward = Vector3Normalize(forward);
+
+//     for (int i = 0; i < pelletCount; ++i)
+//     {
+//         Vector3 dir = RandomHemisphereDirection(forward);
+//         Vector3 vel = Vector3Scale(dir, speed);
+
+//         Bullet b = { origin, vel, lifetime, enemy, BulletType::Default };
+//         b.size = 10.0f;
+//         b.initialSpeed = Vector3Length(b.velocity);
+//         if (b.initialSpeed < 1.0f) b.initialSpeed = 1.0f;
+
+//         activeBullets.emplace_back(b);
+//     }
+// }
+
+// Random unit vector on a sphere (uniform-ish)
+static inline Vector3 RandomUnitVectorSphere()
+{
+    // z in [-1,1], theta in [0,2pi)
+    float z     = RandomFloat(-1.0f, 1.0f);
+    float theta = RandomFloat(0.0f, 2.0f * PI);
+
+    float r = sqrtf(fmaxf(0.0f, 1.0f - z*z));
+
+    return {
+        r * cosf(theta),
+        z,
+        r * sinf(theta)
+    };
+}
+
+// Fireball shrapnel burst: bullets in ALL directions
+void ExplodeShrapnelSphere(Vector3 origin, int pelletCount,float speed,float lifetime,bool enemy)
+{
+    for (int i = 0; i < pelletCount; ++i)
+    {
+        Vector3 dir = RandomUnitVectorSphere();
+        Vector3 velocity = Vector3Scale(dir, speed);
+
+        Bullet b = { origin, velocity, lifetime, enemy, BulletType::Default };
+
+        b.initialSpeed = Vector3Length(b.velocity);
+        if (b.initialSpeed < 1.0f) b.initialSpeed = 1.0f;
+        b.size = 10.0f;
+        activeBullets.emplace_back(b);
+    }
+}
 
 
 
@@ -464,7 +556,7 @@ void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int p
 
         Bullet b = {origin, velocity, lifetime, enemy, BulletType::Default};
 
-        b.initialSpeed = Vector3Length(b.velocity); //set initial speed. Why cant we just use max speed again? 
+        b.initialSpeed = Vector3Length(b.velocity); //set initial speed. 
         if (b.initialSpeed < 1.0f) b.initialSpeed = 1.0f;
 
         activeBullets.emplace_back(b);

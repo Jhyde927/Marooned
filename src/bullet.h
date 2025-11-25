@@ -45,6 +45,7 @@ public:
     float gravity = 300.0f;
     float radius = 25.0f;
     float spinAngle = 0.0f;
+    float size = 3.0f;
     bool exploded = false;
     float timeSinceExploded = 0.0f;
     bool explosionTriggered = false;
@@ -84,7 +85,7 @@ public:
 
 
 };
-
+void ExplodeShrapnelSphere(Vector3 origin, int pelletCount =10,float speed = 2000.0f,float lifetime = 0.6f,bool enemy = false);
 void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int pelletCount, float speed, float lifetime, bool enemy);
 void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy);
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher);
