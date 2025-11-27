@@ -1176,6 +1176,7 @@ Vector3 Character::ComputeRepulsionForce(const std::vector<Character*>& allRapto
     //prevent raptors overlapping 
     for (Character* other : allRaptors) {
         if (other == this) continue;
+        if (other->isDead) continue;
 
         float dist = Vector3Distance(position, other->position);
         if (dist < repulsionRadius && dist > 1.0f) {

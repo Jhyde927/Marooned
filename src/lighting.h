@@ -38,6 +38,9 @@ struct LightingConfig
     float losOriginY;
     float losTargetY;
     float losEpsilonFrac;
+
+    float dungeonExposure;
+    float islandExposure;
 };
 
 

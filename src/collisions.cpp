@@ -193,11 +193,11 @@ void DoorCollision(){
 void WallCollision(){
     for (const WallRun& run : wallRunColliders) { //player wall collision
 
-        for (Character* enemy : enemyPtrs){ //all enemies
-            if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
-                ResolveBoxSphereCollision(run.bounds, enemy->position, enemy->radius);
-            }
-        }
+        // for (Character* enemy : enemyPtrs){ //all enemies
+        //     if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
+        //         ResolveBoxSphereCollision(run.bounds, enemy->position, enemy->radius);
+        //     }
+        // }
 
         if (CheckCollisionBoxSphere(run.bounds, player.position, player.radius)) { //player wall collision
             ResolveBoxSphereCollision(run.bounds, player.position, player.radius);
@@ -448,6 +448,8 @@ void BulletParticleBounce(Bullet& b, Color c){
 
 bool TryBulletRicochet(Bullet& b, Vector3 n, float damp, float minSpeed, float headOnCosThreshold)
 {
+    //return true if ricochet was succesful and bullet survived. 
+
     // Normalize inputs
     n = Vector3Normalize(n);
 
@@ -670,6 +672,8 @@ void CheckBulletHits(Camera& camera) {
             break; //check bullets last
         }
 
+        
+
 
     }
 }
@@ -833,7 +837,8 @@ void CheckBulletsAgainstTrees(std::vector<TreeInstance>& trees,
                         bullet.Explode(camera);
 
                     }else{
-                        bullet.kill(camera);
+                        Vector3 n = AABBHitNormal(GetTreeAABB(tree), bullet.position);
+                        TryBulletRicochet(bullet, n, 0.6f, 80.0f, 0.9f);
                     } 
 
                     break; // stop checking this tree for this frame

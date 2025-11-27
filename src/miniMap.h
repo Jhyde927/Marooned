@@ -47,8 +47,10 @@ private:
     Texture2D wallMask = { 0 };
     bool initialized   = false;
 
-    // Tile-based exploration: size = dungeonWidth * dungeonHeight (0 = not explored, 1 = explored)
+    
+    //std::vector<unsigned char> explored;
     std::vector<unsigned char> explored;
+    std::vector<unsigned char> visible;
 
     // Last known player minimap UV (0..1 in each axis); used for drawing player dot
     float playerU = 0.5f;

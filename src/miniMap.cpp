@@ -34,8 +34,9 @@ void MiniMap::Initialize(int scaleValue)
 
     wallMask = GenerateWallMaskTexture();
 
-    // Init explored grid: 0 = not explored, 1 = explored
+    
     explored.assign(dungeonWidth * dungeonHeight, 0);
+    visible.assign(dungeonWidth * dungeonHeight, 0);
 
     initialized = true;
 }
@@ -47,6 +48,7 @@ void MiniMap::Unload()
 
     wallMask = { 0 };
     explored.clear();
+    visible.clear();
     initialized = false;
 }
 
@@ -62,6 +64,7 @@ bool MiniMap::IsExplored(int x, int y) const
 
 Texture2D MiniMap::GenerateWallMaskTexture()
 {
+
     const int mapW = texWidth;
     const int mapH = texHeight;
     const int s    = scale;
@@ -70,8 +73,8 @@ Texture2D MiniMap::GenerateWallMaskTexture()
     std::vector<Color> pixels(mapW * mapH, { 0, 0, 0, 0 });
 
     // Visual colors on the minimap
-    const Color wallColor  = { 230, 230, 230, 255 }; // bright walls
-    const Color floorColor = { 200, 200, 200, 120 }; // dimmer + more transparent
+    const Color wallColor  = { 255, 255, 255, 255 }; // bright walls
+    const Color floorColor = { 200, 200, 200, 255 }; // dimmer + more transparent
     const Color lavaColor  = { 200,  50,  50, 160 }; // glowing-ish red, semi-transparent
 
     for (int y = 0; y < dungeonHeight; ++y)
@@ -90,7 +93,7 @@ Texture2D MiniMap::GenerateWallMaskTexture()
             bool isWall = (c.r == 0 && c.g == 0 && c.b == 0);
 
             // Lava = (example) pure red; replace with your actual lava color
-            //bool isLava = (c.r == 200 && c.g == 0 && c.b == 0);
+            bool isLava = (c.r == 200 && c.g == 0 && c.b == 0);
 
             // Decide what to draw for this tile
             Color outColor = { 0, 0, 0, 0 };
@@ -99,10 +102,10 @@ Texture2D MiniMap::GenerateWallMaskTexture()
             {
                 outColor = wallColor;
             }
-            // else if (isLava)
-            // {
-            //     outColor = lavaColor;
-            // }
+            else if (isLava)
+            {
+                outColor = lavaColor;
+            }
             else
             {
                 // Everything else that is not void/wall/lava becomes "floor"
@@ -141,107 +144,155 @@ Texture2D MiniMap::GenerateWallMaskTexture()
     return tex;
 }
 
-void MiniMap::RevealAroundPlayer(Vector3 playerPos) //with LOS
+void MiniMap::RevealAroundPlayer(Vector3 playerPos)
 {
-    // Convert player world pos to dungeon tile
     int playerTileX = GetDungeonImageX(playerPos.x, tileSize, dungeonWidth);
     int playerTileY = GetDungeonImageY(playerPos.z, tileSize, dungeonHeight);
-
     if (playerTileX < 0 || playerTileX >= dungeonWidth ||
         playerTileY < 0 || playerTileY >= dungeonHeight)
         return;
 
-    // Vision radius in tiles (tweak this)
-    const int radius = 8;
-    const int radiusSq = radius * radius;
+    // Clear per-frame visibility
+    std::fill(visible.begin(), visible.end(), 0);
 
-    // Eye height so we don't raycast from feet (tweak to match your game)
-    // Vector3 eyePos = playerPos;
-    // eyePos.y += 100.0f; 
+    const int radius   = 8;
+    const int radiusSq = radius * radius;
 
     for (int dy = -radius; dy <= radius; ++dy)
     {
         for (int dx = -radius; dx <= radius; ++dx)
         {
-            // Optional: keep it roughly circular
             if (dx*dx + dy*dy > radiusSq) continue;
 
             int tx = playerTileX + dx;
             int ty = playerTileY + dy;
-
             if (tx < 0 || tx >= dungeonWidth ||
                 ty < 0 || ty >= dungeonHeight)
                 continue;
 
             int idx = ty * dungeonWidth + tx;
 
-            // Optional: skip void tiles
             Color c = dungeonPixels[idx];
-            if (c.a == 0) continue;
+            if (c.a == 0) continue; // void
 
+            // tile-space LOS (your TileLineOfSight using Vector2)
             Vector2 from = { playerTileX + 0.5f, playerTileY + 0.5f };
             Vector2 to   = { tx + 0.5f,          ty + 0.5f };
-            // Only reveal if LOS is clear
-            if (TileLineOfSight(from, to, dungeonImg)) //use tile LOS not world. WorldLOS was leaky. 
+
+            if (TileLineOfSight(from, to, dungeonImg))
             {
-                explored[idx] = 1;
+                visible[idx]  = 1;  // currently in vision
+                explored[idx] = 1;  // permanently revealed
             }
         }
     }
 
-    // Store player position in minimap UV (for the red dot)
     playerU = (playerTileX + 0.5f) / (float)dungeonWidth;
     playerV = (playerTileY + 0.5f) / (float)dungeonHeight;
 }
 
 
+
+
 void MiniMap::Update(float dt, Vector3 playerPos)
 {
     if (!initialized) return;
+    if (!isDungeon) return;
     RevealAroundPlayer(playerPos);
 }
 
 void MiniMap::Draw(int screenX, int screenY) const
 {
     if (!initialized) return;
-
-    // 1) Draw the base wall mask
+    if (!isDungeon) return;
+    // 1) Base minimap (walls/floors/lava with your tint)
     Rectangle src = { 0, 0, (float)texWidth, (float)texHeight };
     Rectangle dst = { (float)screenX, (float)screenY, drawSize, drawSize };
     Vector2 origin = { 0, 0 };
-
-    Color mapTint = { 200, 240, 255, 200 }; // light teal/cool tone
+    Color mapTint = { 200, 240, 255, 255 }; // light teal/cool tone
     DrawTexturePro(wallMask, src, dst, origin, 0.0f, mapTint);
 
-    // 2) Draw fog overlay on unexplored tiles
     float tileW = drawSize / (float)dungeonWidth;
     float tileH = drawSize / (float)dungeonHeight;
 
-    Color fogColor = { 0, 0, 0, 255 }; // semi-opaque black
+    Color fogUnexplored = { 0, 0, 0, 255 };  // solid black
+    Color fogMemory     = { 0, 0, 0, 200};  // softer dark for explored-but-not-visible
 
     for (int y = 0; y < dungeonHeight; ++y)
     {
         for (int x = 0; x < dungeonWidth; ++x)
         {
             int idx = y * dungeonWidth + x;
-            if (explored[idx] != 0) continue; // already explored → no fog
 
             float fx = screenX + x * tileW;
             float fy = screenY + y * tileH;
 
-            DrawRectangle((int)fx, (int)fy,
-                          (int)ceilf(tileW), (int)ceilf(tileH),
-                          fogColor);
+            if (explored[idx] == 0)
+            {
+                // Never seen
+                DrawRectangle((int)fx, (int)fy,
+                              (int)ceilf(tileW), (int)ceilf(tileH),
+                              fogUnexplored);
+            }
+            else if (visible[idx] == 0)
+            {
+                // Seen before, but *not* currently in vision
+                DrawRectangle((int)fx, (int)fy,
+                              (int)ceilf(tileW), (int)ceilf(tileH),
+                              fogMemory);
+            }
+            // else: visible[idx] != 0 → no overlay, full brightness
         }
     }
 
-    // 3) Draw player marker
-    // (Small red dot at UV position)
+    // 3) Player marker (green)
     float px = screenX + playerU * drawSize;
     float py = screenY + playerV * drawSize;
-
     DrawCircleV(Vector2{ px, py }, 3.0f, GREEN);
 }
+
+
+// void MiniMap::Draw(int screenX, int screenY) const
+// {
+//     if (!initialized) return;
+
+//     // 1) Draw the base wall mask
+//     Rectangle src = { 0, 0, (float)texWidth, (float)texHeight };
+//     Rectangle dst = { (float)screenX, (float)screenY, drawSize, drawSize };
+//     Vector2 origin = { 0, 0 };
+
+//     Color mapTint = { 200, 240, 255, 255 }; // light teal/cool tone
+//     DrawTexturePro(wallMask, src, dst, origin, 0.0f, mapTint);
+
+//     // 2) Draw fog overlay on unexplored tiles
+//     float tileW = drawSize / (float)dungeonWidth;
+//     float tileH = drawSize / (float)dungeonHeight;
+
+//     Color fogColor = { 0, 0, 0, 255 }; // semi-opaque black
+
+//     for (int y = 0; y < dungeonHeight; ++y)
+//     {
+//         for (int x = 0; x < dungeonWidth; ++x)
+//         {
+//             int idx = y * dungeonWidth + x;
+//             if (explored[idx] != 0) continue; // already explored → no fog
+
+//             float fx = screenX + x * tileW;
+//             float fy = screenY + y * tileH;
+
+//             DrawRectangle((int)fx, (int)fy,
+//                           (int)ceilf(tileW), (int)ceilf(tileH),
+//                           fogColor);
+//         }
+//     }
+
+//     // 3) Draw player marker
+//     // (Small red dot at UV position)
+//     float px = screenX + playerU * drawSize;
+//     float py = screenY + playerV * drawSize;
+
+//     DrawCircleV(Vector2{ px, py }, 3.0f, GREEN);
+// }
 
 void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
                           int screenX, int screenY) 

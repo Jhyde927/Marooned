@@ -15,6 +15,25 @@ std::vector<TreeInstance> trees;
 std::vector<BushInstance> bushes;
 std::vector<const TreeInstance*> sortedTrees;
 
+BoundingBox GetTreeAABB(const TreeInstance& t)
+{
+    float r = t.colliderRadius;
+    float h = t.colliderHeight;
+
+    Vector3 min {
+        t.position.x - r,
+        t.position.y,
+        t.position.z - r
+    };
+
+    Vector3 max {
+        t.position.x + r,
+        t.position.y + h,
+        t.position.z + r
+    };
+
+    return { min, max };
+}
 
 
 

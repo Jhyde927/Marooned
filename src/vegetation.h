@@ -45,6 +45,7 @@ extern std::vector<const TreeInstance*> sortedTrees;
 void generateVegetation();
 void RemoveAllVegetation();
 void sortTrees(Camera& camera);
+BoundingBox GetTreeAABB(const TreeInstance& t);
 
 std::vector<TreeInstance> GenerateTrees(Image& heightmap, unsigned char* pixels, Vector3 terrainScale,
                                         float treeSpacing, float minTreeSpacing, float treeHeightThreshold);

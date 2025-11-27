@@ -13,14 +13,15 @@ BakedLightmap gDynamic;
 
 static std::vector<Color> gStaticBase;   // same w*h as gDynamic
 
+//lighting control
 LightingConfig lightConfig =
 {
-    0.19f,  // ambient
-    0.9f,   // dynStrength
+    0.15f,  // ambient
+    0.8f,   // dynStrength
 
     2100.0f,  // staticRadius
     0.6f,     // staticIntensity
-    {0.95f, 0.8f, 0.9f}, // staticColor
+    {0.8f, 0.9f, 1.0f}, // staticColor
 
     400.0f,   // dynamicRange
     0.5f,     // dynamicIntensity
@@ -29,13 +30,17 @@ LightingConfig lightConfig =
 
     {0.5f, 0.5f, 0.5f},   // playerColor
     200.0f,               // playerRadius
-    1.0f,                 // playerIntensity
+    0.1f,                 // playerIntensity
 
     7,        // losNumRays
     0.25f,    // losSpreadFrac
     120.0f,   // losOriginY
     120.0f,   // losTargetY
-    0.005f    // losEpsilonFrac
+    0.005f,    // losEpsilonFrac
+
+    //tonemap
+    1.25, //dungeon exposure
+    0.9 //outside exposure
 };
 
 
@@ -404,23 +409,25 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
     // Start from the static base. Copy the static light values every frame.
     gDynamic.pixels = gStaticBase;
 
-    //Dynamic player light
-    const LightSample ls =  {
-        player.position,
-        Vector3 {1.0f, 1.0f, 1.0f},  //white
-        lightConfig.playerRadius,
-        lightConfig.playerIntensity,
-    };
+    //skip the player light for now. looks bad when getting close to static lights, makes it too orange.
 
-    Color c = {
-        (unsigned char)Clamp(ls.color.x * 255.0f * ls.intensity, 0.0f, 255.0f),
-        (unsigned char)Clamp(ls.color.y * 255.0f * ls.intensity, 0.0f, 255.0f),
-        (unsigned char)Clamp(ls.color.z * 255.0f * ls.intensity, 0.0f, 255.0f),
-        255
-    };
+    //Dynamic player light
+    // const LightSample ls =  {
+    //     player.position,
+    //     lightConfig.playerColor, 
+    //     lightConfig.playerRadius,
+    //     lightConfig.playerIntensity,
+    // };
+
+    // Color c = {
+    //     (unsigned char)Clamp(ls.color.x * 255.0f * ls.intensity, 0.0f, 255.0f),
+    //     (unsigned char)Clamp(ls.color.y * 255.0f * ls.intensity, 0.0f, 255.0f),
+    //     (unsigned char)Clamp(ls.color.z * 255.0f * ls.intensity, 0.0f, 255.0f),
+    //     255
+    // };
 
     //stamp player light. 
-    StampDynamicLight(ls.pos, ls.range, c);
+    //StampDynamicLight(ls.pos, ls.range, c);  
 
     // Stamp dynamic movers (fireballs).
     for (const LightSample& L : frameLights) {

@@ -583,7 +583,7 @@ Since we can know the normal of all the walls in the dungeon is was easy to make
 
 Added flak explosion to fireballs. We just spawn bullets that fire away from center in a sphere. Already implemented bouncing bullets so it looks goods. Made the size 10 for flak bullets instead of 3. Bullet explosion is raised 50 units off the ground so the sphere doens't fire half underground. It's still not that overpowered. Does effective area damage on crowds of skeletons and spiders. I lowered player bullet damage to 15 instead of 25 because they can bounce now. 
 
-Maybe spider hitbox should be lower. 
+Maybe spider hitbox should be lower. x
 
 Enemies can sometimes get stuck even though I turned off wall collision. It must be smoothpath. Smooth path allows enemies to travel diagonally, Maybe we need a proxitmity check on walls. or maybe its a state machine thing.
 
@@ -594,9 +594,17 @@ Forgot to write down for future reference. Clamping deltaTime to 0.05 stops the 
 float deltaTime = GetFrameTime();
 if (deltaTime > 0.05) deltaTime = 0.05; Do this at the top of the main loop and pass dt everywhere from this. Consider fixing fast animation in DCN by this method. 
 
+Bullets should bounce off trees.
 
+Bullets bounce off water, i.e. the bottom of the heightmap. if bullet <= 0, kill. x - added sky blue particles for when it hits water, brown for when it hits dirt. Bullets have a 50 percent chance to be killed when ricocheting. 
 
+Added minimap with fog of war that is revealed by player vision. map starts out black, reveals to light gray when in vision then remains dark grey if explored. Was going to use a shader, but it looks pretty damn good just doing everything cpu side. Minimap is tile based. It's low res but it matches the aestetic. The LLM suggested tinting it slightly teal and I agree. I was getting lost in my own dungeons so it might have been bad for new players getting lost, being able to see where you have been makes a huge difference, not feeling lost all the time. We also show the player on the minimap as a green dot. We iterate all enemyPtrs and show enemies as red dots. Enemies only show up on minimap if you have vision, just because how it's setup. We use TileLineOfSight() instead of worldLOS for fog reveal because world LOS was leaking underneath walls where lava tiles are. TileLOS only cares about x and z, no y. So lava tiles just don't show up on the minimap which is fine i guess. 
 
+Added normals to shader. We get the normals from the model normal texture that is baked in. Was using it to color the dungeon better, but it made it look like a matte finish and way to dark. So I turned it off, but we still use the normals to determine what geometry is walls and the boost the wall brightness. This looked ok, but I found turning up the exposure on the tone map worked better for brightening things.
+
+Added orange glow to static lights only when close to the light source using shader tricks. Made static light color slightly blue, then in the shader we add orange glow near light center to it looks like fire light and then falls off to cold blue dungeon. More cinematic blue and orange look. Spent hours tweeking it, leave it alone for a while and see what you think after a few days. 
+
+take a break for fucks sake. 
 
 
 

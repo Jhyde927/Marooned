@@ -1239,7 +1239,6 @@ void GenerateLightSources(float baseY) {
             if (current.r == 255 && current.g == 255 && current.b == 0) {
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
-                std::cout << L.intensity << "intense\n";
                 dungeonLights.push_back(L);
 
                 // Create a 100x100x100 bounding box centered on pos
@@ -1549,7 +1548,7 @@ void DrawDungeonPillars() {
         //Fire& fire = fires[i];
 
         // Draw the pedestal model
-        DrawModelEx(R.GetModel("lampModel"), pillar.position, Vector3{0, 1, 0}, pillar.rotation, Vector3{350, 350, 350}, WHITE);
+        DrawModelEx(R.GetModel("lampModel"), pillar.position, Vector3{0, 1, 0}, pillar.rotation, Vector3{350, 350, 350}, LIGHTGRAY);
 
     }
 }

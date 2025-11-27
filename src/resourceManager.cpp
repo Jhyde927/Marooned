@@ -323,7 +323,7 @@ void ResourceManager::SetShaderValues(){
     Shader& bloomShader = R.GetShader("bloomShader");
 
     //tonemap
-    float exposure = isDungeon ? 1.0 : 0.9; // needed for both dungeons and outdoor level
+    float exposure = isDungeon ? lightConfig.dungeonExposure : lightConfig.islandExposure; // needed for both dungeons and outdoor level
     int toneOp = isDungeon ? 1 : 0;
     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uExposure"), &exposure, SHADER_UNIFORM_FLOAT);
     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uToneMapOperator"), &toneOp, SHADER_UNIFORM_INT);

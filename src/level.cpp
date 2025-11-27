@@ -240,7 +240,7 @@ std::vector<LevelData> levels = {
         12, 
         13,  
         {}, 
-        false,// ceiling
+        true,// ceiling
     },
         {
         "Dungeon12", //skipped
