@@ -37,14 +37,13 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             break;
 
         case CharacterType::Ghost:
-            UpdateSkeletonAI(deltaTime, player);
+            UpdateSkeletonAI(deltaTime, player); //skeletonAI
             break;
     }
 }
 
 void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime, float epsilon) {
     canSee = HasWorldLineOfSight(position, playerPos, epsilon);
-
     if (canSee) {
         lastKnownPlayerPos = playerPos;
         playerVisible = true;
@@ -60,9 +59,8 @@ void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime
 
 void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
     float distance = Vector3Distance(position, player.position);
-
     Vector2 start = WorldToImageCoords(position);
-    playerVisible = false;
+
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateLeavingFlag(player.position, player.previousPosition);
 
@@ -274,6 +272,20 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
         }
 
+        case CharacterState::Freeze: {
+            stateTimer += deltaTime;
+            //do nothing
+            if (currentHealth <= 0){ //hopefully prevents invincible skeles. 
+                ChangeState(CharacterState::Death);
+            }
+
+            if (stateTimer > 5.0f && !isDead){
+                ChangeState(CharacterState::Idle);
+            }
+            break;
+
+        }
+
 
 
         case CharacterState::Stagger: {
@@ -309,7 +321,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
     Vector2 start = WorldToImageCoords(position);
     //Vector2 goal = WorldToImageCoords(player.position);
     //changed vision to soley rely on world LOS. More forgiving 
-    playerVisible = false;
+
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
 
  
@@ -822,7 +834,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
     
     float distance = Vector3Distance(position, player.position);
     float pirateHeight = 160;
-    playerVisible = false;
     Vector2 start = WorldToImageCoords(position);
     //Vector2 goal = WorldToImageCoords(player.position);
 

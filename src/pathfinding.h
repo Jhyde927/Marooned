@@ -15,7 +15,7 @@ Vector2 TileToWorldCenter(Vector2 tile);
 bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction = 0.0f, LOSMode mode = LOSMode::AI);
 bool LineOfSightRaycast(Vector2 start, Vector2 end, const Image& dungeonMap, int maxSteps, float epsilon);
 bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int maxSteps, float epsilon);
-
+bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap);
 Vector2 GetRandomReachableTile(const Vector2& start, const Character* self, int maxAttempts = 100);
 bool TrySetRandomPatrolPath(const Vector2& start, Character* self, std::vector<Vector3>& outPath);
 bool TrySetRetreatPath(const Vector2& startTile, const Vector2& playerTile, Character* self, std::vector<Vector3>& outPath, 

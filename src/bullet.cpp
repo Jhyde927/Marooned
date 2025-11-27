@@ -11,6 +11,7 @@
 #include "pathfinding.h"
 #include "lighting.h"
 #include "collisions.h"
+#include "rlgl.h"
 
 
 Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletType t, float r, bool launch)
@@ -33,23 +34,59 @@ static inline unsigned char LerpByte(unsigned char a, unsigned char b, float t) 
 }
 
 
-Color BulletHeatColor(float t)
+Color BulletHeatHSV(float t)
 {
-    // key colors
-    Color hot   = {255, 255, 255, 255}; // bright yellowish white
-    Color orange= {255, 160,  40, 200};
-    Color yellow   = {255,  255,  0, 255};
-    Color gray =  {200, 200, 200, 100};
-    Color gone  = {100,  100,  100,   255}; // dark gray 
+    t = Clamp(t, 0.0f, 1.0f);
 
-    if (t < 0.33f) {
-        return LerpColor(yellow, orange, t / 0.33f);
-    } else if (t < 0.66f) {
-        return LerpColor(orange, gray, (t - 0.33f) / 0.33f);
-    } else {
-        return LerpColor(gray, gone, (t - 0.66f) / 0.34f);
+    float h = 0.0f;
+    float s = 0.0f;
+    float vRaw = 1.0f;   // "HDR-ish" value, can go > 1.0
+
+    if (isDungeon)
+    {
+        // SUPER EXAGGERATED DUNGEON HEAT:
+        // - Phase 1: crazy bright, almost white-hot
+        // - Phase 2: bright orange/red
+        // - Phase 3: dim, cooling ember
+
+        if (t < 0.33f) {
+            float k = t / 0.33f;
+            h    = 40.0f;                      // warm yellowish white
+            s    = 0.1f + k * 0.6f;            // 0.1 → 0.7
+            vRaw = 2.5f - k * 0.3f;            // 2.5 → 2.2 (stays VERY bright)
+        }
+        else if (t < 0.66f) {
+            float k = (t - 0.33f) / 0.33f;
+            h    = Lerp(40.0f, 10.0f, k);      // yellow → red/orange
+            s    = 0.9f + k * 0.2f;            // 0.9 → 1.1 (over-sat in mid)
+            vRaw = Lerp(2.2f, 1.2f, k);        // 2.2 → 1.2 (still bright)
+        }
+        else {
+            float k = (t - 0.66f) / 0.34f;
+            h    = Lerp(10.0f, 0.0f, k);       // red → gray
+            s    = Lerp(0.7f, 0.0f, k);        // lose saturation
+            vRaw = Lerp(1.0f, 0.3f, k);        // 1.0 → 0.3 (dim coal)
+        }
     }
+    else
+    {
+        // Overworld: metal fragments cooling
+        h    = 0.0f;                           // gray
+        s    = 0.0f;
+        vRaw = Lerp(10.0f, 1.0f, t);            // bright → dark gray
+    }
+
+    // Compress HDR-ish vRaw back to 0–1 for ColorFromHSV
+    const float MAX_V_RAW = 2.5f;             // matches our hottest value
+    float v = vRaw / MAX_V_RAW;
+
+    s = Clamp(s, 0.0f, 1.0f);
+    v = Clamp(v, 0.0f, 1.0f);
+
+    return ColorFromHSV(h, s, v);
 }
+
+
 
 
 void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
@@ -143,7 +180,16 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
         float h = GetHeightAtWorldPosition(position, heightmap, terrainScale);
         if (prevPosition.y > h && position.y <= h) {
             Vector3 n = {0, 1, 0};
-            TryBulletRicochet(*this, n, 0.6f, 500, 0.99);
+            if (position.y <= 60){
+                BulletParticleBounce(*this, SKYBLUE);
+            }else{
+                
+                if (TryBulletRicochet(*this, n, 0.6, 500, 0.7)){
+                    //do nothing
+                }else{
+                    BulletParticleBounce(*this, BROWN);//kick up dirt and die. 
+                }
+            }
 
             return;
         }
@@ -245,6 +291,23 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     }
 }
 
+inline void BeginBulletTransform(const Vector3& pos, float age, float size)
+{
+    rlPushMatrix();
+    rlTranslatef(pos.x, pos.y, pos.z);
+
+    // Make rotation speed scale with bullet age
+    float rot = age * 720.0f;  // 720° per second looks chaotic and metallic
+    rlRotatef(rot, 0.4f, 1.0f, 0.8f);  // rotate around an arbitrary, diagonal axis
+
+}
+
+inline void EndBulletTransform()
+{
+    rlPopMatrix();
+}
+
+
 
 
 void Bullet::Draw(Camera& camera) const {
@@ -267,11 +330,21 @@ void Bullet::Draw(Camera& camera) const {
             
    
     } else{ //regular bullets
-        float t = Clamp(age / 1.0, 0.0f, 1.0f);
-        Color heat = BulletHeatColor(t);//shrapnel cools off over time
+        float t = Clamp(age / 1.5, 0.0f, 1.0f);
+        
+        Color heat = BulletHeatHSV(t);//BulletHeatColor(t);//shrapnel cools off over time in dungeons, outside bullets are white
 
-        if (age < 0.25) DrawCube(position, 3.5, 3.5, 3.5, heat);//DrawSphere(position, 3.5f, heat); //make the bullets pop more, with a sphere to simulate glowing flack. 
-        DrawCube(position, size, size, size, heat); 
+        // Pop cube for very early frame
+        if (age < 0.5f) {
+            BeginBulletTransform(position, age, 3.5f); //rotate the cubes, arbitary rotation
+            DrawCube({0,0,0}, 3.5f, 3.5f, 3.5f, heat);
+            EndBulletTransform();
+        }
+
+        // Main bullet cube
+        BeginBulletTransform(position, age, size);
+        DrawCube({0,0,0}, size, size, size, heat);
+        EndBulletTransform();
     }
 }
 
@@ -359,7 +432,7 @@ float Bullet::ComputeDamage()
     float speed = Vector3Length(velocity);
 
     // No damage if speed is below a threshold (tune this)
-    if (speed < 1000.0f) {
+    if (speed < 800.0f) {
         return 0.0f;
     }
 
@@ -391,7 +464,7 @@ void Bullet::Explode(Camera& camera) {
             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
             fireEmitter.EmitBurst(position, 200, ParticleType::Sparks);
             Vector3 forward = Vector3Negate(Vector3Normalize(velocity));
-            ExplodeShrapnelSphere(position, 50, 2000.0f, 1.0f, false);
+            ExplodeShrapnelSphere(position, 10, 1500.0f, 1.0f, false);
         }else if (type == BulletType::Iceball){
             
             fireEmitter.EmitBurst(position, 200, ParticleType::IceBlast);
@@ -399,7 +472,7 @@ void Bullet::Explode(Camera& camera) {
 
         float minDamage = 10;
         float maxDamage = 200;
-        float explosionRadius = 200;
+        float explosionRadius = 500;
         //area damage
         if (type == BulletType::Fireball){
             for (Character* enemy : enemyPtrs){
@@ -440,66 +513,7 @@ void Bullet::Explode(Camera& camera) {
 
 }
 
-// // Random unit vector in a hemisphere oriented around 'forward'
-// static inline Vector3 RandomHemisphereDirection(Vector3 forward)
-// {
-//     forward = Vector3Normalize(forward);
-
-//     // z (cosθ) in [0,1] ensures hemisphere (not full sphere)
-//     float z = RandomFloat(0.0f, 1.0f);
-
-//     // random azimuth 0 → 2π
-//     float theta = RandomFloat(0.0f, 2.0f * PI);
-
-//     float r = sqrtf(fmaxf(0.0f, 1.0f - z*z));
-
-//     // Local hemisphere direction around +Z axis
-//     Vector3 local = {
-//         r * cosf(theta),
-//         z,
-//         r * sinf(theta)
-//     };
-
-//     // Build an orthonormal basis so we can rotate 'local' into 'forward'
-//     Vector3 up = {0, 1, 0};
-
-//     // If forward is almost vertical, pick a different up
-//     if (fabsf(Vector3DotProduct(forward, up)) > 0.99f)
-//         up = {1, 0, 0};
-
-//     Vector3 right = Vector3Normalize(Vector3CrossProduct(up, forward));
-//     Vector3 newUp = Vector3CrossProduct(forward, right);
-
-//     // Transform local (in hemisphere space) into world space
-//     Vector3 worldDir = {
-//         right.x   * local.x + newUp.x * local.z + forward.x * local.y,
-//         right.y   * local.x + newUp.y * local.z + forward.y * local.y,
-//         right.z   * local.x + newUp.z * local.z + forward.z * local.y
-//     };
-
-//     return Vector3Normalize(worldDir);
-// }
-
-// // Fireball shrapnel burst in a hemisphere (forward-biased)
-// void ExplodeShrapnelHemisphere(Vector3 origin, Vector3 forward,int pelletCount,float speed,float lifetime, bool enemy)
-// {
-//     forward = Vector3Normalize(forward);
-
-//     for (int i = 0; i < pelletCount; ++i)
-//     {
-//         Vector3 dir = RandomHemisphereDirection(forward);
-//         Vector3 vel = Vector3Scale(dir, speed);
-
-//         Bullet b = { origin, vel, lifetime, enemy, BulletType::Default };
-//         b.size = 10.0f;
-//         b.initialSpeed = Vector3Length(b.velocity);
-//         if (b.initialSpeed < 1.0f) b.initialSpeed = 1.0f;
-
-//         activeBullets.emplace_back(b);
-//     }
-// }
-
-// Random unit vector on a sphere (uniform-ish)
+// Random unit vector on a sphere
 static inline Vector3 RandomUnitVectorSphere()
 {
     // z in [-1,1], theta in [0,2pi)
@@ -518,11 +532,13 @@ static inline Vector3 RandomUnitVectorSphere()
 // Fireball shrapnel burst: bullets in ALL directions
 void ExplodeShrapnelSphere(Vector3 origin, int pelletCount,float speed,float lifetime,bool enemy)
 {
+    // Raise explosion slightly above ground
+    origin.y += 50.0f;  
     for (int i = 0; i < pelletCount; ++i)
     {
         Vector3 dir = RandomUnitVectorSphere();
         Vector3 velocity = Vector3Scale(dir, speed);
-
+ 
         Bullet b = { origin, velocity, lifetime, enemy, BulletType::Default };
 
         b.initialSpeed = Vector3Length(b.velocity);

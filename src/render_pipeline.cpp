@@ -136,6 +136,15 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 DrawHints();
 
             } 
+            //draw mini map
+            float pad = 20.0f;
+            float size = miniMap.GetDrawSize();
+
+            int x = (int)(GetScreenWidth() - size - pad);
+            int y = (int)pad;
+
+            miniMap.Draw(x, y);
+            miniMap.DrawEnemies(enemyPtrs, x, y);
 
             if (debugInfo) { //Press ~ for debug mode. 
                 DrawTimer(ElapsedTime);

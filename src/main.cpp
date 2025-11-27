@@ -14,7 +14,7 @@
 #include "hintManager.h"
 #include "rlgl.h"
 #include "spiderEgg.h"
-
+#include "miniMap.h"
 //wise words
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
@@ -47,11 +47,10 @@ int main() {
     
     //main game loop
     while (!WindowShouldClose()) {
-        ElapsedTime += GetFrameTime();
-        float deltaTime = GetFrameTime();
-
-        // Clamp dt so physics never sees a huge value on a hitch
-        if (deltaTime > 0.05f) deltaTime = 0.05f;   // 50 ms, ~20 FPS minimum step
+        float rawDt = GetFrameTime();
+        ElapsedTime += rawDt; //use the same frameTime for both dt and et. 
+        float deltaTime = rawDt; // Clamp dt so physics never sees a huge value on a hitch
+        if (deltaTime > 0.05f) deltaTime = 0.05f;   
         
        // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
@@ -59,6 +58,7 @@ int main() {
         UpdateFade(camera); //always update fade regardless of state
 
         //Switch Levels
+        //UpdateFade switches FadePhase to swapping after fading out completely. while swapping for 1 frame switch levels then fade in
         if (gFadePhase == FadePhase::Swapping) {
 
             InitLevel(levels[pendingLevelIndex], camera);
@@ -82,51 +82,54 @@ int main() {
         
             continue; // skip the rest of the game loop
         }
+        if (currentGameState == GameState::Playing){
 
-        if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
-        UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
 
-        //update context
+            if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
+            UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
 
-        debugControls(camera, deltaTime); 
-        R.UpdateShaders(camera);
-        UpdateEnemies(deltaTime);
-        UpdateBullets(camera, deltaTime);
-        GatherFrameLights();
-        EraseBullets();
-        UpdateDecals(deltaTime);
-        UpdateMuzzleFlashes(deltaTime);
-        UpdateBoat(player_boat, deltaTime);
-        UpdateCollectables(deltaTime); 
-        UpdateLauncherTraps(deltaTime);
+            //update context
 
-        UpdateDungeonChests();
-        UpdateSpiderEggs(deltaTime, player.position);
-        ApplyLavaDPS(player, deltaTime, 1);
-        UpdateHintManager(deltaTime);
-        
-        //collisions
-        UpdateCollisions(camera);
-        HandleDoorInteraction(camera);
+            debugControls(camera, deltaTime); 
+            R.UpdateShaders(camera);
+            miniMap.Update(deltaTime, player.position);
+            UpdateEnemies(deltaTime);
+            UpdateBullets(camera, deltaTime);
+            GatherFrameLights();
+            EraseBullets();
+            UpdateDecals(deltaTime);
+            UpdateMuzzleFlashes(deltaTime);
+            UpdateBoat(player_boat, deltaTime);
+            UpdateCollectables(deltaTime); 
+            UpdateLauncherTraps(deltaTime);
 
-        HandleWeaponTints();
-        if (isDungeon){
+            UpdateDungeonChests();
+            UpdateSpiderEggs(deltaTime, player.position);
+            ApplyLavaDPS(player, deltaTime, 1);
+            UpdateHintManager(deltaTime);
             
-            HandleDungeonTints();
+            //collisions
+            UpdateCollisions(camera);
+            HandleDoorInteraction(camera);
+
+            HandleWeaponTints();
+            if (isDungeon){
+                
+                HandleDungeonTints();
+            }
+
+            //gather up everything 2d and put it into a vector of struct drawRequests, then we sort and draw every billboard/quad in the game.
+            GatherTransparentDrawRequests(camera, deltaTime);
+            controlPlayer = CameraSystem::Get().IsPlayerMode();
+            // Update camera based on player
+            UpdateWorldFrame(deltaTime, player);
+            UpdatePlayer(player, deltaTime, camera);
+
+            if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights); //update dynamic lights
+            RenderFrame(camera, player, deltaTime); //draw everything
+            
         }
-
-        //gather up everything 2d and put it into a vector of struct drawRequests, then we sort and draw every billboard/quad in the game.
-        GatherTransparentDrawRequests(camera, deltaTime);
-        controlPlayer = CameraSystem::Get().IsPlayerMode();
-        // Update camera based on player
-        UpdateWorldFrame(deltaTime, player);
-        UpdatePlayer(player, deltaTime, camera);
-
-        if (!isLoadingLevel && isDungeon) BuildDynamicLightmapFromFrameLights(frameLights); //update dynamic lights
-        RenderFrame(camera, player, deltaTime); //draw everything
-        
     }
-
     // Cleanup
     ClearLevel();
     ResourceManager::Get().UnloadAll();

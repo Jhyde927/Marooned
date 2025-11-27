@@ -560,17 +560,18 @@ void GenerateDoorsFromArchways() {
     }
 }
 
-static constexpr float WALL_MODEL_H   = 320.0f;   // your mesh height
-static constexpr float EDGE_LEN       = 200.0f;   // tile size
-static constexpr float THICKNESS      = 50.0f;
-static constexpr float PUSH_OUT_FACTOR = 0.5f;    // out of pit
+static constexpr float WALL_MODEL_H        = 320.0f;   // your mesh height
+static constexpr float EDGE_LEN            = 200.0f;   // tile size
+static constexpr float SKIRT_VIS_THICKNESS = 50.0f;    // used for mesh placement/scaling
+static constexpr float SKIRT_COLL_THICKNESS = 1.0f;   // thinner collider
+static constexpr float PUSH_OUT_FACTOR     = 0.5f;     // out of pit
 
 BoundingBox MakeAABBFromSkirt(const WallInstance& s, int dir)
 {
     // sizes
-    const float halfLen = EDGE_LEN * 0.5f;
-    const float halfTh  = THICKNESS * 0.5f;
-    const float halfY   = (s.scale.y * WALL_MODEL_H) * 0.4f;
+    const float halfLen    = EDGE_LEN * 0.5f;
+    const float halfCollTh = SKIRT_COLL_THICKNESS * 0.5f;
+    const float halfY      = (s.scale.y * WALL_MODEL_H) * 0.4f;
 
     // center (push fully into pit so it never straddles the rim)
     Vector3 outward = (dir==0)? Vector3{-1,0,0}
@@ -578,25 +579,29 @@ BoundingBox MakeAABBFromSkirt(const WallInstance& s, int dir)
                     : (dir==2)? Vector3{ 0,0,-1}
                                : Vector3{ 0,0,+1};
 
-    Vector3 c = Vector3Add(s.position, Vector3Scale(outward, THICKNESS * PUSH_OUT_FACTOR));
+    // still use the *visual* thickness to decide how far into the pit it sits
+    Vector3 c = Vector3Add(s.position, Vector3Scale(outward, SKIRT_VIS_THICKNESS * PUSH_OUT_FACTOR));
 
     // decide which axis is the long edge from s.rotationY
     float r = fmodf(fabsf(s.rotationY), 180.0f);
     bool longAlongX = (r < 45.0f || r > 135.0f);   // 0°/180° → along X, 90° → along Z
 
     BoundingBox bb;
-    bb.min.y = c.y - halfY;  bb.max.y = c.y + halfY;
+    bb.min.y = c.y - halfY;
+    bb.max.y = c.y + halfY;
 
-    //flipped this to make it work. 
-    if (!longAlongX) {                // length on X, thickness on Z
+    // flipped this to make it work.
+    if (!longAlongX) {               // length on X, thickness on Z
         bb.min.x = c.x - halfLen;    bb.max.x = c.x + halfLen;
-        bb.min.z = c.z - halfTh;     bb.max.z = c.z + halfTh;
+        bb.min.z = c.z - halfCollTh; bb.max.z = c.z + halfCollTh;
     } else {                         // length on Z, thickness on X
-        bb.min.x = c.x - halfTh;     bb.max.x = c.x + halfTh;
+        bb.min.x = c.x - halfCollTh; bb.max.x = c.x + halfCollTh;
         bb.min.z = c.z - halfLen;    bb.max.z = c.z + halfLen;
     }
+
     return bb;
 }
+
 
 
 // Make one vertical liner on edge between (x,y) and its neighbor in DIR
@@ -652,7 +657,7 @@ void AddLavaSkirtEdge(int x, int y, int dir, float baseY) {
 
     // --- how much to overlap/shift ---
     const float lipOut    = tileSize * 0.125f;   // push skirt outward toward the floor side (0..100+)
-    const float extraThick = tileSize * 0.50f;  // add thickness so it eats the shelf from both sides
+    const float extraThick = tileSize * 0.25f;  // add thickness so it eats the shelf from both sides
 
     // --- figure outward normal based on the edge dir (lava -> neighbor) ---
     Vector3 outward = {0,0,0};

@@ -460,11 +460,14 @@ bool TryBulletRicochet(Bullet& b, Vector3 n, float damp, float minSpeed, float h
     // If hit is too head-on, don't ricochet
     float cosAngle = fabsf(Vector3DotProduct(vNorm, n)); // 1=head-on, 0=grazing
     if (cosAngle > headOnCosThreshold){
-        //b.alive = false;
-        //b.exploded = true;
-        //b.velocity = {0};
         return false;
     } 
+
+    // Apply probability: e.g. only 50% of eligible hits actually bounce.
+    if (GetRandomValue(1, 100) > 50) {
+        return false; // 50% just die
+    }
+
 
     // Reflect velocity: v' = v - 2*dot(v,n)*n
     float d = Vector3DotProduct(v, n);

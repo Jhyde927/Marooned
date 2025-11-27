@@ -55,7 +55,7 @@ struct Player {
     float maxStamina = 100.0f;
     float stamina = maxStamina;
     int attackId = 0; //incremented every melee attack for a unique id. 
-    float radius = 150.0f;
+    float radius = 100.0f;
     float hitTimer = 0.0f;
     bool dying = false;
     bool dead = false;

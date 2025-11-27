@@ -507,7 +507,8 @@ bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap)
 
 
 // Tunables for tile-space smoothing
-static constexpr int   kMaxLookaheadTiles = 5;   // how many nodes ahead to consider
+static constexpr int   kMaxLookaheadTiles = 1;   // how many nodes ahead to consider 
+//--canceled out for now and see if it fixes stuck skeletons.
 static constexpr int   kMaxLosSteps       = 80;  // ray steps for LOS (>= dungeon max dimension * 4 is fine)
 static constexpr float kLosEpsilon        = 0.01f; // small epsilon for your raycast
 

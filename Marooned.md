@@ -559,14 +559,14 @@ selective light map occlusion rebuild on affected door open. As to not cause a h
 
 work on ghost. Make updateGhostAI. generate a better ghost sprite. 
 
-raptors still show their ass while running toward player. Favor forward facing even more. 
+raptors still show their ass while running toward player. Favor forward facing even more. x
 
 Added small transparent smoke particles to default bullets. Added BulletParticleBounce function that takes a bullet and a color as arguments. sets alive to false exploded to true. keep updating particles if exploded, just don't draw or update bullet position. Creates particles that bounce off the opposite direction by getting the negated vec3
 
 
 Added particles that bounce back from the wall when you shoot it. We get the normal direction from the AABB of th wall collider. Since everything is on a grid we can just know the normal of the wall collider. Ceilings and floors and vec3(0,1,0) and vec3(0, -1, 0) so it's super easy to make things bounce. That gives me the idea to make the blunderbuss bullets ricochet. 
 
-make blunderbuss into a proper flack cannon. 
+make blunderbuss into a proper flack cannon. x
 hasBounced 
 bounceCount
 
@@ -578,6 +578,26 @@ make bullets damage based on bullet velocity. a single bouncing pellet could fin
     vFactor = Clamp(vFactor, 0.0f, 1.0f);
 
     return baseDamage * vFactor;
+
+Since we can know the normal of all the walls in the dungeon is was easy to make bullets bounce. We can also get the normal of the enemy bounding box so bullets can ricochet of enemies, but only if they are grazing shots. We can control this because of the cosign threshold. if cosign = 1 it's a direct head on hit, anything less is more and more grazing, we can tweek this number until it looks good. 
+
+Added flak explosion to fireballs. We just spawn bullets that fire away from center in a sphere. Already implemented bouncing bullets so it looks goods. Made the size 10 for flak bullets instead of 3. Bullet explosion is raised 50 units off the ground so the sphere doens't fire half underground. It's still not that overpowered. Does effective area damage on crowds of skeletons and spiders. I lowered player bullet damage to 15 instead of 25 because they can bounce now. 
+
+Maybe spider hitbox should be lower. 
+
+Enemies can sometimes get stuck even though I turned off wall collision. It must be smoothpath. Smooth path allows enemies to travel diagonally, Maybe we need a proxitmity check on walls. or maybe its a state machine thing.
+
+fixed raptors running backward I think. By just setting 3 ticks for turning toward and 30 ticks for turning away. 30 ticks is 0.5 seconds, not 6/60..0.1 seconds like before.
+
+Forgot to write down for future reference. Clamping deltaTime to 0.05 stops the game from stuttering and player falling through floor and fire animation starting fast.
+
+float deltaTime = GetFrameTime();
+if (deltaTime > 0.05) deltaTime = 0.05; Do this at the top of the main loop and pass dt everywhere from this. Consider fixing fast animation in DCN by this method. 
+
+
+
+
+
 
 
 

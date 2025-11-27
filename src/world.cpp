@@ -16,6 +16,7 @@
 #include "ui.h"
 #include "terrainChunking.h"
 #include "spiderEgg.h"
+#include "miniMap.h"
 
 
 
@@ -82,6 +83,8 @@ std::vector<CollectableWeapon> worldWeapons; //weapon pickups
 std::vector<Character> enemies;  
 std::vector<Character*> enemyPtrs;
 std::vector<DungeonEntrance> dungeonEntrances;
+
+MiniMap miniMap;
 
 
 void InitLevel(LevelData& level, Camera& camera) {
@@ -154,14 +157,9 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         //XZ dynamic lightmap + shader lighting with occlusion
         InitDungeonLights();
-
-        //forward lighting 
-        // ResourceManager::Get().InitForwardLightingUniforms();
-        // ResourceManager::Get().SetForwardLightingShaderValues();
-
-        // ResourceManager::Get().InitForwardLightingShaderParams();
-        //BuildStaticOcclusionTexture();
-
+        
+        miniMap.Initialize(4);
+        miniMap.SetDrawSize(180.0f);
     }
 
     //ResourceManager::Get().SetLightingShaderValues();

@@ -28,8 +28,16 @@ Character::Character(Vector3 pos, Texture2D& tex, int fw, int fh, int frames, fl
 
 
 BoundingBox Character::GetBoundingBox() const {
-    float halfWidth = (frameWidth * scale * 0.4f) / 2.0f;  // Only 40 percent the width of the frame
-    float halfHeight = (frameHeight * scale) / 2.0f;
+    float halfWidth  = (frameWidth  * scale * 0.4f) / 2.0f; //40 percent of the width centered
+
+    float heightScale = 1.0f;
+
+    // The spider billboard only occupies the bottom half of its frame.
+    if (type == CharacterType::Spider) {
+        heightScale = 0.5f;
+    }
+
+    float halfHeight = (frameHeight * scale * heightScale) / 2.0f;
 
     return {
         { position.x - halfWidth, position.y - halfHeight, position.z - halfWidth },
@@ -222,7 +230,7 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
     // Tunables
     constexpr float MIN_REL_MOVE_EPS_SQ = 4.0f; // how much *relative* motion counts as "moving" (units^2 per tick)
     constexpr int   STREAK_TO_APPROACH  = 3;    // frames to confirm approaching
-    constexpr int   STREAK_TO_LEAVE     = 6;    // frames to confirm leaving (more conservative)
+    constexpr int   STREAK_TO_LEAVE     = 30;    // frames to confirm leaving (more conservative) half a second. 
     constexpr float DIST_EPS            = 1.0f; // small jitter epsilon for fallback
     constexpr float NEAR_CONTACT        = 100.0f; // if closer than this, avoid flipping to "leaving" cheaply
 
