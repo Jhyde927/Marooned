@@ -8,6 +8,7 @@
 #include "pathfinding.h"
 #include "spiderEgg.h"
 #include "collisions.h"
+#include "miniMap.h"
 
 
 
@@ -949,6 +950,7 @@ void HandleDoorInteraction(Camera& camera) {
             int tileY = GetDungeonImageY(doors[pendingDoorIndex].position.z, tileSize, dungeonHeight);
             if (tileX >= 0 && tileY >= 0 && tileX < walkable.size() && tileY < walkable[0].size()) {
                 walkable[tileX][tileY] = doors[pendingDoorIndex].isOpen;
+                miniMap.RevealAroundPlayer(player.position);
             }
 
             // Reset

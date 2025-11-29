@@ -9,6 +9,8 @@ class Character;
 void ConvertImageToWalkableGrid(const Image& dungeonMap);
 Vector2 WorldToImageCoords(Vector3 worldPos);
 bool IsWalkable(int x, int y, const Image& dungeonMap);
+bool IsSeeThroughForLOS(int x, int y);
+bool IsLavaTile(int x, int y);
 bool IsTileOccupied(int x, int y, const std::vector<Character*>& skeletons, const Character* self);
 Character* GetTileOccupier(int x, int y, const std::vector<Character*>& skeletons, const Character* self);
 Vector2 TileToWorldCenter(Vector2 tile);

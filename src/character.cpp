@@ -82,7 +82,7 @@ void Character::TakeDamage(int amount) {
 
     if (currentHealth <= 0) { //die
 
-        hitTimer = 5.0f; //stay red for five seconds testing //0.5f
+        hitTimer = 1.0f; //stay red for 1 second on death. 
         currentHealth = 0;
         isDead = true;
         deathTimer = 0.0f;

@@ -30,7 +30,7 @@ public:
     // New: draw enemy dots on the minimap
 
 
-
+    void RevealAroundPlayer(Vector3 playerPos);
     void SetDrawSize(float size) { drawSize = size; }
     float GetDrawSize() const { return drawSize; }
 
@@ -52,12 +52,17 @@ private:
     std::vector<unsigned char> explored;
     std::vector<unsigned char> visible;
 
+        // New: when this tile was first revealed (seconds since dungeon start)
+    std::vector<float> revealTime; 
+
+    float timeSeconds = 0.0f; // minimap-local clock
+
     // Last known player minimap UV (0..1 in each axis); used for drawing player dot
     float playerU = 0.5f;
     float playerV = 0.5f;
 
     Texture2D GenerateWallMaskTexture();
-    void RevealAroundPlayer(Vector3 playerPos);
+
 
 };
 

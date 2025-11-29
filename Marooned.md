@@ -594,7 +594,7 @@ Forgot to write down for future reference. Clamping deltaTime to 0.05 stops the 
 float deltaTime = GetFrameTime();
 if (deltaTime > 0.05) deltaTime = 0.05; Do this at the top of the main loop and pass dt everywhere from this. Consider fixing fast animation in DCN by this method. 
 
-Bullets should bounce off trees.
+Bullets should bounce off trees. x
 
 Bullets bounce off water, i.e. the bottom of the heightmap. if bullet <= 0, kill. x - added sky blue particles for when it hits water, brown for when it hits dirt. Bullets have a 50 percent chance to be killed when ricocheting. 
 
@@ -606,6 +606,12 @@ Added orange glow to static lights only when close to the light source using sha
 
 take a break for fucks sake. 
 
+Put even more work into minimap. Instead of a black square that gets revealed. It fully transparent and the map is filled in while you explore. This way you can't see the borders of the dungeon. Makes it feel more like exploration. Minimap tiles are slowly revealed on a 0.18 second delay. So it doesn't instantly pop in when you open a door. I though of making it reveal closest tiles first but I think it would reveal top down left to right the way it's iterated. Making tiles fade in is a good comprimise. 
+
+We use tile LOS function to reveal tiles and highlight vision on the minimap. Tile LOS now checks for "see through" tiles. Instead of just checking walkable. That way we can reveal lava tiles even though they are not walkable. isWalkable was checking the original dungeon PNG map colors and didn't account for opening doors and destroyed barrels. see through tiles account for this. Minimap is updated every frame not just on movement, so opening a door reveals the room with out the player having to move.
+
+
+Find a better blood decal animation.
 
 
 

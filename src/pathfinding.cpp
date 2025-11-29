@@ -124,6 +124,22 @@ Vector2 WorldToImageCoords(Vector3 worldPos) {
 }
 
 
+bool IsSeeThroughForLOS(int x, int y)
+{
+    // Out of bounds = blocks LOS
+    if (x < 0 || x >= (int)walkable.size())  return false;
+    if (y < 0 || y >= (int)walkable[0].size()) return false;
+
+    // Normal case: walkable = see-through
+    if (walkable[x][y]) return true;
+
+    // Special case: lava is NOT walkable but still see-through for vision
+    if (IsLavaTile(x, y)) return true;
+
+    // Everything else (walls, closed doors, barrels, etc) blocks LOS
+    return false;
+}
+
 bool IsWalkable(int x, int y, const Image& dungeonMap) {
     if (x < 0 || x >= dungeonMap.width || y < 0 || y >= dungeonMap.height)
         return false;
@@ -385,6 +401,21 @@ Vector2 TileToWorldCenter(Vector2 tile) {
     };
 }
 
+bool IsLavaTile(int x, int y)
+{
+    if (x < 0 || x >= dungeonWidth ||
+        y < 0 || y >= dungeonHeight)
+        return false;
+
+    Color c = dungeonPixels[y * dungeonWidth + x];
+
+    // Your lava color from the PNG
+    return (c.a != 0 &&
+            c.r == 200 &&
+            c.g == 0 &&
+            c.b == 0);
+}
+
 
 bool LineOfSightRaycast(Vector2 start, Vector2 end, const Image& dungeonMap, int maxSteps, float epsilon) {
     //raymarch the PNG map, do we use this? 
@@ -460,6 +491,7 @@ bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int m
 
 // Supercover Bresenham LOS.
 // Returns true ONLY if the straight line from start->end stays in walkable space.
+// Uses runtime walkable grid via IsSeeThroughForLOS
 bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap)
 {
     int x0 = (int)start.x;
@@ -474,8 +506,9 @@ bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap)
 
     int err = dx - dy;
 
-    // First tile must be walkable
-    if (!IsWalkable(x0, y0, dungeonMap)) return false;
+    // First tile should normally be see-through (player stands on walkable tile).
+    // If you ever cast from a non-walkable tile, you can relax this.
+    if (!IsSeeThroughForLOS(x0, y0)) return false;
 
     while (!(x0 == x1 && y0 == y1))
     {
@@ -490,20 +523,20 @@ bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap)
         if (e2 > -dy) { err -= dy; x0 += sx; stepX = true; }
         if (e2 <  dx) { err += dx; y0 += sy; stepY = true; }
 
-        // Supercover: when we move diagonally, also check the two side tiles
-        // to prevent “cutting through corners”.
+        // Supercover corner handling: when we move diagonally, also check
+        // the two orthogonal neighbors to avoid cutting corners through walls.
         if (stepX && stepY)
         {
-            // We crossed a corner; both adjacent orthogonal tiles must be clear.
-            if (!IsWalkable(prevX + sx, prevY, dungeonMap)) return false;
-            if (!IsWalkable(prevX, prevY + sy, dungeonMap)) return false;
+            if (!IsSeeThroughForLOS(prevX + sx, prevY)) return false;
+            if (!IsSeeThroughForLOS(prevX,       prevY + sy)) return false;
         }
 
-        if (!IsWalkable(x0, y0, dungeonMap)) return false;
+        if (!IsSeeThroughForLOS(x0, y0)) return false;
     }
 
     return true;
 }
+
 
 
 // Tunables for tile-space smoothing

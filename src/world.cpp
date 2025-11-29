@@ -158,8 +158,8 @@ void InitLevel(LevelData& level, Camera& camera) {
         //XZ dynamic lightmap + shader lighting with occlusion
         InitDungeonLights();
         
-        miniMap.Initialize(8);
-        miniMap.SetDrawSize(128);
+        miniMap.Initialize(4);
+        miniMap.SetDrawSize(288.0f);
     }
 
     //ResourceManager::Get().SetLightingShaderValues();
