@@ -35,7 +35,7 @@ void Weapon::Fire(Camera& camera) {
         Vector3 camUp = { 0, 1, 0 };
 
         // Offsets in local space
-        float forwardOffset = 0.0f;
+        float forwardOffset = -50.0f;
         float sideOffset = 30.0f;
         float verticalOffset = -30.0f; // down
 
@@ -79,16 +79,17 @@ void MeleeWeapon::Update(float deltaTime) {
         swingTimer += deltaTime;
 
         float t = swingTimer / swingDuration;
-        if (t > 1.0f) t = 1.0f;
+        float speedFactor = 2.0f;  // higher = faster downstroke
+        float tFast = Clamp(t * speedFactor, 0.0f, 1.0f);
 
-        // Nice arcs using sine curve
-        float arc = sinf(t * PI);  // goes 0 → 1 → 0
+        float arc = sinf(tFast * (PI * 0.6f));
+
         swingOffset = arc * swingAmount;
-        float halfArc = sinf(t * PI); // goes 0 → 1 → 0
-        verticalSwingOffset = -(halfArc - 0.25f) * 2.0f * verticalSwingAmount;
 
-        //verticalSwingOffset = sinf((t + 0.25f) * 2 * PI) * verticalSwingAmount;
-        horizontalSwingOffset = -sinf(t * PI) * horizontalSwingAmount;
+        // tweak vertical so the sword ends low and forward
+        float halfArc = arc; // reuse
+        verticalSwingOffset   = -halfArc * verticalSwingAmount*2;
+        horizontalSwingOffset = -halfArc * horizontalSwingAmount*3;
 
         // Delay turning off swinging until next frame
         if (swingTimer >= swingDuration) {
@@ -102,9 +103,11 @@ void MeleeWeapon::Update(float deltaTime) {
             hitboxTimer = 0.0f;
         }
     } else {
-        swingOffset = 0.0f;
-        verticalSwingOffset = 0.0f;
-        horizontalSwingOffset = 0.0f;
+        const float returnSpeed = 50.0f; // tweak to taste
+
+        swingOffset         = Lerp(swingOffset,         0.0f, deltaTime * returnSpeed);
+        verticalSwingOffset = Lerp(verticalSwingOffset, 0.0f, deltaTime * returnSpeed);
+        horizontalSwingOffset = Lerp(horizontalSwingOffset, 0.0f, deltaTime * returnSpeed);
     }
 
     timeSinceLastSwing += deltaTime;

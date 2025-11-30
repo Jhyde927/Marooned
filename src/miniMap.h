@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include <vector>
 #include "character.h"
+#include "dungeonGeneration.h"
 
 
 // Forward declarations
@@ -21,16 +22,16 @@ public:
 
     // playerPos = world-space player position (x,z used)
     void Update(float dt, Vector3 playerPos);
-    void DrawEnemies(const std::vector<Character*>& enemies,
-                     int screenX, int screenY);
+    void DrawEnemies(const std::vector<Character*>& enemies, int screenX, int screenY);
+
+    void DrawDoors(const std::vector<Door>& doors, int screenX, int screenY) const;
 
     // screenX/screenY = top-left position on screen where minimap is drawn
     void Draw(int screenX, int screenY) const;
 
-    // New: draw enemy dots on the minimap
-
-
+    void RevealDoorsFromPlayer(Vector3 playerPos, const std::vector<Door>& doors);
     void RevealAroundPlayer(Vector3 playerPos);
+    
     void SetDrawSize(float size) { drawSize = size; }
     float GetDrawSize() const { return drawSize; }
 
@@ -46,6 +47,7 @@ private:
 
     Texture2D wallMask = { 0 };
     bool initialized   = false;
+
 
     
     //std::vector<unsigned char> explored;

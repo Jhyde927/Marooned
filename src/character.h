@@ -96,6 +96,7 @@ public:
     float spiderAgroTimer = 0.0f;
     bool canLayEgg = true;
     bool spiderAgro = false;
+    bool canMelee = true;
     bool   isLeaving = false;          // choose "walk away" row vs "walk toward"
     float  prevDistToPlayer = -1.0f;   // for distance trend fallback
     Vector3 prevPos = {0,0,0};         // to compute velocity

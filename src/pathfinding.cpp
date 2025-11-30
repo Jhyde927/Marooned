@@ -162,6 +162,56 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
     return !(black || blue || yellow || skyBlue || purple || aqua || lava);
 }
 
+extern std::vector<std::vector<bool>> walkable;
+
+
+
+bool CanSeeDoorTile(int x0, int y0, int x1, int y1)
+{
+    int dx = abs(x1 - x0);
+    int dy = abs(y1 - y0);
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+
+    int err = dx - dy;
+
+    // Start tile should be walkable / see-through
+    if (!IsSeeThroughForLOS(x0, y0)) return false;
+
+    while (!(x0 == x1 && y0 == y1))
+    {
+        int e2 = err * 2;
+
+        int prevX = x0;
+        int prevY = y0;
+
+        bool stepX = false;
+        bool stepY = false;
+
+        if (e2 > -dy) { err -= dy; x0 += sx; stepX = true; }
+        if (e2 <  dx) { err += dx; y0 += sy; stepY = true; }
+
+        // Supercover: prevent cutting corners through walls
+        if (stepX && stepY)
+        {
+            if (!IsSeeThroughForLOS(prevX + sx, prevY))   return false;
+            if (!IsSeeThroughForLOS(prevX,       prevY + sy)) return false;
+        }
+
+        // If we've reached the door tile, we allow it even if *it* is blocking.
+        if (x0 == x1 && y0 == y1)
+        {
+            return true;
+        }
+
+        // Intervening tiles must be see-through
+        if (!IsSeeThroughForLOS(x0, y0)) return false;
+    }
+
+    return true; // should hit return above, but safe default
+}
+
+
 
 
 bool IsTileOccupied(int x, int y, const std::vector<Character*>& skeletons, const Character* self) {

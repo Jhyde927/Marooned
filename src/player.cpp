@@ -25,6 +25,7 @@ void InitPlayer(Player& player, Vector3 startPosition) {
     player.startPosition = startPosition;
     
     player.rotation.y = levels[levelIndex].startingRotationY;
+    if (levelIndex == 0 && unlockEntrances) player.rotation.y = 90.0f; //face opposite direction when leaving dungeon. 
     player.velocity = {0, 0, 0};
     player.grounded = false;
     player.groundY = 0.0;

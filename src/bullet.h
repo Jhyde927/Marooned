@@ -80,7 +80,7 @@ public:
     float killFloorY = 0;          // Y at which to kill this bullet in the current tile
     bool tileIsLava = false;              // cached flag for current tile
 
-    float   baseDamage = 15.0f;
+    float   baseDamage = 10.0f;
     float   initialSpeed = 1.0f;  // set when fired
 
 

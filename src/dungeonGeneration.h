@@ -158,22 +158,6 @@ struct LauncherTrap {
     BoundingBox bounds;
 };
 
-// struct LightSource {
-//     Vector3 position;
-//     float intensity = 0.9f;  // 1.0 = full bright, 0.5 = dim, etc.
-//     float fireballIntensity = 0.8f;
-//     float range = 1500.0f;
-//     float lifeTime = 1.0f;
-//     float age;
-//     float fireballRange = 600.0f;
-    
-//     Vector3 colorTint = {1.0f, 0.85f, 0.8f}; // default warm
-//     LightType type = LightType::Other;
-// };
-
-
-
-
 
 
 struct WallInstance {

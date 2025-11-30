@@ -113,9 +113,9 @@ void Emitter::EmitParticles(int count) {
 void Emitter::CreateParticle(Particle& p) {
 
     Color smokeColor = {
-        (unsigned char)(0.6f * 255),
-        (unsigned char)(0.6f * 255),
-        (unsigned char)(0.6f * 255),
+        (unsigned char)(0.2f * 255),
+        (unsigned char)(0.2f * 255),
+        (unsigned char)(0.2f * 255),
         (unsigned char)(1) 
     };
 

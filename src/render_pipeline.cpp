@@ -137,14 +137,19 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
             } 
             //draw mini map
-            float pad = 20.0f;
-            float size = miniMap.GetDrawSize();
+            if (isDungeon){
+                float pad = 20.0f;
+                float size = miniMap.GetDrawSize();
 
-            int x = (int)(GetScreenWidth() - size - pad);
-            int y = (int)pad;
+                int x = (int)(GetScreenWidth() - size - pad);
+                int y = (int)pad;
 
-            miniMap.Draw(x, y);
-            miniMap.DrawEnemies(enemyPtrs, x, y);
+                miniMap.Draw(x, y);
+                miniMap.DrawEnemies(enemyPtrs, x, y);
+                miniMap.DrawDoors(doors, x, y);
+                miniMap.RevealDoorsFromPlayer(player.position, doors);
+            }
+
 
             if (debugInfo) { //Press ~ for debug mode. 
                 DrawTimer(ElapsedTime);

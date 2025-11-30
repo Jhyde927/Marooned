@@ -487,7 +487,8 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
 
             Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
             DoorwayInstance archway = { pos, rotationY, false, false, false, WHITE };
-
+            archway.tileX = x;
+            archway.tileY = y;
             GenerateSideColliders(pos, rotationY, archway);
 
 

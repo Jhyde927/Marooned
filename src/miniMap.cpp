@@ -5,6 +5,7 @@
 #include "dungeonGeneration.h"
 #include "dungeonColors.h"
 #include "pathfinding.h"
+#include "iostream"
 
 
 using namespace dungeon;
@@ -137,6 +138,52 @@ Texture2D MiniMap::GenerateWallMaskTexture()
 
     return tex;
 }
+
+void MiniMap::RevealDoorsFromPlayer(Vector3 playerPos, const std::vector<Door>& doors)
+{
+    if (!initialized) return;
+
+    int playerTileX = GetDungeonImageX(playerPos.x, tileSize, dungeonWidth);
+    int playerTileY = GetDungeonImageY(playerPos.z, tileSize, dungeonHeight);
+
+    if (playerTileX < 0 || playerTileX >= dungeonWidth ||
+        playerTileY < 0 || playerTileY >= dungeonHeight)
+        return;
+
+    // Use a similar radius to normal reveal
+    const int radius   = 8;
+    const int radiusSq = radius * radius;
+
+    for (const Door& door : doors)
+    {
+        int tileX = door.tileX;
+        int tileY = door.tileY;
+
+        if (tileX < 0 || tileX >= dungeonWidth ||
+            tileY < 0 || tileY >= dungeonHeight)
+            continue;
+
+        int dx = tileX - playerTileX;
+        int dy = tileY - playerTileY;
+        if (dx*dx + dy*dy > radiusSq)
+            continue;
+
+        int idx = tileY * dungeonWidth + tileX;
+
+        // Already revealed this door tile before
+        if (explored[idx] != 0)
+            continue;
+
+        // If we have line-of-sight *to* the door tile (allowing the last tile to be blocking),
+        // mark it explored so it will always show up on the minimap from now on.
+        if (CanSeeDoorTile(playerTileX, playerTileY, tileX, tileY))
+        {
+            explored[idx]   = 1;
+            revealTime[idx] = timeSeconds; // nice little fade when it first appears
+        }
+    }
+}
+
 
 void MiniMap::RevealAroundPlayer(Vector3 playerPos)
 {
@@ -283,84 +330,10 @@ void MiniMap::Draw(int screenX, int screenY) const
 }
 
 
-// void MiniMap::Draw(int screenX, int screenY) const
-// {
-//     if (!initialized) return;
-
-//     // Optional: draw a faint background plate so it doesn't just hang in space
-//     Color bg = { 0, 0, 0, 0 }; // subtle dark plate
-//     DrawRectangle(screenX, screenY, (int)drawSize, (int)drawSize, bg);
-    
-
-//     float tileW = drawSize / (float)dungeonWidth;
-//     float tileH = drawSize / (float)dungeonHeight;
-
-//     Color memoryFog = { 0, 0, 0, 80 }; // dimmer for explored-but-not-visible
-
-//     for (int y = 0; y < dungeonHeight; ++y)
-//     {
-//         for (int x = 0; x < dungeonWidth; ++x)
-//         {
-//             int idx = y * dungeonWidth + x;
-
-//             if (explored[idx] == 0)
-//             {
-//                 // Unexplored: draw NOTHING from the map.
-//                 // The only thing visible here is the bg plate behind it.
-//                 continue;
-//             }
-
-//             // --- 1) Draw this tile's part of the minimap texture ---
-
-//             // Source rect in the wallMask texture (one tile)
-//             Rectangle src = {
-//                 (float)(x * scale),
-//                 (float)(y * scale),
-//                 (float)scale,
-//                 (float)scale
-//             };
-
-//             // Destination rect on screen
-//             Rectangle dst = {
-//                 screenX + x * tileW,
-//                 screenY + y * tileH,
-//                 tileW,
-//                 tileH
-//             };
-
-//             Vector2 origin = { 0, 0 };
-//             DrawTexturePro(wallMask, src, dst, origin, 0.0f, WHITE);
-
-//             // --- 2) If it's explored but NOT currently visible, darken it ---
-
-//             if (visible[idx] == 0)
-//             {
-//                 DrawRectangle(
-//                     (int)dst.x,
-//                     (int)dst.y,
-//                     (int)ceilf(dst.width),
-//                     (int)ceilf(dst.height),
-//                     memoryFog
-//                 );
-//             }
-//             // If visible[idx] != 0, we leave it bright.
-//         }
-//     }
-
-//     // 3) Player marker (on top)
-//     float px = screenX + playerU * drawSize;
-//     float py = screenY + playerV * drawSize;
-//     DrawCircleV(Vector2{ px, py }, 3.0f, GREEN);
-
-
-// }
-
-
-
 void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
                           int screenX, int screenY) 
 {
-    if (!initialized) return;
+    if (!initialized || !isDungeon) return;
 
     float tileW = drawSize / (float)dungeonWidth;
     float tileH = drawSize / (float)dungeonHeight;
@@ -401,3 +374,63 @@ void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
     }
 }
 
+void MiniMap::DrawDoors(const std::vector<Door>& doors,
+                        int screenX, int screenY) const
+{
+    if (!initialized) return;
+
+    float tileW = drawSize / (float)dungeonWidth;
+    float tileH = drawSize / (float)dungeonHeight;
+
+    //could use dungeonColors.h here. 
+    //Draw door markers as different colors depending on door type. 
+    Color normalDoorColor = { 255,  255, 255, 128 }; // lighter gray
+    Color lockedDoorColor = { 200,  30,  30, 128 }; // red/pink toned
+    Color exitDoorColor   = {   0, 200, 200, 128 }; // teal (go back level) never used but maybe in the future. 
+    Color nextDoorColor   = { 255, 180,   0, 128 }; // orange (progress)
+    Color portalColor     = { 220,   0, 220, 128 }; // magenta portals
+    Color eventLockedColor= {   0, 255, 128, 128 }; // spring green/event-locked
+
+    for (const Door& door : doors)
+    {
+        int tileX = door.tileX;
+        int tileY = door.tileY;
+
+        if (tileX < 0 || tileX >= dungeonWidth ||
+            tileY < 0 || tileY >= dungeonHeight)
+            continue;
+
+        int idx = tileY * dungeonWidth + tileX;
+
+        // Only draw door markers after the player has *seen* the door tile once
+        if (explored.empty() || explored[idx] == 0)
+            continue;
+
+        // Pick color based on door type
+        Color c = normalDoorColor;
+
+        if (door.isLocked)
+            c = lockedDoorColor;
+        else if (door.doorType == DoorType::ExitToPrevious)
+            c = exitDoorColor;
+        else if (door.isPortal)
+            c = portalColor;
+        else if (door.eventLocked)
+            c = eventLockedColor;
+        else if (door.doorType == DoorType::GoToNext) // if you have that flag
+            c = nextDoorColor;
+
+        // Center of door tile
+        float u = (tileX + 0.5f) / (float)dungeonWidth;
+        float v = (tileY + 0.5f) / (float)dungeonHeight;
+
+        float dx = screenX + u * drawSize;
+        float dy = screenY + v * drawSize;
+
+        int size = 8; // chunky door icon
+        DrawRectangle((int)(dx - size * 0.5f),
+                      (int)(dy - size * 0.5f),
+                      size, size,
+                      c);
+    }
+}

@@ -15,7 +15,7 @@ DungeonEntrance entranceToDungeon1 = {
 DungeonEntrance entranceToDungeon3 = {
     {-5484.34, 180, -5910.67},//{-5653, 150, 6073}
     4,
-    true
+    true,
 };
 
 //Player Position: X=6294.27 Y=299.216 Z=5515.47

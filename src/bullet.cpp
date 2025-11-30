@@ -269,8 +269,9 @@ void Bullet::Update(Camera& camera, float deltaTime) {
         velocity.y -= gravity * deltaTime;
         fireEmitter.SetParticleType(ParticleType::Smoke);
         fireEmitter.SetPosition(position);
-        fireEmitter.SetParticleSize(1.0f);
-        fireEmitter.SetEmissionRate(4.0f);
+        fireEmitter.SetParticleSize(2.0f);
+        fireEmitter.SetEmissionRate(10.0f);
+        fireEmitter.SetColor(DARKGRAY);
 
     }
 

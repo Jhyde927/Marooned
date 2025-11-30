@@ -962,7 +962,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                     SoundManager::GetInstance().PlaySoundAtPosition("musket", position, player.position, 1.0, 2000);
                 }
 
-            }else if (distance < 250){
+            }else if (distance < 280){
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
@@ -989,10 +989,10 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             stateTimer += deltaTime;
 
             // Wait until animation is done to apply damage
-            if (currentFrame == 2 && !hasFired) { // only apply damage on frame 2
-                hasFired = true; //reusing hasfired for sword attack. I think this is ok?
+            if (canMelee && currentFrame == 2) { // only apply damage on frame 2. Consider enemy attack ID
+                canMelee = false;
 
-                if (distance < 280.0f && playerVisible) {
+                if (distance < 300.0f) {
                     if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
                         // Blocked!
 
@@ -1017,7 +1017,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             }
 
             // Exit state after full animation plays
-            if (stateTimer >= 1.5f) {
+            if (stateTimer >= 0.6f) {
                 if (distance > 280.0f) {
                     Vector2 start = WorldToImageCoords(position);
                     if (TrySetRandomPatrolPath(start, this, currentWorldPath)){
@@ -1030,7 +1030,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 } else {
                     ChangeState(CharacterState::MeleeAttack);
                 }
-                hasFired= false;
+                canMelee = true;
                 stateTimer = 0.0f;
             }
 
@@ -1119,9 +1119,14 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             stateTimer += deltaTime;
             //do nothing
            
-            if (stateTimer >= 1.0f) {
+            if (stateTimer > 0.9f) {
                 canBleed = true;
-                ChangeState(CharacterState::Chase);
+                if (distance > 300){
+                    ChangeState(CharacterState::Chase);
+                }else{
+                    ChangeState(CharacterState::MeleeAttack);
+                }
+                
                 
             }
             break;
