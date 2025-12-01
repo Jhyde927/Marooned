@@ -103,7 +103,7 @@ void MeleeWeapon::Update(float deltaTime) {
             hitboxTimer = 0.0f;
         }
     } else {
-        const float returnSpeed = 50.0f; // tweak to taste
+        const float returnSpeed = 25.0f;
 
         swingOffset         = Lerp(swingOffset,         0.0f, deltaTime * returnSpeed);
         verticalSwingOffset = Lerp(verticalSwingOffset, 0.0f, deltaTime * returnSpeed);
@@ -272,7 +272,7 @@ void MeleeWeapon::Draw(const Camera& camera) {
 
     // === Final sword position ===
     //Vector3 swordPos = camera.position;
-    Vector3 swordPos = {camera.position.x, camera.position.y -10, camera.position.z};
+    Vector3 swordPos = {camera.position.x, camera.position.y-5, camera.position.z};
     swordPos = Vector3Add(swordPos, Vector3Scale(camForward, blendedForward));
     swordPos = Vector3Add(swordPos, Vector3Scale(camRight, blendedSide + bobSide));
     swordPos = Vector3Add(swordPos, Vector3Scale(camUp, blendedVertical));

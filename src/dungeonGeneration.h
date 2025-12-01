@@ -98,7 +98,7 @@ struct Door {
     Texture2D doorTexture;
     Vector3 scale = {100.0f, 200.0f, 1.0f}; // width, height, unused
     Color tint = WHITE;
-
+    float debugDoorOpenAngleDeg = 0.0f;
     int tileX;
     int tileY;
     DoorType doorType = DoorType::Normal;
@@ -253,7 +253,7 @@ void ApplyLavaDPS(Player& player, float dt, float lavaDps);
 void DrawDungeonChests(); 
 void DrawDungeonPillars();
 void DrawDungeonDoorways();
-void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint);
+//void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint);
 void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height, float rotationY, Color tint);
 void GenerateWeapons(float Height);
 //void DrawDungeonCeiling(Model ceilingTileModel, float ceilingOffsetY);
@@ -272,7 +272,7 @@ int GetDungeonImageY(float worldZ, float tileSize, int dungeonHeight);
 bool IsDungeonFloorTile(int x, int y); 
 Vector3 GetDungeonWorldPos(int x, int y, float tileSize, float baseY);
 Vector3 FindSpawnPoint(Color* pixels, int width, int height, float tileSize, float baseY);
-//void GenerateRaptorsFromImage(float baseY);
+
 void GenerateSkeletonsFromImage(float baseY);
 void GeneratePiratesFromImage(float baseY);
 void GenerateSpiderFromImage(float baseY);
@@ -284,3 +284,5 @@ Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
 
 void ClearDungeon();
+
+void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);

@@ -9,6 +9,7 @@
 #include "sound_manager.h"
 #include "vegetation.h"
 
+
 InputMode currentInputMode = InputMode::KeyboardMouse;
 //TODO: add controller support 
 
@@ -21,6 +22,9 @@ void debugControls(Camera& camera, float deltaTime){
 
 
     if (debugInfo){
+
+        if (IsKeyDown(KEY_O)) debugDoorOpenAngleDeg += 60.0f * GetFrameTime();  // open more
+        if (IsKeyDown(KEY_P)) debugDoorOpenAngleDeg -= 60.0f * GetFrameTime();  // close
 
         if (IsKeyPressed(KEY_L)) {
 

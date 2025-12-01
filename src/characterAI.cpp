@@ -956,7 +956,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             if (distance < 800 && distance > 300){
                 
                 if (canSee && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Pirate) {
-                    FireBullet(position, player.position, 1200.0f, 3.0f, true);
+                    FireBullet(position, player.position, 1500.0f, 3.0f, true);
                     hasFired = true;
                     attackCooldown = 1.5f;
                     SoundManager::GetInstance().PlaySoundAtPosition("musket", position, player.position, 1.0, 2000);

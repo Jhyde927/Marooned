@@ -175,21 +175,56 @@ void GatherWebs(Camera& camera) {
 
 void GatherDoors(Camera& camera) {
     for (const Door& door : doors) {
-        if (door.isOpen) continue;
+        const float width = door.scale.x;
+        const float halfW = width * 0.5f;
+
+        Vector3 up = { 0, 1, 0 };
+
+        // Closed basis
+        Vector3 forwardClosed = Vector3RotateByAxisAngle({0, 0, 1}, up, door.rotationY);
+        Vector3 rightClosed   = Vector3CrossProduct(up, forwardClosed);
+
+        // center is door.position (bottom middle, like in your original quad code)
+        Vector3 center = door.position;
+
+        // bottom-left corner in CLOSED pose: center − right * halfWidth
+        Vector3 bottomLeftClosed = Vector3Add(center, Vector3Scale(rightClosed, -halfW));
 
         billboardRequests.push_back({
             Billboard_Door,
-            door.position,
+            bottomLeftClosed,   // <-- store the *hinge corner*
             door.doorTexture,
             Rectangle{ 0, 0, (float)door.doorTexture.width, (float)door.doorTexture.height },
-            door.scale.x, // width, used in size
+            width,              // size: treat this as world width
             door.tint,
-            Vector3Distance(camera.position, door.position),
-            door.rotationY,
-            door.isPortal
+            Vector3Distance(camera.position, bottomLeftClosed),
+            door.rotationY,     // closed yaw (radians)
+            door.isPortal,
+            door.isOpen
         });
     }
 }
+
+
+
+// void GatherDoors(Camera& camera) {
+//     for (const Door& door : doors) {
+//         //if (door.isOpen) continue;
+
+//         billboardRequests.push_back({
+//             Billboard_Door,
+//             door.position,
+//             door.doorTexture,
+//             Rectangle{ 0, 0, (float)door.doorTexture.width, (float)door.doorTexture.height },
+//             door.scale.x, // width, used in size
+//             door.tint,
+//             Vector3Distance(camera.position, door.position),
+//             door.rotationY,
+//             door.isPortal,
+//             door.isOpen
+//         });
+//     }
+// }
 
 
 
@@ -216,6 +251,14 @@ void GatherDecals(Camera& camera, const std::vector<Decal>& decals) {
                 196,
                 196
             };           
+
+        }else if (decal.type == DecalType::Blood){
+            sourceRect = {
+                static_cast<float>(decal.currentFrame * 256),
+                0,
+                256,
+                256
+            };    
 
         }else {
             sourceRect = {
@@ -305,14 +348,16 @@ void DrawTransparentDrawRequests(Camera& camera) {
 
             case Billboard_Door:
                 if (req.isPortal) BeginShaderMode(R.GetShader("portalShader")); 
-                //we added another field to drawRequest just for portal doors. We could mark other things as portal an apply the same wacky color shader to them. 
-                //maybe we could protal shader ghost. 
+
+                float doorWidth  = req.size;    // what we pushed from GatherDoors
+                float doorHeight = 365.0f;      
                 DrawFlatDoor(
                     (req.texture), 
                     req.position, 
-                    req.size, 
-                    req.size * 1.225f, 
+                    doorWidth, 
+                    doorHeight, 
                     req.rotationY, 
+                    req.isOpen,
                     req.tint);
                 break;
         }

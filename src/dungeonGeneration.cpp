@@ -46,6 +46,8 @@ float tickDamage = 0.5;
 
 size_t gStaticLightCount = 0; 
 
+static float gDoorHalfWidth = 0.0f;
+
 using namespace dungeon;
 
 //Dungeon Legend
@@ -123,6 +125,13 @@ void GenerateWeapons(float Height){
             }
         }
     }
+}
+
+void InitDoorModel()
+{
+    Model& m = R.GetModel("doorModel");
+    BoundingBox bb = GetModelBoundingBox(m);
+    gDoorHalfWidth = 0.5f * (bb.max.x - bb.min.x);  // assumes width along +X
 }
 
 
@@ -450,7 +459,7 @@ void GenerateSideColliders(Vector3 pos, float rotationY, DoorwayInstance& archwa
 
 void GenerateDoorways(float baseY, int currentLevelIndex) {
     doorways.clear();
-    
+    InitDoorModel();
     for (int y = 1; y < dungeonHeight - 1; y++) {
         for (int x = 1; x < dungeonWidth - 1; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
@@ -1494,35 +1503,99 @@ void DrawDungeonWalls() {
     }
 }
 
+
+
 void DrawDungeonDoorways(){
 
     for (const DoorwayInstance& d : doorways) {
         Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
         DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+        
     }
 
 }
 
-void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint) {
+void DrawFlatDoor(Texture2D tex,
+                  Vector3 hingeBL,     // bottom-left hinge corner
+                  float width,
+                  float height,
+                  float rotYClosed,    // closed yaw (radians)
+                  bool isOpen,
+                  Color tint)
+{
     float w = width;
     float h = height;
 
-    // Determine local axes
-    Vector3 forward = Vector3RotateByAxisAngle({0, 0, 1}, {0, 1, 0}, rotY);
-    Vector3 right = Vector3CrossProduct({0, 1, 0}, forward);
+    Vector3 up = { 0, 1, 0 };
 
-    // Use pos directly as the center
-    Vector3 center = pos;
+    // Use CLOSED forward to decide swing direction
+    Vector3 forwardClosed = Vector3RotateByAxisAngle({0, 0, 1}, up, rotYClosed);
 
-    // Compute quad corners (centered on position)
-    Vector3 bottomLeft  = Vector3Add(center, Vector3Add(Vector3Scale(right, -w * 0.5f), Vector3Scale(forward, -1.0f)));
-    Vector3 bottomRight = Vector3Add(center, Vector3Add(Vector3Scale(right,  w * 0.5f), Vector3Scale(forward, -1.0f)));
-    Vector3 topLeft     = Vector3Add(bottomLeft, {0, h, 0});
-    Vector3 topRight    = Vector3Add(bottomRight, {0, h, 0});
+    bool isVertical = fabsf(forwardClosed.x) > fabsf(forwardClosed.z);
+
+    // Pick which way each family swings
+    float openSign = isVertical ? 1.0f : -1.0f;
+
+    float openAngle = isOpen ? (openSign * PI * 0.5f) : 0.0f; // ±90° or 0
+    float rotY      = rotYClosed + openAngle;
+
+
+    // Final basis from FINAL yaw
+    Vector3 forward = Vector3RotateByAxisAngle({0, 0, 1}, up, rotY);
+    Vector3 right   = Vector3CrossProduct(up, forward);
+
+
+    // Optional: small fudge so open door looks less "slid"
+    Vector3 openOffset = {0, 0, 0};
+
+    if (isOpen)
+    {
+        const float base = 75.0f;
+
+        float kRight   = 0.0f;
+        float kForward = 0.0f;
+
+        // Decide facing based on CLOSED forward
+        if (forwardClosed.z > 0.5f) {
+            // Facing +Z
+            kRight   =  base;
+            kForward = -base;
+        }
+        else if (forwardClosed.z < -0.5f) {
+            // Facing -Z
+            kRight   = -base;
+            kForward = -base;
+        }
+        else if (forwardClosed.x > 0.5f) {
+            // Facing +X  (vertical door #1)
+            kRight   = -base;
+            kForward =  base;   // <-- try +base here
+        }
+        else if (forwardClosed.x < -0.5f) {
+            // Facing -X  (vertical door #2)
+            kRight   =  base;
+            kForward =  base;   // <-- and +base here
+        }
+
+        openOffset = Vector3Add(
+            Vector3Scale(right,   kRight),
+            Vector3Scale(forward, kForward)
+        );
+    }
+
+    // Build quad from hinge corner + openOffset
+    Vector3 bottomLeft  = Vector3Add(hingeBL, openOffset);
+    Vector3 bottomRight = Vector3Add(bottomLeft, Vector3Scale(right, w));
+    Vector3 topLeft     = Vector3Add(bottomLeft, (Vector3){0, h, 0});
+    Vector3 topRight    = Vector3Add(bottomRight,(Vector3){0, h, 0});
+
+
     BeginBlendMode(BLEND_ALPHA);
-    if (!isDungeon) BeginShaderMode(R.GetShader("treeShader")); //fog on flat door at distance in jungle
-    rlEnableDepthTest();   // make sure testing is on
-    rlDisableDepthMask();  // <-- NO depth writes from the portal..still occludes bullets for some reason. 
+    if (!isDungeon) BeginShaderMode(R.GetShader("treeShader"));
+
+    rlEnableDepthTest();
+    rlDisableDepthMask();
+
     rlSetTexture(tex.id);
     rlBegin(RL_QUADS);
         rlColor4ub(tint.r, tint.g, tint.b, tint.a);
@@ -1532,12 +1605,52 @@ void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float r
         rlTexCoord2f(1, 0); rlVertex3f(topRight.x,    topRight.y,    topRight.z);
         rlTexCoord2f(0, 0); rlVertex3f(topLeft.x,     topLeft.y,     topLeft.z);
     rlEnd();
+
     rlSetTexture(0);
     rlColor4ub(255, 255, 255, 255);
     rlEnableDepthMask();
+
     EndBlendMode();
-    EndShaderMode();
+    if (!isDungeon) EndShaderMode();
 }
+
+
+
+// void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint) {
+//     float w = width;
+//     float h = height;
+
+//     // Determine local axes
+//     Vector3 forward = Vector3RotateByAxisAngle({0, 0, 1}, {0, 1, 0}, rotY);
+//     Vector3 right = Vector3CrossProduct({0, 1, 0}, forward);
+
+//     // Use pos directly as the center
+//     Vector3 center = pos;
+
+//     // Compute quad corners (centered on position)
+//     Vector3 bottomLeft  = Vector3Add(center, Vector3Add(Vector3Scale(right, -w * 0.5f), Vector3Scale(forward, -1.0f)));
+//     Vector3 bottomRight = Vector3Add(center, Vector3Add(Vector3Scale(right,  w * 0.5f), Vector3Scale(forward, -1.0f)));
+//     Vector3 topLeft     = Vector3Add(bottomLeft, {0, h, 0});
+//     Vector3 topRight    = Vector3Add(bottomRight, {0, h, 0});
+//     BeginBlendMode(BLEND_ALPHA);
+//     if (!isDungeon) BeginShaderMode(R.GetShader("treeShader")); //fog on flat door at distance in jungle
+//     rlEnableDepthTest();   // make sure testing is on
+//     rlDisableDepthMask();  // <-- NO depth writes from the portal..still occludes bullets for some reason. 
+//     rlSetTexture(tex.id);
+//     rlBegin(RL_QUADS);
+//         rlColor4ub(tint.r, tint.g, tint.b, tint.a);
+
+//         rlTexCoord2f(0, 1); rlVertex3f(bottomLeft.x,  bottomLeft.y,  bottomLeft.z);
+//         rlTexCoord2f(1, 1); rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
+//         rlTexCoord2f(1, 0); rlVertex3f(topRight.x,    topRight.y,    topRight.z);
+//         rlTexCoord2f(0, 0); rlVertex3f(topLeft.x,     topLeft.y,     topLeft.z);
+//     rlEnd();
+//     rlSetTexture(0);
+//     rlColor4ub(255, 255, 255, 255);
+//     rlEnableDepthMask();
+//     EndBlendMode();
+//     EndShaderMode();
+// }
 
 
 

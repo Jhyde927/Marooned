@@ -579,13 +579,15 @@ make bullets damage based on bullet velocity. a single bouncing pellet could fin
 
     return baseDamage * vFactor;
 
-Since we can know the normal of all the walls in the dungeon is was easy to make bullets bounce. We can also get the normal of the enemy bounding box so bullets can ricochet of enemies, but only if they are grazing shots. We can control this because of the cosign threshold. if cosign = 1 it's a direct head on hit, anything less is more and more grazing, we can tweek this number until it looks good. 
+Since we can know the normal of all the walls in the dungeon is was easy to make bullets bounce. We can also get the normal of the enemy bounding box so bullets can ricochet off enemies, but only if they are grazing shots. We can control this because of the cosign threshold. if cosign = 1 it's a direct head on hit, anything less is more and more grazing, we can tweek this number until it looks good. 
 
 Added flak explosion to fireballs. We just spawn bullets that fire away from center in a sphere. Already implemented bouncing bullets so it looks goods. Made the size 10 for flak bullets instead of 3. Bullet explosion is raised 50 units off the ground so the sphere doens't fire half underground. It's still not that overpowered. Does effective area damage on crowds of skeletons and spiders. I lowered player bullet damage to 15 instead of 25 because they can bounce now. 
 
+Remember damage is calculated from velocity. But there is no air drag. They keep max speed until they hit something. Adding actual drag to bullets would be bad. We could have a damage fall off at distance or more like age. So point blank shots would be more powerful than long ranged ones. 
+
 Maybe spider hitbox should be lower. x
 
-Enemies can sometimes get stuck even though I turned off wall collision. It must be smoothpath. Smooth path allows enemies to travel diagonally, Maybe we need a proxitmity check on walls. or maybe its a state machine thing.
+Enemies can sometimes get stuck even though I turned off wall collision. It must be smoothpath. Smooth path allows enemies to travel diagonally, Maybe we need a proxitmity check on walls. or maybe its a state machine thing. -This was due to Repulsion. Multiple enemies in a 1x1 hallway for example would get pushed into the wall and get stuck. Turned down the repulsion amount and range, havn't seen a problem since. 
 
 fixed raptors running backward I think. By just setting 3 ticks for turning toward and 30 ticks for turning away. 30 ticks is 0.5 seconds, not 6/60..0.1 seconds like before.
 
@@ -610,8 +612,34 @@ Put even more work into minimap. Instead of a black square that gets revealed. I
 
 We use tile LOS function to reveal tiles and highlight vision on the minimap. Tile LOS now checks for "see through" tiles. Instead of just checking walkable. That way we can reveal lava tiles even though they are not walkable. isWalkable was checking the original dungeon PNG map colors and didn't account for opening doors and destroyed barrels. see through tiles account for this. Minimap is updated every frame not just on movement, so opening a door reveals the room with out the player having to move.
 
+-check performance on laptop after minimap addition. I can't imagine it's that expensive. iterating a 48x48 grid. 
+
+Added then commented out, wall specific colors on lighting shader. We can know what geometry is walls from the normal map of the model. We could have diffent colored dungeons if we passed a uniform. A little experimentation showed it would be a lot of work to get the colors looking good, without hot reloading it's a pain. 
+
 
 Find a better blood decal animation.
+
+Minimap now draws doors once revealed. Doors are marked with different colored squares depending on door type. Locked doors are a faint red, instantly reading as locked. I made regular doors just a lighter colored gray, maybe they should be green, but I think that's too much. Eggs could be green on the map. We could color depending on enemy type as well. Just because we can. Thanks to Alex Morgan Johnson for the idea to show doors on minimap. 
+
+-we could make open doors a different color than closed ones. Do red locked doors turn white when unlocked? Is the color updated every frame? It is, so it should change when isLocked = false. Just make another check on isOpen
+
+Bone shatter and skeleton death sounds are not positional. also spider take damage x
+
+cleaned up and consolodated shader code. Moved black vignette to post process fog shader out of bloom. So both vignettes are in one place. Removed all the junk from bloom shader so it's only tonemap and simple bloom now. 
+
+Made 2D doors swing open. Fist I tried making a 3D model of the door, attaching the door texture to it, then puting the origin at the side of the door so it would rotate around that pivot point. Making the model and texturing it went ok, but when I tried to get it to pivot on it's side, it was a nightmare. Eventually I moved the mesh not the origin. but that ment I needed to offset it, and it had to rotate differently for vertical or horizontal doors. So I gave up on it, and set out to make the drawflatDoor that would rotate the door by 90 degrees when open. That was it's own kind of hassle because after flipping the position of the door was off. We ended up having to add a offset at the end to fudge it and make it look right. Now the 2D doors instantly open to 90 degrees. 
+
+When an enemy passes through the door it occludes the whole door for a moment I think. We could give the door a hit box. Enemies would probably get stuck. Is there a reason why it would occlude? because of the angle I suppose. It rarely happens. 
+
+get more sounds for Giant spider. 
+
+
+
+
+
+
+
+
 
 
 

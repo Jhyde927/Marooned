@@ -546,7 +546,7 @@ void CheckBulletHits(Camera& camera) {
 
                     
                 } else if (b.IsEnemy() && isSkeleton) { // friendly fire
-                    enemy->TakeDamage(25);
+                    enemy->TakeDamage(150); //higher damage for higher chance of death by enemy bullet. 1 sword swipe plus friendly fire = death
                     BulletParticleBounce(b, LIGHTGRAY);
                     break;
                 }
@@ -590,13 +590,8 @@ void CheckBulletHits(Camera& camera) {
 
                 //DECIDE what you want to do. Does it look better with extra particles on hit? or is it too noisy. 
 
-                // if (TryBulletRicochet(b, n)) {
                 //     // bounced: puff in reflected direction
                 //     BulletRicochetPuff(b, Vector3Normalize(b.velocity), GRAY);
-                // } else {
-                //     // no bounce: do your normal impact puff + kill bullet
-                //     BulletParticleRicochetNormal(b, n, GRAY); // this one sets alive=false
-                // }
 
                 break;
             }
@@ -644,8 +639,6 @@ void CheckBulletHits(Camera& camera) {
                 }else{
                     Vector3 n = AABBHitNormal(pillar.bounds, b.position);
                     TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
-
-                    //BulletParticleRicochetNormal(b, n, GRAY); 
                     break;
 
                 }
@@ -661,7 +654,6 @@ void CheckBulletHits(Camera& camera) {
                 }else{
                     Vector3 n = AABBHitNormal(web.bounds, b.position);
                     TryBulletRicochet(b, n, 0.6f, 80.0f, 0.9f);
-                    //BulletParticleRicochetNormal(b, n, GRAY);
                     break;
 
                 }
@@ -764,6 +756,7 @@ bool CheckBulletHitsTree(const TreeInstance& tree, const Vector3& bulletPos) {
 }
 
 bool CheckTreeCollision(const TreeInstance& tree, const Vector3& playerPos) {
+    //Tree player collision
     Vector3 treeBase = {
         tree.position.x + tree.xOffset,
         tree.position.y + tree.yOffset,

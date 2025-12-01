@@ -78,7 +78,7 @@ extern bool drawCeiling;
 extern bool levelLoaded;
 extern bool isFullscreen;
 
-
+extern float debugDoorOpenAngleDeg;
 //extern float muzzleFlashTimer;
 
 extern GameState currentGameState;

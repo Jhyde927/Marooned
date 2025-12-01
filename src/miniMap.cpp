@@ -359,8 +359,8 @@ void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
         if (explored.empty() || explored[idx] == 0)
             continue;
 
-        // OPTIONAL: only show if in LOS as well
-        Vector3 eye = pos; eye.y += 40.0f;  // or player eye, depending how you want it
+        // only show if in LOS as well
+        Vector3 eye = pos; eye.y += 40.0f; 
         if (!HasWorldLineOfSight(player.position, pos)) continue;
 
         // Convert tile coord → minimap pixel center
@@ -370,7 +370,7 @@ void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
         float ex = screenX + u * drawSize;
         float ey = screenY + v * drawSize;
 
-        DrawCircleV(Vector2{ ex, ey }, 2.5f, RED);
+        DrawCircleV(Vector2{ ex, ey }, 3.5f, RED);
     }
 }
 
@@ -385,6 +385,7 @@ void MiniMap::DrawDoors(const std::vector<Door>& doors,
     //could use dungeonColors.h here. 
     //Draw door markers as different colors depending on door type. 
     Color normalDoorColor = { 255,  255, 255, 128 }; // lighter gray
+    Color openDoorColor = { 255,  255, 255, 32 }; // lighter gray
     Color lockedDoorColor = { 200,  30,  30, 128 }; // red/pink toned
     Color exitDoorColor   = {   0, 200, 200, 128 }; // teal (go back level) never used but maybe in the future. 
     Color nextDoorColor   = { 255, 180,   0, 128 }; // orange (progress)
@@ -408,8 +409,9 @@ void MiniMap::DrawDoors(const std::vector<Door>& doors,
 
         // Pick color based on door type
         Color c = normalDoorColor;
-
-        if (door.isLocked)
+        if (door.isOpen)
+            c = openDoorColor;
+        else if (door.isLocked)
             c = lockedDoorColor;
         else if (door.doorType == DoorType::ExitToPrevious)
             c = exitDoorColor;
@@ -417,7 +419,7 @@ void MiniMap::DrawDoors(const std::vector<Door>& doors,
             c = portalColor;
         else if (door.eventLocked)
             c = eventLockedColor;
-        else if (door.doorType == DoorType::GoToNext) // if you have that flag
+        else if (door.doorType == DoorType::GoToNext)
             c = nextDoorColor;
 
         // Center of door tile

@@ -63,7 +63,6 @@ public:
     bool isFireball() const;
     bool isExploded() const;
     bool IsDone() const;
-    void Blood(Camera& camera);
     void Explode(Camera& camera);
     void BulletHole(Camera& camera, bool enemy = false);
     void HandleBulletWorldCollision(Camera& camera);

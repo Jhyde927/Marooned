@@ -175,7 +175,8 @@ void Emitter::CreateParticle(Particle& p) {
         case ParticleType::Impact: {
             p.color = color;
             p.gravity = 500;
-            p.velocity = velocity;
+            p.velocity = velocity; //SetVelocity on emitter in bullet collisions
+
             // p.velocity = {
             //     RandomFloat(-200, 200),
             //     RandomFloat(-200, 200),

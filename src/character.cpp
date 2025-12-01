@@ -101,15 +101,15 @@ void Character::TakeDamage(int amount) {
             Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
             Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 50.0f));
             offsetPos.y += 10; 
-            decals.emplace_back(offsetPos, DecalType::Blood, R.GetTexture("bloodSheet"), 7, 0.7f, 0.1f, 60.0f);
+            decals.emplace_back(offsetPos, DecalType::Blood, R.GetTexture("bloodSheet"), 8, 0.7f, 0.07f,128.0f);
         }
 
         ChangeState(CharacterState::Death);
 
         
-        if (type != CharacterType::Spider)  SoundManager::GetInstance().Play("dinoDeath");
-        if (type == CharacterType::Skeleton) SoundManager::GetInstance().Play("bones");
-        if (type == CharacterType::Spider) SoundManager::GetInstance().Play("spiderDeath");
+        if (type != CharacterType::Spider)  SoundManager::GetInstance().PlaySoundAtPosition("dinoDeath", position, player.position, 0.0f, 3000);
+        if (type == CharacterType::Skeleton) SoundManager::GetInstance().PlaySoundAtPosition("bones", position, player.position, 0.0f, 3000);
+        if (type == CharacterType::Spider) SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
      
     } else {
         hitTimer = 0.5f; //tint red
@@ -132,15 +132,15 @@ void Character::TakeDamage(int amount) {
         AlertNearbySkeletons(position, 3000.0f);
 
         if (type == CharacterType::Pirate){
-            SoundManager::GetInstance().Play("phit1");
+            SoundManager::GetInstance().PlaySoundAtPosition("phit1", position, player.position, 0.0f, 3000);
         }else if (type == CharacterType::Spider){
-            SoundManager::GetInstance().Play("spiderDeath");
+            SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
         }else if (type == CharacterType::Raptor || type == CharacterType::Skeleton){
             SoundManager::GetInstance().PlaySoundAtPosition("dinoHit", position, player.position, 0.0f, 4000.0f); //raptor and skeletons
         }else if (type == CharacterType::Trex){
-            SoundManager::GetInstance().Play(GetRandomValue(0, 1) == 0 ? "TrexHurt2" : "TrexHurt");
+            SoundManager::GetInstance().PlaySoundAtPosition(GetRandomValue(0, 1) == 0 ? "TrexHurt2" : "TrexHurt", position, player.position, 0.0f, 3000);
         }else if (type == CharacterType::GiantSpider){
-            SoundManager::GetInstance().Play("spiderDeath");
+            SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
         }
 
         ChangeState(CharacterState::Stagger); //stagger last

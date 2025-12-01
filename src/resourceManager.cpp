@@ -206,7 +206,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("muzzleFlash",      "assets/sprites/muzzleFlash.png");
     R.LoadTexture("backDrop",         "assets/screenshots/dungeon1.png");
     R.LoadTexture("smokeSheet",       "assets/sprites/smokeSheet.png");
-    R.LoadTexture("bloodSheet",       "assets/sprites/bloodSheet.png");
+    R.LoadTexture("bloodSheet",       "assets/sprites/bloodDecalSheet.png");
     R.LoadTexture("doorTexture",      "assets/sprites/Door.png");
     R.LoadTexture("healthPotTexture", "assets/sprites/Healthpot.png");
     R.LoadTexture("keyTexture",       "assets/sprites/key.png");
@@ -260,6 +260,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("campFire",       "assets/Models/campFire.glb");
     R.LoadModel("stonePillar",    "assets/Models/stonePillar.glb");
     R.LoadModel("lavaTile",       "assets/Models/lavaTileSquare.glb");
+    R.LoadModel("doorModel",      "assets/Models/doorModelH.glb");
 
 
     //generated models
@@ -286,14 +287,16 @@ void ResourceManager::LoadAllResources() {
 }
 
 void ResourceManager::SetShaderValues(){
-    //outdoor shaders + bloom, tonemap, saturation, foliage alpha cutoff , shadowTex, water
+
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     // set shaders values
     Shader& fogShader = R.GetShader("fogShader");
     Shader& shadowShader = R.GetShader("shadowShader");
     Shader& waterShader = R.GetShader("waterShader");
-    //Shader& terrainShader = R.GetShader("terrainShader");
 
+    //regular black vignette
+    vignetteStrengthValue = isDungeon ? 0.8 : 0.25f; //less of vignette outdoors.
+    SetShaderValue(fogShader, GetShaderLocation(fogShader, "baseVignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
 
     // Sky
     //apply skyShader to sky model
@@ -318,19 +321,9 @@ void ResourceManager::SetShaderValues(){
     
     SetShaderValue(waterShader, GetShaderLocation(waterShader, "waterLevel"), &waterHeightY, SHADER_UNIFORM_FLOAT);
     R.GetModel("waterModel").materials[0].shader = waterShader;
-    //R.GetModel("bottomPlane").materials[0].shader = waterShader;
 
-    Shader& bloomShader = R.GetShader("bloomShader");
 
-    //tonemap
-    float exposure = isDungeon ? lightConfig.dungeonExposure : lightConfig.islandExposure; // needed for both dungeons and outdoor level
-    int toneOp = isDungeon ? 1 : 0;
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uExposure"), &exposure, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uToneMapOperator"), &toneOp, SHADER_UNIFORM_INT);
 
-    int locSat = GetShaderLocation(bloomShader, "uSaturation"); //also needed for overworld map
-    float sat = 1.0; // try 1.05–1.25
-    SetShaderValue(bloomShader, locSat, &sat, SHADER_UNIFORM_FLOAT); 
 
 
 }
@@ -377,13 +370,12 @@ void ResourceManager::SetWaterShaderValues(Camera& camera) {
     Vector2 worldMinXZ  = { -terrainScale.x * 0.5f, -terrainScale.z * 0.5f };
     Vector2 worldSizeXZ = {  terrainScale.x,          terrainScale.z       };
 
-    // Each frame (after you move the water patch to the camera)
 
-    float halfSize   = 8000.0f;   // make sure your water mesh is ~6000×6000
+    float halfSize   = 8000.0f;   
     float fadeStart  = 10000.0f;
     float fadeEnd    = 16000.0f;
 
-    // world rect you already have
+
     Vector2 worldMin = worldMinXZ;              // (minX, minZ)
     Vector2 worldMax = worldMin + worldSizeXZ;  // (maxX, maxZ)
 
@@ -406,9 +398,6 @@ void ResourceManager::SetWaterShaderValues(Camera& camera) {
     SetShaderValue(water, GetShaderLocation(water, "u_FadeStart"),     &fadeStart, SHADER_UNIFORM_FLOAT);
     SetShaderValue(water, GetShaderLocation(water, "u_FadeEnd"),       &fadeEnd,   SHADER_UNIFORM_FLOAT);
     SetShaderValue(water, GetShaderLocation(water, "cameraPos"),       &camera.position, SHADER_UNIFORM_VEC3);
-
-
-
 
 }
 
@@ -551,42 +540,18 @@ void ResourceManager::SetBloomShaderValues(){
     //bloom post process. 
     Shader& bloomShader = R.GetShader("bloomShader");
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
-    bloomStrengthValue = 0.0f;
-    float bloomColor[3] = { 1.0f, 1.0f, 1.0f };  
-    float aaStrengthValue = 0.0f; //blur
 
-    float bloomThreshold = 0.1f;  // e.g. 1.0 in sRGB ≈ ~0.8 linear; start around 0.7–1.2
-    float bloomKnee = 0.0; 
+    bloomStrengthValue = 0.0f; //No bloom
+    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
 
     //tonemap
-    float exposure = isDungeon ? 1.0 : 0.9; // need to trigger on level switch
+    float exposure = isDungeon ? lightConfig.dungeonExposure : lightConfig.islandExposure; // needed for both dungeons and outdoor level
     int toneOp = isDungeon ? 1 : 0;
-
-    float lavaBoot = 5.0f;
-
-    int locLB = GetShaderLocation(bloomShader, "lavaBoost");
-    SetShaderValue(bloomShader, locLB, &lavaBoot, SHADER_UNIFORM_FLOAT);
-
-    vignetteStrengthValue = isDungeon ? 0.5 : 0.2f; //less of vignette outdoors.
-    bloomStrengthValue = 0.0f; //turn on bloom in dungeons
-    SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "vignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(R.GetShader("bloomShader"), GetShaderLocation(R.GetShader("bloomShader"), "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
-
-
-
-
     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uExposure"), &exposure, SHADER_UNIFORM_FLOAT);
     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uToneMapOperator"), &toneOp, SHADER_UNIFORM_INT);
 
-    vignetteStrengthValue = 0.35f; //darker vignette in dungeons
     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "resolution"), &screenResolution, SHADER_UNIFORM_VEC2);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "vignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomColor"), bloomColor, SHADER_UNIFORM_VEC3);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "aaStrength"), &aaStrengthValue, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomThreshold"), &bloomThreshold, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomKnee"), &bloomKnee, SHADER_UNIFORM_FLOAT);
-  
     
 }
 
@@ -752,7 +717,6 @@ void ResourceManager::UpdateShaders(Camera& camera){
     // Per-frame before drawing terrain:
     Vector2 worldMinXZ  = { gTreeShadowMask.worldXZBounds.x, gTreeShadowMask.worldXZBounds.y };
     Vector2 worldSizeXZ = { gTreeShadowMask.worldXZBounds.width, gTreeShadowMask.worldXZBounds.height };
-    //std::cout << gTreeShadowMask.rt.texture.id << " id\n" << gTreeShadowMask.rt.texture.width << " width\n";
 
     SetShaderValue(terrainShader, locWorldMinXZ,  &worldMinXZ,  SHADER_UNIFORM_VEC2);
     SetShaderValue(terrainShader, locWorldSizeXZ, &worldSizeXZ, SHADER_UNIFORM_VEC2);

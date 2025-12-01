@@ -1,3 +1,6 @@
+Linux support and testing:
+	Alex Morgan Johnson Acerx-AMJ
+
 Models:
 
 	https://sketchfab.com/3d-models/modular-dungeon-kit-ecbeefd3212f447ba2f10f1986ad5769

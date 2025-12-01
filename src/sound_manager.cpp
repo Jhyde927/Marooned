@@ -178,7 +178,6 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("eggHatch",  "assets/sounds/eggHatch.ogg");
     SoundManager::GetInstance().LoadSound("squish",    "assets/sounds/squish.ogg");
 
-
     
     //music (ambience)
     SoundManager::GetInstance().LoadMusic("dungeonAir", "assets/sounds/dungeonAir.ogg");

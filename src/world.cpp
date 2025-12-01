@@ -71,6 +71,8 @@ bool hasStaff = false;
 float fade = 0.0f;
 bool isFullscreen = true;
 
+float debugDoorOpenAngleDeg = 0.0f;
+
 FadePhase gFadePhase = FadePhase::Idle;
 
 //std::vector<Bullet> activeBullets;
@@ -127,8 +129,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
         GenerateLightSources(floorHeight);
-        //GenerateLightSourcesForward(floorHeight);
-        GenerateFloorTiles(floorHeight);//80
+        GenerateFloorTiles(floorHeight);
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);
@@ -153,7 +154,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         if (levelIndex == 4) levels[0].startPosition = {-5484.34, 180, -5910.67}; //exit dungeon 3 to dungeon enterance 2 position.
 
         R.SetLavaShaderValues();
-        R.SetBloomShaderValues();
+        
 
         //XZ dynamic lightmap + shader lighting with occlusion
         InitDungeonLights();
@@ -162,13 +163,12 @@ void InitLevel(LevelData& level, Camera& camera) {
         miniMap.SetDrawSize(288.0f);
     }
 
-    //ResourceManager::Get().SetLightingShaderValues();
-    ResourceManager::Get().SetPortalShaderValues();
     isLoadingLevel = false;
-
-
+    R.SetPortalShaderValues();
     R.SetShaderValues();
+    R.SetBloomShaderValues();
     if (!isDungeon) R.SetTerrainShaderValues();
+
     Vector3 resolvedSpawn = ResolveSpawnPoint(level, isDungeon, first, floorHeight);
     InitPlayer(player, resolvedSpawn); //start at green pixel if there is one. otherwise level.startPos or first startPos
 
@@ -376,7 +376,8 @@ void GenerateEntrances() {
         d.doorTexture = R.GetTexture("doorTexture");
         d.isOpen = false;
         d.isLocked = e.isLocked;
-        if (i == 2) d.isLocked = !unlockEntrances;
+        if (i == 2) d.isLocked = !unlockEntrances; //entrance 3 unlocks
+        if (e.position.x == -5484.0f) d.isLocked = true; //entrance 2 always remains locked, make damn sure. 
 
         d.scale = {300, 365, 1};
         d.tint = WHITE;
