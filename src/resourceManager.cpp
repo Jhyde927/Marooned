@@ -201,7 +201,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadFont("Kingthings", "assets/fonts/KingthingsPetrock.ttf", 128, 1);
 
     //Resources are saved to unordered maps, with a string key. Get a resource by calling R.GetModel("blunderbuss") for example. 
-    R.LoadTexture("raptorTexture",    "assets/sprites/raptorSheet.png");
+    R.LoadTexture("raptorTexture",    "assets/sprites/bigRaptorSheet.png");
     R.LoadTexture("skeletonSheet",    "assets/sprites/skeletonSheet.png");
     R.LoadTexture("muzzleFlash",      "assets/sprites/muzzleFlash.png");
     R.LoadTexture("backDrop",         "assets/screenshots/dungeon1.png");
@@ -260,7 +260,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("campFire",       "assets/Models/campFire.glb");
     R.LoadModel("stonePillar",    "assets/Models/stonePillar.glb");
     R.LoadModel("lavaTile",       "assets/Models/lavaTileSquare.glb");
-    R.LoadModel("doorModel",      "assets/Models/doorModelH.glb");
 
 
     //generated models
@@ -321,10 +320,6 @@ void ResourceManager::SetShaderValues(){
     
     SetShaderValue(waterShader, GetShaderLocation(waterShader, "waterLevel"), &waterHeightY, SHADER_UNIFORM_FLOAT);
     R.GetModel("waterModel").materials[0].shader = waterShader;
-
-
-
-
 
 }
 

@@ -70,9 +70,11 @@ struct MeleeWeapon {
     float cooldown = 1.0f;
     float timeSinceLastSwing = 999.0f;
 
-    float forwardOffset = 60.0f;
+    float forwardOffset = 60.0f;//default postion
     float sideOffset = 20.0f; // pull it left of the screen
-    float verticalOffset = -40.0f;
+    float verticalOffset = -50.0f; //default position
+
+
     void StartBlock();
     void EndBlock();
     void StartSwing(Camera& camera);

@@ -127,12 +127,7 @@ void GenerateWeapons(float Height){
     }
 }
 
-void InitDoorModel()
-{
-    Model& m = R.GetModel("doorModel");
-    BoundingBox bb = GetModelBoundingBox(m);
-    gDoorHalfWidth = 0.5f * (bb.max.x - bb.min.x);  // assumes width along +X
-}
+
 
 
 
@@ -459,7 +454,7 @@ void GenerateSideColliders(Vector3 pos, float rotationY, DoorwayInstance& archwa
 
 void GenerateDoorways(float baseY, int currentLevelIndex) {
     doorways.clear();
-    InitDoorModel();
+
     for (int y = 1; y < dungeonHeight - 1; y++) {
         for (int x = 1; x < dungeonWidth - 1; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];

@@ -490,7 +490,8 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
 
         //std::cout << "generated raptor\n";
 
-        Character raptor(spawnPos, R.GetTexture("raptorTexture"), 200, 200, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
+        Character raptor(spawnPos, R.GetTexture("raptorTexture"), 512, 512, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
+        raptor.scale = 0.18;
         raptor.maxHealth = 200;
         raptor.currentHealth = raptor.maxHealth;
         enemies.push_back(raptor);

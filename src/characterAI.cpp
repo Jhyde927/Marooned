@@ -688,7 +688,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
     const float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
     const float ATTACK_EXIT   = 300.0f;   // leave attack if beyond this 
     const float FLEE_ENTER    = 100.0f;   // too close -> run away
-    const float FLEE_EXIT     = 3000.0f;   // far enough -> stop fleeing
+    const float FLEE_EXIT     = 2000.0f;   // far enough -> stop fleeing
     const float VISION_ENTER = 4000.0f;
 
 
@@ -720,7 +720,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
             if (isLeaving && rowIndex != 3){ //check if leaving every frame not just on state change. 
                 SetAnimation(3, 4, 0.25, true); //runaway
             }else if (!isLeaving && rowIndex != 1){
-                SetAnimation(1, 5, 0.2, true); //walk
+                SetAnimation(1, 5, 0.15, true); //walk
             }
 
             UpdatePatrol(deltaTime);
@@ -729,11 +729,11 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::Chase:
         {
-            if (isLeaving && rowIndex != 3){
-                SetAnimation(3, 4, 0.25, true); //runaway
-            }else if (!isLeaving && rowIndex != 1){
-                SetAnimation(1, 5, 0.2, true); //walk
-            }
+            // if (isLeaving && rowIndex != 3){
+            //     SetAnimation(3, 4, 0.25, true); //runaway
+            // }else if (!isLeaving && rowIndex != 1){
+            //     SetAnimation(1, 4, 0.25, true); //walk
+            // }
             
             UpdateChase(deltaTime);
           
@@ -743,7 +743,9 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
         case CharacterState::Attack:
 
         {
-
+            if (stateTimer > 3.0f){
+                ChangeState(CharacterState::RunAway);
+            }
             if (distance > ATTACK_EXIT) {
                 if (canSee) ChangeState(CharacterState::Chase);
                 break;
@@ -784,7 +786,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
             if (isLeaving && rowIndex != 3){
                 SetAnimation(3, 4, 0.25, true); //runaway
             }else if (!isLeaving && rowIndex != 1){
-                SetAnimation(1, 5, 0.2, true); //walk
+                SetAnimation(1, 5, 0.15, true); //walk
             }
             UpdateRunaway(deltaTime);
 
@@ -876,11 +878,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
-            if (isLeaving && rowIndex != 5){
-                SetAnimation(5, 4, 0.25, true); //runaway
-            }else if (!isLeaving && rowIndex != 1){
-                SetAnimation(1, 4, 0.2, true); //walk
-            }
 
             if (distance < 250 && canSee){
                 ChangeState(CharacterState::MeleeAttack);
@@ -1338,12 +1335,15 @@ void Character::UpdateChase(float deltaTime)
     if (distance < ATTACK_ENTER) { ChangeState(CharacterState::Attack); return; }
     if (distance > VISION_ENTER) { ChangeState(CharacterState::Idle); return; }
 
-    const float MAX_SPEED   = raptorSpeed;  // per-type speed
+    float MAX_SPEED   = raptorSpeed;  // per-type speed 700
+    if (type == CharacterType::Raptor) MAX_SPEED = 1200.0f; //double fast raptors. 
     const float SLOW_RADIUS = 800.0f;       // ease-in so we don’t overshoot
     // Move straight toward the player (XZ only), easing inside SLOW_RADIUS
     Vector3 vel = ArriveXZ(position, player.position, MAX_SPEED, SLOW_RADIUS);
     bool blocked = StopAtWaterEdge(position, vel, 65, deltaTime);
-
+    Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 800.0f);
+    vel.x += repel.x;
+    vel.z += repel.z;//only repel in 2 dimensions
     if (!blocked) position = Vector3Add(position, Vector3Scale(vel, deltaTime));
     //SoundManager::GetInstance().PlaySoundAtPosition("TrexStep", position, player.position, 0.0f, 4000.0f);
 
@@ -1380,16 +1380,16 @@ void Character::UpdateRunaway(float deltaTime)
     float distance = Vector3Distance(position, player.position);
     // --- simple knobs ---
     const float MAX_SPEED     = raptorSpeed;   // same as chase or a bit higher
-    const float FLEE_MIN_TIME = 2.0f;          // don’t instantly flip back
-    const float FLEE_MAX_TIME = 5.0f;          // optional: cap flee bursts
-    const float FLEE_EXIT     = 1000.0f;       
+    const float FLEE_MIN_TIME = 5.0f;          // don’t instantly flip back
+    const float FLEE_MAX_TIME = 10.0f;          // optional: cap flee bursts
+    const float FLEE_EXIT     = 4000.0f;       
     const float SEP_CAP       = 200.0f;        // limit separation shove
 
     // Steering: flee + a touch of separation + tiny wander so it’s not laser-straight
     Vector3 vFlee   = FleeXZ(position, player.position, MAX_SPEED);
 
     
-    Vector3 vSep    = ComputeRepulsionForce(enemyPtrs, /*radius*/300, /*strength*/600);
+    Vector3 vSep    = ComputeRepulsionForce(enemyPtrs, /*radius*/500, /*strength*/600);
     vSep            = Limit(vSep, SEP_CAP);
 
     

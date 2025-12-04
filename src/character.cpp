@@ -177,7 +177,7 @@ void Character::Update(float deltaTime, Player& player ) {
     if (isDungeon) groundY = dungeonPlayerHeight;
 
     // Gravity
-    float gravity = 980.0f; //we need gravity for outside maps so characters stick to heightmap.
+    float gravity = 1980.0f; //we need gravity for outside maps so characters stick to heightmap.
     if (isDungeon) gravity = 0.0f; //no gravity in dungeons. floor is fixed height. 
     static float verticalVelocity = 0.0f;
 
@@ -313,15 +313,14 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Orbit: 
                 case CharacterState::RunAway:
                 case CharacterState::Patrol:
-                    return AnimDesc{1, 5, 0.12f, true}; // walk
+                    return AnimDesc{1, 5, 0.15f, true}; // walk
 
-                
+                case CharacterState::Freeze: 
+                case CharacterState::Stagger: 
+                    return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
 
-
-                case CharacterState::Freeze: return {0, 1, 1.0f, true};
-                case CharacterState::Idle:   return {0, 1, 1.0f, true};
-                case CharacterState::Attack: return {2, 5, 0.2f, false};  
-                case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
+                case CharacterState::Idle: return {0, 1, 1.0f, true};
+                case CharacterState::Attack: return {2, 4, 0.2f, false};  
                 case CharacterState::Death:  return {4, 5, 0.2f, false};
                 
                 default:                     return {0, 1, 1.0f, true};
