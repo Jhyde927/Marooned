@@ -25,6 +25,7 @@ Vector3 Limit(Vector3 v, float maxLen);
 Vector3 AddLightHeadroom(Vector3 base, Vector3 lightColor, float intensity); //stops oversaturating model.tint
 
 //xz steering
+
 Vector3 NormalizeXZ(Vector3 v);
 Vector3 RandomPointOnRingXZ(const Vector3& center, float minR, float maxR);
 float DistXZ(const Vector3& a, const Vector3& b);

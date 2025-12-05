@@ -15,8 +15,6 @@
 #include "rlgl.h"
 #include "spiderEgg.h"
 #include "miniMap.h"
-    
-//wise words
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
 

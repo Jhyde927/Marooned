@@ -21,51 +21,49 @@ float GetAdjustedBillboardSize(float baseSize, float distance) {
     return baseSize * (1.0f + distance * compensationFactor);
 }
 
-
 void GatherEnemies(Camera& camera) {
-    //gather functions replace character.draw()
-    //Everything 2d is saved to a vector of struct drawRequests. We save all the info needed to draw the billboard or quad to the drawRequest struct.
-    //and push to the vector. Then sort the drawRequests based on distance and draw in that order. This prevents billboards occluding each other. 
-    //This has become redundant. writing to depth sorts them alpha cutoff shader prevents transparent parts occluding other billboards 
     for (Character* enemy : enemyPtrs) {
         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
 
         float dist = Vector3Distance(camera.position, enemy->position);
 
-        // Frame source rectangle
         Rectangle sourceRect = {
             (float)(enemy->currentFrame * enemy->frameWidth),
-            (float)(enemy->rowIndex * enemy->frameHeight),
-            (float)enemy->frameWidth,
-            (float)enemy->frameHeight
+            (float)(enemy->rowIndex     * enemy->frameHeight),
+            (float) enemy->frameWidth,
+            (float) enemy->frameHeight
         };
 
-        // Slight camera-facing offset to avoid z-fighting
+        // Decide flipping for strafing
+        bool flipX = false;
+        if (enemy->facingMode == FacingMode::Strafing && enemy->type == CharacterType::Raptor) {
+            flipX = (enemy->strafeSideSign < 0.0f);
+        }
+
+        // offset to prevent z-fighting
         Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, enemy->position));
         Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, 10.0f));
 
-        //compensate for extreme billboard scaling, things shrink at a distance but not by much. 
         float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
-        // Dynamic tint for damage
-        Color finalTint = (enemy->hitTimer > 0.0f) ? (Color){255, 50, 50, 255} : WHITE;
-        if (enemy->state == CharacterState::Freeze){
-            finalTint = SKYBLUE;
-        }
+
+        Color finalTint = WHITE;
+        if (enemy->hitTimer > 0.0f) finalTint = {255,50,50,255};
+        if (enemy->state == CharacterState::Freeze) finalTint = SKYBLUE;
 
         billboardRequests.push_back({
-            Billboard_FacingCamera,//BillboardType
-            offsetPos, //billboard position + z fighting offset
+            Billboard_FacingCamera,
+            offsetPos,
             enemy->texture,
             sourceRect,
             billboardSize,
             finalTint,
             dist,
-            0.0f
+            0.0f,
+            flipX     // <----- added
         });
-
-
     }
 }
+
 
 void GatherCollectables(Camera& camera, const std::vector<Collectable>& collectables) {
     for (const Collectable& c : collectables) {
@@ -199,32 +197,13 @@ void GatherDoors(Camera& camera) {
             door.tint,
             Vector3Distance(camera.position, bottomLeftClosed),
             door.rotationY,     // closed yaw (radians)
+            false, //flipx
             door.isPortal,
             door.isOpen
         });
     }
 }
 
-
-
-// void GatherDoors(Camera& camera) {
-//     for (const Door& door : doors) {
-//         //if (door.isOpen) continue;
-
-//         billboardRequests.push_back({
-//             Billboard_Door,
-//             door.position,
-//             door.doorTexture,
-//             Rectangle{ 0, 0, (float)door.doorTexture.width, (float)door.doorTexture.height },
-//             door.scale.x, // width, used in size
-//             door.tint,
-//             Vector3Distance(camera.position, door.position),
-//             door.rotationY,
-//             door.isPortal,
-//             door.isOpen
-//         });
-//     }
-// }
 
 
 
@@ -323,13 +302,19 @@ void DrawTransparentDrawRequests(Camera& camera) {
         //use alpha cut out shader on everything. treeShader does the fog at a distance thing + alpha cutout
         if (!isDungeon) BeginShaderMode(R.GetShader("treeShader"));
         if (isDungeon) BeginShaderMode(R.GetShader("cutoutShader"));
+
+        Rectangle src = req.sourceRect;
+        if (req.flipX) {
+            src.width = -src.width; // negative width flips UVs
+        }
+                
         switch (req.type) {
             case Billboard_FacingCamera: //use draw billboard for both decals, and enemies. 
             case Billboard_Decal:
                 DrawBillboardRec(
                     camera,
                     (req.texture),
-                    req.sourceRect,
+                    src,
                     req.position,
                     Vector2{req.size, req.size},
                     req.tint

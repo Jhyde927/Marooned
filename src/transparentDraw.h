@@ -21,8 +21,11 @@ struct BillboardDrawRequest {
     Color tint;
     float distanceToCamera;
     float rotationY;
+    bool flipX = false; 
     bool isPortal;
     bool isOpen;
+
+
 };
 
 extern std::vector<BillboardDrawRequest> billboardRequests;

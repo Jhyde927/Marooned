@@ -9,6 +9,7 @@
 #include "dungeonGeneration.h"
 #include "pathfinding.h"
 #include "resourceManager.h"
+#include "utilities.h"
 
 //Character raptor(spawnPos, R.GetTexture("raptorTexture"), 200, 200, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
 
@@ -220,6 +221,44 @@ void Character::Update(float deltaTime, Player& player ) {
 
 }
 
+
+// sprite sheet layout – adjust these to match your art
+constexpr int ROW_RUN_FRONT = 1;  // toward camera
+constexpr int ROW_RUN_SIDE  = 5;  // side profile
+constexpr int ROW_RUN_BACK  = 3;  // away/runaway
+
+void Character::UpdateMovementAnim()
+{
+    // Call this once per frame after you've updated facingMode
+
+    switch (facingMode)
+    {
+        case FacingMode::Leaving: {
+            // back / runaway row
+            if (rowIndex != ROW_RUN_BACK) {
+                SetAnimation(ROW_RUN_BACK, 4, 0.25f, true); // 4 frames, tweak speed
+            }
+        } break;
+
+        case FacingMode::Approaching: {
+            // front / approach row
+            if (rowIndex != ROW_RUN_FRONT) {
+                SetAnimation(ROW_RUN_FRONT, 5, 0.15f, true); // 5 frames, tweak speed
+            }
+        } break;
+
+        case FacingMode::Strafing: {
+            // side profile row
+            if (rowIndex != ROW_RUN_SIDE) {
+                SetAnimation(ROW_RUN_SIDE, 4, 0.15f, true); 
+            }
+
+    
+        } break;
+    }
+}
+
+
 // Show the character's back when moving away (robust vs player backpedal)
 static inline Vector3 XZ(const Vector3& v){ return {v.x, 0.0f, v.z}; }
 static inline float   DotXZ(const Vector3& a, const Vector3& b){ return a.x*b.x + a.z*b.z; }
@@ -228,42 +267,108 @@ static inline float   LenSqXZ(const Vector3& v){ return v.x*v.x + v.z*v.z; }
 void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos)
 {
     // Tunables
-    constexpr float MIN_REL_MOVE_EPS_SQ = 4.0f; // how much *relative* motion counts as "moving" (units^2 per tick)
-    constexpr int   STREAK_TO_APPROACH  = 3;    // frames to confirm approaching
-    constexpr int   STREAK_TO_LEAVE     = 30;    // frames to confirm leaving (more conservative) half a second. 
-    constexpr float DIST_EPS            = 1.0f; // small jitter epsilon for fallback
-    constexpr float NEAR_CONTACT        = 100.0f; // if closer than this, avoid flipping to "leaving" cheaply
+    constexpr float MIN_REL_MOVE_EPS_SQ = 4.0f;   // how much relative motion counts as "moving"
+    constexpr int   STREAK_TO_APPROACH  = 3;      // frames to confirm approaching
+    constexpr int   STREAK_TO_LEAVE     = 30;     // frames to confirm leaving
+    constexpr int   STREAK_TO_STRAFE    = 1;      // frames to confirm strafe (tweak)
+    constexpr float DIST_EPS            = 1.0f;
+    constexpr float NEAR_CONTACT        = 300.0f;
+
+    // Angle thresholds
+    constexpr float COS_45 = 0.70710678f;         // cos(45°)
+    constexpr float COS_60 = 0.85f;  // cos(25°)
+    
 
     // Current vectors (XZ plane)
-    Vector3 r          = XZ( Vector3Subtract(playerPos, this->position) );                 // enemy -> player
-    Vector3 enemyStep  = XZ( Vector3Subtract(this->position, this->prevPos) );             // enemy Δ
-    Vector3 playerStep = XZ( Vector3Subtract(playerPos,        playerPrevPos) );           // player Δ
-    Vector3 relStep    = XZ( Vector3Subtract(enemyStep,        playerStep) );              // enemy relative to player (=-Δr)
+    Vector3 r          = XZ( Vector3Subtract(playerPos, this->position) );   // enemy -> player
+    Vector3 enemyStep  = XZ( Vector3Subtract(this->position, this->prevPos) );
+    Vector3 playerStep = XZ( Vector3Subtract(playerPos,        playerPrevPos) );
+    Vector3 relStep    = XZ( Vector3Subtract(enemyStep,        playerStep) );// enemy relative to player
 
-    const float rLenSq = LenSqXZ(r);
+    const float rLenSq    = LenSqXZ(r);
+    const float relLenSq  = LenSqXZ(relStep);
+
+
 
     bool decided = false;
 
-    // 0) Near-contact guard: if very close, bias to "approach" to avoid popping
+    // 0) Near-contact guard: still useful if you want to bias away from "leaving"
     if (rLenSq < NEAR_CONTACT*NEAR_CONTACT) {
-        approachStreak++; leaveStreak = 0;
-        if (approachStreak >= STREAK_TO_APPROACH) { isLeaving = false; decided = true; }
+        // At very close range, we’ll pick between Approaching / Strafing only
+        // based on angle, but *not* Leaving.
+        // So don't early-decide here, just remember we're close.
     }
 
     // 1) Relative-motion test (primary)
-    if (!decided && LenSqXZ(relStep) > MIN_REL_MOVE_EPS_SQ && rLenSq > 1e-6f)
+    if (relLenSq > MIN_REL_MOVE_EPS_SQ && rLenSq > 1e-6f)
     {
-        const float s = DotXZ(r, relStep); // >0 => closing, <0 => separating
-        if (s > 0.0f) {
-            approachStreak++; leaveStreak = 0;
-            if (approachStreak >= STREAK_TO_APPROACH) { isLeaving = false; decided = true; }
-        } else if (s < 0.0f) {
-            leaveStreak++; approachStreak = 0;
-            if (leaveStreak >= STREAK_TO_LEAVE) { isLeaving = true; decided = true; }
+        Vector3 rN    = NormalizeXZ(r);
+        Vector3 relN  = NormalizeXZ(relStep);
+
+
+
+        float d = DotXZ(rN, relN);   // cos(theta) between enemy->player and relative motion
+
+        FacingMode candidate;
+
+        // classify by angle first
+        if (d >  COS_60) {
+            candidate = FacingMode::Approaching;
+        } else if (d < -COS_60) {
+            candidate = FacingMode::Leaving;
+        } else {
+            candidate = FacingMode::Strafing;
+        }
+
+
+            // only if we actually picked Strafing:
+        if (candidate == FacingMode::Strafing) {
+            // 2D cross product on XZ
+            float cross = rN.x * relN.z - rN.z * relN.x;
+            strafeSideSign = (cross >= 0.0f) ? 1.0f : -1.0f;
+        }
+
+        // Optional bias: if very close, don't ever show "Leaving"
+        if (rLenSq < NEAR_CONTACT*NEAR_CONTACT && candidate == FacingMode::Leaving) {
+            candidate = FacingMode::Approaching;  // or FacingMode::Strafing, your call
+        }
+
+        // Streak logic for smoothing
+        switch (candidate)
+        {
+            case FacingMode::Approaching:
+                approachStreak++;
+                leaveStreak = 0;
+                strafeStreak = 0;
+                if (approachStreak >= STREAK_TO_APPROACH) {
+                    facingMode = FacingMode::Approaching;
+                    decided = true;
+                }
+                break;
+
+            case FacingMode::Leaving:
+                leaveStreak++;
+                approachStreak = 0;
+                strafeStreak = 0;
+                if (leaveStreak >= STREAK_TO_LEAVE) {
+                    facingMode = FacingMode::Leaving;
+                    decided = true;
+                }
+                break;
+
+            case FacingMode::Strafing:
+                strafeStreak++;
+                approachStreak = 0;
+                leaveStreak = 0;
+                if (strafeStreak >= STREAK_TO_STRAFE) {
+                    facingMode = FacingMode::Strafing;
+                    decided = true;
+                }
+                break;
         }
     }
 
-    // 2) Fallback: tiny-motion distance trend (rare now)
+    // 2) Fallback: tiny-motion distance trend (rare)
     if (!decided)
     {
         float curDist = sqrtf(rLenSq);
@@ -271,11 +376,13 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
         {
             float delta = curDist - prevDistToPlayer;
             if (delta > DIST_EPS) {
-                leaveStreak++; approachStreak = 0;
-                if (leaveStreak >= STREAK_TO_LEAVE) isLeaving = true;
+                // separating -> likely leaving
+                leaveStreak++; approachStreak = 0; strafeStreak = 0;
+                if (leaveStreak >= STREAK_TO_LEAVE) facingMode = FacingMode::Leaving;
             } else if (delta < -DIST_EPS) {
-                approachStreak++; leaveStreak = 0;
-                if (approachStreak >= STREAK_TO_APPROACH) isLeaving = false;
+                // closing -> approaching
+                approachStreak++; leaveStreak = 0; strafeStreak = 0;
+                if (approachStreak >= STREAK_TO_APPROACH) facingMode = FacingMode::Approaching;
             }
         }
         prevDistToPlayer = curDist;
@@ -283,6 +390,10 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
 
     // Bookkeeping
     prevPos = this->position;
+
+    // Backwards compat: keep isLeaving in sync for any existing code
+    isLeaving = (facingMode == FacingMode::Leaving ||
+                facingMode == FacingMode::Strafing);
 }
 
 
@@ -456,4 +567,6 @@ void Character::SetAnimation(int row, int frames, float speed, bool loop) {
     currentFrame = 0;
     animationTimer = 0;
     animationLoop = loop;
+
+
 }

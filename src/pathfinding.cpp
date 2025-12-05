@@ -712,36 +712,6 @@ Vector3 FleeXZ(const Vector3& pos, const Vector3& threat, float maxSpeed) {
     return Vector3Scale(dir, maxSpeed);
 }
 
-// orbitRadius: desired ring distance from target
-// clockwise: +1 for CW, -1 for CCW
-// tangentGain: how strongly to circle (0..1 usually)
-// radialGain: how strongly to correct toward the ring
-Vector3 OrbitXZ(const Vector3& pos, const Vector3& target,
-                       float orbitRadius, int clockwise,
-                       float tangentGain, float radialGain,
-                       float maxSpeed)
-{
-    // Radial from raptor -> target
-    Vector3 r = Vector3Subtract(target, pos); r.y = 0.0f;
-    float d = sqrtf(r.x*r.x + r.z*r.z);
-    if (d < 1e-4f) return {0,0,0};
-    Vector3 rN = { r.x/d, 0.0f, r.z/d };
-
-    // Tangent: rotate radial ±90° in XZ
-    Vector3 tN = (clockwise >= 0) ? Vector3{ rN.z, 0.0f, -rN.x }
-                                  : Vector3{ -rN.z, 0.0f,  rN.x };
-
-    // Radial correction pushes toward the ring (out if too close, in if too far)
-    float radialErr = (d - orbitRadius);           // positive if too far
-    Vector3 radialVel = Vector3Scale(rN, -radialErr * radialGain); // pull toward ring
-
-    // Tangential circling velocity
-    Vector3 tangentialVel = Vector3Scale(tN, tangentGain * maxSpeed);
-
-    // Blend and clamp
-    Vector3 v = Vector3Add(tangentialVel, radialVel);
-    return Limit(v, maxSpeed);
-}
 
 // Keep a wanderAngle per-raptor; call each frame.
 Vector3 WanderXZ(float& wanderAngle, float wanderTurnRate, float wanderSpeed, float dt) {

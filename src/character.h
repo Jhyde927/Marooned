@@ -36,6 +36,13 @@ struct AnimDesc {
     int frames;
     float frameTime;
     bool loop;
+
+};
+
+enum class FacingMode {
+    Approaching,  // show front
+    Leaving,      // show back
+    Strafing      // show side profile
 };
 
 
@@ -47,6 +54,7 @@ public:
     Vector3 previousPosition;
     CharacterState state = CharacterState::Idle;
     Emitter bloodEmitter;
+    
     int frameWidth, frameHeight;
     int currentFrame, maxFrames;
     int rowIndex;
@@ -100,9 +108,13 @@ public:
     bool   isLeaving = false;          // choose "walk away" row vs "walk toward"
     float  prevDistToPlayer = -1.0f;   // for distance trend fallback
     Vector3 prevPos = {0,0,0};         // to compute velocity
+    Vector3 fleeTarget = { 0, 0, 0 };
     int    approachStreak = 0;         // hysteresis counters
     int    leaveStreak    = 0;
-
+    int    strafeStreak = 0;
+    float strafeSideSign = 1.0f; // >0 = one way, <0 = the other
+    bool    hasFleeTarget = false;
+    FacingMode facingMode = FacingMode::Approaching;
     CharacterType type;
 
     std::vector<Vector2> currentPath;
@@ -124,7 +136,7 @@ public:
     void AlertNearbySkeletons(Vector3 alertOrigin, float radius);
     void UpdateRaptorVisibility(const Player& player, float dt);
     void SetPath(Vector2 start);
-
+    void UpdateMovementAnim();
     void SetPathTo(const Vector3& goalWorld);
 
     void eraseCharacters();

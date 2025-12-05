@@ -77,6 +77,18 @@ Color LerpColor(Color a, Color b, float t) {
     };
 }
 
+
+
+// static inline Vector3 NormalizeXZ(const Vector3& v)
+// {
+//     float lenSq = LenSqXZ(v);
+//     if (lenSq <= 1e-8f) return {0,0,0};
+//     float inv = 1.0f / sqrtf(lenSq);
+//     return { v.x * inv, 0.0f, v.z * inv };
+// }
+
+
+
 Vector3 NormalizeXZ(Vector3 v) {
     v.y = 0.0f;
     float m2 = v.x*v.x + v.z*v.z;

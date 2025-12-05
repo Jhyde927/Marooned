@@ -617,7 +617,7 @@ We use tile LOS function to reveal tiles and highlight vision on the minimap. Ti
 Added then commented out, wall specific colors on lighting shader. We can know what geometry is walls from the normal map of the model. We could have diffent colored dungeons if we passed a uniform. A little experimentation showed it would be a lot of work to get the colors looking good, without hot reloading it's a pain. 
 
 
-Find a better blood decal animation.
+Find a better blood decal animation. X
 
 Minimap now draws doors once revealed. Doors are marked with different colored squares depending on door type. Locked doors are a faint red, instantly reading as locked. I made regular doors just a lighter colored gray, maybe they should be green, but I think that's too much. Eggs could be green on the map. We could color depending on enemy type as well. Just because we can. Thanks to Alex Morgan Johnson for the idea to show doors on minimap. 
 
@@ -632,6 +632,26 @@ Made 2D doors swing open. Fist I tried making a 3D model of the door, attaching 
 When an enemy passes through the door it occludes the whole door for a moment I think. We could give the door a hit box. Enemies would probably get stuck. Is there a reason why it would occlude? because of the angle I suppose. It rarely happens. 
 
 get more sounds for Giant spider. 
+
+Lighting looks better with light source next to wall not centered. In corners there is a black spot that is unlit however. Increase number of rays maybe.
+
+redo raptor sprite. Looks to much like barney. Reminds me of that old doom mod. Should be skinnier and more menacing, maybe taller, or shorter. -Made a new raptor sprite, it took like 3 hours and I'm not sure I like it. I guess it's better than before. I think the idle pose is good, attacking is way better, running away is a little better, chasing is kinda bad. He looks too fat. Looks like a different dinosaur while running. 
+
+We are manually setting the animation to runaway when isLeaving is true, even inside chase state. Theoretically the enemy could be moving away while chasing i guess, I don't know what I was thinking. I stopped doing it for pirates and they stopped turning around at dumb times. Maybe they were getting stuck in runaway animation before or something. 
+
+raptors very seldom run away and when they do the run away for like 3 seconds and come back. Make run away distance a lot longer. Do we get direction to player and project a random point the opposite way, because we should. I want them to hit and run. The spider can hit and run. 
+
+Raptors using steering and arive to, to move around, they don't avoid obstacles. Could we give raptors pathfinding? Maybe we could use pre existing chunks. build a path between chunks. chunks are too big. Could split the heightmap up into a grid. -it would work the same way dungeons do. a grid of walkable tiles and a BFS that builds a path. We could do more advanced AI if we have a path. Steering behavior is like controling a rocket. 
+
+We could add pack hunting behavior. Raptors are "aware" of their comrad's state. wait till none are attacking, then attack all at once. Or the opposite. don't attack if others are attacking. Pincer move. Surround the player. Orbit...
+We tried doing orbit before with steering. How would we build an orbiting path? That's a good question. 
+
+Generating side profile of the raptor now. Going to add on to isLeaving logic and do a enum class instead. So we will have 3 states. Approaching, Leaving, strafing. By measuring movement relative to the player we can derive the state. I think we got to be conservative on showing side profile. Because if it shows a side profile when it's coming right at ya. It would look bad. 
+
+Redid raptor art. Not sure if I like it though. It may be uncanny valley territory. Something about the eyes is anerving. It took like 4 hours to generate 7 frames. and they aren't very consistant looking. garbage in garbage out. Start with a better example image. 
+
+melee hit box isn't colliding with webs when close up against it. Move the hitbox backward -z? 
+
 
 
 
