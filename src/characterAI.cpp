@@ -881,7 +881,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
-
+            UpdateMovementAnim();
             if (distance < 250 && canSee){
                 ChangeState(CharacterState::MeleeAttack);
                 break;
@@ -1069,18 +1069,16 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             break;
         }
 
-
-
         case CharacterState::Patrol: { //Pirate Patrol after every shot. 
             stateTimer += deltaTime;
             //ignore player while patroling to new tile. 
 
-            if (isLeaving && rowIndex != 5){ //we need to update isLeaving animation only if not already playing the correction anim. 
-                SetAnimation(5, 4, 0.25, true); //runaway
-            }else if (!isLeaving && rowIndex != 1){
-                SetAnimation(1, 4, 0.2, true); //walk
-            }
-            
+            // if (isLeaving && rowIndex != 5){ //we need to update isLeaving animation only if not already playing the correction anim. 
+            //     SetAnimation(5, 4, 0.25, true); //runaway
+            // }else if (!isLeaving && rowIndex != 1){
+            //     SetAnimation(1, 4, 0.2, true); //walk
+            // }
+            UpdateMovementAnim();
             // Advance along path (with repulsion)
             if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
                 Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call

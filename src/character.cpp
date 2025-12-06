@@ -275,8 +275,8 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
     constexpr float NEAR_CONTACT        = 300.0f;
 
     // Angle thresholds
-    constexpr float COS_45 = 0.70710678f;         // cos(45°)
-    constexpr float COS_60 = 0.85f;  // cos(25°)
+
+    constexpr float COS = 0.8f;  //Higher to show side more often
     
 
     // Current vectors (XZ plane)
@@ -312,9 +312,9 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
         FacingMode candidate;
 
         // classify by angle first
-        if (d >  COS_60) {
+        if (d >  COS) {
             candidate = FacingMode::Approaching;
-        } else if (d < -COS_60) {
+        } else if (d < -COS) {
             candidate = FacingMode::Leaving;
         } else {
             candidate = FacingMode::Strafing;
@@ -509,10 +509,10 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Patrol:
                     return AnimDesc{1, 4, 0.2f, true}; // walk
 
-                case CharacterState::Freeze: return {0, 1, 1.0f, true};
+                case CharacterState::Freeze: return     {0, 1, 1.0f, true};
                 case CharacterState::Idle:   return     {0, 1, 1.0f, true};
                 case CharacterState::Attack: return     {2, 4, 0.2f, false}; // ranged attack = attack
-                case CharacterState::MeleeAttack: return{3, 5, 0.12f, false};
+                case CharacterState::MeleeAttack: return{6, 5, 0.12f, false};
                 case CharacterState::Stagger: return    {4, 1, 1.0f, false};
                 case CharacterState::Death:  return     {4, 3, 0.25f, false };
                 default:                     return     {0, 7, 0.2f, true};

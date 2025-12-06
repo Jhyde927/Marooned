@@ -34,10 +34,15 @@ void GatherEnemies(Camera& camera) {
             (float) enemy->frameHeight
         };
 
-        // Decide flipping for strafing
+        // Decide flipping for strafing, Raptors and pirates. 
         bool flipX = false;
-        if (enemy->facingMode == FacingMode::Strafing && enemy->type == CharacterType::Raptor) {
-            flipX = (enemy->strafeSideSign < 0.0f);
+        if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Pirate){
+            if (enemy->facingMode == FacingMode::Strafing) {
+                flipX = (enemy->strafeSideSign < 0.0f);
+            }else{
+                flipX = false;
+            }
+
         }
 
         // offset to prevent z-fighting
