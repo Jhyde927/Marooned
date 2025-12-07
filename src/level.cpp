@@ -63,7 +63,7 @@ std::vector<LevelData> levels = {
         {5475.0f, 300.0f, -5665.0f},
         180.0f,
         {0.0f, 0, 0.0f},
-        25,//raptor count
+        15,//raptor count
         false,
         {entranceToDungeon11},
         1, 

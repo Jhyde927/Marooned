@@ -1174,6 +1174,138 @@ bool Character::FindRepositionTarget(const Player& player, const Vector3& selfPo
     return false;
 }
 
+// General path builder to an arbitrary goal
+bool Character::BuildPathTo(const Vector3& goalWorld)
+{
+    navPath.clear();
+    navPathIndex = -1;
+    navHasPath   = false;
+
+    if (!hasIslandNav) return false;
+
+    std::vector<Vector3> path;
+    bool ok = HeightmapPathfinding::FindPathBFS(
+        gIslandNav,
+        position,      // start from our current position
+        goalWorld,     // arbitrary goal (fleeTarget)
+        terrainScale.y,
+        path
+    );
+
+    if (!ok || path.empty())
+    {
+        return false;
+    }
+
+    navPath      = std::move(path);
+    navPathIndex = 0;
+    navHasPath   = true;
+    navRepathTimer = 0.0f;
+    return true;
+}
+
+// Pick a local patrol point around THIS raptor, snapped to nav grid
+bool Character::ChoosePatrolTarget()
+{
+    hasPatrolTarget = false;
+    navHasPath      = false;
+    navPath.clear();
+    navPathIndex    = -1;
+
+    // If no nav grid (some debug mode), fall back to old behavior
+    if (hasIslandNav)
+    {
+        patrolTarget    = RandomPointOnRingXZ(position, 800.0f, 2200.0f);
+        patrolTarget.y  = position.y;
+        hasPatrolTarget = true;
+        return false; // no path
+    }
+
+    const int MAX_TRIES = 6;
+
+    for (int i = 0; i < MAX_TRIES; ++i)
+    {
+        // Old logic: random ring around self
+        Vector3 candidate = RandomPointOnRingXZ(position, 800.0f, 2200.0f);
+
+        int gx, gz;
+        gIslandNav.WorldToCell(candidate, gx, gz);
+        if (!gIslandNav.IsWalkable(gx, gz))
+            continue; // landed in water / cliff, try again
+
+        // Snap to center of that nav cell
+        Vector3 snapped = gIslandNav.CellToWorldCenter(gx, gz, terrainScale.y);
+        snapped.y = position.y;  // keep visual height consistent
+
+        // Try to build a path to that snapped patrol point
+        if (BuildPathTo(snapped))
+        {
+            patrolTarget    = snapped;
+            hasPatrolTarget = true;
+            return true; // we have a path + target
+        }
+    }
+
+    // Couldn’t find a pathable patrol spot: fall back to “dumb” ring point
+    patrolTarget    = RandomPointOnRingXZ(position, 800.0f, 2200.0f);
+    patrolTarget.y  = position.y;
+    hasPatrolTarget = true;
+    return false;
+}
+
+// Pick a flee target on a ring around the player, snapped to nav grid & pathable
+bool Character::ChooseFleeTarget()
+{
+    hasFleeTarget = false;
+    navHasPath    = false;
+    navPath.clear();
+    navPathIndex  = -1;
+
+    if (!hasIslandNav)
+    {
+        // fall back to old behavior: just pick any ring point (no nav guarantee)
+        fleeTarget = RandomPointOnRingXZ(player.position, 1500.0f, 4000.0f);
+        fleeTarget.y = position.y;
+        hasFleeTarget = true;
+        return false; // no path
+    }
+
+    // Try a few random candidates on the ring
+    const int MAX_TRIES = 10;
+
+    for (int i = 0; i < MAX_TRIES; ++i)
+    {
+        Vector3 candidate = RandomPointOnRingXZ(player.position, 1500.0f, 4000.0f);
+
+        // Map to grid cell
+        int gx, gz;
+        gIslandNav.WorldToCell(candidate, gx, gz);
+
+        if (!gIslandNav.IsWalkable(gx, gz))
+            continue; // land in water or cliff, skip
+
+        // Snap to cell center so goal is *exactly* on nav grid
+        Vector3 snapped = gIslandNav.CellToWorldCenter(gx, gz, terrainScale.y);
+
+        // Keep Y near our current ground level for rendering consistency
+        snapped.y = position.y;
+
+        // Try to build a path to this snapped point
+        if (BuildPathTo(snapped))
+        {
+            fleeTarget   = snapped;
+            hasFleeTarget = true;
+            return true; // we have a path
+        }
+    }
+
+    // Could not find a pathable flee target; fall back to old style fleeTarget
+    fleeTarget = RandomPointOnRingXZ(player.position, 1500.0f, 4000.0f);
+    fleeTarget.y = position.y;
+    hasFleeTarget = true;
+    return false;
+}
+
 Vector3 Character::ComputeRepulsionForce(const std::vector<Character*>& allRaptors, float repulsionRadius, float repulsionStrength)
 {
     //return only XZ repulsion. Y stays 0
@@ -1351,36 +1483,101 @@ void Character::UpdateRaptorVisibility(const Player& player, float deltaTime) {
     }
 }
 
+
 void Character::UpdateChase(float deltaTime)
 {
-    //update raptor/trex chase state. 
+    // update raptor/trex chase state. 
     float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
-    if (type == CharacterType::Trex) ATTACK_ENTER = 600; //maybe to far
+    if (type == CharacterType::Trex) ATTACK_ENTER = 600; // maybe too far
 
     const float VISION_ENTER = 5000.0f;
     float distance = Vector3Distance(position, player.position);
-    if (!canSee) {ChangeState(CharacterState::Idle); return; }
-    if (stateTimer > chaseDuration) { ChangeState(CharacterState::RunAway); return;}
+
+    if (!canSee) { ChangeState(CharacterState::Idle); return; }
+    if (stateTimer > chaseDuration) { ChangeState(CharacterState::RunAway); return; }
     if (distance < ATTACK_ENTER) { ChangeState(CharacterState::Attack); return; }
     if (distance > VISION_ENTER) { ChangeState(CharacterState::Idle); return; }
 
-    float MAX_SPEED   = raptorSpeed;  // per-type speed 700
-    if (type == CharacterType::Raptor) MAX_SPEED = 1400.0f; //double fast raptors.
+    // --- NEW: build or occasionally rebuild path when entering/while in chase ---
+    navRepathTimer += deltaTime;
+
+    // First frame of chase, or we’ve lost our path
+    if (!navHasPath && navRepathTimer <= deltaTime)
+    {
+        BuildPathToPlayer();
+    }
+    else if (navHasPath && navRepathTimer >= NAV_REPATH_INTERVAL)
+    {
+        // Optional: periodically refresh path toward the moving player
+        BuildPathToPlayer();
+    }
+
+    float MAX_SPEED = raptorSpeed;  // per-type speed 700
+    if (type == CharacterType::Raptor) MAX_SPEED = 1400.0f; // double fast raptors.
 
     const float SLOW_RADIUS = 800.0f;       // ease-in so we don’t overshoot
-    // Move straight toward the player (XZ only), easing inside SLOW_RADIUS
-    Vector3 vel = ArriveXZ(position, player.position, MAX_SPEED, SLOW_RADIUS);
+
+    Vector3 targetPos = player.position;
+
+    // If we have a nav path, chase the current waypoint instead of the raw player pos
+    if (navHasPath && navPathIndex >= 0 && navPathIndex < (int)navPath.size())
+    {
+        targetPos = navPath[navPathIndex];
+
+        // If we’re close enough to this waypoint, advance to the next
+        float waypointDist = Vector3Distance(position, targetPos);
+        const float WAYPOINT_REACH_RADIUS = 150.0f; // tweak
+
+        if (waypointDist < WAYPOINT_REACH_RADIUS)
+        {
+            navPathIndex++;
+
+            if (navPathIndex >= (int)navPath.size())
+            {
+                // Reached end of path; switch to direct player chase
+                navHasPath   = false;
+                navPathIndex = -1;
+                targetPos    = player.position;
+            }
+            else
+            {
+                targetPos = navPath[navPathIndex];
+            }
+        }
+    }
+    else
+    {
+        // Pathless fallback: direct chase as before
+        navHasPath   = false;
+        navPathIndex = -1;
+        targetPos    = player.position;
+    }
+
+    // Move toward targetPos (either player or current waypoint), easing inside SLOW_RADIUS
+    Vector3 vel = ArriveXZ(position, targetPos, MAX_SPEED, SLOW_RADIUS);
+
+    // Safety: still obey water edge logic (nav grid *should* avoid water, but no harm)
     bool blocked = StopAtWaterEdge(position, vel, 65, deltaTime);
+
     Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 800.0f);
-    if (!blocked) position = Vector3Add(position, Vector3Scale(vel + repel, deltaTime));    
-    if (blocked) ChangeState(CharacterState::RunAway);
+
+    if (!blocked)
+    {
+        position = Vector3Add(position, Vector3Scale(vel + repel, deltaTime));
+    }
+    else
+    {
+        // You *could* trigger a repath here instead of running away if you want:
+        // BuildPathToPlayer();
+        ChangeState(CharacterState::RunAway);
+    }
 
     if (vel.x*vel.x + vel.z*vel.z > 1e-4f) {
         rotationY = RAD2DEG * atan2f(vel.x, vel.z);
     }
-
-
 }
+
+
 
 
 void Character::UpdateTrexStepSFX(float dt)
@@ -1398,50 +1595,6 @@ void Character::UpdateTrexStepSFX(float dt)
     }
 }
 
-
-// void Character::UpdateRunaway(float deltaTime)
-// {
-//     //update raptor/Trex runaway state
-//     float distance = Vector3Distance(position, player.position);
-//     // --- simple knobs ---
-//     const float MAX_SPEED     = 1000;   // same as chase or a bit higher
-//     const float FLEE_MIN_TIME = 5.0f;          // don’t instantly flip back
-//     const float FLEE_MAX_TIME = 10.0f;          // optional: cap flee bursts
-//     const float FLEE_EXIT     = 4000.0f;       
-//     const float SEP_CAP       = 200.0f;        // limit separation shove
-
-//     // Steering: flee + a touch of separation + tiny wander so it’s not laser-straight
-//     Vector3 vFlee   = FleeXZ(position, player.position, MAX_SPEED);
-
-    
-//     Vector3 vSep    = ComputeRepulsionForce(enemyPtrs, /*radius*/500, /*strength*/600);
-//     vSep            = Limit(vSep, SEP_CAP);
-
-    
-//     Vector3 vWander = WanderXZ(wanderAngle, /*turn*/4.0f, /*speed*/80.0f, deltaTime);
-
-//     Vector3 desired = Vector3Add(vFlee, Vector3Add(vSep, vWander));
-//     desired         = Limit(desired, MAX_SPEED);
-
-//     bool blocked = StopAtWaterEdge(position, desired, 65, deltaTime);
-//     if (blocked) ChangeState(CharacterState::Idle);
-
-//     // Integrate + face motion
-//     position = Vector3Add(position, Vector3Scale(desired, deltaTime));
-//     if (desired.x*desired.x + desired.z*desired.z > 1e-4f) {
-//         rotationY = RAD2DEG * atan2f(desired.x, desired.z);
-//     }
-
-//     // Exit conditions: far enough OR time window expired
-//     if ((distance > FLEE_EXIT && stateTimer >= FLEE_MIN_TIME) || stateTimer >= FLEE_MAX_TIME) {
-//         if (canSee){
-//             ChangeState(CharacterState::Chase);
-//             return;
-//         } 
-        
-//     }
-// }
-
 void Character::UpdateRunaway(float deltaTime)
 {
     // Distance from player (for exit logic)
@@ -1454,39 +1607,63 @@ void Character::UpdateRunaway(float deltaTime)
     const float FLEE_EXIT      = 4000.0f;
     const float SEP_CAP        = 200.0f;
 
-    // How close to the flee target counts as "reached"
     const float TARGET_REACHED_RADIUS = 300.0f;
+    const float WAYPOINT_REACHED_RADIUS = 200.0f;
 
     // --- choose / refresh flee target ---
 
-    // Need a new flee target if:
-    //  - we don't have one yet
-    //  - we reached the current one
-    //  - or the target somehow ended up too close to the player
     if (!hasFleeTarget ||
         DistXZ(position, fleeTarget) < TARGET_REACHED_RADIUS ||
         DistXZ(player.position, fleeTarget) < 600.0f)
     {
-        // Pick a random point on a ring AROUND THE PLAYER
-        // (center, minRadius, maxRadius)
-        fleeTarget = RandomPointOnRingXZ(player.position, 1500.0f, 4000.0f);
-
-        // Keep y sane (same ground level as us)
-        fleeTarget.y = position.y;
-
-        hasFleeTarget = true;
+        // This will also try to build a nav path to the flee target
+        ChooseFleeTarget();
     }
 
-    // --- steering toward fleeTarget ---
+    // --- movement toward flee target (possibly via nav path) ---
+
+    Vector3 targetPos = fleeTarget;
+
+    // If we have a nav path (best case), walk the waypoints
+    if (navHasPath && navPathIndex >= 0 && navPathIndex < (int)navPath.size())
+    {
+        targetPos = navPath[navPathIndex];
+
+        float dToWp = DistXZ(position, targetPos);
+        if (dToWp < WAYPOINT_REACHED_RADIUS)
+        {
+            navPathIndex++;
+            if (navPathIndex >= (int)navPath.size())
+            {
+                // Reached the end of the path; final target is fleeTarget
+                navHasPath   = false;
+                navPathIndex = -1;
+                targetPos    = fleeTarget;
+            }
+            else
+            {
+                targetPos = navPath[navPathIndex];
+            }
+        }
+    }
+    else
+    {
+        // No nav path (either none built or failed): we still flee directly
+        navHasPath   = false;
+        navPathIndex = -1;
+        targetPos    = fleeTarget;
+    }
+
+    // --- steering toward targetPos ---
 
     Vector3 desired = { 0, 0, 0 };
 
-    // Seek the fleeTarget on XZ plane
+    // Seek targetPos on XZ
     {
         Vector3 toTarget = {
-            fleeTarget.x - position.x,
+            targetPos.x - position.x,
             0.0f,
-            fleeTarget.z - position.z
+            targetPos.z - position.z
         };
 
         float dist = sqrtf(toTarget.x*toTarget.x + toTarget.z*toTarget.z);
@@ -1508,11 +1685,15 @@ void Character::UpdateRunaway(float deltaTime)
     desired = Vector3Add(desired, vSep);
     desired = Limit(desired, MAX_SPEED);
 
-    // Don’t run into water
+    // Don’t run into water (belt-and-suspenders: nav should already avoid it)
     bool blocked = StopAtWaterEdge(position, desired, 65, deltaTime);
     if (blocked) {
-        // water edge killed the path; forget this target and bail
+        // water edge killed motion; drop flee target so we pick a new one next frame
         hasFleeTarget = false;
+        navHasPath    = false;
+        navPath.clear();
+        navPathIndex = -1;
+
         ChangeState(CharacterState::Idle);
         return;
     }
@@ -1530,6 +1711,9 @@ void Character::UpdateRunaway(float deltaTime)
         stateTimer >= FLEE_MAX_TIME)
     {
         hasFleeTarget = false;  // so next time we enter Runaway we re-roll
+        navHasPath    = false;
+        navPath.clear();
+        navPathIndex = -1;
 
         if (canSee) {
             ChangeState(CharacterState::Chase);
@@ -1543,24 +1727,60 @@ void Character::UpdateRunaway(float deltaTime)
 
 void Character::UpdatePatrol(float deltaTime)
 {
-    //update raptor/Trex patrol state
-    // Acquire a patrol target if we don't have one
-    if (!hasPatrolTarget) {
-        patrolTarget    = RandomPointOnRingXZ(position, 800.0f, 2200.0f);
-        hasPatrolTarget = true;
+    // --- choose / refresh patrol target ---
+    if (!hasPatrolTarget)
+    {
+        // This will also try to build a nav path to that target
+        ChoosePatrolTarget();
     }
 
-    // Movement toward target
-    const float PATROL_SPEED    = raptorSpeed * 0.6f;
-    const float PATROL_SLOW_RAD = 400.0f;
-    const float ARRIVE_EPS_XZ   = 150.0f;
+    const float PATROL_SPEED        = raptorSpeed * 0.6f;
+    const float PATROL_SLOW_RAD     = 400.0f;
+    const float ARRIVE_EPS_XZ       = 150.0f;
+    const float WAYPOINT_REACH_RAD  = 200.0f;
 
-    Vector3 vel = ArriveXZ(position, patrolTarget, PATROL_SPEED, PATROL_SLOW_RAD);
+    // Decide what we’re actually steering toward this frame
+    Vector3 targetPos = patrolTarget;
+
+    if (navHasPath && navPathIndex >= 0 && navPathIndex < (int)navPath.size())
+    {
+        targetPos = navPath[navPathIndex];
+
+        float dToWp = DistXZ(position, targetPos);
+        if (dToWp < WAYPOINT_REACH_RAD)
+        {
+            navPathIndex++;
+            if (navPathIndex >= (int)navPath.size())
+            {
+                // Done with path; final approach to patrolTarget
+                navHasPath   = false;
+                navPathIndex = -1;
+                targetPos    = patrolTarget;
+            }
+            else
+            {
+                targetPos = navPath[navPathIndex];
+            }
+        }
+    }
+    else
+    {
+        // No path available: just walk straight toward patrolTarget (old behavior)
+        navHasPath   = false;
+        navPathIndex = -1;
+        targetPos    = patrolTarget;
+    }
+
+    // Movement toward targetPos
+    Vector3 vel = ArriveXZ(position, targetPos, PATROL_SPEED, PATROL_SLOW_RAD);
     position    = Vector3Add(position, Vector3Scale(vel, deltaTime));
 
-    // Stop at water edge → flee
+    // Stop at water edge → flee (belt-and-suspenders on top of nav)
     if (StopAtWaterEdge(position, vel, 65, deltaTime)) {
         hasPatrolTarget = false;
+        navHasPath      = false;
+        navPath.clear();
+        navPathIndex = -1;
         ChangeState(CharacterState::RunAway);
         return;
     }
@@ -1570,9 +1790,12 @@ void Character::UpdatePatrol(float deltaTime)
         rotationY = RAD2DEG * atan2f(vel.x, vel.z);
     }
 
-    // Arrived → idle
+    // Arrived at patrolTarget → idle
     if (DistXZ(position, patrolTarget) <= ARRIVE_EPS_XZ) {
         hasPatrolTarget = false;
+        navHasPath      = false;
+        navPath.clear();
+        navPathIndex = -1;
         ChangeState(CharacterState::Idle);
         return;
     }
@@ -1581,11 +1804,12 @@ void Character::UpdatePatrol(float deltaTime)
     const float STALK_ENTER = 2000.0f;
     if (playerVisible && Vector3Distance(position, player.position) < STALK_ENTER) {
         hasPatrolTarget = false;
-        if (canSee) ChangeState(CharacterState::Chase); //cant see if player is in water
+        navHasPath      = false;
+        navPath.clear();
+        navPathIndex = -1;
+
+        if (canSee) ChangeState(CharacterState::Chase); // cant see if player is in water
         return;
     }
 }
-
-
-
 

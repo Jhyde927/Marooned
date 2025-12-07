@@ -66,6 +66,7 @@ public:
     float stateTimer = 0.0f;
     float stepTimer = 0.0f;
     float raptorSpeed = 700.0f;
+    float raptorSoundCooldown = 0.0f;
     Vector3 patrolTarget{0,0,0};
     bool hasPatrolTarget = false;
     float wanderAngle = 0.0f;    
@@ -114,12 +115,25 @@ public:
     int    strafeStreak = 0;
     float strafeSideSign = 1.0f; // >0 = one way, <0 = the other
     bool    hasFleeTarget = false;
+
+
+    int   navPathIndex = -1;        // current waypoint
+    bool  navHasPath   = false;     // are we using nav path for this chase?
+
+    // optional: to avoid rebuilding path too often
+    float navRepathTimer = 0.0f;
+    static constexpr float NAV_REPATH_INTERVAL = 1.5f; // seconds, tweak
+
+
+
+
     FacingMode facingMode = FacingMode::Approaching;
     CharacterType type;
 
     std::vector<Vector2> currentPath;
     std::vector<Vector3> currentWorldPath;
 
+    std::vector<Vector3> navPath;   // world-space waypoints
 
     Character(Vector3 pos, Texture2D& tex, int fw, int fh, int frames, float speed, float scl, int row = 0, CharacterType t = CharacterType::Raptor);
     BoundingBox GetBoundingBox() const;
@@ -138,7 +152,10 @@ public:
     void SetPath(Vector2 start);
     void UpdateMovementAnim();
     void SetPathTo(const Vector3& goalWorld);
-
+    bool ChooseFleeTarget();
+    void BuildPathToPlayer();
+    bool ChoosePatrolTarget();
+    bool BuildPathTo(const Vector3& goalWorld);
     void eraseCharacters();
     void TakeDamage(int amount);
     void SetAnimation(int row, int frames, float speed, bool loop=true);

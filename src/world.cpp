@@ -17,6 +17,7 @@
 #include "terrainChunking.h"
 #include "spiderEgg.h"
 #include "miniMap.h"
+#include "heightmapPathfinding.h"
 
 
 
@@ -26,6 +27,7 @@ GameState currentGameState = GameState::Menu;
 
 Image heightmap;
 Vector3 terrainScale = {16000.0f, 200.0f, 16000.0f}; //very large x and z, 
+HeightmapNavGrid gIslandNav;
 
 TreeShadowMask gTreeShadowMask;
 int levelIndex = 0; //current level, levels[levelIndex]
@@ -70,6 +72,7 @@ bool playerInit = false;
 bool hasStaff = false;
 float fade = 0.0f;
 bool isFullscreen = true;
+bool hasIslandNav = false;
 
 float debugDoorOpenAngleDeg = 0.0f;
 
@@ -112,6 +115,21 @@ void InitLevel(LevelData& level, Camera& camera) {
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
+
+    if (heightmap.width > 0){
+
+        HeightmapNavGrid gIslandNav = HeightmapPathfinding::BuildNavGridFromHeightmap(
+            heightmap,
+            256, 256,            // nav grid resolution (tune this)
+            60,            // same seaLevel you use for water
+            terrainScale.x, terrainScale.z
+        );
+
+        hasIslandNav = true;
+
+    }
+
+
 
     dungeonEntrances = level.entrances; //get level entrances from level data
     generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances. 

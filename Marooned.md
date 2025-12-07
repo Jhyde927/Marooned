@@ -648,9 +648,17 @@ We tried doing orbit before with steering. How would we build an orbiting path? 
 
 Generating side profile of the raptor now. Going to add on to isLeaving logic and do a enum class instead. So we will have 3 states. Approaching, Leaving, strafing. By measuring movement relative to the player we can derive the state. I think we got to be conservative on showing side profile. Because if it shows a side profile when it's coming right at ya. It would look bad. 
 
+UpdateLeavingFlag now controls the state of the facingMode. isLeaving is still calculated. Added side profile to pirates as well. We actually didn't have to be conservative on the side facing we had to crank it up to show it more. It uses the cosign threshold again. Just like bullets. To measure the facing angle to the player. Needed to put it to 30, so at a 30 degree angle or more it shows it's side? I think. and if the angle gets too high it switches to rear facing. It hurts to think about. 
+
 Redid raptor art. Not sure if I like it though. It may be uncanny valley territory. Something about the eyes is anerving. It took like 4 hours to generate 7 frames. and they aren't very consistant looking. garbage in garbage out. Start with a better example image. 
 
+Got a half way decent comic book style raptor with side profile when running horizontal to player. Could use one more bite frame. I made the raptors twice as fast and improved their behavior. They now attack then run away to a random spot in a ring around the player at least 2k units away. Raptors will run away after attacking twice if they aren't attacked back. So they don't just sit there and chomp away forever. Raptors look less like barney the dinosaur so it's an improvement. 
+
 melee hit box isn't colliding with webs when close up against it. Move the hitbox backward -z? 
+
+barrel breaking sound isn't positional. 
+
+"E to interact" should fade away when you move away from the dungeon entrance. 
 
 
 

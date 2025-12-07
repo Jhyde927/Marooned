@@ -14,6 +14,7 @@
 #include "dungeonGeneration.h"
 #include "shadows.h"
 #include "miniMap.h"
+#include "heightmapPathfinding.h"
 
 enum class GameState {
     Menu,
@@ -77,13 +78,17 @@ extern bool hasStaff;
 extern bool drawCeiling;
 extern bool levelLoaded;
 extern bool isFullscreen;
+extern bool hasIslandNav;
 
 extern float debugDoorOpenAngleDeg;
 //extern float muzzleFlashTimer;
 
+
+
 extern GameState currentGameState;
 extern FadePhase gFadePhase;
 
+extern HeightmapNavGrid gIslandNav;
 extern TreeShadowMask gTreeShadowMask;
 extern std::vector<DungeonEntrance> dungeonEntrances;
 //extern std::vector<Bullet> activeBullets;

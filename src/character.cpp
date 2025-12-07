@@ -10,6 +10,7 @@
 #include "pathfinding.h"
 #include "resourceManager.h"
 #include "utilities.h"
+#include "heightmapPathfinding.h"
 
 //Character raptor(spawnPos, R.GetTexture("raptorTexture"), 200, 200, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
 
@@ -46,14 +47,21 @@ BoundingBox Character::GetBoundingBox() const {
     };
 }
 
-void Character::playRaptorSounds(){
-    int rn = GetRandomValue(1, 3);
-    switch (rn){
-    case 1:SoundManager::GetInstance().PlaySoundAtPosition("dinoTweet", position, player.position, player.rotation.y, 4000);break;
-    case 2:SoundManager::GetInstance().PlaySoundAtPosition("dinoTweet2", position, player.position, player.rotation.y, 4000);break;
-    case 3:SoundManager::GetInstance().PlaySoundAtPosition("dinoTarget", position, player.position, player.rotation.y, 4000);break;
-    } 
+void Character::playRaptorSounds()
+{
+    if (raptorSoundCooldown > 0.0f) return;
 
+    // 1.5–3 second cooldown randomization for variety
+    raptorSoundCooldown = GetRandomValue(1500, 3000) / 1000.0f;
+
+    int rn = GetRandomValue(1, 3);
+
+    auto& sm = SoundManager::GetInstance();
+    switch (rn){
+        case 1: sm.PlaySoundAtPosition("dinoTweet", position, player.position, player.rotation.y, 4000); break;
+        case 2: sm.PlaySoundAtPosition("dinoTweet2", position, player.position, player.rotation.y, 4000); break;
+        case 3: sm.PlaySoundAtPosition("dinoTarget", position, player.position, player.rotation.y, 4000); break;
+    }
 }
 
 
@@ -173,6 +181,8 @@ void Character::Update(float deltaTime, Player& player ) {
  
     animationTimer += deltaTime;
     stateTimer += deltaTime;
+    raptorSoundCooldown -= deltaTime;
+    if (raptorSoundCooldown < 0) raptorSoundCooldown = 0;
 
     float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale); //get groundY from heightmap
     if (isDungeon) groundY = dungeonPlayerHeight;
@@ -278,7 +288,6 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
 
     constexpr float COS = 0.8f;  //Higher to show side more often
     
-
     // Current vectors (XZ plane)
     Vector3 r          = XZ( Vector3Subtract(playerPos, this->position) );   // enemy -> player
     Vector3 enemyStep  = XZ( Vector3Subtract(this->position, this->prevPos) );
@@ -394,6 +403,35 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
     // Backwards compat: keep isLeaving in sync for any existing code
     isLeaving = (facingMode == FacingMode::Leaving ||
                 facingMode == FacingMode::Strafing);
+}
+
+
+void Character::BuildPathToPlayer()
+{
+    navPath.clear();
+    navPathIndex   = -1;
+    navHasPath     = false;
+
+    if (!hasIslandNav) return;
+
+    std::vector<Vector3> path;
+    bool ok = HeightmapPathfinding::FindPathBFS(
+        gIslandNav,
+        position,
+        player.position,
+        terrainScale.y,
+        path
+    );
+
+    if (!ok || path.empty())
+    {
+        return; // fall back to direct Arrive chase
+    }
+
+    navPath      = std::move(path);
+    navPathIndex = 0;
+    navHasPath   = true;
+    navRepathTimer = 0.0f;
 }
 
 
