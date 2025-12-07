@@ -14,6 +14,7 @@
 #include "lighting.h"
 #include <cstdint>
 #include "spiderEgg.h"
+#include "viewCone.h"
 
 std::vector<uint8_t> lavaMask; // width*height, 1 = lava, 0 = not
 
@@ -1223,7 +1224,7 @@ void GeneratePiratesFromImage(float baseY) {
                 
 
                 pirate.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
-                pirate.currentHealth = 400;//bullets are 25 damage x 7 for the blunderbus. 175 if all the pellets hit 
+                pirate.currentHealth = 400;
                 enemies.push_back(pirate);
                 enemyPtrs.push_back(&enemies.back()); 
 
@@ -1426,89 +1427,54 @@ void DrawDungeonChests() {
     
 }
 
-static inline void SetIsCeilingUniform(bool yes, Shader s) {
-    int locCeil = GetShaderLocation(s, "isCeiling");
-    int v = yes ? 1 : 0;
-    if (locCeil >= 0) SetShaderValue(s, locCeil, &v, SHADER_UNIFORM_INT);
-}
+void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
+    // Shared cone parameters (new system)
+    ViewConeParams vp = MakeViewConeParams(
+        camera,
+        60.0f,      
+        maxDrawDist,
+        400.0f    
+    );
 
-
-void DrawDungeonCeiling(){
-    if (!drawCeiling) return;
-    const float cull_radius = 5400;
-    Model& ceilingModel = R.GetModel("floorTileGray");
-
-    SetIsCeilingUniform(true, R.GetShader("lightingShader"));
-    rlEnableBackfaceCulling();
-    for (CeilingTile& tile : ceilingTiles){
-        float dist = Vector3Distance(player.position, tile.position);
-        if (dist < cull_radius){ //always cull ceilings
-            DrawModelEx(ceilingModel, tile.position, {1,0,0}, 180.0f, Vector3{700, 700, 700}, tile.tint);
-        }
-
-    }
-        
-    rlDisableBackfaceCulling();
-    SetIsCeilingUniform(false, R.GetShader("lightingShader"));
-}
-
-
-void DrawDungeonFloor() {
-
-    Model& floorModel = R.GetModel("floorTileGray");
-    Model& lavaModel = R.GetModel("lavaTile");
-    const float cull_radius = 5400.0f;
-
-    const Vector3 baseScale   = {700, 700, 700};
-
-    for (const FloorTile& tile : floorTiles) {
-        float dist = Vector3Distance(player.position, tile.position);
-        if (dist < cull_radius && !debugInfo){
-            DrawModelEx(floorModel, tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);    
-        }else{
-            DrawModelEx(floorModel, tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);   
-        }
-        
-    }
-
-    for (const FloorTile& lavaTile : lavaTiles){
-        float dist = Vector3Distance(player.position, lavaTile.position);
-        if (dist < cull_radius){
-            DrawModelEx(lavaModel, lavaTile.position, {0, 1, 0}, 0.0f, baseScale, lavaTile.tint);
-
-        }
-
-    }
-
-}
-
-void DrawDungeonWalls() {
-    float cullRadius = 6500.0f;
-    
+    //Walls
     for (const WallInstance& _wall : wallInstances) {
-        float distanceTo = Vector3Distance(player.position, _wall.position);
-        if (distanceTo < cullRadius && !debugInfo){
-            DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-
-        }else{
-            DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-        }
-
+        if (!IsInViewCone(vp, _wall.position)) continue;
+        DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
 
     }
-}
 
-
-
-void DrawDungeonDoorways(){
-
+    //Doorways
     for (const DoorwayInstance& d : doorways) {
+        if (!IsInViewCone(vp, d.position)) continue;
         Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
         DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
         
     }
 
+    //Floors
+    const Vector3 baseScale   = {700, 700, 700};
+    for (const FloorTile& tile : floorTiles) {
+        if (!IsInViewCone(vp, tile.position)) continue;
+        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);    
+    }
+    //Lava
+    for (const FloorTile& lavaTile : lavaTiles){
+        if (!IsInViewCone(vp, lavaTile.position)) continue;
+
+        DrawModelEx(R.GetModel("lavaTile"), lavaTile.position, {0, 1, 0}, 0.0f, baseScale, lavaTile.tint);
+
+    }
+
+    //Ceilings
+    rlEnableBackfaceCulling();
+    for (CeilingTile& tile : ceilingTiles){
+        if (!IsInViewCone(vp, tile.position)) continue;
+        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, Vector3{700, 700, 700}, tile.tint);
+    }
+    rlDisableBackfaceCulling();
+
 }
+
 
 void DrawFlatDoor(Texture2D tex,
                   Vector3 hingeBL,     // bottom-left hinge corner
@@ -1608,44 +1574,6 @@ void DrawFlatDoor(Texture2D tex,
     EndBlendMode();
     if (!isDungeon) EndShaderMode();
 }
-
-
-
-// void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint) {
-//     float w = width;
-//     float h = height;
-
-//     // Determine local axes
-//     Vector3 forward = Vector3RotateByAxisAngle({0, 0, 1}, {0, 1, 0}, rotY);
-//     Vector3 right = Vector3CrossProduct({0, 1, 0}, forward);
-
-//     // Use pos directly as the center
-//     Vector3 center = pos;
-
-//     // Compute quad corners (centered on position)
-//     Vector3 bottomLeft  = Vector3Add(center, Vector3Add(Vector3Scale(right, -w * 0.5f), Vector3Scale(forward, -1.0f)));
-//     Vector3 bottomRight = Vector3Add(center, Vector3Add(Vector3Scale(right,  w * 0.5f), Vector3Scale(forward, -1.0f)));
-//     Vector3 topLeft     = Vector3Add(bottomLeft, {0, h, 0});
-//     Vector3 topRight    = Vector3Add(bottomRight, {0, h, 0});
-//     BeginBlendMode(BLEND_ALPHA);
-//     if (!isDungeon) BeginShaderMode(R.GetShader("treeShader")); //fog on flat door at distance in jungle
-//     rlEnableDepthTest();   // make sure testing is on
-//     rlDisableDepthMask();  // <-- NO depth writes from the portal..still occludes bullets for some reason. 
-//     rlSetTexture(tex.id);
-//     rlBegin(RL_QUADS);
-//         rlColor4ub(tint.r, tint.g, tint.b, tint.a);
-
-//         rlTexCoord2f(0, 1); rlVertex3f(bottomLeft.x,  bottomLeft.y,  bottomLeft.z);
-//         rlTexCoord2f(1, 1); rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
-//         rlTexCoord2f(1, 0); rlVertex3f(topRight.x,    topRight.y,    topRight.z);
-//         rlTexCoord2f(0, 0); rlVertex3f(topLeft.x,     topLeft.y,     topLeft.z);
-//     rlEnd();
-//     rlSetTexture(0);
-//     rlColor4ub(255, 255, 255, 255);
-//     rlEnableDepthMask();
-//     EndBlendMode();
-//     EndShaderMode();
-// }
 
 
 

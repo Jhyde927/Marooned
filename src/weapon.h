@@ -72,7 +72,7 @@ struct MeleeWeapon {
 
     float forwardOffset = 60.0f;//default postion
     float sideOffset = 20.0f; // pull it left of the screen
-    float verticalOffset = -50.0f; //default position
+    float verticalOffset = -45.0f; //default position
 
 
     void StartBlock();

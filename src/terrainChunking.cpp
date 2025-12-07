@@ -5,6 +5,7 @@
 #include <cstring>
 #include "raymath.h"
 #include "world.h"
+#include "viewCone.h"
 
 TerrainGrid terrain;
 
@@ -197,55 +198,57 @@ TerrainGrid BuildTerrainGridFromHeightmap(const Image& heightmapGray, Vector3 te
     return T;
 }
 
-void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float maxDrawDist,int maxChunksToDraw,std::vector<ChunkDrawInfo>& outList){
-    //bootleg fustum culling and more. 
+void BuildTerrainChunkDrawList(
+    const TerrainGrid& T,
+    const Camera3D& cam,
+    float maxDrawDist,
+    int maxChunksToDraw,
+    std::vector<ChunkDrawInfo>& outList)
+{
     outList.clear();
-    Vector3 camForward = Vector3Normalize(
-        Vector3Subtract(cam.target, cam.position)
+
+    // Shared cone parameters (new system)
+    ViewConeParams vp = MakeViewConeParams(
+        cam,
+        60.0f,      // half-FOV (you previously used 60)
+        maxDrawDist,
+        1600.0f     // near chunk distance (old NEAR_CHUNK_DIST)
     );
 
-    float halfFovDeg = 60.0f; // 45 default player fov, set to 60 to cover big chunks popping in. 
-    float halfFovRad = halfFovDeg * PI / 180.0f;
-    float cosHalfFov = cosf(halfFovRad);
-
-    float maxDrawDistSq = maxDrawDist * maxDrawDist;
-
-    const float NEAR_CHUNK_DIST    = 1600.0f;
-    const float NEAR_CHUNK_DIST_SQ = NEAR_CHUNK_DIST * NEAR_CHUNK_DIST;
-    const float WATER_HEIGHT       = 55.0f; //cull underwater tiles. 
+    const float WATER_HEIGHT = 55.0f;
 
     // 1) Collect candidates
-    for (const TerrainChunk& c : T.chunks) {
-        Vector3 toChunk = Vector3Subtract(c.center, cam.position);
+    for (const TerrainChunk& c : T.chunks)
+    {
+        // First do distance + water tests (fast)
+        Vector3 toChunk = Vector3Subtract(c.center, vp.camPos);
         float distSq = Vector3LengthSqr(toChunk);
-        if (distSq > maxDrawDistSq) continue;
 
-        if (c.aabb.max.y < WATER_HEIGHT && !player.isSwimming) continue;
-
-        // Always include very close chunks
-        if (distSq < NEAR_CHUNK_DIST_SQ || distSq < 0.0001f) {
-            outList.push_back({ &c, distSq });
+        if (distSq > vp.maxDistSq)
             continue;
-        }
 
-        Vector3 dirToChunk = Vector3Normalize(toChunk);
-        float dot = Vector3DotProduct(camForward, dirToChunk);
-        if (dot < cosHalfFov) continue; // outside view cone
+        if (c.aabb.max.y < WATER_HEIGHT && !player.isSwimming)
+            continue;
 
+        // Use new cone function for visibility
+        if (!IsInViewCone(vp, c.center))
+            continue;
+
+        // Add to draw list
         outList.push_back({ &c, distSq });
     }
 
-    // 2) Sort by distance (closest first)
+    // 2) Sort by distance
     std::sort(outList.begin(), outList.end(),
         [](const ChunkDrawInfo& a, const ChunkDrawInfo& b){
             return a.distSq < b.distSq;
         });
 
-    // 3) Hard cap count
-    if ((int)outList.size() > maxChunksToDraw) {
+    // 3) Hard cap
+    if ((int)outList.size() > maxChunksToDraw)
         outList.resize(maxChunksToDraw);
-    }
 }
+
 
 
 void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDist) {

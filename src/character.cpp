@@ -64,12 +64,36 @@ void Character::playRaptorSounds()
     }
 }
 
+Vector3 Character::GetFeetPos() const {
+    return { position.x, position.y - spriteHeight * 0.5f, position.z };
+}
+
+void Character::SetFeetPos(const Vector3& feet) {
+    position.x = feet.x;
+    position.z = feet.z;
+    position.y = feet.y + spriteHeight * 0.5f;
+}
+
+void Character::ApplyGroundSnap()
+{
+    // Get current feet pos
+    Vector3 feet = GetFeetPos();
+
+    // Sample the terrain height at this XZ
+    float groundY = GetHeightAtWorldPosition(feet, heightmap, terrainScale);
+    if (isDungeon) groundY = floorHeight;
+    
+    feet.y = groundY;
+    SetFeetPos(feet);
+
+}
+
 
 
 void Character::TakeDamage(int amount) {
     if (isDead) return;
     if (amount <= 0) return;
-
+    
     currentHealth -= amount;
 
     accumulateDamage += amount;
@@ -178,29 +202,29 @@ void Character::eraseCharacters() {
 void Character::Update(float deltaTime, Player& player ) {
     if (isLoadingLevel) return;
     bloodEmitter.UpdateBlood(deltaTime);
- 
+    
     animationTimer += deltaTime;
     stateTimer += deltaTime;
     raptorSoundCooldown -= deltaTime;
     if (raptorSoundCooldown < 0) raptorSoundCooldown = 0;
 
+    spriteHeight = frameHeight * scale;
+    if (!isDungeon) ApplyGroundSnap();
+
     float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale); //get groundY from heightmap
     if (isDungeon) groundY = dungeonPlayerHeight;
 
     // Gravity
-    float gravity = 1980.0f; //we need gravity for outside maps so characters stick to heightmap.
-    if (isDungeon) gravity = 0.0f; //no gravity in dungeons. floor is fixed height. 
-    static float verticalVelocity = 0.0f;
+    // float gravity = 1980.0f; //we need gravity for outside maps so characters stick to heightmap.
+    // static float verticalVelocity = 0.0f;
 
-    float spriteHeight = frameHeight * scale;
-
-    if (position.y > groundY + spriteHeight / 2.0f) {
-        verticalVelocity -= gravity * deltaTime;
-        position.y += verticalVelocity * deltaTime;
-    } else {
-        verticalVelocity = 0.0f;
-        position.y = groundY + spriteHeight / 2.0f;
-    }
+    // if (position.y > groundY + spriteHeight / 2.0f) {
+    //     verticalVelocity -= gravity * deltaTime;
+    //     position.y += verticalVelocity * deltaTime;
+    // } else {
+    //     verticalVelocity = 0.0f;
+    //     position.y = groundY + spriteHeight / 2.0f;
+    // }
     
     //Run AI state machine depending on characterType
     UpdateAI(deltaTime,player);
@@ -422,6 +446,7 @@ void Character::BuildPathToPlayer()
         terrainScale.y,
         path
     );
+
 
     if (!ok || path.empty())
     {

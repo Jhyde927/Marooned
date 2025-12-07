@@ -74,6 +74,7 @@ public:
     bool hasFired = false;
     bool animationLoop;
     bool canSee;
+    float spriteHeight;
     int lastAttackid = -1;
     float deathTimer = 0.0f;
     float attackCooldown = 0.0f;
@@ -133,12 +134,15 @@ public:
     std::vector<Vector2> currentPath;
     std::vector<Vector3> currentWorldPath;
 
-    std::vector<Vector3> navPath;   // world-space waypoints
+    std::vector<Vector3> navPath;   // heightmap pathfinding path
 
     Character(Vector3 pos, Texture2D& tex, int fw, int fh, int frames, float speed, float scl, int row = 0, CharacterType t = CharacterType::Raptor);
     BoundingBox GetBoundingBox() const;
-    void Update(float deltaTime, Player& player);
     Vector3 ComputeRepulsionForce(const std::vector<Character*>& allRaptors, float repulsionRadius = 500.0f, float repulsionStrength = 6000.0f);
+    Vector3 GetFeetPos() const;
+    void SetFeetPos(const Vector3& feet);
+    void ApplyGroundSnap();
+    void Update(float deltaTime, Player& player);
     void UpdateTrexAI(float deltaTime, Player& player);
     void UpdateRaptorAI(float deltaTime, Player& player);
     void UpdateAI(float deltaTime, Player& player); 
@@ -149,6 +153,7 @@ public:
     bool FindRepositionTarget(const Player& player, const Vector3& selfPos, Vector3& outTarget);
     void AlertNearbySkeletons(Vector3 alertOrigin, float radius);
     void UpdateRaptorVisibility(const Player& player, float dt);
+
     void SetPath(Vector2 start);
     void UpdateMovementAnim();
     void SetPathTo(const Vector3& goalWorld);

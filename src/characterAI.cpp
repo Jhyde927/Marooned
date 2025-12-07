@@ -1488,7 +1488,7 @@ void Character::UpdateChase(float deltaTime)
 {
     // update raptor/trex chase state. 
     float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
-    if (type == CharacterType::Trex) ATTACK_ENTER = 600; // maybe too far
+    if (type == CharacterType::Trex) ATTACK_ENTER = 500; // maybe too far
 
     const float VISION_ENTER = 5000.0f;
     float distance = Vector3Distance(position, player.position);
@@ -1515,7 +1515,7 @@ void Character::UpdateChase(float deltaTime)
     float MAX_SPEED = raptorSpeed;  // per-type speed 700
     if (type == CharacterType::Raptor) MAX_SPEED = 1400.0f; // double fast raptors.
 
-    const float SLOW_RADIUS = 800.0f;       // ease-in so we don’t overshoot
+    const float SLOW_RADIUS = 400.0f;       // ease-in so we don’t overshoot
 
     Vector3 targetPos = player.position;
 
@@ -1523,17 +1523,19 @@ void Character::UpdateChase(float deltaTime)
     if (navHasPath && navPathIndex >= 0 && navPathIndex < (int)navPath.size())
     {
         targetPos = navPath[navPathIndex];
-
-        // If we’re close enough to this waypoint, advance to the next
-        float waypointDist = Vector3Distance(position, targetPos);
-        const float WAYPOINT_REACH_RADIUS = 150.0f; // tweak
+        
+        //Only check XZ distance not Y. T-Rex is taller by like 100, so it messed up the distance calculation.
+        float waypointDist = DistXZ(position, targetPos); 
+        const float WAYPOINT_REACH_RADIUS = 150.0f; 
 
         if (waypointDist < WAYPOINT_REACH_RADIUS)
         {
+            
             navPathIndex++;
-
+            
             if (navPathIndex >= (int)navPath.size())
             {
+                
                 // Reached end of path; switch to direct player chase
                 navHasPath   = false;
                 navPathIndex = -1;
@@ -1551,6 +1553,7 @@ void Character::UpdateChase(float deltaTime)
         navHasPath   = false;
         navPathIndex = -1;
         targetPos    = player.position;
+        
     }
 
     // Move toward targetPos (either player or current waypoint), easing inside SLOW_RADIUS
@@ -1563,18 +1566,21 @@ void Character::UpdateChase(float deltaTime)
 
     if (!blocked)
     {
+        
         position = Vector3Add(position, Vector3Scale(vel + repel, deltaTime));
     }
     else
     {
         // You *could* trigger a repath here instead of running away if you want:
         // BuildPathToPlayer();
+        
         ChangeState(CharacterState::RunAway);
     }
 
     if (vel.x*vel.x + vel.z*vel.z > 1e-4f) {
         rotationY = RAD2DEG * atan2f(vel.x, vel.z);
     }
+
 }
 
 
@@ -1598,7 +1604,7 @@ void Character::UpdateTrexStepSFX(float dt)
 void Character::UpdateRunaway(float deltaTime)
 {
     // Distance from player (for exit logic)
-    float distance = Vector3Distance(position, player.position);
+    float distance = DistXZ(position, player.position);
 
     // --- simple knobs ---
     const float MAX_SPEED      = 1000.0f;
@@ -1802,7 +1808,7 @@ void Character::UpdatePatrol(float deltaTime)
 
     // Player seen → chase
     const float STALK_ENTER = 2000.0f;
-    if (playerVisible && Vector3Distance(position, player.position) < STALK_ENTER) {
+    if (playerVisible && DistXZ(position, player.position) < STALK_ENTER) {
         hasPatrolTarget = false;
         navHasPath      = false;
         navPath.clear();

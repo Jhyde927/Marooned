@@ -45,6 +45,8 @@ void GatherEnemies(Camera& camera) {
 
         }
 
+        if (enemy->hitTimer > 0.0f) flipX = false; //dont flipX when taking damage. 
+
         // offset to prevent z-fighting
         Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, enemy->position));
         Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, 10.0f));

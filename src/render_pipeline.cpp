@@ -51,15 +51,12 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawTrees(trees, camera); 
             DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
             EndShaderMode();
-            DrawDungeonDoorways();          
+            //DrawDungeonDoorways();          
+            DrawDungeonGeometry(camera, 10000);
             DrawOverworldProps();
         } else {
             //draw the dungeon
-            DrawDungeonFloor();
-            DrawDungeonWalls();
-            DrawDungeonDoorways();
-            DrawDungeonCeiling();
-
+            DrawDungeonGeometry(camera, 8000);
             DrawDungeonBarrels();
             DrawLaunchers();
             DrawDungeonChests();

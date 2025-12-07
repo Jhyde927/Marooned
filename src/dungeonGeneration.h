@@ -235,31 +235,26 @@ void GenerateSpiderWebs(float baseY);
 void GenerateChests(float baseY); 
 void GenerateLaunchers(float baseY);
 void GenerateLightSources(float baseY);
-void GenerateLightSourcesForward(float baseY);
 void GenerateDoorways( float baseY, int currentLevelIndex);
 void GenerateDoorsFromArchways();
 void GeneratePotions(float baseY);
 void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
-void DrawDungeonFloor();
-void DrawDungeonWalls();
-void DrawDungeonFloor();
+
 void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
 void ApplyLavaDPS(Player& player, float dt, float lavaDps);
 
-//void DrawSpiderWebs(Camera& camera);
+void DrawDungeonGeometry(Camera& camera, float maxDrawDist);
 void DrawDungeonChests(); 
 void DrawDungeonPillars();
-void DrawDungeonDoorways();
+
 //void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint);
 void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height, float rotationY, Color tint);
 void GenerateWeapons(float Height);
 //void DrawDungeonCeiling(Model ceilingTileModel, float ceilingOffsetY);
 void HandleDungeonTints();
-void DrawDungeonCeiling();
-
 void UpdateBarrelTints(Vector3 playerPos);
 void UpdateChestTints(Vector3 playerPos);
 void UpdateDoorTints(Vector3 playerPos);

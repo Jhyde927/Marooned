@@ -116,17 +116,22 @@ void InitLevel(LevelData& level, Camera& camera) {
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
 
-    if (heightmap.width > 0){
+    hasIslandNav = false;
 
-        HeightmapNavGrid gIslandNav = HeightmapPathfinding::BuildNavGridFromHeightmap(
+    if (heightmap.data != NULL && heightmap.width > 0)
+    {
+        float navSeaLevel = 60/255.0f; // match your actual sea level
+
+        gIslandNav = HeightmapPathfinding::BuildNavGridFromHeightmap(
             heightmap,
-            256, 256,            // nav grid resolution (tune this)
-            60,            // same seaLevel you use for water
-            terrainScale.x, terrainScale.z
+            256, 256,
+            navSeaLevel,
+            terrainScale.x,
+            terrainScale.z
         );
 
-        hasIslandNav = true;
-
+        if (gIslandNav.gridWidth > 0 && !gIslandNav.walkable.empty())
+            hasIslandNav = true;
     }
 
 
