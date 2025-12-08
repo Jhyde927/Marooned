@@ -45,7 +45,7 @@ private:
 
     float drawSize = 160.0f;  // on-screen minimap size (square)
 
-    Texture2D wallMask = { 0 };
+    Texture2D wallMask = {};
     bool initialized   = false;
 
 

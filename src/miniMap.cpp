@@ -47,7 +47,7 @@ void MiniMap::Unload()
     if (wallMask.id != 0)
         UnloadTexture(wallMask);
 
-    wallMask = { 0 };
+    wallMask = {};
     explored.clear();
     visible.clear();
     revealTime.clear();
@@ -335,8 +335,8 @@ void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
 {
     if (!initialized || !isDungeon) return;
 
-    float tileW = drawSize / (float)dungeonWidth;
-    float tileH = drawSize / (float)dungeonHeight;
+    // float tileW = drawSize / (float)dungeonWidth;
+    // float tileH = drawSize / (float)dungeonHeight;
 
     for (Character* enemy : enemies)
     {
@@ -379,8 +379,8 @@ void MiniMap::DrawDoors(const std::vector<Door>& doors,
 {
     if (!initialized) return;
 
-    float tileW = drawSize / (float)dungeonWidth;
-    float tileH = drawSize / (float)dungeonHeight;
+    // float tileW = drawSize / (float)dungeonWidth;
+    // float tileH = drawSize / (float)dungeonHeight;
 
     //could use dungeonColors.h here. 
     //Draw door markers as different colors depending on door type. 

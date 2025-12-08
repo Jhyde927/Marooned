@@ -153,7 +153,7 @@ TerrainGrid BuildTerrainGridFromHeightmap(const Image& heightmapGray, Vector3 te
             }
 
             // Upload to GPU -> Mesh -> Model
-            Mesh mesh = { 0 };
+            Mesh mesh = {};
             mesh.vertexCount   = numVerts;
             mesh.triangleCount = numTris;
 

@@ -82,13 +82,11 @@ void Character::ApplyGroundSnap()
     // Sample the terrain height at this XZ
     float groundY = GetHeightAtWorldPosition(feet, heightmap, terrainScale);
     if (isDungeon) groundY = floorHeight;
-    
+
     feet.y = groundY;
     SetFeetPos(feet);
 
 }
-
-
 
 void Character::TakeDamage(int amount) {
     if (isDead) return;

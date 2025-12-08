@@ -66,7 +66,9 @@ void GatherEnemies(Camera& camera) {
             finalTint,
             dist,
             0.0f,
-            flipX     // <----- added
+            flipX,     // <----- added
+            false,
+            false
         });
     }
 }
@@ -84,7 +86,10 @@ void GatherCollectables(Camera& camera, const std::vector<Collectable>& collecta
             c.scale,
             WHITE,
             dist,
-            0.0f
+            0.0f,
+            false,
+            false,
+            false
         });
     }
 }
@@ -153,7 +158,10 @@ void GatherDungeonFires(Camera& camera, float deltaTime) {
             100.0f,
             WHITE,
             dist,
-            0.0f
+            0.0f,
+            false,
+            false,
+            false
         });
     }
 }
@@ -173,7 +181,10 @@ void GatherWebs(Camera& camera) {
             400.0f,
             WHITE,
             Vector3Distance(camera.position, web.position),
-            web.rotationY
+            web.rotationY,
+            false,
+            false,
+            false
         });
     }
 }
@@ -263,7 +274,10 @@ void GatherDecals(Camera& camera, const std::vector<Decal>& decals) {
             decal.size,
             WHITE,
             dist,
-            0.0f
+            0.0f,
+            false,
+            false,
+            false
         });
     }
 }
@@ -280,7 +294,10 @@ void GatherMuzzleFlashes(Camera& camera, const std::vector<MuzzleFlash>& flashes
             flash.size,
             WHITE,
             dist,
-            0.0f
+            0.0f,
+            false,
+            false,
+            false
         });
     }
 }

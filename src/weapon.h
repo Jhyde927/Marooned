@@ -66,6 +66,7 @@ struct MeleeWeapon {
     float horizontalSwingOffset = 0.0f;
     float horizontalSwingAmount = 20.0f; // little lateral arc
 
+    float equipDip = 0.0f; // 0 = normal, positive = pushed down/out of view
 
     float cooldown = 1.0f;
     float timeSinceLastSwing = 999.0f;
@@ -175,7 +176,7 @@ struct MagicStaff {
     float flashSize = 64.0f;
 
     float reloadDip = 0.0f;
-
+    float equipDip = 0.0f;
     // === Methods ===
     void StartSwing(Camera& camera);
     void Update(float deltaTime);

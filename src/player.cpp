@@ -46,25 +46,45 @@ void InitPlayer(Player& player, Vector3 startPosition) {
 }
 
 
+
 void Player::EquipNextWeapon() {
-    meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean"); //wipe the blood off. 
+    meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = 
+        R.GetTexture("swordClean");
+
     if (collectedWeapons.empty()) {
-       
         activeWeapon = WeaponType::None;
         currentWeaponIndex = -1;
         return;
     }
-    
+
+    WeaponType previous = activeWeapon;
+
+    // cycle
     currentWeaponIndex = (currentWeaponIndex + 1) % collectedWeapons.size();
     activeWeapon = collectedWeapons[currentWeaponIndex];
+
+    // Weapon swap animations
+    if (previous == WeaponType::Sword) {
+        meleeWeapon.equipDip = 80.0f;   // start low
+    }
+
+    // If we PUT AWAY the blunderbuss → force it into a dipped state
+    if (previous == WeaponType::Blunderbuss) {
+        weapon.reloadDip       = 25.0f;  // dip off-screen
+    }
+
+    if (previous == WeaponType::MagicStaff) {
+        magicStaff.equipDip = 100.0f;
+    }
 }
+
 
 
 void HandlePlayerMovement(float deltaTime){
     float dt = deltaTime;
     if (!player.canMove) return;
 
-    // --- build desired direction in local space (same as yours)
+    // --- build desired direction in local space 
     Vector2 wish = {0,0};
     if (IsKeyDown(KEY_W)) wish.y += 1;
     if (IsKeyDown(KEY_S)) wish.y -= 1;
@@ -112,7 +132,7 @@ void HandlePlayerMovement(float deltaTime){
 
 }
 
-void HandleKeyboardInput(float deltaTime, Camera& camera) {
+void HandleKeyboardInput(Camera& camera) {
 
     // Right mouse state //blocking
     const bool rmb = IsMouseButtonDown(MOUSE_RIGHT_BUTTON);
@@ -261,7 +281,7 @@ void PlaySwimOnce()
     if (isDungeon) return;
     static const std::array<const char*,4> KEYS = { "swim1","swim2","swim3","swim4" };
     static int lastIndex = -1;
-    static Sound current = {0};  // raylib Sound handle of the *last* played clip
+    static Sound current = {};  // raylib Sound handle of the *last* played clip
 
     // If a previous swim sound is still playing, do nothing
     if (current.frameCount > 0 && IsSoundPlaying(current)){
@@ -333,7 +353,7 @@ void UpdateSwimSounds(float deltaTime){
 void UpdateMeleeHitbox(Camera& camera){
     if (meleeWeapon.hitboxActive || magicStaff.hitboxActive) {
         Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-        Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, { 0, 1, 0 }));
+        //Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, { 0, 1, 0 }));
 
         Vector3 hitboxCenter = Vector3Add(player.position, Vector3Scale(forward, 200.0f));
         hitboxCenter.y += 0.0f; 
@@ -497,7 +517,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     if (player.dead) {
         // Reset position and state
         player.position = player.startPosition;
-        player.velocity = {0}; 
+        player.velocity = {}; 
         player.currentHealth = player.maxHealth;
         player.dead = false;
         player.canMove = true;
@@ -507,7 +527,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     //PLAYER MOVEMENT KEYBOARD INPUT
     if (controlPlayer){
-        HandleKeyboardInput(deltaTime, camera);
+        HandleKeyboardInput(camera);
         if (!player.onBoard) HandlePlayerMovement(deltaTime);
     } 
 

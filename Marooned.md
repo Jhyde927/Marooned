@@ -660,6 +660,22 @@ barrel breaking sound isn't positional.
 
 "E to interact" should fade away when you move away from the dungeon entrance. 
 
+Implemented height map pathfinding. We generate a "nav mesh" from the heightmap image. Just a grid of bools. walkable or not. If below sea level cells become unwalkable. Dinos can now come right up to waters edge. Cells are 256x256. Maybe this is too big? but in practice it seems pretty good. I had no way to visualize the grid so I just had to trust it was working, and it is. Raptors have a fall back run away mode if the path fails where they just run to a spot in a ring around player like before. Hard to tell if it's not just falling back every time. We could add slope detection to the nav mesh to make dinos not stand on steep slopes. They just get slightly embeded in the ground when on slopes it's not that bad. They now path find around water. When chasing you into the water the stop at waters edge and eventually patrol because they cant see the player when he's in water. This looks a lot more natural than before. Also fixed playRaptorSounds() to be on a cool down instead of spamming everytime they entered chase. Heightmap pathfinding also just works for T-Rex because she uses the same updateChase func. The BFS was only using 4 neihbors before and I upped it to 8 so they should make a more diaganol path instead of stair stepping.
+
+ -I was a fool. It was falling back every time. I was making a new navMesh instead of using the global one so the raptors never got the path. I have since fixed the issue and they are now properly using the navPath. They seems to take weird long paths to the player, maybe chase durration isn't high enought because they are running around like mad. but maybe it's better that way, if they were all attacking at once it would be too hard I think. Better for them to run around and circle the player and attack one by one. 
+
+what else. Built another linux version and got mouse look working on the virtual machine. Island levels run at like 30 frames. Dungeon was like 22. Pretty good for a VM with 2 cores 8 gigs of ram and 256meg vram. If we drawModelInstace instead it would probably run at like 60. Well there is 200 draw calls on terrain maps. 200 chunks. 32x32 dungeons are (32x32) * 2 + walls draw calls. That's why it's slower now. less draw calls outside. and no giant model eating the vram. We could fustum cull the dungeons. do the cone trick again. don't draw tiles outside the cone. make it higher than the fov so theres a buffer. 
+
+Implemented frustum culling for dungeons. We use the same cone technology we use for heightmap chunks. I moved all the separate draw functions into one DrawDungeonGeometry. There we create the cone and check if the dungeon piece is in the cone before drawing it. This improves laptop frame rate to almost 60 all the time for 32x32 maps. Makes the frame rate less consistant but faster, just like the outdoor chunks. It even works at like 30 frames on the VM. 
+
+Maybe redo the pirate in a comic book style like the raptor. If I can get good generation. I only have like 20 credits left. This is going to take at least 50 I think. It does seem to be better at recreating comic book style than pixel art or anything too small. The question is will it look good in game, or will it be uncanny valley again. 
+
+Maybe you loose your weapons at some point in the game. Fists? 
+
+Made weapon swap animations. Current weapon disappears and the new weapon rises up on switch. Could also make a put weapon away animation. By animation I mean lerping the position of the model. Could do an ease in or out or whatever. 
+It may take like a quarter second longer to switch weapons. maybe 0.125 seconds. Feels better this way I think. 
+
+
 
 
 

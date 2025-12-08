@@ -62,6 +62,7 @@ void Weapon::Fire(Camera& camera) {
 }
 
 void MeleeWeapon::Update(float deltaTime) {
+    if (player.activeWeapon != WeaponType::Sword) return;
     float amplitude = 1.0f;
     bobVertical = sinf(bobbingTime) * amplitude;
     bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
@@ -120,6 +121,10 @@ void MeleeWeapon::Update(float deltaTime) {
         }
     }
 
+    // 🔹 Smoothly raise weapon from dipped state
+    const float equipReturnSpeed = 10.0f; // tweak to taste
+    equipDip = Lerp(equipDip, 0.0f, deltaTime * equipReturnSpeed);
+
     if (isMoving) {
         bobbingTime += deltaTime * 12.0f; 
     } else {
@@ -133,31 +138,12 @@ void MeleeWeapon::Update(float deltaTime) {
 
 
 void Weapon::Update(float deltaTime) {
-    float amplitude = 0.5f;
-    bobVertical = sinf(bobbingTime) * amplitude;
-    bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
-
-
-    if (recoil > 0.0f) {
-        recoil -= recoilRecoverySpeed * deltaTime;
-        if (recoil < 0.0f) recoil = 0.0f;
-    }
-
-
-    if (flashTimer > 0.0f) {
-        flashTimer -= deltaTime;
-        if (flashTimer <= 0.0f) {
-            flashTriggered = false;  // turn off after visible frame
-        }
-    }
-
-    
 
     // Handle delayed reload sound
     if (reloadScheduled) {
-        reloadTimer += deltaTime;
-
+        reloadTimer += deltaTime; //you can still reload while weapon isn't equipped
         if (reloadTimer >= reloadDelay) {
+
             SoundManager::GetInstance().Play("reload");
             reloadScheduled = false;
         }
@@ -166,6 +152,27 @@ void Weapon::Update(float deltaTime) {
             reloadDip = Lerp(reloadDip, 20.0f, deltaTime * 20.0f); // dip fast
         }
     }
+
+    if (player.activeWeapon != WeaponType::Blunderbuss) return; //dont update the rest if not equipped. 
+    float amplitude = 0.5f;
+
+    bobVertical = sinf(bobbingTime) * amplitude;
+    bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
+
+    if (recoil > 0.0f) { 
+        recoil -= recoilRecoverySpeed * deltaTime; 
+        if (recoil < 0.0f) 
+        recoil = 0.0f; 
+    }
+
+    if (flashTimer > 0.0f) {
+        flashTimer -= deltaTime;
+        if (flashTimer <= 0.0f) {
+            flashTriggered = false;  // turn off after visible frame
+        }
+    }
+
+
 
     if (reloadDip > 0.0f) {
         reloadDip -= 100.0f * deltaTime; 
@@ -269,6 +276,9 @@ void MeleeWeapon::Draw(const Camera& camera) {
     blendedForward += swingOffset;
     blendedSide += horizontalSwingOffset;
     blendedVertical += verticalSwingOffset + bobVertical;
+
+    // 🔹 Apply equip dip (positive = push sword *down*)
+    blendedVertical -= equipDip;
 
     // === Final sword position ===
     //Vector3 swordPos = camera.position;
@@ -390,6 +400,7 @@ void MagicStaff::StartSwing(Camera& camera) {
 
 
 void MagicStaff::Update(float deltaTime) {
+    if (player.activeWeapon != WeaponType::MagicStaff) return;
     float amplitude = 2.0f;
     bobVertical = sinf(bobbingTime) * amplitude;
     bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
@@ -422,6 +433,10 @@ void MagicStaff::Update(float deltaTime) {
     verticalSwingOffset = Lerp(verticalSwingOffset, 0.0f, deltaTime * 10.0f);
     horizontalSwingOffset = Lerp(horizontalSwingOffset, 0.0f, deltaTime * 10.0f);
 
+    // 🔹 Smoothly raise weapon from dipped state
+    const float equipReturnSpeed = 10.0f; // tweak to taste
+    equipDip = Lerp(equipDip, 0.0f, deltaTime * equipReturnSpeed);
+
     if (isMoving) {
         bobbingTime += deltaTime * 12.0f; 
     } else {
@@ -431,6 +446,8 @@ void MagicStaff::Update(float deltaTime) {
         bobSide = Lerp(bobSide, 0.0f, deltaTime * 5.0f);
         return;
     }
+
+
 }
 
 void MagicStaff::Draw(const Camera& camera) {
@@ -453,11 +470,16 @@ void MagicStaff::Draw(const Camera& camera) {
     float finalSide = sideOffset + horizontalSwingOffset;
     float finalVertical = verticalOffset + verticalSwingOffset - reloadDip + bobVertical;
 
+        // 🔹 Apply equip dip (positive = push sword *down*)
+    finalVertical -= equipDip;
+
     // === Final staff position ===
     Vector3 staffPos = camera.position;
     staffPos = Vector3Add(staffPos, Vector3Scale(camForward, finalForward));
     staffPos = Vector3Add(staffPos, Vector3Scale(camRight, finalSide + bobSide));
     staffPos = Vector3Add(staffPos, Vector3Scale(camUp, finalVertical));
+
+
 
     muzzlePos = Vector3Add(staffPos, Vector3Scale(camForward, 40.0f));
     Color tint = WeaponTintFromDarkness(weaponDarkness);

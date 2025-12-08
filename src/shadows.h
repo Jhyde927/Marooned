@@ -9,7 +9,7 @@
 
 //Holder for the rt
 struct TreeShadowMask {
-    RenderTexture2D rt = {0};
+    RenderTexture2D rt = {};
     int width = 0, height = 0;
     Rectangle worldXZBounds = {}; // {x,y,w,h} => (minX, minZ, sizeX, sizeZ)
 };

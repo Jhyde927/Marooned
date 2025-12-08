@@ -47,8 +47,6 @@ float tickDamage = 0.5;
 
 size_t gStaticLightCount = 0; 
 
-static float gDoorHalfWidth = 0.0f;
-
 using namespace dungeon;
 
 //Dungeon Legend
@@ -134,7 +132,6 @@ void GenerateWeapons(float Height){
 
 void UpdateDungeonChests() {
     
-    const int OPEN_START_FRAME = 0;
     const int OPEN_END_FRAME = 10;
 
     for (ChestInstance& chest : chestInstances) {
@@ -615,7 +612,6 @@ BoundingBox MakeAABBFromSkirt(const WallInstance& s, int dir)
 void AddLavaSkirtEdge(int x, int y, int dir, float baseY) {
     // endpoints on the floor plane at the edge between two tiles
     Vector3 a, b;
-    Vector3 ta = GetDungeonWorldPos(x, y, tileSize, baseY);
 
     switch (dir) {
         case 0: // east edge: (x,y) -> (x+1,y)
@@ -639,19 +635,16 @@ void AddLavaSkirtEdge(int x, int y, int dir, float baseY) {
 
     const float topY   = baseY + 20.0f;
     const float lavaY  = baseY - 420;
-    const float bTop   = baseY - 50;
+    //const float bTop   = baseY - 50;
     const float height = (topY - lavaY);
     const float WALL_MODEL_HEIGHT = 400.0f; // visual height of your wall model
 
-    const float t = 50.0f;
+    //const float t = 50.0f;
     if (height <= 0.0f) return;
 
     // Instance positioned at mid of the segment, centered vertically
     Vector3 mid = Vector3Lerp(a, b, 0.5f);
     mid.y = lavaY + 0.5f * height;
-
-
-
 
     float rotY = (dir < 2) ? 0.0f : 90.0f;  // x-edges face 90°, z-edges face 0°
     //float rotY = (dir > 2) ? 0.0f : 90.0f; //flip
@@ -1428,10 +1421,11 @@ void DrawDungeonChests() {
 }
 
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
-    // Shared cone parameters (new system)
+    const Vector3 baseScale   = {700, 700, 700};
+
     ViewConeParams vp = MakeViewConeParams(
         camera,
-        60.0f,      
+        55.0f,  //narrower cone for dungeons because we can get away with it.     
         maxDrawDist,
         400.0f    
     );
@@ -1452,12 +1446,13 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     }
 
     //Floors
-    const Vector3 baseScale   = {700, 700, 700};
+
     for (const FloorTile& tile : floorTiles) {
         if (!IsInViewCone(vp, tile.position)) continue;
         DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);    
     }
-    //Lava
+
+    //Lava floor
     for (const FloorTile& lavaTile : lavaTiles){
         if (!IsInViewCone(vp, lavaTile.position)) continue;
 
@@ -1469,7 +1464,7 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     rlEnableBackfaceCulling();
     for (CeilingTile& tile : ceilingTiles){
         if (!IsInViewCone(vp, tile.position)) continue;
-        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, Vector3{700, 700, 700}, tile.tint);
+        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, baseScale, tile.tint);
     }
     rlDisableBackfaceCulling();
 
@@ -1592,9 +1587,7 @@ void DrawDungeonPillars() {
 
 void HandleDungeonTints() {
 
-    //UpdateBarrelTints(player.position); //barrels now lit by shader
     UpdateChestTints(player.position);
-
     UpdateDoorTints(player.position);
 }
 

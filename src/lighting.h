@@ -7,7 +7,7 @@
 struct XZBounds { float minX, maxX, minZ, maxZ; };
 
 struct BakedLightmap {
-    Texture2D tex = {0};
+    Texture2D tex = {};
     int w = 0, h = 0;
     // World-space mapping (XZ -> [0..1])
     float minX = 0, minZ = 0, sizeX = 1, sizeZ = 1; // size = max - min

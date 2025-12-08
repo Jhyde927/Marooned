@@ -941,7 +941,7 @@ void HandleDoorInteraction(Camera& camera) {
             // Update walkable grid, open doors are walkable. 
             int tileX = GetDungeonImageX(doors[pendingDoorIndex].position.x, tileSize, dungeonWidth);
             int tileY = GetDungeonImageY(doors[pendingDoorIndex].position.z, tileSize, dungeonHeight);
-            if (tileX >= 0 && tileY >= 0 && tileX < walkable.size() && tileY < walkable[0].size()) {
+            if (tileX >= 0 && tileY >= 0 && tileX < (int)walkable.size() && tileY < (int)walkable[0].size()) {
                 walkable[tileX][tileY] = doors[pendingDoorIndex].isOpen;
                 miniMap.RevealAroundPlayer(player.position);
             }
