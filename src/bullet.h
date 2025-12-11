@@ -5,6 +5,7 @@
 #include <vector>
 #include "emitter.h"
 #include "raymath.h"
+#include <cstdint>
 
 enum class BulletType {
     Default,
@@ -50,12 +51,14 @@ public:
     bool exploded = false;
     float timeSinceExploded = 0.0f;
     bool explosionTriggered = false;
+    unsigned int id;            // <-- unique per bullet
     Quaternion rotation;   // NEW
     BulletLight light;
     void Update(Camera& camera, float deltaTime);
     void UpdateMagicBall(Camera& camera, float deltaTime);
     void Erase();
     void Draw(Camera& camera) const;
+   
     void kill(Camera& camera);
 
     //These just return the public members now. Clean this up eventually

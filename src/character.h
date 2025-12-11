@@ -111,6 +111,7 @@ public:
     float  prevDistToPlayer = -1.0f;   // for distance trend fallback
     Vector3 prevPos = {0,0,0};         // to compute velocity
     Vector3 fleeTarget = { 0, 0, 0 };
+    unsigned int lastBulletIDHit = 0;
     int    approachStreak = 0;         // hysteresis counters
     int    leaveStreak    = 0;
     int    strafeStreak = 0;

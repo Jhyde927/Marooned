@@ -12,7 +12,9 @@
 #include "lighting.h"
 #include "collisions.h"
 #include "rlgl.h"
+#include <cstdint>
 
+static unsigned int gBulletCounter = 0;
 
 Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletType t, float r, bool launch)
     : position(startPos),
@@ -601,6 +603,7 @@ void ExplodeShrapnelSphere(Vector3 origin, int pelletCount,float speed,float lif
         b.initialSpeed = Vector3Length(b.velocity);
         if (b.initialSpeed < 1.0f) b.initialSpeed = 1.0f;
         b.size = 10.0f;
+        b.id = gBulletCounter++;
         activeBullets.emplace_back(b);
     }
 }
@@ -609,11 +612,13 @@ void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, 
     Vector3 vel = Vector3Scale(forward, speed);
     Bullet bolt = {origin, vel, lifetime, enemy, BulletType::Bolt};
     bolt.rotation =  QuaternionFromVector3ToVector3({0,0,1}, forward);
+    bolt.id = gBulletCounter++;
     activeBullets.emplace_back(bolt);
 }
 
 void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int pelletCount, float speed, float lifetime, bool enemy) {
     for (int i = 0; i < pelletCount; ++i) {
+        
         // Convert spread from degrees to radians
         float spreadRad = spreadDegrees * DEG2RAD;
 
@@ -636,7 +641,7 @@ void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int p
 
         b.initialSpeed = Vector3Length(b.velocity); //set initial speed. 
         if (b.initialSpeed < 1.0f) b.initialSpeed = 1.0f;
-
+        b.id = gBulletCounter++;
         activeBullets.emplace_back(b);
 
     }
@@ -646,8 +651,9 @@ void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, boo
     Vector3 direction = Vector3Subtract(target, origin);
     direction = Vector3Normalize(direction);
     Vector3 velocity = Vector3Scale(direction, speed);
-
-    activeBullets.emplace_back(origin, velocity, lifetime, enemy);
+    Bullet b = {origin, velocity, lifetime, enemy};
+    b.id = gBulletCounter++;
+    activeBullets.emplace_back(b);
 }
 
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher) {
@@ -662,6 +668,7 @@ void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, b
     b.light.intensity  = lightConfig.dynamicIntensity;
     b.light.detachOnDeath = true;
     b.light.lifeTime   = 0.15f; // short glow after death
+    b.id = gBulletCounter++;
 
     SoundManager::GetInstance().PlaySoundAtPosition((rand() % 2 == 0 ? "flame1" : "flame2"), origin, player.position, 0.0f, 3000.0f);
 
@@ -680,7 +687,7 @@ void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bo
     b.light.intensity  = lightConfig.dynamicIntensity;
     b.light.detachOnDeath = true;
     b.light.lifeTime   = 0.15f; // short glow after death
-
+    b.id = gBulletCounter++;
     SoundManager::GetInstance().Play("iceMagic");
 }
 

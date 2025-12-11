@@ -132,6 +132,14 @@ void HintManager::UpdateTutorial(){
         Clear();
         
     }
+
+    if (IsKeyPressed(KEY_F)){
+        Clear();
+    }
+
+    if (IsKeyPressed(KEY_G)){
+        Clear();
+    }
     
     if (!isDungeon){ // hint e to interact when close to dungeon entrance. -it should disappear when further away.
         DungeonEntrance& e = dungeonEntrances[0];

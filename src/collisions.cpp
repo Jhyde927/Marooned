@@ -522,16 +522,22 @@ void CheckBulletHits(Camera& camera) {
             bool isGhost = (enemy->type == CharacterType::Ghost);
             if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), b.GetPosition(), b.GetRadius())) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
-                    //enemy->TakeDamage(25);
-                    enemy->TakeDamage((int)b.ComputeDamage());
-                    BoundingBox box = enemy->GetBoundingBox();
+                    
+                    enemy->TakeDamage((int)b.ComputeDamage()); //damage based on bullets velocity, base 10 damage for blunderbuss
+                    BoundingBox box = enemy->GetBoundingBox(); //we leave an aweful lot up to chance, but it plays well. 
                     Vector3 n = AABBHitNormal(box, b.position);
                     TryBulletRicochet(b, n, 0.6f, 500, 0.99); //0.9 cosign makes headon bullets get absorbed by enemy. 
                     break;
 
                 }else if (b.type == BulletType::Bolt){
-                    enemy->TakeDamage(100);
-                    //penetration, bullet stays alive for now. 
+                    if (b.id != enemy->lastBulletIDHit){
+                        
+                        enemy->TakeDamage(150);
+                        enemy->lastBulletIDHit = b.id;
+                        //penetration, bullet stays alive for now. 
+
+                    }
+
                 }
                 
                 else if (b.type == BulletType::Fireball){ //dont check if b.isEnemy, all fireballs hit enemies. 
