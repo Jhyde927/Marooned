@@ -9,6 +9,76 @@
 #include "world.h"
 #include "ui.h"
 
+
+
+
+void Crossbow::Fire(Camera& camera)
+{
+    float now = GetTime();
+    if (now - lastFired < fireCooldown) return;
+
+    // Don't fire if we're reloading or not in loaded state
+    if (isReloading || state != CrossbowState::Loaded) return;
+
+    lastFired     = now;
+    triggeredFire = true;
+
+    // Show rest model visually (string forward)
+    state = CrossbowState::Rest;
+
+    // Start delay BEFORE dip
+    reloadDelayTimer  = 0.0f;
+    isReloading       = false;
+    reloadPhase       = 0.0f;
+    swappedModelMidDip = false;
+
+    Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    FireCrossbow(muzzlePos, camForward, 3000.0f, 5.0f, false);
+    SoundManager::GetInstance().Play("crossbowFire");
+
+    recoil = recoilAmount;  // kick back
+}
+
+
+
+
+void Crossbow::Reload()
+{
+    state = CrossbowState::Loaded;
+    reloadDelayTimer = 0.0f;
+    isReloading = false;
+    reloadPhase = 0.0f;
+    SoundManager::GetInstance().Play("crossbowReload");
+}
+
+
+
+// void Crossbow::Fire(Camera& camera)
+// {
+
+//     float now = GetTime();
+//     if (now - lastFired < fireCooldown) return;
+
+//     lastFired = now;
+//     triggeredFire = true;
+
+//     if (state == CrossbowState::Loaded) {
+//         state = CrossbowState::Rest;
+
+//         reloadTimer = 0.0f;
+//         Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+//         FireCrossbow(muzzlePos, camForward, 3000, 5.0, false);
+//         SoundManager::GetInstance().Play("crossbowFire");
+//         // spawn bolt, kick recoil, start reload timer, etc.
+//         recoil = 20.0f;
+        
+
+//     }
+
+// }
+
+
+
 void Weapon::Fire(Camera& camera) {
 
     if (GetTime() - lastFired >= fireCooldown) {
@@ -60,6 +130,61 @@ void Weapon::Fire(Camera& camera) {
 
 
 }
+
+void Crossbow::Update(float dt)
+{
+    // --- Bobbing ---
+    if (isMoving) {
+        bobbingTime += dt * 8.0f;
+        bobVertical = sinf(bobbingTime) * 1.0f;
+        bobSide     = sinf(bobbingTime * 0.25f) * 1.0f;
+    } else {
+        bobVertical = Lerp(bobVertical, 0.0f, dt * 5.0f);
+        bobSide     = Lerp(bobSide,     0.0f, dt * 5.0f);
+    }
+
+    // --- Recoil recovery ---
+    recoil = Lerp(recoil, 0.0f, dt * recoilRecoverySpeed);
+
+    // --- Reload delay BEFORE dip ---
+    if (state == CrossbowState::Rest && !isReloading) {
+        reloadDelayTimer += dt;
+        if (reloadDelayTimer >= autoReloadDelay) {
+            // Now start the dip
+            isReloading        = true;
+            reloadPhase        = 0.0f;
+            swappedModelMidDip = false;
+        }
+    }
+
+    // --- Reload dip animation ---
+    if (isReloading) {
+        reloadPhase += dt * reloadSpeed;
+
+        if (reloadPhase >= 1.0f) {
+            reloadPhase  = 1.0f;
+            isReloading  = false;
+            reloadDip    = 0.0f;
+            
+            // fully back up and ready to fire again
+            state = CrossbowState::Loaded;
+        } else {
+            float t = reloadPhase;          // 0..1
+            float dipCurve = sinf(t * PI);  // 0 → 1 → 0
+            reloadDip = dipCurve * reloadDipAmount;
+
+            // Mid-dip: switch to loaded model at the bottom
+            if (!swappedModelMidDip && reloadPhase >= 0.5f) {
+                swappedModelMidDip = true;
+                state = CrossbowState::Loaded;  // string is now visually back
+                SoundManager::GetInstance().Play("crossbowReload");
+            }
+        }
+    } else {
+        reloadDip = Lerp(reloadDip, 0.0f, dt * 10.0f);
+    }
+}
+
 
 void MeleeWeapon::Update(float deltaTime) {
     if (player.activeWeapon != WeaponType::Sword) return;
@@ -489,5 +614,73 @@ void MagicStaff::Draw(const Camera& camera) {
 }
 
 
+void Crossbow::Draw(const Camera& camera) {
+    // === Camera rotation math ===
+    Matrix lookAt = MatrixLookAt(camera.position, camera.target, { 0, 1, 0 });
+    Matrix gunRotation = MatrixInvert(lookAt);
+    Quaternion q = QuaternionFromMatrix(gunRotation);
+
+    float angle = 2.0f * acosf(q.w);
+    float angleDeg = angle * RAD2DEG;
+    float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - q.w * q.w));
+    Vector3 axis = (sinTheta < 0.001f)
+        ? Vector3{ 1, 0, 0 }
+        : Vector3{ q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
+
+    // === Camera basis vectors ===
+    Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    Vector3 camRight   = Vector3Normalize(Vector3CrossProduct(camForward, { 0, 1, 0 }));
+    Vector3 camUp      = Vector3CrossProduct(camRight, camForward);
+
+    // === Aspect ratio correction ===
+    float screenAspect = (float)GetScreenWidth() / (float)GetScreenHeight();
+    float baseAspect   = 16.0f / 9.0f;
+
+    float aspectCorrection    = (baseAspect - screenAspect) * 10.0f;
+    float correctedSideOffset = sideOffset - aspectCorrection;
+
+    // === Weapon positioning ===
+    float dynamicForward  = forwardOffset - recoil;
+    float dynamicVertical = verticalOffset + bobVertical - reloadDip;
+
+    Vector3 weaponPos = camera.position;
+    weaponPos = Vector3Add(weaponPos, Vector3Scale(camForward, dynamicForward));
+    weaponPos = Vector3Add(weaponPos, Vector3Scale(camRight,   correctedSideOffset + bobSide));
+    weaponPos = Vector3Add(weaponPos, Vector3Scale(camUp,      dynamicVertical));
+
+    // Muzzle: still using your rotated local offset
+    Vector3 muzzleLocal = { 15.0f, 0.0f, -100.0f };
+    Vector3 muzzleOffsetWorld = Vector3RotateByQuaternion(muzzleLocal, q);
+    muzzlePos = Vector3Add(weaponPos, muzzleOffsetWorld);
+
+    Color tint = WeaponTintFromDarkness(weaponDarkness);
+
+    Model& m = (state == CrossbowState::Loaded) ? loadedModel : restModel;
+    DrawModelEx(m, weaponPos, axis, angleDeg, scale, tint);
+}
+
+
+
+
+// void Crossbow::Draw(const Camera& camera)
+// {
+//     // Rifle-style viewmodel placement
+//     Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+//     Vector3 right   = Vector3Normalize(Vector3CrossProduct(forward, {0,1,0}));
+
+//     Vector3 pos = camera.position;
+//     pos = Vector3Add(pos, Vector3Scale(forward, forwardOffset + recoil));
+//     pos = Vector3Add(pos, Vector3Scale(right,   sideOffset + bobSide));
+//     pos.y += verticalOffset + bobVertical;
+
+//     DrawModelEx(
+//         model,
+//         pos,
+//         {0,1,0},         // axis
+//         0.0f,            // no rotation here
+//         scale,
+//         WHITE
+//     );
+// }
 
 

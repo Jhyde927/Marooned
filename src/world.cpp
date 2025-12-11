@@ -70,6 +70,8 @@ bool isLoadingLevel = false;
 float weaponDarkness = 0.0f;
 bool playerInit = false;
 bool hasStaff = false;
+bool hasBlunderbuss = false;
+bool hasCrossbow = false;
 float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
@@ -144,6 +146,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     GenerateEntrances();
 
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
+    InitOverworldWeapons();
     TutorialSetup();
 
     if (level.isDungeon){
@@ -199,10 +202,11 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     //start with blunderbus and sword in that order
 
-    player.collectedWeapons = {WeaponType::Blunderbuss, WeaponType::Sword}; 
+    player.collectedWeapons = {WeaponType::Sword}; 
+    if (hasBlunderbuss) player.collectedWeapons.push_back(WeaponType::Blunderbuss); 
+    if (hasCrossbow) player.collectedWeapons.push_back(WeaponType::Crossbow); 
     if (hasStaff) player.collectedWeapons.push_back(WeaponType::MagicStaff); //once you pick up the staff in world you have it forever. 
-
-    player.activeWeapon = WeaponType::Blunderbuss;
+    player.activeWeapon = WeaponType::Sword;
     player.currentWeaponIndex = 0;
 
     StartFadeInFromBlack();
@@ -280,6 +284,11 @@ void UpdateFade(Camera& camera) {
         int loc = GetShaderLocation(fogShader, "fadeToBlack");
         SetShaderValue(fogShader, loc, &fadeValue, SHADER_UNIFORM_FLOAT);
     }
+}
+
+void InitOverworldWeapons(){
+    Vector3 bpos = {4045.69, 260, -4191.75};
+    worldWeapons.push_back(CollectableWeapon(WeaponType::Crossbow, bpos, R.GetModel("crossbow")));
 }
 
 

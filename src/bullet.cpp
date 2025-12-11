@@ -260,6 +260,15 @@ void Bullet::Update(Camera& camera, float deltaTime) {
 
         }
         return; //skip normal bullet logic
+
+    }else if (type == BulletType::Bolt){
+        velocity.y -= gravity * deltaTime;
+        fireEmitter.SetParticleType(ParticleType::BoltTrail);
+        fireEmitter.SetPosition(position);
+        fireEmitter.SetParticleSize(1.0f);
+        fireEmitter.SetEmissionRate(50.0f);
+        fireEmitter.SetColor(LIGHTGRAY);
+        fireEmitter.UpdateTrail(deltaTime); //smoke trail update
     }
 
 
@@ -308,6 +317,45 @@ inline void EndBulletTransform()
     rlPopMatrix();
 }
 
+void DrawBolt(const Bullet& b)
+{
+    if (b.type != BulletType::Bolt) return;
+
+    // quaternion → axis/angle
+    Quaternion q = b.rotation;
+    float angle = 2.0f * acosf(q.w);
+    float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - q.w * q.w));
+
+    Vector3 axis = (sinTheta < 0.001f)
+        ? Vector3{ 0, 1, 0 }
+        : Vector3{ q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
+
+    float angleDeg = angle * RAD2DEG;
+
+    // Shaft: bright white
+    DrawModelEx(
+        R.GetModel("squareBolt"),
+        b.position,
+        axis,
+        angleDeg,
+        { 1.0f, 1.0f, 1.0f },
+        LIGHTGRAY
+    );
+
+    // Vector3 finPos = b.position;
+    // finPos.z -= 3.0f; // if your world space matches that axis orientation
+    // // Fins: slightly bigger, red
+    // DrawModelEx(
+    //     R.GetModel("boltFinsModel"),
+    //     finPos,
+    //     axis,
+    //     angleDeg,
+    //     { 1.0f, 1.0f, 1.0f },
+    //     RED
+    // );
+}
+
+
 
 
 
@@ -330,6 +378,26 @@ void Bullet::Draw(Camera& camera) const {
             
             
    
+    }else if (type == BulletType::Bolt){
+        // Convert quaternion → axis/angle
+        DrawBolt(*this);
+        // Quaternion q = rotation;
+        // float angle = 2.0f * acosf(q.w);
+        // float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - q.w * q.w));
+
+        // Vector3 axis;
+        // if (sinTheta < 0.001f) {
+        //     axis = { 0, 1, 0 }; // arbitrary axis when angle is tiny
+        // } else {
+        //     axis = { q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
+        // }
+
+        // float angleDeg = angle * RAD2DEG;
+        // //Vector3 bulletOffset = {position.x, position.y, position.z};
+        // DrawModelEx(R.GetModel("squareBolt"), position, axis, angleDeg, Vector3{1, 1, 1}, Color {255, 200, 200, 255});
+        //DrawCube(position, 5, 5, 5, RED);
+
+
     } else{ //regular bullets
         float t = Clamp(age / 1.5, 0.0f, 1.0f);
         
@@ -537,7 +605,12 @@ void ExplodeShrapnelSphere(Vector3 origin, int pelletCount,float speed,float lif
     }
 }
 
-
+void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy) {
+    Vector3 vel = Vector3Scale(forward, speed);
+    Bullet bolt = {origin, vel, lifetime, enemy, BulletType::Bolt};
+    bolt.rotation =  QuaternionFromVector3ToVector3({0,0,1}, forward);
+    activeBullets.emplace_back(bolt);
+}
 
 void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int pelletCount, float speed, float lifetime, bool enemy) {
     for (int i = 0; i < pelletCount; ++i) {

@@ -68,7 +68,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         }
 
         DrawPlayer(player, camera);
-        
+        // Vector3 offsetPos = {player.position.x-20, player.position.y -30.0f, player.position.z};
+        // DrawModel(R.GetModel("crossbowModel"), offsetPos, 1, WHITE);
         DrawEnemyShadows();
         DrawBullets(camera);
         DrawCollectableWeapons(player, dt);
@@ -154,20 +155,20 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 30, 20, WHITE);
 
                     // Debug lightmap texture
-                DrawText(
-                    TextFormat("dynTex id:%d  %dx%d", gDynamic.tex.id, gDynamic.w, gDynamic.h),
-                    10, 60, 20, RED);
+                // DrawText(
+                //     TextFormat("dynTex id:%d  %dx%d", gDynamic.tex.id, gDynamic.w, gDynamic.h),
+                //     10, 60, 20, RED);
 
-                // Just to see the box where it *should* draw
-                //DrawRectangleLines(250, 0, gDynamic.w, gDynamic.h, RED);
+                // // Just to see the box where it *should* draw
+                // //DrawRectangleLines(250, 0, gDynamic.w, gDynamic.h, RED);
 
-                // Visualize the dynamic lightmap big enough to notice
-                if (gDynamic.tex.id != 0) {
-                    DrawTextureEx(gDynamic.tex, { 32, 96 }, 0.0f, 1.0f, WHITE);
-                }
+                // // Visualize the dynamic lightmap big enough to notice
+                // if (gDynamic.tex.id != 0) {
+                //     DrawTextureEx(gDynamic.tex, { 32, 96 }, 0.0f, 1.0f, WHITE);
+                // }
 
-                //show FPS over top of lightmap
-                DrawText(TextFormat("%d FPS", GetFPS()), 10, 10, 20, WHITE);
+                // //show FPS over top of lightmap
+                // DrawText(TextFormat("%d FPS", GetFPS()), 10, 10, 20, WHITE);
 
             }
             

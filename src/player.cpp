@@ -16,6 +16,7 @@
 Weapon weapon;
 MeleeWeapon meleeWeapon;
 MagicStaff magicStaff;
+Crossbow crossbow;
 
 
 //Refactor this whole mess at some point. 
@@ -33,6 +34,8 @@ void InitPlayer(Player& player, Vector3 startPosition) {
     InitBlunderbuss(weapon);
     InitSword(meleeWeapon);
     InitMagicStaff(magicStaff);
+    InitCrossbow();
+    
 
     player.inventory.SetupItemTextures();
     playerInit = true;
@@ -42,6 +45,7 @@ void InitPlayer(Player& player, Vector3 startPosition) {
         player.inventory.AddItem("HealthPotion");
     
     }
+
     
 }
 
@@ -159,8 +163,28 @@ void HandleKeyboardInput(Camera& camera) {
     }
 
     if (IsKeyPressed(KEY_Q)) {
- 
-        player.EquipNextWeapon();
+        
+
+        if (player.activeWeapon != WeaponType::Sword){
+            player.previousWeapon = player.activeWeapon;
+            player.activeWeapon = WeaponType::Sword;
+            meleeWeapon.equipDip = 80;
+
+        }else{
+            player.activeWeapon = player.previousWeapon;
+            switch (player.previousWeapon){
+                case WeaponType::Blunderbuss:
+                    weapon.reloadDip = 40;
+                    break;
+                case WeaponType::Crossbow:
+                    crossbow.reloadDip = 40;
+                    break;
+                case WeaponType::MagicStaff:
+                    magicStaff.equipDip = 50;
+                    break;
+            }
+        }
+
     }
 
 
@@ -181,6 +205,10 @@ void HandleKeyboardInput(Camera& camera) {
         if (player.activeWeapon == WeaponType::MagicStaff){
                 magicStaff.StartSwing(camera);
            }
+
+        if (player.activeWeapon == WeaponType::Crossbow){
+            crossbow.Fire(camera);
+        }
     }
 
     // --- Boarding Check ---
@@ -207,6 +235,27 @@ void HandleKeyboardInput(Camera& camera) {
     }
 
     if (IsKeyPressed(KEY_ONE)){
+        player.activeWeapon = WeaponType::Sword;
+        meleeWeapon.equipDip = 80.0f;   // start low
+    }
+
+    if (IsKeyPressed(KEY_TWO) && hasCrossbow){
+
+        player.activeWeapon = WeaponType::Crossbow;
+        crossbow.reloadDip = 40;
+    }
+
+    if (IsKeyPressed(KEY_THREE) && hasBlunderbuss){
+        player.activeWeapon = WeaponType::Blunderbuss;
+        weapon.reloadDip = 40;
+    }
+
+    if (IsKeyPressed(KEY_FOUR) && hasStaff){
+        player.activeWeapon = WeaponType::MagicStaff;
+        magicStaff.equipDip = 50;
+    }
+
+    if (IsKeyPressed(KEY_F)){
         //use health potion
         if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
@@ -218,7 +267,7 @@ void HandleKeyboardInput(Camera& camera) {
         }
     }
 
-    if (IsKeyPressed(KEY_TWO)){
+    if (IsKeyPressed(KEY_G)){
         if (player.inventory.HasItem("ManaPotion")){
             if (player.currentMana < player.maxMana){
                 player.currentMana = player.maxMana;
@@ -410,6 +459,30 @@ void InitMagicStaff(MagicStaff& magicStaff) {
    
 }
 
+void InitCrossbow()
+{
+    Model& model = R.GetModel("crossbow");
+    Model& model2 = R.GetModel("crossbowRest");
+    
+    crossbow.loadedModel = model;
+    crossbow.restModel   = model2;
+    crossbow.state = CrossbowState::Loaded;
+
+    // Reset any weird import transform
+    crossbow.loadedModel.transform = MatrixIdentity();
+    crossbow.restModel.transform = MatrixIdentity();
+    // Rotate the model 180 degrees around Y so its "forward" matches your gun rig
+    Matrix flipY = MatrixRotateY(PI); // 180 degrees
+    crossbow.loadedModel.transform = flipY;
+    crossbow.restModel.transform = flipY;
+    
+
+
+
+}
+
+
+
 void OnGroundCheck(bool groundedNow, float timeNow) {
     if (groundedNow) player.lastGroundedTime = timeNow;
     player.grounded = groundedNow;
@@ -443,8 +516,10 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     weapon.isMoving = player.isMoving;
     meleeWeapon.isMoving = player.isMoving;
     magicStaff.isMoving = player.isMoving;
+    crossbow.isMoving = player.isMoving;
     meleeWeapon.Update(deltaTime);
     magicStaff.Update(deltaTime);
+    crossbow.Update(deltaTime);
 
     UpdateMeleeHitbox(camera);
     UpdateFootsteps(deltaTime);
@@ -521,7 +596,6 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         player.currentHealth = player.maxHealth;
         player.dead = false;
         player.canMove = true;
-        
 
     }
 
@@ -577,12 +651,9 @@ void Player::TakeDamage(int amount){
 
 }
 
-void DrawPlayer(const Player& player, Camera& camera) {
-    //DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
-    //DrawBoundingBox(player.GetBoundingBox(), RED);
-    //DrawBoundingBox(player.meleeHitbox, WHITE);
+void DrawWeapons(const Player& player, Camera& camera) {
 
-    //draw weapon
+        //draw weapon
     if (controlPlayer) {
         switch (player.activeWeapon) {
             case WeaponType::Blunderbuss:
@@ -600,11 +671,25 @@ void DrawPlayer(const Player& player, Camera& camera) {
             case WeaponType::MagicStaff:
                 magicStaff.Draw(camera);
                 break;
+
+            case WeaponType::Crossbow:
+                crossbow.Draw(camera);
+                break;
             case WeaponType::None:
                 // draw nothing
                 break;
         }
     }
+
+}
+
+void DrawPlayer(const Player& player, Camera& camera) {
+    //DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
+    //DrawBoundingBox(player.GetBoundingBox(), RED);
+    //DrawBoundingBox(player.meleeHitbox, WHITE);
+    DrawWeapons(player, camera);
+
+
 }
 
 

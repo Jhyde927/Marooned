@@ -2,10 +2,16 @@
 
 #include "raylib.h"
 
+enum class CrossbowState {
+    Loaded,
+    Rest
+};
+
 enum class WeaponType { 
     Blunderbuss, 
     Sword,
     MagicStaff,
+    Crossbow,
     None,
 
 };
@@ -184,5 +190,95 @@ struct MagicStaff {
     void Draw(const Camera& camera);
     void PlaySwipe();
 };
+
+
+
+struct Crossbow {
+    Model loadedModel;
+    Model restModel;
+    CrossbowState state = CrossbowState::Loaded;
+
+    Vector3 muzzlePos;
+
+    Vector3 scale = { 1.0f, 1.0f, 1.0f };
+    float forwardOffset  = 40.0f;
+    float sideOffset     = 25.0f;
+    float verticalOffset = -35.0f;
+
+    // Bobbing
+    float bobbingTime = 0.0f;
+    bool  isMoving    = false;
+    float bobVertical = 0.0f;
+    float bobSide     = 0.0f;
+
+    // Recoil
+    float recoil               = 0.0f;
+    float recoilAmount         = 20.0f;  // how hard it kicks back
+    float recoilRecoverySpeed  = 20.0f;  // how fast it returns
+
+    // Fire / reload
+    float lastFired   = -999.0f;
+    float fireCooldown = 0.8f;
+
+    // Reload dip animation
+    float reloadPhase      = 0.0f;   // 0 → 1 (full cycle)
+    bool  isReloading      = false;
+    float reloadDip        = 0.0f;   // computed each frame
+    float reloadDipAmount  = 24.0f;  // how far down it dips
+    float reloadSpeed      = 0.9f;   // how fast 0→1
+    float autoReloadDelay  = 0.5f;   // wait before starting dip
+    float reloadDelayTimer = 0.5f;
+
+    bool  swappedModelMidDip = false;  // did we already switch to loaded model?
+
+    bool triggeredFire = false;
+
+    void Update(float dt);
+    void Fire(Camera& camera);
+    void Reload();     // optional manual reload trigger
+    void Draw(const Camera& camera);
+};
+
+
+// struct Crossbow {
+//     // --- Model + animation ---
+
+
+//     Model loadedModel;
+//     Model restModel;
+
+//     CrossbowState state = CrossbowState::Loaded;
+
+//     Vector3 muzzlePos;
+
+//     // --- Transform offsets (same pattern as blunderbuss) ---
+//     Vector3 scale = { 1.0f, 1.0f, 1.0f };
+//     float forwardOffset  = 60.0f;
+//     float sideOffset     = 15.0f;
+//     float verticalOffset = -35.0f;
+
+//     // --- Bobbing ---
+//     float bobbingTime = 0.0f;
+//     bool isMoving = false;
+//     float bobVertical = 0.0f;
+//     float bobSide = 0.0f;
+
+//     // --- Recoil ---
+//     float recoil = 0.0f;
+//     float recoilAmount = 8.0f;
+//     float recoilRecoverySpeed = 20.0f;
+    
+//     // --- Fire control ---
+//     float lastFired = -999.0f;
+//     float fireCooldown = 0.8f;   // adjust later
+//     float reloadTimer = 0.0;
+//     bool triggeredFire = false;
+
+//     void Update(float dt);
+//     void Fire(Camera& camera);
+//     void Reload();
+//     void Draw(const Camera& camera);
+// };
+
 
 

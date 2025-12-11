@@ -241,28 +241,38 @@ void ResourceManager::LoadAllResources() {
 
 
     // Models (registering with string keys)
-    R.LoadModel("palmTree",       "assets/Models/bigPalmTree.glb");
-    R.LoadModel("palm2",          "assets/Models/smallPalmTree.glb");
-    R.LoadModel("bush",           "assets/Models/grass(stripped).glb");
-    R.LoadModel("boatModel",      "assets/Models/boat.glb");
-    R.LoadModel("blunderbuss",    "assets/Models/blunderbus.glb");
-    R.LoadModel("floorTileGray",  "assets/Models/floorTileGray.glb");
-    R.LoadModel("doorWayGray",    "assets/Models/doorWayGray.glb");
-    R.LoadModel("wallSegment",    "assets/Models/wallSegment.glb");
-    R.LoadModel("barrelModel",    "assets/Models/barrel.glb");
-    R.LoadModel("swordModel",     "assets/Models/sword.glb");
-    R.LoadModel("lampModel",      "assets/Models/lamp.glb");
-    R.LoadModel("brokeBarrel",    "assets/Models/brokeBarrel.glb");
-    R.LoadModel("chestModel",     "assets/Models/chest.glb");
-    R.LoadModel("staffModel",     "assets/Models/staff.glb");
-    R.LoadModel("fireballModel",  "assets/Models/fireball.glb");
-    R.LoadModel("iceballModel",   "assets/Models/iceBall.glb");
-    R.LoadModel("campFire",       "assets/Models/campFire.glb");
-    R.LoadModel("stonePillar",    "assets/Models/stonePillar.glb");
-    R.LoadModel("lavaTile",       "assets/Models/lavaTileSquare.glb");
+    R.LoadModel("palmTree",               "assets/Models/bigPalmTree.glb");
+    R.LoadModel("palm2",                  "assets/Models/smallPalmTree.glb");
+    R.LoadModel("bush",                   "assets/Models/grass(stripped).glb");
+    R.LoadModel("boatModel",              "assets/Models/boat.glb");
+    R.LoadModel("blunderbuss",            "assets/Models/blunderbus.glb");
+    R.LoadModel("floorTileGray",          "assets/Models/floorTileGray.glb");
+    R.LoadModel("doorWayGray",            "assets/Models/doorWayGray.glb");
+    R.LoadModel("wallSegment",            "assets/Models/wallSegment.glb");
+    R.LoadModel("barrelModel",            "assets/Models/barrel.glb");
+    R.LoadModel("swordModel",             "assets/Models/sword.glb");
+    R.LoadModel("lampModel",              "assets/Models/lamp.glb");
+    R.LoadModel("brokeBarrel",            "assets/Models/brokeBarrel.glb");
+    R.LoadModel("chestModel",             "assets/Models/chest.glb");
+    R.LoadModel("staffModel",             "assets/Models/staff.glb");
+    R.LoadModel("fireballModel",          "assets/Models/fireball.glb");
+    R.LoadModel("iceballModel",           "assets/Models/iceBall.glb");
+    R.LoadModel("campFire",               "assets/Models/campFire.glb");
+    R.LoadModel("stonePillar",            "assets/Models/stonePillar.glb");
+    R.LoadModel("lavaTile",               "assets/Models/lavaTileSquare.glb");
+    R.LoadModel("crossbow",               "assets/Models/crossbow.glb");
+    R.LoadModel("crossbowRest",           "assets/Models/crossbowRest.glb");
+    R.LoadModel("bolt",                   "assets/Models/bolt.glb");
+
+
 
 
     //generated models
+    // Fins: a bit wider and flatter, slightly shorter
+    R.LoadModelFromMesh("boltFinsModel", GenMeshCube(3.0f, 3.0f, 5.0f));
+
+    R.LoadModelFromMesh("squareBolt", GenMeshCube(2.0f, 2.0f, 20.0f));
+
     R.LoadModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
     R.LoadModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
     R.LoadModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
@@ -320,6 +330,34 @@ void ResourceManager::SetShaderValues(){
     
     SetShaderValue(waterShader, GetShaderLocation(waterShader, "waterLevel"), &waterHeightY, SHADER_UNIFORM_FLOAT);
     R.GetModel("waterModel").materials[0].shader = waterShader;
+
+    Model& boltModel = R.GetModel("bolt");
+
+    for (int i = 0; i < boltModel.materialCount; ++i) {
+        Material& mat = boltModel.materials[i];
+
+        // Use default shader (ignore dungeon lighting / custom stuff)
+        // mat = LoadMaterialDefault();
+        // mat.shader = GetShaderDefault();
+
+        // In raylib 4/5, usually:
+        // - MATERIAL_MAP_ALBEDO is the main color map
+        // - MATERIAL_MAP_DIFFUSE is also often there for compatibility
+
+
+            // Create an image with white pixels
+        Image whiteImage = GenImageColor(100, 100, WHITE);  // Generates a 100x100 white image 
+
+        // Convert the image to a texture
+        Texture2D whiteTexture = LoadTextureFromImage(whiteImage);
+        Texture2D whiteTex = whiteTexture;
+
+        mat.maps[MATERIAL_MAP_ALBEDO].texture = whiteTex;
+        mat.maps[MATERIAL_MAP_ALBEDO].color   = (Color){ 255, 100, 100, 255 }; // neon cyan
+
+        // mat.maps[MATERIAL_MAP_DIFFUSE].texture = whiteTex;
+        // mat.maps[MATERIAL_MAP_DIFFUSE].color   = (Color){ 255, 255, 255, 255 };
+    }
 
 }
 

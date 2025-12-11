@@ -172,6 +172,18 @@ void Emitter::CreateParticle(Particle& p) {
             break;
 
 
+        case ParticleType::BoltTrail:
+
+            p.color = GRAY;
+            p.gravity = -100.0f;
+            p.velocity = {
+                RandomFloat(-50, 50),
+                RandomFloat(-25, 25),
+                RandomFloat(-50, 50)
+            };
+            break;
+
+
         case ParticleType::Impact: {
             p.color = color;
             p.gravity = 500;

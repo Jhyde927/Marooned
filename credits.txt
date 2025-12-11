@@ -17,6 +17,8 @@ Models:
 
 	https://www.turbosquid.com/3d-models/staff-ready-3ds/1045789
 
+	https://sketchfab.com/3d-models/crossbow-animated-0716aa86b0d1433ea9e4689d06b37ae7
+
 Sounds:
 	https://pixabay.com/sound-effects/dungeon-air-6983/
 

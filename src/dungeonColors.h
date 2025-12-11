@@ -38,6 +38,7 @@ enum class Code {
     TimingMediumYellow3,     // (200,150,0)
     EventLocked,            // (0, 255, 128) spring green
     SlimeGreen,             // (128, 255, 0)
+    Blunderbuss,             // (204, 204, 255) Periwinkle
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -76,6 +77,7 @@ constexpr Color ColorOf(Code c) {
         case Code::TimingMediumYellow3:    return Make(200, 150, 0);
         case Code::EventLocked:            return Make(0, 255, 128);
         case Code::SlimeGreen:             return Make(128, 255, 0);
+        case Code::Blunderbuss:            return Make(204, 204, 255);
     }
     // Fallback (should not happen)
     return Make(255, 0, 255);

@@ -76,8 +76,8 @@ struct Player {
     std::vector<WeaponType> collectedWeapons;
 
     int currentWeaponIndex = -1; 
-    WeaponType activeWeapon = WeaponType::None;
-
+    WeaponType activeWeapon = WeaponType::Sword;
+    WeaponType previousWeapon = WeaponType::None;
     float switchTimer = 0.0f;
     float switchDuration = 0.3f; // time to lower or raise
     BoundingBox GetBoundingBox() const;
@@ -97,5 +97,6 @@ void DrawPlayer(const Player& player, Camera& camera);
 void InitSword(MeleeWeapon& sword);
 void InitBlunderbuss(Weapon& blunderbuss);
 void InitMagicStaff(MagicStaff& magicStaff);
+void InitCrossbow();
 void HandleJumpButton(float timeNow);
 void OnGroundCheck(bool groundedNow, float timeNow);

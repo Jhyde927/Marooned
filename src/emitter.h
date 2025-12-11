@@ -11,6 +11,7 @@ enum class ParticleType {
     IceBlast,
     FireTrail,
     Impact,
+    BoltTrail,
 
 };
 

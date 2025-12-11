@@ -51,7 +51,7 @@ std::vector<LevelData> levels = {
         {
             { PropType::FirePit,  Vector3{5200.f, 0.0f, -5600.f},  0.f, 100.0f }, // outdoor props
             { PropType::Boat,     Vector3{-4368.62, -20, -4036.75}}, //Vector3{-3767.0f,-20, 5199.0f}}
-        
+            
         },
         true, //ceiling default is true. doesn't matter for islands. 
         

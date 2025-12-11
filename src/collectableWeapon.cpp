@@ -34,7 +34,14 @@ void DrawCollectableWeapons(Player& player, float deltaTime){
 
         if (cw.CheckPickup(player) && player.collectedWeapons.size() < 3) {
             player.collectedWeapons.push_back(cw.type);
-            hasStaff = true;
+            if (cw.type == WeaponType::MagicStaff){
+                hasStaff = true;
+            }else if (cw.type == WeaponType::Crossbow){
+                hasCrossbow = true;
+            }else if (cw.type == WeaponType::Blunderbuss){
+                hasBlunderbuss = true;
+            }
+
             if (player.activeWeapon == WeaponType::None) {
     
                 player.activeWeapon = cw.type;

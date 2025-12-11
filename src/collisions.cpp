@@ -373,7 +373,7 @@ void BulletRicochetPuff(Bullet& b, Vector3 dir, Color c)
     Vector3 base = Vector3Scale(dir, 0.15f);
 
     // Random jitter (same vibe you already like)
-    float r = 50.0f;
+    float r = 50;
     Vector3 jitter = {
         (float)GetRandomValue(-r, r),
         (float)GetRandomValue(-r, r),
@@ -432,9 +432,9 @@ void BulletParticleBounce(Bullet& b, Color c){
     // Add randomness
     float r = 50.0f; // magnitude of random jitter
     Vector3 jitter = {
-        GetRandomValue(-r, r),
-        GetRandomValue(-r, r),
-        GetRandomValue(-r, r)
+        (float)GetRandomValue(-r, r),
+        (float)GetRandomValue(-r, r),
+        (float)GetRandomValue(-r, r)
     };
 
     // Final smoke velocity
@@ -529,6 +529,9 @@ void CheckBulletHits(Camera& camera) {
                     TryBulletRicochet(b, n, 0.6f, 500, 0.99); //0.9 cosign makes headon bullets get absorbed by enemy. 
                     break;
 
+                }else if (b.type == BulletType::Bolt){
+                    enemy->TakeDamage(100);
+                    //penetration, bullet stays alive for now. 
                 }
                 
                 else if (b.type == BulletType::Fireball){ //dont check if b.isEnemy, all fireballs hit enemies. 

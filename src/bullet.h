@@ -10,6 +10,7 @@ enum class BulletType {
     Default,
     Fireball,
     Iceball,
+    Bolt,
    
 };
 
@@ -49,6 +50,7 @@ public:
     bool exploded = false;
     float timeSinceExploded = 0.0f;
     bool explosionTriggered = false;
+    Quaternion rotation;   // NEW
     BulletLight light;
     void Update(Camera& camera, float deltaTime);
     void UpdateMagicBall(Camera& camera, float deltaTime);
@@ -89,3 +91,4 @@ void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int p
 void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy);
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher);
 void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy);
+void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);

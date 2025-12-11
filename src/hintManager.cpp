@@ -112,7 +112,12 @@ void HintManager::UpdateTutorial(){
 
     //checked even in dungeons, should work as a cue to use a health pot. 
     if (player.currentHealth < 30 && currentIndex == -1 && player.inventory.HasItem("HealthPotion")){ //Low health pot check
-        SetMessage("PRESS 1 TO USE HEALTH POTION");
+        SetMessage("PRESS F TO USE HEALTH POTION");
+    }
+
+    if (player.currentMana < 30 && currentIndex == -1 && player.inventory.HasItem("ManaPotion")){
+        SetMessage("Press G TO US MANA POTION");
+        
     }
 
     if (player.deathTimer >= 1.4){

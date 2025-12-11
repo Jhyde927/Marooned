@@ -122,6 +122,11 @@ void GenerateWeapons(float Height){
                 worldWeapons.push_back(CollectableWeapon(WeaponType::MagicStaff, pos, R.GetModel("staffModel")));
 
             }
+
+            if (EqualsRGB(current, ColorOf(Code::Blunderbuss))) {
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, Height);
+                worldWeapons.push_back(CollectableWeapon(WeaponType::Blunderbuss, pos, R.GetModel("blunderbuss")));
+            }
         }
     }
 }
@@ -316,46 +321,47 @@ void GenerateFloorTiles(float baseY) {
 
 
 void GenerateWallTiles(float baseY) {
-    //and create bounding boxes
     wallInstances.clear();
     wallRunColliders.clear();
 
     float wallThickness = 50.0f;
     float wallHeight = 400.0f;
 
+    auto IsSolidWall = [&](Color c) {
+        if (c.a == 0) return false;          // transparent → no wall
+        if (!IsWallColor(c)) return false;   // not a wall color
+        if (IsBarrelColor(c)) return false;  // barrels carve holes out of walls
+        return true;
+    };
+
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            if (IsBarrelColor(current)) continue;
-            if (!IsWallColor(current)) continue;
+            // If this tile is void or not a wall, don’t start any wall segments from it
+            if (!IsSolidWall(current)) continue;
 
             // === Horizontal Pair ===
             if (x < dungeonWidth - 1) {
                 Color right = dungeonPixels[y * dungeonWidth + (x + 1)];
 
-                if (current.a == 0 || right.a == 0) continue; // skip if either tile is void
-
-                if (IsWallColor(right) && !IsBarrelColor(right)) {
-                    Vector3 a = GetDungeonWorldPos(x, y, tileSize, baseY);
+                if (IsSolidWall(right)) {
+                    Vector3 a = GetDungeonWorldPos(x,     y, tileSize, baseY);
                     Vector3 b = GetDungeonWorldPos(x + 1, y, tileSize, baseY);
 
-                    // Wall positioned halfway between tiles
                     Vector3 mid = Vector3Lerp(a, b, 0.5f);
                     mid.y = baseY;
 
                     WallInstance wall;
-                    wall.position = mid;
+                    wall.position  = mid;
                     wall.rotationY = 90.0f;
-                    wall.tint = WHITE;
+                    wall.tint      = WHITE;
                     wallInstances.push_back(wall);
 
-                    // Move them down to match the wall visuals
                     a.y -= 190.0f;
                     b.y -= 190.0f;
 
                     BoundingBox bounds = MakeWallBoundingBox(a, b, wallThickness, wallHeight);
-
                     wallRunColliders.push_back({ a, b, 90.0f, bounds });
                 }
             }
@@ -364,35 +370,30 @@ void GenerateWallTiles(float baseY) {
             if (y < dungeonHeight - 1) {
                 Color down = dungeonPixels[(y + 1) * dungeonWidth + x];
 
-                if (current.a == 0 || down.a == 0) continue; // skip if either tile is void
-
-                if (IsWallColor(down) && !IsBarrelColor(down)) {
-                    Vector3 a = GetDungeonWorldPos(x, y, tileSize, baseY);
+                if (IsSolidWall(down)) {
+                    Vector3 a = GetDungeonWorldPos(x, y,     tileSize, baseY);
                     Vector3 b = GetDungeonWorldPos(x, y + 1, tileSize, baseY);
 
                     Vector3 mid = Vector3Lerp(a, b, 0.5f);
                     mid.y = baseY;
 
                     WallInstance wall;
-                    wall.position = mid;
+                    wall.position  = mid;
                     wall.rotationY = 0.0f;
-                    wall.tint = WHITE;
+                    wall.tint      = WHITE;
                     wallInstances.push_back(wall);
 
                     a.y -= 190.0f;
                     b.y -= 190.0f;
 
-  
-
                     BoundingBox bounds = MakeWallBoundingBox(a, b, wallThickness, wallHeight);
-
                     wallRunColliders.push_back({ a, b, 0.0f, bounds });
                 }
             }
         }
     }
-
 }
+
 
 void GenerateSideColliders(Vector3 pos, float rotationY, DoorwayInstance& archway){
     // 1️⃣ Define local side offset in door-local space
@@ -1464,6 +1465,7 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     rlEnableBackfaceCulling();
     for (CeilingTile& tile : ceilingTiles){
         if (!IsInViewCone(vp, tile.position)) continue;
+        if (!drawCeiling) continue;
         DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, baseScale, tile.tint);
     }
     rlDisableBackfaceCulling();
