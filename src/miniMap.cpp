@@ -75,7 +75,7 @@ Texture2D MiniMap::GenerateWallMaskTexture()
     std::vector<Color> pixels(mapW * mapH, { 0, 0, 0, 0 });
 
     // Visual colors on the minimap
-    const Color wallColor  = { 255, 255, 255, 255 }; // bright walls
+    const Color wallColor  = { 255, 255, 255, 128 }; // bright walls
     const Color floorColor = { 255, 255, 255, 128 }; // dimmer + more transparent
     const Color lavaColor  = { 200,  50,  50, 160 }; // glowing-ish red, semi-transparent
 

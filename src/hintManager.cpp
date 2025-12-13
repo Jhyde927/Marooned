@@ -98,7 +98,7 @@ void HintManager::UpdateTutorial(){
         Advance();
     }
 
-    if (player.currentWeaponIndex == 1 && player.blocking && currentIndex == 4){ //block check
+    if (player.activeWeapon == WeaponType::Sword && player.blocking && currentIndex == 4){ //block check
         Advance();
     }
 

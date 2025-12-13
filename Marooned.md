@@ -666,6 +666,8 @@ Implemented height map pathfinding. We generate a "nav mesh" from the heightmap 
 
 what else. Built another linux version and got mouse look working on the virtual machine. Island levels run at like 30 frames. Dungeon was like 22. Pretty good for a VM with 2 cores 8 gigs of ram and 256meg vram. If we drawModelInstace instead it would probably run at like 60. Well there is 200 draw calls on terrain maps. 200 chunks. 32x32 dungeons are (32x32) * 2 + walls draw calls. That's why it's slower now. less draw calls outside. and no giant model eating the vram. We could fustum cull the dungeons. do the cone trick again. don't draw tiles outside the cone. make it higher than the fov so theres a buffer. 
 
+-You weren't including the .so files in the linux build. ./Linux_Build.sh automatically makes a tar.gz file with the .so files included. 
+
 Implemented frustum culling for dungeons. We use the same cone technology we use for heightmap chunks. I moved all the separate draw functions into one DrawDungeonGeometry. There we create the cone and check if the dungeon piece is in the cone before drawing it. This improves laptop frame rate to almost 60 all the time for 32x32 maps. Makes the frame rate less consistant but faster, just like the outdoor chunks. It even works at like 30 frames on the VM. 
 
 Maybe redo the pirate in a comic book style like the raptor. If I can get good generation. I only have like 20 credits left. This is going to take at least 50 I think. It does seem to be better at recreating comic book style than pixel art or anything too small. The question is will it look good in game, or will it be uncanny valley again. 
@@ -673,14 +675,42 @@ Maybe redo the pirate in a comic book style like the raptor. If I can get good g
 Maybe you loose your weapons at some point in the game. Fists? 
 
 Made weapon swap animations. Current weapon disappears and the new weapon rises up on switch. Could also make a put weapon away animation. By animation I mean lerping the position of the model. Could do an ease in or out or whatever. 
-It may take like a quarter second longer to switch weapons. maybe 0.125 seconds. Feels better this way I think. 
+It may take like a quarter second longer to switch weapons. maybe 0.125 seconds. Feels better this way I think.
+
+Crossbow:
+    Fires bolts, you have a limited supply of. Bolt can be found in barrels.
+    Secondary fire. right click to fire a harpoon into the enemy and drag them closer. One bolt won't kill but a harpoon and a sword swipe will. How would you render a rope? 
+
+    find a 3d model. animated? 
+
+    found an animated crossbow with arms. Got rid of the arms, kept the crossbow and copied the bolt to it's own thing. Tried to get the fire animation to work for just the crossbow. But raylib had an error because there are two different skinned objects arms and crossbow. This requires lots of work in blender that I don't know how to do.
+
+    So instead of playing the animation, I just saved two models with different poses, one cocked and one at rest. It starts loaded until you fire it then we instantly switch models to rest, it recoils, then dips down, and at the lowest point we swap back to loaded, and start the reload sound. He brings the crossbow fully up just as the reload sound snaps and it's ready to fire again. 
+
+    Each model is 4 megabytes. so 8 meg crossbow. 
+
+    I used the bolt model and draw it at the bullet position. crossbows shoot BulletType::Bolts. They do 100 damage and don't get destroyed on enemy impace to the peirce. Since the bullet isn't destroyed it can hit more than once and one shot dinos but not all the time for some reason. I think I need to add unique IDs to each bullet. That way they can penetrate without damaging more than once per. 
+
+    I made the speed 3k. 1k more than blunderbuss bullets. takes a pretty good arc. Added particle trail with tiny particles. The bolt is still too hard to follow. Maybe brighten it some how. Paint it red on the end or something.  
+
+    The crossbow is a little high res than the blunderbuss and sword models. I think it still fits though. With the sound effects I think it works pretty well. I use the Halflife 1 crossbow sound effect for the fire. Then I found a folly real crossbow reload and just kept one metal snapping sound for the reload. 
+
+    add a crosshair for crossbow only. 
 
 
 
+secret areas behind false walls. -Duhhh Doom did it. wolf3D did it. 
+-Implemented secret walls. It's tricky because of how walls work. Wall segment starts on the tile center. and spans to the next tiles center. So removing a wall would open a two floor tile wide gap because it touches both tiles. 
+
+Tile centers:    0    200   400   600   800
+                ·      ·      ·      ·      ·
+
+Wall segments:      |------|      |      |
+                   100    300
 
 
 
-
+Get rid of screenshots folder to lessen file size. The readme references the GIF and the screenshot. Other screenshot is used for backdrop for menu screen. Delete whatever screenshots your not actively using. Try to keep it below 100 megs. 
 
 
 

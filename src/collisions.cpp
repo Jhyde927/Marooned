@@ -192,19 +192,28 @@ void DoorCollision(){
 }
 
 void WallCollision(){
-    for (const WallRun& run : wallRunColliders) { //player wall collision
 
-        // for (Character* enemy : enemyPtrs){ //all enemies
-        //     if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
-        //         ResolveBoxSphereCollision(run.bounds, enemy->position, enemy->radius);
-        //     }
-        // }
-
+    for (int i = 0; i < (int)wallRunColliders.size(); ++i) {
+        if (!wallRunColliders[i].enabled) continue;
+        // draw wallInstances[i] and use wallRunColliders[i].bounds for collision
+        WallRun& run = wallRunColliders[i];
         if (CheckCollisionBoxSphere(run.bounds, player.position, player.radius)) { //player wall collision
             ResolveBoxSphereCollision(run.bounds, player.position, player.radius);
         }
-
     }
+
+
+    // for (const WallRun& run : wallRunColliders) { //player wall collision
+
+    //     // for (Character* enemy : enemyPtrs){ //all enemies
+    //     //     if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
+    //     //         ResolveBoxSphereCollision(run.bounds, enemy->position, enemy->radius);
+    //     //     }
+    //     // }
+
+
+
+    //}
 }
 
 void pillarCollision() {
@@ -534,6 +543,7 @@ void CheckBulletHits(Camera& camera) {
                         
                         enemy->TakeDamage(150);
                         enemy->lastBulletIDHit = b.id;
+                        break;
                         //penetration, bullet stays alive for now. 
 
                     }
@@ -546,15 +556,17 @@ void CheckBulletHits(Camera& camera) {
                     b.pendingExplosion = true;
                     b.explosionTimer = 0.04f; // short delay //so it blows up inside the enemy not on the top of their head. 
                     // Don't call b.Explode() yet //called in updateFireball
+                    break;
 
                 }else if (b.type == BulletType::Iceball){
                     //enemy->TakeDamage(25);
                     enemy->ChangeState(CharacterState::Freeze);
                     b.pendingExplosion = true;
                     b.explosionTimer = 0.04f;
+                    break;
 
                     
-                } else if (b.IsEnemy() && isSkeleton) { // friendly fire
+                } else if (b.IsEnemy() && isSkeleton) { // friendly fire vs skeletons
                     enemy->TakeDamage(150); //higher damage for higher chance of death by enemy bullet. 1 sword swipe plus friendly fire = death
                     BulletParticleBounce(b, LIGHTGRAY);
                     break;
@@ -596,11 +608,6 @@ void CheckBulletHits(Camera& camera) {
                 // Default bullets: try ricochet
                 Vector3 n = AABBHitNormal(w.bounds, b.position);
                 TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
-
-                //DECIDE what you want to do. Does it look better with extra particles on hit? or is it too noisy. 
-
-                //     // bounced: puff in reflected direction
-                //     BulletRicochetPuff(b, Vector3Normalize(b.velocity), GRAY);
 
                 break;
             }
@@ -698,8 +705,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             {
                 Vector3 n = AABBHitNormal(barrel.bounds, b.position);
                 TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
-                //BulletParticleRicochetNormal(b, n, GRAY);
-                //b.kill(camera);        // normal bullets die
+
             }
 
             // Destroy barrel + drop loot

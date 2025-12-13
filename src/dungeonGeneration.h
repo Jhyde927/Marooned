@@ -175,6 +175,7 @@ struct WallRun {
     Vector3 endPos;
     float rotationY;
     BoundingBox bounds; // Precomputed, for fast collision checking
+    bool enabled = true;
 };
 
 struct FloorTile {
@@ -198,6 +199,19 @@ struct Edge {
     Vector3 inward; // unit normal pointing into the pit
 };
 
+struct SecretWall {
+    int x = 0;
+    int y = 0;
+    Vector3 position;
+    float   rotationY = 0.0f;
+    BoundingBox tileBounds;      // AABB for that tile
+    std::vector<int> wallRunIndices;  // indices into wallRunColliders / wallInstances
+    bool    opened   = true;
+    bool    discovered = false;
+    int wallRunIndex = -1;
+    
+};
+
 extern std::vector<uint8_t> lavaMask;
 extern std::vector<LightSample> frameLights;
 extern std::vector<LauncherTrap> launchers;
@@ -213,6 +227,7 @@ extern std::vector<ChestInstance> chestInstances;
 extern std::vector<DoorwayInstance> doorways;
 extern std::vector<BillboardDrawRequest> billboardRequests;
 extern std::vector<Door> doors;
+extern std::vector<SecretWall> secretWalls;
 
 
 
@@ -240,13 +255,16 @@ void GenerateDoorsFromArchways();
 void GeneratePotions(float baseY);
 void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
-
+void GenerateSecrets(float baseY);
 void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
 void ApplyLavaDPS(Player& player, float dt, float lavaDps);
 
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist);
+void DrawSecrets();
+void BindSecretWallsToRuns();
+void OpenSecrets();
 void DrawDungeonChests(); 
 void DrawDungeonPillars();
 
@@ -262,6 +280,7 @@ void UpdateDoorTints(Vector3 playerPos);
 void UpdateLauncherTraps(float deltaTime);
 bool IsDoorOpenAt(int x, int y);
 BoundingBox MakeDoorBoundingBox(Vector3 position, float rotationY, float halfWidth, float height, float depth); 
+BoundingBox MakeWallBoundingBox(const Vector3& start, const Vector3& end,float thickness, float height);
 int GetDungeonImageX(float worldX, float tileSize, int dungeonWidth);
 int GetDungeonImageY(float worldZ, float tileSize, int dungeonHeight);
 bool IsDungeonFloorTile(int x, int y); 

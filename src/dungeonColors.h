@@ -39,6 +39,7 @@ enum class Code {
     EventLocked,            // (0, 255, 128) spring green
     SlimeGreen,             // (128, 255, 0)
     Blunderbuss,             // (204, 204, 255) Periwinkle
+    SecretDoor,              // (64, 0, 64) very dark purple
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -78,6 +79,7 @@ constexpr Color ColorOf(Code c) {
         case Code::EventLocked:            return Make(0, 255, 128);
         case Code::SlimeGreen:             return Make(128, 255, 0);
         case Code::Blunderbuss:            return Make(204, 204, 255);
+        case Code::SecretDoor:             return Make(64, 0, 64);
     }
     // Fallback (should not happen)
     return Make(255, 0, 255);
@@ -101,7 +103,20 @@ inline bool NearRGB(const Color& a, const Color& b, int tol = 0) {
 }
 
 // Lightweight predicates for your most-frequent checks
-inline bool IsWallColor(const Color& c)                   { return EqualsRGB(c, ColorOf(Code::Wall)); }
+inline bool IsWallColor(Color c) 
+{
+    // existing checks...
+    if (EqualsRGB(c, ColorOf(Code::Wall))) return true;
+    // etc...
+
+    // NEW:
+    if (EqualsRGB(c, ColorOf(Code::SecretDoor))) return true;
+
+    return false;
+}
+inline bool IsSecretDoorColor(Color c) {
+    return EqualsRGB(c, ColorOf(Code::SecretDoor)); // e.g. (64, 0, 64)
+}
 inline bool IsBarrelColor(const Color& c)                 { return EqualsRGB(c, ColorOf(Code::Barrel)); }
 inline bool IsDoorwayColor(const Color& c)                { return EqualsRGB(c, ColorOf(Code::Doorway)); }
 inline bool IsExitTeal(const Color& c)                    { return EqualsRGB(c, ColorOf(Code::ExitTeal)); }

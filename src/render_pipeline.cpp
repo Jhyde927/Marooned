@@ -57,6 +57,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         } else {
             //draw the dungeon
             DrawDungeonGeometry(camera, 8000);
+            DrawSecrets();
             DrawDungeonBarrels();
             DrawLaunchers();
             DrawDungeonChests();

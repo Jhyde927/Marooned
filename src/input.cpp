@@ -8,6 +8,7 @@
 #include "resourceManager.h"
 #include "sound_manager.h"
 #include "vegetation.h"
+#include "dungeonGeneration.h"
 
 
 InputMode currentInputMode = InputMode::KeyboardMouse;
@@ -18,8 +19,6 @@ void debugControls(Camera& camera, float deltaTime){
     if (IsKeyPressed(KEY_GRAVE)){ // ~
         debugInfo = !debugInfo;
     }
-
-
 
     if (debugInfo){
 

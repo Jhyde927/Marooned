@@ -12,10 +12,12 @@ void CollectableWeapon::Update(float deltaTime) {
 
 void CollectableWeapon::Draw() {
     if (isCollected) return;
-
+    Vector3 scale = {1, 1, 1};
+    if (type == WeaponType::Blunderbuss) scale = {2, 2, 2};
+        
     Vector3 drawPos = position;
     drawPos.y += sin(GetTime() * 2.0f) * 2.0f; // Hover effect
-    DrawModelEx(model, drawPos, {0, 1, 0}, rotationY, {1, 1, 1}, WHITE);
+    DrawModelEx(model, drawPos, {0, 1, 0}, rotationY, scale, WHITE);
 }
 
 bool CollectableWeapon::CheckPickup(Player& player, float pickupRadius) {

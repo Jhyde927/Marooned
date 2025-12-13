@@ -167,8 +167,10 @@ void InitLevel(LevelData& level, Camera& camera) {
         GeneratePotions(floorHeight);
         GenerateKeys(floorHeight);
         GenerateWeapons(200);
-        
-        
+
+        GenerateSecrets(wallHeight);
+        BindSecretWallsToRuns(); //assign wallrun index, 
+        OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
         //generate enemies.
         GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
         GeneratePiratesFromImage(dungeonEnemyHeight);
@@ -202,11 +204,10 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     //start with blunderbus and sword in that order
 
-    player.collectedWeapons = {WeaponType::Sword}; 
-    if (hasBlunderbuss) player.collectedWeapons.push_back(WeaponType::Blunderbuss); 
-    if (hasCrossbow) player.collectedWeapons.push_back(WeaponType::Crossbow); 
-    if (hasStaff) player.collectedWeapons.push_back(WeaponType::MagicStaff); //once you pick up the staff in world you have it forever. 
-    player.activeWeapon = WeaponType::Sword;
+    //player.collectedWeapons = {WeaponType::Sword, WeaponType::Crossbow}; 
+    hasCrossbow = true;
+    player.previousWeapon = WeaponType::Sword;
+    player.activeWeapon = WeaponType::Crossbow;
     player.currentWeaponIndex = 0;
 
     StartFadeInFromBlack();

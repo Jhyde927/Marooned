@@ -16,6 +16,8 @@
 #include "spiderEgg.h"
 #include "viewCone.h"
 
+
+
 std::vector<uint8_t> lavaMask; // width*height, 1 = lava, 0 = not
 
 std::vector<LightSample> frameLights;
@@ -29,7 +31,7 @@ std::vector<SpiderWebInstance> spiderWebs;
 std::vector<ChestInstance> chestInstances;
 std::vector<DoorwayInstance> doorways;
 std::vector<Door> doors;
-
+std::vector<SecretWall> secretWalls;
 std::vector<PillarInstance> pillars;
 std::vector<WallRun> wallRunColliders;
 std::vector<LightSource> dungeonLights; //static lights.
@@ -131,7 +133,73 @@ void GenerateWeapons(float Height){
     }
 }
 
+void GenerateSecrets(float baseY)
+{
+    secretWalls.clear();
 
+    for (int y = 0; y < dungeonHeight; ++y) {
+        for (int x = 0; x < dungeonWidth; ++x) {
+
+            Color c = dungeonPixels[y * dungeonWidth + x];
+            if (!EqualsRGB(c, ColorOf(Code::SecretDoor))) continue;
+
+            SecretWall sw;
+            sw.position = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+            // Neighbor checks
+            bool left  = (x > 0) &&
+                IsWallColor(dungeonPixels[y * dungeonWidth + (x - 1)]);
+            bool right = (x < dungeonWidth - 1) &&
+                IsWallColor(dungeonPixels[y * dungeonWidth + (x + 1)]);
+            bool up    = (y > 0) &&
+                IsWallColor(dungeonPixels[(y - 1) * dungeonWidth + x]);
+            bool down  = (y < dungeonHeight - 1) &&
+                IsWallColor(dungeonPixels[(y + 1) * dungeonWidth + x]);
+
+            // Infer orientation
+            if ((left || right) && !(up || down)) {
+                sw.rotationY = 90.0f;   // horizontal wall run
+            }
+            else if ((up || down) && !(left || right)) {
+                sw.rotationY = 0.0f;    // vertical wall run
+            }
+            else {
+                // Corner or ambiguous — pick one (you like the squeeze anyway)
+                sw.rotationY = 0.0f;
+            }
+
+            sw.wallRunIndex = -1;
+            sw.opened = true; 
+
+            secretWalls.push_back(sw);
+        }
+    }
+}
+
+
+
+
+void OpenSecrets(){
+    for (SecretWall& sw : secretWalls){
+        if (sw.wallRunIndex >= 0 && sw.wallRunIndex < (int)wallRunColliders.size()) {
+            if (sw.opened){
+                wallRunColliders[sw.wallRunIndex].enabled = false;
+
+            }
+
+        }
+
+    }
+}
+
+
+
+
+void DrawSecrets() {
+    for (SecretWall& wall : secretWalls){
+        //DrawModelEx(R.GetModel("wallSegment"), wall.position, {0,1,0}, wall.rotationY, {700, 700, 700}, WHITE);
+    }
+}
 
 
 
@@ -202,27 +270,6 @@ BoundingBox MakeWallBoundingBox(const Vector3& start, const Vector3& end,
     return { minv, maxv };
 }
 
-
-// BoundingBox MakeWallBoundingBox(const Vector3& start, const Vector3& end, float thickness, float height) {
-//     Vector3 min = Vector3Min(start, end);
-//     Vector3 max = Vector3Max(start, end);
-    
-
-//     // Expand by half thickness in perpendicular direction
-//     if (start.x == end.x) {
-//         // Vertical wall (same x, different z)
-//         min.x -= thickness * 0.5f;
-//         max.x += thickness * 0.5f;
-//     } else {
-//         // Horizontal wall (same z, different x)
-//         min.z -= thickness * 0.5f;
-//         max.z += thickness * 0.5f;
-//     }
-
-//     max.y += height; // dont jump over walls.
-
-//     return { min, max };
-// }
 
 
 void LoadDungeonLayout(const std::string& imagePath) {
@@ -317,6 +364,42 @@ void GenerateFloorTiles(float baseY) {
     }
 }
 
+static Vector3 CenterOfBounds(const BoundingBox& bb)
+{
+    return {
+        (bb.min.x + bb.max.x) * 0.5f,
+        (bb.min.y + bb.max.y) * 0.5f,
+        (bb.min.z + bb.max.z) * 0.5f,
+    };
+}
+
+void BindSecretWallsToRuns()
+{
+    for (auto& sw : secretWalls) {
+        float bestDist2 = 99999.9;
+        int   bestIdx   = -1;
+
+        for (int i = 0; i < (int)wallRunColliders.size(); ++i) {
+            auto& run = wallRunColliders[i];
+
+            // Only consider runs with matching orientation
+            if (fabsf(run.rotationY - sw.rotationY) > 0.1f) continue;
+
+            Vector3 mid = CenterOfBounds(run.bounds);
+
+            float dx = mid.x - sw.position.x;
+            float dz = mid.z - sw.position.z;
+            float dist2 = dx*dx + dz*dz;
+
+            if (dist2 < bestDist2) {
+                bestDist2 = dist2;
+                bestIdx   = i;
+            }
+        }
+
+        sw.wallRunIndex = bestIdx;
+    }
+}
 
 
 
@@ -331,6 +414,7 @@ void GenerateWallTiles(float baseY) {
         if (c.a == 0) return false;          // transparent → no wall
         if (!IsWallColor(c)) return false;   // not a wall color
         if (IsBarrelColor(c)) return false;  // barrels carve holes out of walls
+        
         return true;
     };
 
@@ -1437,6 +1521,8 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
 
     }
+
+
 
     //Doorways
     for (const DoorwayInstance& d : doorways) {
