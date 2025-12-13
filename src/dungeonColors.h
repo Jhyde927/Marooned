@@ -40,6 +40,8 @@ enum class Code {
     SlimeGreen,             // (128, 255, 0)
     Blunderbuss,             // (204, 204, 255) Periwinkle
     SecretDoor,              // (64, 0, 64) very dark purple
+    SilverDoor,             // (0, 64, 64) dark cyan
+    SilverKey,               // (180, 190, 205) Cool Silver
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -80,6 +82,8 @@ constexpr Color ColorOf(Code c) {
         case Code::SlimeGreen:             return Make(128, 255, 0);
         case Code::Blunderbuss:            return Make(204, 204, 255);
         case Code::SecretDoor:             return Make(64, 0, 64);
+        case Code::SilverDoor:             return Make(0, 64, 64);
+        case Code::SilverKey:              return Make(180, 190, 205);
     }
     // Fallback (should not happen)
     return Make(255, 0, 255);

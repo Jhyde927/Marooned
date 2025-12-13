@@ -22,6 +22,11 @@ void debugControls(Camera& camera, float deltaTime){
 
     if (debugInfo){
 
+        if (IsKeyDown(KEY_K)){
+            player.hasGoldKey = true;
+            player.hasSilverKey = true;
+        }
+
         if (IsKeyDown(KEY_O)) debugDoorOpenAngleDeg += 60.0f * GetFrameTime();  // open more
         if (IsKeyDown(KEY_P)) debugDoorOpenAngleDeg -= 60.0f * GetFrameTime();  // close
 

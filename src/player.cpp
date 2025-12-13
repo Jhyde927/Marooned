@@ -162,32 +162,33 @@ void HandleKeyboardInput(Camera& camera) {
         magicStaff.Fire(camera);
     }
 
-    if (IsKeyPressed(KEY_Q)) {
-        
+    if (IsKeyPressed(KEY_Q))
+    {
+        // Swap weapons
+        WeaponType newWeapon = player.previousWeapon;
+        player.previousWeapon = player.activeWeapon;
+        player.activeWeapon = newWeapon;
 
-        if (player.activeWeapon != WeaponType::Sword){
-            player.previousWeapon = player.activeWeapon;
-            player.activeWeapon = WeaponType::Sword;
-            meleeWeapon.equipDip = 80;
+        // Apply equip / reload dip based on weapon we switched TO
+        switch (player.activeWeapon)
+        {
+            case WeaponType::Sword:
+                meleeWeapon.equipDip = 80;
+                break;
 
-        }else{
-            player.activeWeapon = player.previousWeapon;
-            switch (player.previousWeapon){
-                case WeaponType::Blunderbuss:
-                    weapon.reloadDip = 40;
-                    break;
-                case WeaponType::Crossbow:
-                    crossbow.reloadDip = 40;
-                    break;
-                case WeaponType::MagicStaff:
-                    magicStaff.equipDip = 50;
-                    break;
-            }
+            case WeaponType::Blunderbuss:
+                weapon.reloadDip = 40;
+                break;
+
+            case WeaponType::Crossbow:
+                crossbow.reloadDip = 40;
+                break;
+
+            case WeaponType::MagicStaff:
+                magicStaff.equipDip = 50;
+                break;
         }
-
     }
-
-
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (!player.isSwimming){ //dont fire gun in water
@@ -235,22 +236,26 @@ void HandleKeyboardInput(Camera& camera) {
     }
 
     if (IsKeyPressed(KEY_ONE)){
+        player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Sword;
         meleeWeapon.equipDip = 80.0f;   // start low
+        
     }
 
     if (IsKeyPressed(KEY_TWO) && hasCrossbow){
-
+        player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Crossbow;
         crossbow.reloadDip = 40;
     }
 
     if (IsKeyPressed(KEY_THREE) && hasBlunderbuss){
+        player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Blunderbuss;
         weapon.reloadDip = 40;
     }
 
     if (IsKeyPressed(KEY_FOUR) && hasStaff){
+        player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::MagicStaff;
         magicStaff.equipDip = 50;
     }

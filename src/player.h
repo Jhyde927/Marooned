@@ -21,7 +21,8 @@ struct Player {
     BoundingBox blockHitbox;
 
     Inventory inventory;
-
+    bool hasGoldKey   = false;
+    bool hasSilverKey = false;
     const float ACCEL_GROUND   = 8000.0f;   // how fast we reach target speed
     const float DECEL_GROUND   = 7000.0f;   // how fast we slow to zero
     const float ACCEL_AIR      = 1500.0f;    // small air control
@@ -69,6 +70,7 @@ struct Player {
     bool onBoard = false;
     bool disableMovement = false;
     bool blocking = false;
+
 
     bool canRun = true;
     bool canMove = true;

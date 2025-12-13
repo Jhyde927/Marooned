@@ -4,7 +4,8 @@
 
 enum class CollectableType {
     HealthPotion,
-    Key,
+    GoldKey,
+    SilverKey,
     Gold,
     ManaPotion,
     // Add more types as needed

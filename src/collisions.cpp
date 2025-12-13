@@ -908,13 +908,22 @@ void HandleDoorInteraction(Camera& camera) {
 
                 // If locked and no key, deny access
                 if (doors[i].isLocked) {
-                    if (player.inventory.HasItem("GoldKey")) {
-                        player.inventory.UseItem("GoldKey");
+
+                    bool hasKey = false;
+                    if (doors[i].requiredKey == KeyType::Gold)   hasKey = player.hasGoldKey;
+                    if (doors[i].requiredKey == KeyType::Silver) hasKey = player.hasSilverKey;
+
+                    if (hasKey) {
                         doors[i].isLocked = false;
+
+                       
+                        // if (doors[i].requiredKey == KeyType::Gold)   player.hasGoldKey = false;
+                        // if (doors[i].requiredKey == KeyType::Silver) player.hasSilverKey = false;
+
                         SoundManager::GetInstance().Play("unlock");
                     } else {
                         SoundManager::GetInstance().Play("lockedDoor");
-                        return; // skip the rest of this function
+                        return;
                     }
                 }
 

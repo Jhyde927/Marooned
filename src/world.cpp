@@ -601,13 +601,18 @@ void UpdateCollectables(float deltaTime) {
                 player.inventory.AddItem("HealthPotion");
                 SoundManager::GetInstance().Play("clink");
             }
-            else if (collectables[i].type == CollectableType::Key) {
-                player.inventory.AddItem("GoldKey");
+            else if (collectables[i].type == CollectableType::GoldKey) {
+                player.hasGoldKey = true;
+                SoundManager::GetInstance().Play("key");
+
+            } else if (collectables[i].type == CollectableType::SilverKey){
+                player.hasSilverKey = true;
                 SoundManager::GetInstance().Play("key");
             }
             else if (collectables[i].type == CollectableType::Gold) {
                 player.gold += collectables[i].value;
                 SoundManager::GetInstance().Play("key");
+                
             } else if (collectables[i].type == CollectableType::ManaPotion) {
                 player.inventory.AddItem("ManaPotion");
                 SoundManager::GetInstance().Play("clink");
@@ -761,7 +766,8 @@ void ClearLevel() {
     ClearDungeon();
     bulletLights.clear();
     dungeonEntrances.clear();
-
+    player.hasGoldKey = false;
+    player.hasSilverKey = false;
     RemoveAllVegetation();
 
     // if (terrainMesh.vertexCount > 0) UnloadMesh(terrainMesh); //unload mesh and heightmap when switching levels. if they exist

@@ -238,6 +238,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("GiantSpiderSheet", "assets/sprites/giantSpiderSheet.png");
     R.LoadTexture("spiderEggSheet",   "assets/sprites/spiderEggSheet.png");
     R.LoadTexture("blank",            "assets/textures/blank.png");
+    R.LoadTexture("silverKey",        "assets/sprites/silverKey.png");
 
 
     // Models (registering with string keys)

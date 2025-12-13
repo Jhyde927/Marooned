@@ -130,7 +130,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 auto& pieces = R.GetFont("Pieces"); 
                 std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);
                 DrawTextEx(pieces, goldText.c_str(), { 32, (float)GetScreenHeight() - 120 }, 30.0f, 1.0f, GOLD);
-                
+                DrawKeySlotUI(player);
                 player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64);
                 DrawHints();
 
@@ -155,21 +155,9 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
                 DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 30, 20, WHITE);
 
-                    // Debug lightmap texture
-                // DrawText(
-                //     TextFormat("dynTex id:%d  %dx%d", gDynamic.tex.id, gDynamic.w, gDynamic.h),
-                //     10, 60, 20, RED);
 
-                // // Just to see the box where it *should* draw
-                // //DrawRectangleLines(250, 0, gDynamic.w, gDynamic.h, RED);
-
-                // // Visualize the dynamic lightmap big enough to notice
-                // if (gDynamic.tex.id != 0) {
-                //     DrawTextureEx(gDynamic.tex, { 32, 96 }, 0.0f, 1.0f, WHITE);
-                // }
-
-                // //show FPS over top of lightmap
-                // DrawText(TextFormat("%d FPS", GetFPS()), 10, 10, 20, WHITE);
+                //show FPS over top of lightmap
+                DrawText(TextFormat("%d FPS", GetFPS()), 10, 10, 20, WHITE);
 
             }
             

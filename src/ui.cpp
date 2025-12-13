@@ -415,3 +415,42 @@ void DrawTimer(float ElapsedTime){
     DrawText(buffer, GetScreenWidth()-150, 30, 20, WHITE); 
 }
 
+void DrawKeySlotUI(const Player& player)
+{
+    Rectangle slot = { 20, 44, 64, 64 }; 
+    Rectangle slot2 = {20, 128, 64, 64};
+    // Slot background + border
+    DrawRectangleRec(slot, (Color){20,20,20,200});
+    DrawRectangleLinesEx(slot, 2, (Color){200,180,120,255});
+
+    DrawRectangleRec(slot2, (Color){20,20,20,200});
+    DrawRectangleLinesEx(slot2, 2, (Color){200,180,120,255});
+
+    // Only show key icon if you have it
+    if (player.hasGoldKey) {
+        Texture2D keyIcon = ResourceManager::Get().GetTexture("keyTexture"); 
+        DrawTexturePro(
+            keyIcon,
+            Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
+            Rectangle{slot.x-2, slot.y-2, slot.width+4, slot.height+4},
+            Vector2{0,0},
+            0.0f,
+            WHITE
+        );
+    }
+
+    // Only show key icon if you have it
+    if (player.hasSilverKey) {
+        Texture2D keyIcon = ResourceManager::Get().GetTexture("silverKey"); 
+        DrawTexturePro(
+            keyIcon,
+            Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
+            Rectangle{slot2.x-2, slot2.y-2, slot2.width+4, slot2.height+4},
+            Vector2{0,0},
+            0.0f,
+            WHITE
+        );
+    }
+}
+
+

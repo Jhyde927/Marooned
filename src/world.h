@@ -27,6 +27,7 @@ enum class GameState {
 enum class FadePhase { Idle, FadingOut, Swapping, FadingIn };
 
 
+
 //extern Model terrainModel;
 extern Image heightmap;
 //extern Mesh terrainMesh;

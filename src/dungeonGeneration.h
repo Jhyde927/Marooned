@@ -9,6 +9,7 @@
 #include <cstdint>
 
 
+enum class KeyType { None, Gold, Silver };
 
 enum class FloorType {
     Normal,
@@ -84,6 +85,7 @@ struct DoorwayInstance {
     int linkedLevelIndex = -1;
     std::vector<BoundingBox> sideColliders{};
     bool eventLocked = false;
+    KeyType requiredKey = KeyType::None;
 
 };
 
@@ -103,6 +105,7 @@ struct Door {
     int tileY;
     DoorType doorType = DoorType::Normal;
     bool eventLocked = false;
+    KeyType requiredKey = KeyType::None;
 
     int linkedLevelIndex = -1; // -1 means no linked level
 };

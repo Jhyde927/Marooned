@@ -186,18 +186,14 @@ void OpenSecrets(){
                 wallRunColliders[sw.wallRunIndex].enabled = false;
 
             }
-
         }
-
     }
 }
 
-
-
-
 void DrawSecrets() {
     for (SecretWall& wall : secretWalls){
-        //DrawModelEx(R.GetModel("wallSegment"), wall.position, {0,1,0}, wall.rotationY, {700, 700, 700}, WHITE);
+
+        //maybe telegraph secret walls visually somehow. 
     }
 }
 
@@ -234,7 +230,7 @@ void UpdateDungeonChests() {
             chest.canDrop = false;
             UpdateModelAnimation(chest.model, chest.animations[0], OPEN_END_FRAME);
             Vector3 pos = {chest.position.x, chest.position.y + 100, chest.position.z};
-            Collectable key(CollectableType::Key, pos, R.GetTexture("keyTexture"), 100);
+            Collectable key(CollectableType::GoldKey, pos, R.GetTexture("keyTexture"), 100);
             
             collectables.push_back(key);
             
@@ -546,11 +542,12 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             bool isExit     = (current.r == 0 && current.g == 128 && current.b == 128);   // teal
             bool nextLevel = (current.r == 255 && current.g == 128 && current.b == 0); //orange
             bool lockedDoor = (current.r == 0 && current.g == 255 && current.b == 255); //CYAN
+            bool silverDoor = {current.r == 0 && current.g == 64 && current.b == 64}; //Dark Cyan
             bool portal = (current.r == 200 && current.g == 0 && current.b == 200); //portal 
 
             bool eventLocked = (current.r == 0   && current.g == 255 && current.b == 128); //spring-green
 
-            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal && !eventLocked) continue;
+            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal && !eventLocked && !silverDoor) continue;
 
             // Check surrounding walls to determine door orientation
             Color left = dungeonPixels[y * dungeonWidth + (x - 1)];
@@ -581,16 +578,22 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
 
             if (portal){
                 archway.isPortal = true;
-                nextLevel = true;
+                nextLevel = true; //why not portals to the same level
             }
 
             if (isExit) { //teal
                 archway.linkedLevelIndex = previousLevelIndex; //go back outside. 
             }else if (nextLevel){ //orange
                 archway.linkedLevelIndex = levels[currentLevelIndex].nextLevel; //door to next level
-            }else if (lockedDoor){ //Aqua
-                archway.isLocked = true; //locked door
-            }else if (eventLocked) {
+            }else if (lockedDoor){ //GoldKey door = default locked door
+                archway.isLocked = true;
+                archway.requiredKey = KeyType::Gold; 
+
+            }else if (silverDoor){ //Dark CYAN
+                archway.isLocked = true;
+                archway.requiredKey = KeyType::Silver; 
+
+            } else if (eventLocked) {
                 archway.eventLocked = true; //unlock on giant spider death ect..
             } else { //purple
                 archway.linkedLevelIndex = -1; //regular door
@@ -618,6 +621,7 @@ void GenerateDoorsFromArchways() {
         door.isPortal = dw.isPortal;
         door.eventLocked = dw.eventLocked;
         door.isLocked = dw.isLocked;
+        door.requiredKey = dw.requiredKey;
 
         door.doorTexture = R.GetTexture("doorTexture");
         door.scale = {300, 365, 1}; //stretch it taller
@@ -1089,9 +1093,15 @@ void GenerateKeys(float baseY) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            if (current.r == 255 && current.g == 200 && current.b == 0) { // Gold for keys
+            if (EqualsRGB(current, ColorOf(Code::KeyGold))) { // Gold for keys
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 80); // raised slightly off floor
-                Collectable key = {CollectableType::Key, pos, R.GetTexture("keyTexture"), 100.0f};
+                Collectable key = {CollectableType::GoldKey, pos, R.GetTexture("keyTexture"), 100.0f};
+                collectables.push_back(key);
+            }
+
+            if (EqualsRGB(current, ColorOf(Code::SilverKey))) { // Cool Silver for silver keys
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 80); // raised slightly off floor
+                Collectable key = {CollectableType::SilverKey, pos, R.GetTexture("silverKey"), 100.0f};
                 collectables.push_back(key);
             }
         }
