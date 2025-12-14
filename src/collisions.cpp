@@ -541,7 +541,7 @@ void CheckBulletHits(Camera& camera) {
                 }else if (b.type == BulletType::Bolt){
                     if (b.id != enemy->lastBulletIDHit){
                         
-                        enemy->TakeDamage(150);
+                        enemy->TakeDamage(75);
                         enemy->lastBulletIDHit = b.id;
                         break;
                         //penetration, bullet stays alive for now. 

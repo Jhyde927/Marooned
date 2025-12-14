@@ -238,7 +238,7 @@ void HandleKeyboardInput(Camera& camera) {
     if (IsKeyPressed(KEY_ONE)){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Sword;
-        meleeWeapon.equipDip = 80.0f;   // start low
+        meleeWeapon.equipDip = 50.0f;   // start low
         
     }
 

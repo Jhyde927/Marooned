@@ -174,7 +174,7 @@ void Crossbow::Update(float dt)
             reloadDip = dipCurve * reloadDipAmount;
 
             // Mid-dip: switch to loaded model at the bottom
-            if (!swappedModelMidDip && reloadPhase >= 0.5f) {
+            if (!swappedModelMidDip && reloadPhase >= 0.8f) {
                 swappedModelMidDip = true;
                 state = CrossbowState::Loaded;  // string is now visually back
                 SoundManager::GetInstance().Play("crossbowReload");

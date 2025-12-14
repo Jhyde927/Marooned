@@ -225,7 +225,7 @@ struct Crossbow {
     bool  isReloading      = false;
     float reloadDip        = 0.0f;   // computed each frame
     float reloadDipAmount  = 24.0f;  // how far down it dips
-    float reloadSpeed      = 0.9f;   // how fast 0→1
+    float reloadSpeed      = 0.5f;   // how fast 0→1
     float autoReloadDelay  = 0.5f;   // wait before starting dip
     float reloadDelayTimer = 0.5f;
 
