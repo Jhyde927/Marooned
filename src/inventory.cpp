@@ -54,6 +54,7 @@ void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>&
         Rectangle slotRect = { (float)(x + i * spacing), (float)y, (float)slotSize, (float)slotSize };
 
         // Draw slot outline
+        DrawRectangleRec(slotRect, (Color){20,20,20,200});
         DrawRectangleLinesEx(slotRect, 2, WHITE);
 
         // If we have the item and a texture for it

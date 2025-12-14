@@ -700,17 +700,41 @@ Crossbow:
 
 
 secret areas behind false walls. -Duhhh Doom did it. wolf3D did it. 
--Implemented secret walls. It's tricky because of how walls work. Wall segment starts on the tile center. and spans to the next tiles center. So removing a wall would open a two floor tile wide gap because it touches both tiles. 
+-Implemented secret walls. It's tricky because of how walls work. Wall segment starts on the tile center. and spans to the next tiles center. So removing a wall would open a two floor tile wide gap because the floor tile touches both wall segments. 
 
-Tile centers:    0    200   400   600   800
-                ·      ·      ·      ·      ·
+Tile centers:    0     200   400   600   800
+                 ·      ·      ·      ·      ·
 
-Wall segments:      |------|      |      |
-                   100    300
+Wall segments:      |------| secret |------|
+                   100    300      500    700
 
+So we pick an index based on distance to tile center. This index is assined to secretWall.wallRunIndex. When we call openSecrets we disable the wallrun at wallRunIndex. Then we don't collide with disabled wallruns. This allows us to open specific secret walls, if I decide you need to press e to open them. Right now you can walk straight through. 
 
+Secret walls are just false walls you can walk through. The only way to tell they are there is because the minimap shows vision going through the wall. If you notice this, you deserve to find the secret. For now you find keys in the secret rooms which allow you to skip through dungeons quickly. 
 
 Get rid of screenshots folder to lessen file size. The readme references the GIF and the screenshot. Other screenshot is used for backdrop for menu screen. Delete whatever screenshots your not actively using. Try to keep it below 100 megs. 
+
+Change keys to lockpicks. Added specific keys: gold key, silver key etc
+
+Inventory is for consumables. Postions and lockpicks. We will have a seperate box or something that holds what keys you have picked up for that level. Silver keys only last for the current level. Like the red key in Doom. 
+
+Make Silver Key art. 
+
+Current key is gold and I kind of like it. Do I use current key for gold key? It's not that fancy. You said you were going to just make silver keys for now. Change the color? maybe Gold keys are the first one you find. and silver is more rare.
+
+How to deconstruct current key implementation? Gold color is keys on PNG map. We should keep this the same for specific keys. Lets just call them keys, no silver or gold. Just keys and lockpicks. for now.
+
+Implemented key types. Default key is gold key. Gold color on PNG, collectable in world, opens locked doors. Silver key is Cool Silver on PNG map. unlocks silver doors which are dark cyan on the map. Gold and Silver keys are level specific. Gold keys open all gold key doors and are not consumed. Same for silver key and silver door. Player simply has 2 bools player.hasGoldKey and hasSilverKey. Door interaction code checks colors and bools before opening.
+
+Made two seperate key slots in the upper left corner that go vertically down. Could add another slot for something else that is level specific. Boss key? 
+
+Make lockpick art. - forget about lock picks for now. 
+
+archways without doors would fuckup. keep that in mind. 
+
+Add harpoon shot to crossbow. 
+
+Maybe blunderbuss secondary fire is wider spread bouncing shots, and normal fire is less spread non boncing bullets. 
 
 
 

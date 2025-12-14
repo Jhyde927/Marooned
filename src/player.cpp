@@ -164,6 +164,7 @@ void HandleKeyboardInput(Camera& camera) {
 
     if (IsKeyPressed(KEY_Q))
     {
+        meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean"); //wipe off the blood on sword
         // Swap weapons
         WeaponType newWeapon = player.previousWeapon;
         player.previousWeapon = player.activeWeapon;
@@ -173,7 +174,7 @@ void HandleKeyboardInput(Camera& camera) {
         switch (player.activeWeapon)
         {
             case WeaponType::Sword:
-                meleeWeapon.equipDip = 80;
+                meleeWeapon.equipDip = 50;
                 break;
 
             case WeaponType::Blunderbuss:
@@ -236,6 +237,7 @@ void HandleKeyboardInput(Camera& camera) {
     }
 
     if (IsKeyPressed(KEY_ONE)){
+        meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean");
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Sword;
         meleeWeapon.equipDip = 50.0f;   // start low
@@ -260,7 +262,7 @@ void HandleKeyboardInput(Camera& camera) {
         magicStaff.equipDip = 50;
     }
 
-    if (IsKeyPressed(KEY_F)){
+    if (IsKeyPressed(KEY_F) || IsKeyPressed(KEY_LEFT_CONTROL)){
         //use health potion
         if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
@@ -272,7 +274,7 @@ void HandleKeyboardInput(Camera& camera) {
         }
     }
 
-    if (IsKeyPressed(KEY_G)){
+    if (IsKeyPressed(KEY_G) || IsKeyPressed(KEY_LEFT_ALT)){
         if (player.inventory.HasItem("ManaPotion")){
             if (player.currentMana < player.maxMana){
                 player.currentMana = player.maxMana;
