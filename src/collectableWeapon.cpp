@@ -1,6 +1,7 @@
 #include "collectableWeapon.h"
 #include "player.h"
 #include "world.h"
+#include "sound_manager.h"
 
 CollectableWeapon::CollectableWeapon(WeaponType type, Vector3 position, Model model)
     : type(type), position(position), model(model), rotationY(0.0f), isCollected(false) {}
@@ -38,10 +39,14 @@ void DrawCollectableWeapons(Player& player, float deltaTime){
             player.collectedWeapons.push_back(cw.type);
             if (cw.type == WeaponType::MagicStaff){
                 hasStaff = true;
+                SoundManager::GetInstance().Play("flame1");
             }else if (cw.type == WeaponType::Crossbow){
                 hasCrossbow = true;
+                SoundManager::GetInstance().Play("crossbowReload");
+
             }else if (cw.type == WeaponType::Blunderbuss){
                 hasBlunderbuss = true;
+                SoundManager::GetInstance().Play("reload");
             }
 
             if (player.activeWeapon == WeaponType::None) {

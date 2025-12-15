@@ -1079,11 +1079,18 @@ void GeneratePotions(float baseY) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            if (current.r == 255 && current.g == 105 && current.b == 180) { // pink for potions
+            if (EqualsRGB(current, ColorOf(Code::HealthPotPink))) { // pink for potions
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 50); // raised slightly off floor
                 Collectable p = {CollectableType::HealthPotion, pos, R.GetTexture("healthPotTexture"), 40};
                 collectables.push_back(p);
             }
+
+            if (EqualsRGB(current, ColorOf(Code::ManaPotion))) { // dark bluefor mana potions
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 50); // raised slightly off floor
+                Collectable p = {CollectableType::ManaPotion, pos, R.GetTexture("manaPotion"), 40};
+                collectables.push_back(p);
+            }
+
         }
     }
 }
@@ -1129,7 +1136,7 @@ void GenerateSpiderFromImage(float baseY) {
                 );
                 spider.maxHealth = 100;
                 spider.currentHealth = 100; //2 sword attacks
-                
+                spider.id = gEnemyCounter++;
                 enemies.push_back(spider);
                 enemyPtrs.push_back(&enemies.back()); 
             }
@@ -1247,7 +1254,7 @@ void GenerateGiantSpiderFromImage(float baseY) {
                 );
                 giantSpider.maxHealth = 2000; //3k was to much, try 2k
                 giantSpider.currentHealth = giantSpider.maxHealth; 
-                
+                giantSpider.id = gEnemyCounter++;
                 enemies.push_back(giantSpider);
                 enemyPtrs.push_back(&enemies.back()); 
             }
@@ -1267,7 +1274,7 @@ void GenerateSkeletonsFromImage(float baseY) {
             // Look for pure red pixels (255, 0, 0) → Skeleton spawn
             if (current.r == 255 && current.g == 0 && current.b == 0) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
-
+                
                 Character skeleton(
                     spawnPos,
                     R.GetTexture("skeletonSheet"), 
@@ -1279,6 +1286,7 @@ void GenerateSkeletonsFromImage(float baseY) {
                 );
                 skeleton.maxHealth = 200;
                 skeleton.currentHealth = 200; //at least 2 shots. 4 sword swings 
+                skeleton.id = gEnemyCounter++;
                 
                 enemies.push_back(skeleton);
                 enemyPtrs.push_back(&enemies.back()); 
@@ -1313,6 +1321,7 @@ void GeneratePiratesFromImage(float baseY) {
 
                 pirate.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
                 pirate.currentHealth = 400;
+                pirate.id = gEnemyCounter++;
                 enemies.push_back(pirate);
                 enemyPtrs.push_back(&enemies.back()); 
 

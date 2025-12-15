@@ -78,11 +78,12 @@ extern float fade;
 extern bool hasStaff;
 extern bool hasBlunderbuss;
 extern bool hasCrossbow;
+extern bool hasHarpoon;
 extern bool drawCeiling;
 extern bool levelLoaded;
 extern bool isFullscreen;
 extern bool hasIslandNav;
-
+extern int gEnemyCounter;
 extern float debugDoorOpenAngleDeg;
 //extern float muzzleFlashTimer;
 
@@ -136,3 +137,4 @@ void StartFadeOutToLevel(int levelIndex);
 void StartFadeInFromBlack(); 
 void OpenEventLockedDoors();
 void InitOverworldWeapons();
+Character* FindEnemyById(int id);

@@ -458,7 +458,7 @@ void BulletParticleBounce(Bullet& b, Color c){
 
 bool TryBulletRicochet(Bullet& b, Vector3 n, float damp, float minSpeed, float headOnCosThreshold)
 {
-    //return true if ricochet was succesful and bullet survived. 
+    //returns true if ricochet was succesful and bullet survived. 
 
     // Normalize inputs
     n = Vector3Normalize(n);
@@ -540,7 +540,7 @@ void CheckBulletHits(Camera& camera) {
 
                 }else if (b.type == BulletType::Bolt){
                     if (b.id != enemy->lastBulletIDHit){
-                        
+ 
                         enemy->TakeDamage(75);
                         enemy->lastBulletIDHit = b.id;
                         break;
@@ -548,6 +548,31 @@ void CheckBulletHits(Camera& camera) {
 
                     }
 
+                }else if (b.type == BulletType::Harpoon){
+                    if (b.id != enemy->lastBulletIDHit) {
+
+                        enemy->TakeDamage(75);
+                        enemy->lastBulletIDHit = b.id;  
+
+                        // Stick this harpoon to the enemy
+                        b.stuck = true;
+                        b.stuckEnemyId = enemy->id;   
+                        b.stuckOffset = Vector3Subtract(b.position, enemy->position);
+
+                        // Stop the bullet moving
+                        b.velocity = {0,0,0};
+                        b.age = 0.0f;
+                        b.maxLifetime = 9999.0f;
+
+                        // Trigger pull
+                        if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Skeleton || enemy->type == CharacterType::Pirate){
+                            enemy->harpoonTarget = player.position;
+                            enemy->ChangeState(CharacterState::Harpooned);
+                        }
+
+
+                        break;
+                    }
                 }
                 
                 else if (b.type == BulletType::Fireball){ //dont check if b.isEnemy, all fireballs hit enemies. 

@@ -12,6 +12,36 @@
 
 
 
+void Crossbow::FireHarpoon(Camera& camera) {
+    if (!hasHarpoon) return;
+    float now = GetTime();
+    if (now - lastFired < fireCooldown) return;
+
+    // Don't fire if we're reloading or not in loaded state
+    if (isReloading || state != CrossbowState::Loaded) return;
+
+    lastFired     = now;
+    triggeredFire = true;
+
+    // Show rest model visually (string forward)
+    state = CrossbowState::Rest;
+
+    // Start delay BEFORE dip
+    reloadDelayTimer  = 0.0f;
+    isReloading       = false;
+    reloadPhase       = 0.0f;
+    swappedModelMidDip = false;
+
+    Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    FireCrossbowHarpoon(muzzlePos, camForward, 2000.0f, 2.0f, false);
+    SoundManager::GetInstance().Play("crossbowFire");
+    SoundManager::GetInstance().Play("harpoon");
+
+    recoil = recoilAmount;  // kick back
+    
+}
+
+
 void Crossbow::Fire(Camera& camera)
 {
     float now = GetTime();

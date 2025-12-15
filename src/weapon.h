@@ -235,6 +235,7 @@ struct Crossbow {
 
     void Update(float dt);
     void Fire(Camera& camera);
+    void FireHarpoon(Camera& camera);
     void Reload();     // optional manual reload trigger
     void Draw(const Camera& camera);
 };

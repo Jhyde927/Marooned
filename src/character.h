@@ -27,7 +27,7 @@ enum class CharacterState {
     Reposition,
     Patrol,
     MeleeAttack,
-    Orbit,
+    Harpooned,
     Death,
 };
 
@@ -65,6 +65,7 @@ public:
     float rotationY = 0.0f; // in degrees
     float stateTimer = 0.0f;
     float stepTimer = 0.0f;
+    int id = -1;
     float raptorSpeed = 700.0f;
     float raptorSoundCooldown = 0.0f;
     Vector3 patrolTarget{0,0,0};
@@ -97,9 +98,6 @@ public:
     bool hasLastKnownPlayerPos = false;
     bool canBleed = true;
     float radius = 50;
-    float hearingRadius = 600.0f;
-    bool heardPlayer = false;
-    //BoundingBox collider;
     int maxHealth = 150;
     int currentHealth = maxHealth;
     float accumulateDamage = 0.0f;
@@ -111,13 +109,16 @@ public:
     float  prevDistToPlayer = -1.0f;   // for distance trend fallback
     Vector3 prevPos = {0,0,0};         // to compute velocity
     Vector3 fleeTarget = { 0, 0, 0 };
+    Vector3 harpoonTarget = {0};   // usually player position (updated each frame)
     unsigned int lastBulletIDHit = 0;
     int    approachStreak = 0;         // hysteresis counters
     int    leaveStreak    = 0;
     int    strafeStreak = 0;
     float strafeSideSign = 1.0f; // >0 = one way, <0 = the other
     bool    hasFleeTarget = false;
-
+    
+    float harpoonDuration = 2.0f;
+    float harpoonMinDist  = 175.0f; // stop just in front of player
 
     int   navPathIndex = -1;        // current waypoint
     bool  navHasPath   = false;     // are we using nav path for this chase?

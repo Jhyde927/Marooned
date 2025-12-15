@@ -42,6 +42,7 @@ enum class Code {
     SecretDoor,              // (64, 0, 64) very dark purple
     SilverDoor,             // (0, 64, 64) dark cyan
     SilverKey,               // (180, 190, 205) Cool Silver
+    ManaPotion,               // (0, 0, 128) dark blue
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -84,9 +85,10 @@ constexpr Color ColorOf(Code c) {
         case Code::SecretDoor:             return Make(64, 0, 64);
         case Code::SilverDoor:             return Make(0, 64, 64);
         case Code::SilverKey:              return Make(180, 190, 205);
+        case Code::ManaPotion:             return Make(0, 0, 128);
     }
     // Fallback (should not happen)
-    return Make(255, 0, 255);
+    return Make(255, 255, 255);
 }
 
 // Exact-equality checker (PNG legend uses exact RGB; alpha often 255 or 0)

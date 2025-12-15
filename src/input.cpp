@@ -96,6 +96,7 @@ void debugControls(Camera& camera, float deltaTime){
             player.collectedWeapons.push_back(WeaponType::MagicStaff);
             hasBlunderbuss = true;
             hasCrossbow = true;
+            hasHarpoon = true;
             hasStaff = true;
             player.activeWeapon = WeaponType::Blunderbuss;
         }

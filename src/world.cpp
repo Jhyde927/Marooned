@@ -72,10 +72,11 @@ bool playerInit = false;
 bool hasStaff = false;
 bool hasBlunderbuss = false;
 bool hasCrossbow = false;
+bool hasHarpoon = false;
 float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
-
+int gEnemyCounter = 0;
 float debugDoorOpenAngleDeg = 0.0f;
 
 FadePhase gFadePhase = FadePhase::Idle;
@@ -525,7 +526,7 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
 
         Character raptor(spawnPos, R.GetTexture("raptorTexture"), 512, 512, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
         raptor.scale = 0.18;
-        raptor.maxHealth = 200;
+        raptor.maxHealth = 150;
         raptor.currentHealth = raptor.maxHealth;
         enemies.push_back(raptor);
         enemyPtrs.push_back(&enemies.back()); 
@@ -533,6 +534,17 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
     }
 
 
+}
+
+Character* FindEnemyById(int id)
+{
+    for (Character* e : enemyPtrs)
+    {
+        if (!e) continue;
+        if (e->id == id)
+            return e;
+    }
+    return nullptr;
 }
 
 void UpdateEnemies(float deltaTime) {
@@ -612,7 +624,7 @@ void UpdateCollectables(float deltaTime) {
             else if (collectables[i].type == CollectableType::Gold) {
                 player.gold += collectables[i].value;
                 SoundManager::GetInstance().Play("key");
-                
+
             } else if (collectables[i].type == CollectableType::ManaPotion) {
                 player.inventory.AddItem("ManaPotion");
                 SoundManager::GetInstance().Play("clink");

@@ -371,15 +371,14 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
             }
             else {
                 const Vector2 curTile = WorldToImageCoords(player.position);
-                if (((int)curTile.x != (int)lastPlayerTile.x || (int)curTile.y != (int)lastPlayerTile.y)
-                    && pathCooldownTimer <= 0.0f)
-                {
+                if (pathCooldownTimer <= 0.0f){
+                
                     lastPlayerTile = curTile;
                     pathCooldownTimer = 0.4f; // don’t spam BFS
                     const Vector2 start = WorldToImageCoords(position);
                     SetPath(start); 
+                
                 }
-
                 Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
                 // Move along current path
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100, repel);
@@ -526,6 +525,62 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
             break;
 
         }
+
+        case CharacterState::Harpooned: {
+            stateTimer += deltaTime;
+
+            if (currentHealth <= 0) {
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            // Keep updating target so if player backpedals, it still pulls toward you
+            Vector3 target = player.position;
+
+            // Pull direction XZ only // try it on raptors on a hill. 
+            Vector3 toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+
+            float dist = Vector3Length(toTarget);
+
+            // Stop distance so you don't overlap the player
+            const float stopDist = harpoonMinDist;
+
+            if (dist > stopDist && dist > 1.0f)
+            {
+                Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+
+                // Pull speed (world units / sec). Tune this.
+                const float pullSpeed = 3000.0f;
+
+                float step = pullSpeed * deltaTime;
+
+                // Don't overshoot past stop distance
+                float desiredMove = fminf(step, dist - stopDist);
+
+                position = Vector3Add(position, Vector3Scale(dir, desiredMove));
+
+            }
+
+            // after position update
+            toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+            dist = Vector3Length(toTarget);
+            
+            // End condition: time AND close enough
+            bool timeDone = (stateTimer >= harpoonDuration);
+            bool closeEnough = (dist <= stopDist + 5.0f);
+
+            if (timeDone && closeEnough)
+            {
+                currentWorldPath.clear();
+                ChangeState(CharacterState::Stagger);
+                break;
+            }
+
+            break;
+        }
+
 
 
         case CharacterState::Stagger: {
@@ -785,16 +840,66 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
         case CharacterState::RunAway:
         {
 
-            // if (isLeaving && rowIndex != 3){
-            //     SetAnimation(3, 4, 0.25, true); //runaway
-            // }else if (!isLeaving && rowIndex != 1){
-            //     SetAnimation(1, 5, 0.15, true); //walk
-            // }
             UpdateMovementAnim();
             UpdateRunaway(deltaTime);
 
             
         } break;
+
+        case CharacterState::Harpooned: {
+            stateTimer += deltaTime;
+
+            if (currentHealth <= 0) {
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            // Keep updating target so if player backpedals, it still pulls toward you
+            Vector3 target = player.position;
+
+            // Pull direction XZ only // try it on raptors on a hill. 
+            Vector3 toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+
+            float dist = Vector3Length(toTarget);
+
+            // Stop distance so you don't overlap the player
+            const float stopDist = harpoonMinDist;
+
+            if (dist > stopDist && dist > 1.0f)
+            {
+                Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+
+                // Pull speed (world units / sec). Tune this.
+                const float pullSpeed = 3000.0f;
+
+                float step = pullSpeed * deltaTime;
+
+                // Don't overshoot past stop distance
+                float desiredMove = fminf(step, dist - stopDist);
+
+                position = Vector3Add(position, Vector3Scale(dir, desiredMove));
+
+            }
+
+            // after position update
+            toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+            dist = Vector3Length(toTarget);
+            
+            // End condition: time AND close enough
+            bool timeDone = (stateTimer >= harpoonDuration);
+            bool closeEnough = (dist <= stopDist + 5.0f);
+
+            if (timeDone && closeEnough)
+            {
+                currentWorldPath.clear();
+                ChangeState(CharacterState::Stagger);
+                break;
+            }
+
+            break;
+        }
 
 
         case CharacterState::Freeze:
@@ -1097,6 +1202,62 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
             break;
         }
+
+        case CharacterState::Harpooned: {
+            stateTimer += deltaTime;
+
+            if (currentHealth <= 0) {
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            // Keep updating target so if player backpedals, it still pulls toward you
+            Vector3 target = player.position;
+
+            // Pull direction XZ only // try it on raptors on a hill. 
+            Vector3 toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+
+            float dist = Vector3Length(toTarget);
+
+            // Stop distance so you don't overlap the player
+            const float stopDist = harpoonMinDist;
+
+            if (dist > stopDist && dist > 1.0f)
+            {
+                Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+
+                // Pull speed (world units / sec). Tune this.
+                const float pullSpeed = 3000.0f;
+
+                float step = pullSpeed * deltaTime;
+
+                // Don't overshoot past stop distance
+                float desiredMove = fminf(step, dist - stopDist);
+
+                position = Vector3Add(position, Vector3Scale(dir, desiredMove));
+
+            }
+
+            // after position update
+            toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+            dist = Vector3Length(toTarget);
+            
+            // End condition: time AND close enough
+            bool timeDone = (stateTimer >= harpoonDuration);
+            bool closeEnough = (dist <= stopDist + 5.0f);
+
+            if (timeDone && closeEnough)
+            {
+                currentWorldPath.clear();
+                ChangeState(CharacterState::Stagger);
+                break;
+            }
+
+            break;
+        }
+
 
         case CharacterState::Freeze: {
             stateTimer += deltaTime;

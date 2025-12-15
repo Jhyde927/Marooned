@@ -12,6 +12,7 @@ enum class BulletType {
     Fireball,
     Iceball,
     Bolt,
+    Harpoon,
    
 };
 
@@ -24,8 +25,8 @@ struct BulletLight {
     // Optional post-explosion glow
     bool   detachOnDeath = true;
     bool   detached = false;      // became a glow after bullet died
-    float  age = 0.f;
-    float  lifeTime = 0.f;        // e.g. 0.25s
+    float  age = 0.0f;
+    float  lifeTime = 0.0f;        // e.g. 0.25s
     Vector3 posWhenDetached{};    // freeze final position
 };
 
@@ -42,16 +43,24 @@ public:
     bool fireball = false;
     float age;
     float maxLifetime;
+    float lifeTime = 1.5f;
     float timeSinceImpact = 0.0f;
     float timer;
     float gravity = 300.0f;
     float radius = 25.0f;
     float spinAngle = 0.0f;
     float size = 3.0f;
+
     bool exploded = false;
     float timeSinceExploded = 0.0f;
     bool explosionTriggered = false;
     unsigned int id;            // <-- unique per bullet
+    bool   stuck = false;
+    int    stuckEnemyId = -1;
+    Vector3 stuckOffset = {0};   // world-space offset from enemy.position
+    bool retracting = false;
+    float retractSpeed = 4000.0f; // units/sec tweak
+    Vector3 retractTip = {0};     // where the rope tip currently is during retract
     Quaternion rotation;   // NEW
     BulletLight light;
     void Update(Camera& camera, float deltaTime);
@@ -95,3 +104,5 @@ void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, boo
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher);
 void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy);
 void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);
+void FireCrossbowHarpoon(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);
+Vector3 GetHarpoonAnchor(const Camera& cam);

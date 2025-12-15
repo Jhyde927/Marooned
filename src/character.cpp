@@ -465,7 +465,6 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Chase:
                 case CharacterState::Patrol:
                 case CharacterState::Reposition:
-                case CharacterState::Orbit:
                     return AnimDesc {1, 4, 0.25, true}; //walk
 
                 case CharacterState::RunAway: return {1, 4, 0.25f, true};
@@ -482,7 +481,6 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
 
                 case CharacterState::Chase:
                 case CharacterState::Reposition:
-                case CharacterState::Orbit: 
                 case CharacterState::RunAway:
                 case CharacterState::Patrol:
                     return AnimDesc{1, 5, 0.15f, true}; // walk
@@ -591,7 +589,6 @@ static inline bool StateUsesPath(CharacterState s) {
         case CharacterState::Chase:
         case CharacterState::Patrol:
         case CharacterState::Reposition:
-        case CharacterState::Orbit:
             return true;
         default:
             return false;

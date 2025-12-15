@@ -162,6 +162,10 @@ void HandleKeyboardInput(Camera& camera) {
         magicStaff.Fire(camera);
     }
 
+    if (rmb && player.activeWeapon == WeaponType::Crossbow) {
+        crossbow.FireHarpoon(camera);
+    }
+
     if (IsKeyPressed(KEY_Q))
     {
         meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean"); //wipe off the blood on sword

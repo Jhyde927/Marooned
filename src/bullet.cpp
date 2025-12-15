@@ -204,10 +204,36 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
 void Bullet::Update(Camera& camera, float deltaTime) {
     fireEmitter.Update(deltaTime);
     sparkEmitter.Update(deltaTime); 
-
+    lifeTime -= deltaTime;
     if (!alive){
         timeSinceImpact += deltaTime;
     } 
+
+    if (type == BulletType::Harpoon && retracting)
+    {
+        Vector3 anchor = GetHarpoonAnchor(camera); // or pass in anchor from player update
+
+        Vector3 toA = Vector3Subtract(anchor, retractTip);
+        float d = Vector3Length(toA);
+
+        if (d < 10.0f)
+        {
+            lifeTime = 0.0f; // now actually kill it
+            exploded = true;
+            alive = false;
+        }
+        else
+        {
+            Vector3 dir = Vector3Scale(toA, 1.0f / d);
+            float step = retractSpeed * deltaTime;
+            float move = fminf(step, d);
+            retractTip = Vector3Add(retractTip, Vector3Scale(dir, move));
+        }
+
+        // Optional: keep the bolt model riding the retract tip
+        //position = retractTip;
+    }
+
 
 
 
@@ -263,7 +289,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
         }
         return; //skip normal bullet logic
 
-    }else if (type == BulletType::Bolt){
+    }else if (type == BulletType::Bolt || type == BulletType::Harpoon){
         velocity.y -= gravity * deltaTime;
         fireEmitter.SetParticleType(ParticleType::BoltTrail);
         fireEmitter.SetPosition(position);
@@ -291,12 +317,26 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     age += deltaTime;
 
     if (age >= maxLifetime && !exploded) alive = false;
-
+    if (type == BulletType::Harpoon && stuck && lifeTime <= 0.0f){
+        alive = false;
+        exploded = true;
+    }
+    if (type == BulletType::Harpoon && !stuck && lifeTime <= 0.0f)
+    {
+       retracting = true;
+       retractTip = position;
+       velocity = {0,0,0};
+       lifeTime = 9999.0f; // keep it alive while retracting
+       if (Vector3Distance(position, player.position) < 100 ){
+            alive = false;
+            exploded = true;
+       } 
+    }
 
     HandleBulletWorldCollision(camera);
 
     float speed = Vector3Length(velocity);
-    if (speed < 800.0f) {   //  ~ one bounce theoretically
+    if (speed < 800.0f && type != BulletType::Harpoon) {   //  ~ one bounce theoretically
         alive = false;
         exploded = true;
         
@@ -318,6 +358,21 @@ inline void EndBulletTransform()
 {
     rlPopMatrix();
 }
+
+
+Vector3 GetHarpoonAnchor(const Camera& cam)
+{
+    Vector3 f = Vector3Normalize(Vector3Subtract(cam.target, cam.position));
+    Vector3 r = Vector3Normalize(Vector3CrossProduct(f, cam.up));
+    Vector3 u = Vector3Normalize(cam.up);
+
+    Vector3 p = cam.position;
+    p = Vector3Add(p, Vector3Scale(r,  25.0f));
+    p = Vector3Add(p, Vector3Scale(u, -20.0f));
+    p = Vector3Add(p, Vector3Scale(f,  60.0f));
+    return p;
+}
+
 
 void DrawBolt(const Bullet& b)
 {
@@ -344,18 +399,65 @@ void DrawBolt(const Bullet& b)
         LIGHTGRAY
     );
 
-    // Vector3 finPos = b.position;
-    // finPos.z -= 3.0f; // if your world space matches that axis orientation
-    // // Fins: slightly bigger, red
-    // DrawModelEx(
-    //     R.GetModel("boltFinsModel"),
-    //     finPos,
-    //     axis,
-    //     angleDeg,
-    //     { 1.0f, 1.0f, 1.0f },
-    //     RED
-    // );
+
 }
+
+void DrawHarpoon(const Bullet& b, const Camera& camera)
+{
+    if (b.type != BulletType::Harpoon) return;
+
+    // quaternion → axis/angle (same as DrawBolt)
+    Quaternion q = b.rotation;
+    float angle = 2.0f * acosf(q.w);
+    float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - q.w * q.w));
+
+    Vector3 axis = (sinTheta < 0.001f)
+        ? Vector3{ 0, 1, 0 }
+        : Vector3{ q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
+
+    float angleDeg = angle * RAD2DEG;
+
+    // Draw the bolt model (same model)
+    DrawModelEx(
+        R.GetModel("squareBolt"),
+        b.position,
+        axis,
+        angleDeg,
+        { 1.0f, 1.0f, 1.0f },
+        LIGHTGRAY
+    );
+
+    // Rope
+    Vector3 anchor = GetHarpoonAnchor(camera);
+
+    Vector3 tip = b.position;
+
+
+    if (b.stuck)
+    {
+        Character* e = FindEnemyById(b.stuckEnemyId); // lookup in enemyPtrs 
+        if (e)
+            tip = Vector3Add(e->position, b.stuckOffset);
+    }
+
+    if (b.retracting) tip = b.retractTip;
+
+
+
+    // Avoid weirdness if tip is super close
+    float d = Vector3Distance(anchor, tip);
+    if (d > 10.0f)
+    {
+        float ropeRadius = 0.5f;   // tweak: 1.0 - 3.0
+        int ropeSides = 6;         // cheap but round enough
+
+        DrawCylinderEx(anchor, tip, ropeRadius, ropeRadius, ropeSides,
+                       (Color){150, 75, 30, 255});
+    }
+}
+
+
+
 
 
 
@@ -378,27 +480,12 @@ void Bullet::Draw(Camera& camera) const {
         
         DrawModelEx(R.GetModel("iceballModel"), position, { 0, 1, 0 }, spinAngle, { 25.0f, 25.0f, 25.0f }, WHITE);
             
-            
-   
     }else if (type == BulletType::Bolt){
-        // Convert quaternion → axis/angle
+
         DrawBolt(*this);
-        // Quaternion q = rotation;
-        // float angle = 2.0f * acosf(q.w);
-        // float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - q.w * q.w));
 
-        // Vector3 axis;
-        // if (sinTheta < 0.001f) {
-        //     axis = { 0, 1, 0 }; // arbitrary axis when angle is tiny
-        // } else {
-        //     axis = { q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
-        // }
-
-        // float angleDeg = angle * RAD2DEG;
-        // //Vector3 bulletOffset = {position.x, position.y, position.z};
-        // DrawModelEx(R.GetModel("squareBolt"), position, axis, angleDeg, Vector3{1, 1, 1}, Color {255, 200, 200, 255});
-        //DrawCube(position, 5, 5, 5, RED);
-
+    }else if (type == BulletType::Harpoon){
+        DrawHarpoon(*this, camera);
 
     } else{ //regular bullets
         float t = Clamp(age / 1.5, 0.0f, 1.0f);
@@ -614,6 +701,15 @@ void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, 
     bolt.rotation =  QuaternionFromVector3ToVector3({0,0,1}, forward);
     bolt.id = gBulletCounter++;
     activeBullets.emplace_back(bolt);
+}
+
+void FireCrossbowHarpoon(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy) {
+    Vector3 vel = Vector3Scale(forward, speed);
+    Bullet harpoon = {origin, vel, lifetime, enemy, BulletType::Harpoon};
+    harpoon.rotation =  QuaternionFromVector3ToVector3({0,0,1}, forward);
+    harpoon.id = gBulletCounter++;
+    harpoon.lifeTime = 1.5f;
+    activeBullets.emplace_back(harpoon);
 }
 
 void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int pelletCount, float speed, float lifetime, bool enemy) {
