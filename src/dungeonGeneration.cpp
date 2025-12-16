@@ -1792,6 +1792,9 @@ void ClearDungeon() {
     decals.clear();
     eggs.clear();
     frameLights.clear();
+    lavaMask.clear();
+    launchers.clear();
+    lavaTiles.clear();
 
     for (ChestInstance& chest : chestInstances) {
         UnloadModelAnimations(chest.animations, chest.animCount);

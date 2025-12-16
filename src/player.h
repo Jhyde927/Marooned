@@ -45,7 +45,7 @@ struct Player {
     float lightIntensity = 0.5f;
     float lightRange = 400;
     float gravity = 980.0f;
-    float height = 200.0f;
+    float height = 240.0f;
     float jumpStrength = 600.0f; 
     float footstepTimer = 0.0f;
     float swimTimer = 0.0f;
@@ -78,8 +78,8 @@ struct Player {
     std::vector<WeaponType> collectedWeapons;
 
     int currentWeaponIndex = -1; 
-    WeaponType activeWeapon = WeaponType::Sword;
-    WeaponType previousWeapon = WeaponType::None;
+    WeaponType activeWeapon = WeaponType::Crossbow;
+    WeaponType previousWeapon = WeaponType::Sword;
     float switchTimer = 0.0f;
     float switchDuration = 0.3f; // time to lower or raise
     BoundingBox GetBoundingBox() const;

@@ -240,7 +240,7 @@ void HandleKeyboardInput(Camera& camera) {
         player.position = Vector3Add(player_boat.position, {0, 200.0f, 0});
     }
 
-    if (IsKeyPressed(KEY_ONE)){
+    if (IsKeyPressed(KEY_ONE) && player.activeWeapon != WeaponType::Sword ){
         meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean");
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Sword;
@@ -248,19 +248,19 @@ void HandleKeyboardInput(Camera& camera) {
         
     }
 
-    if (IsKeyPressed(KEY_TWO) && hasCrossbow){
+    if (IsKeyPressed(KEY_TWO) && hasCrossbow && player.activeWeapon != WeaponType::Crossbow ){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Crossbow;
         crossbow.reloadDip = 40;
     }
 
-    if (IsKeyPressed(KEY_THREE) && hasBlunderbuss){
+    if (IsKeyPressed(KEY_THREE) && hasBlunderbuss && player.activeWeapon != WeaponType::Blunderbuss ){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Blunderbuss;
         weapon.reloadDip = 40;
     }
 
-    if (IsKeyPressed(KEY_FOUR) && hasStaff){
+    if (IsKeyPressed(KEY_FOUR) && hasStaff && player.activeWeapon != WeaponType::MagicStaff){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::MagicStaff;
         magicStaff.equipDip = 50;

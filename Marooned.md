@@ -708,7 +708,7 @@ Tile centers:    0     200   400   600   800
 Wall segments:      |------| secret |------|
                    100    300      500    700
 
-So we pick an index based on distance to tile center. This index is assined to secretWall.wallRunIndex. When we call openSecrets we disable the wallrun at wallRunIndex. Then we don't collide with disabled wallruns. This allows us to open specific secret walls, if I decide you need to press e to open them. Right now you can walk straight through. 
+So we pick an index based on distance to tile center. This index is assigned to secretWall.wallRunIndex. When we call openSecrets we disable the wallrun at wallRunIndex. Then we don't collide with disabled wallruns. This allows us to open specific secret walls, if I decide you need to press e to open them. Right now you can walk straight through. 
 
 Secret walls are just false walls you can walk through. The only way to tell they are there is because the minimap shows vision going through the wall. If you notice this, you deserve to find the secret. For now you find keys in the secret rooms which allow you to skip through dungeons quickly. 
 
@@ -732,9 +732,11 @@ Make lockpick art. - forget about lock picks for now.
 
 archways without doors would fuckup. keep that in mind. 
 
-Add harpoon shot to crossbow. 
+Add harpoon shot to crossbow. -Implemented harpoon secondary fire for crossbow. It's either overpowered or not powerful enough, I can't tell. Fires a bolt with a rope attached. It sticks to enemies then pulls the enemies toward the player where they stand stunned for a second. allowing the player to shoot with the blunderbuss. If this doesn't kill them they can immediatly attack which makes it difficult because you got to switch from crossbow to bb to sword really fast. Harpoon plus BB should insta kill a skeleton everytime. Pirates can survive it, that's fine. Rightnow harpoon shot does 75 damage. any more it would one shot spiders. So make BB even more powerful? make it more consistent with bullet ID checking? Make point blank shots do more damage. Make harpooned enemies take more damage. Like a damage amplifier if harpoon state. 
 
 Maybe blunderbuss secondary fire is wider spread bouncing shots, and normal fire is less spread non boncing bullets. 
+
+Make mana potions collectable. what color on PNG? Dark Blue x
 
 
 

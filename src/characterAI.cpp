@@ -272,6 +272,61 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
         }
 
+        case CharacterState::Harpooned: {
+            stateTimer += deltaTime;
+
+            if (currentHealth <= 0) {
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            // Keep updating target so if player backpedals, it still pulls toward you
+            Vector3 target = player.position;
+
+            // Pull direction XZ only // try it on raptors on a hill. 
+            Vector3 toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+
+            float dist = Vector3Length(toTarget);
+
+            // Stop distance so you don't overlap the player
+            const float stopDist = harpoonMinDist;
+
+            if (dist > stopDist && dist > 1.0f)
+            {
+                Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+
+                // Pull speed (world units / sec). Tune this.
+                const float pullSpeed = 3000.0f;
+
+                float step = pullSpeed * deltaTime;
+
+                // Don't overshoot past stop distance
+                float desiredMove = fminf(step, dist - stopDist);
+
+                position = Vector3Add(position, Vector3Scale(dir, desiredMove));
+
+            }
+
+            // after position update
+            toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+            dist = Vector3Length(toTarget);
+            
+            // End condition: time AND close enough
+            bool timeDone = (stateTimer >= harpoonDuration);
+            bool closeEnough = (dist <= stopDist + 5.0f);
+
+            if (timeDone && closeEnough)
+            {
+                currentWorldPath.clear();
+                ChangeState(CharacterState::Stagger);
+                break;
+            }
+
+            break;
+        }
+
         case CharacterState::Freeze: {
             stateTimer += deltaTime;
             //do nothing

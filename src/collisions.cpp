@@ -531,11 +531,12 @@ void CheckBulletHits(Camera& camera) {
             bool isGhost = (enemy->type == CharacterType::Ghost);
             if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), b.GetPosition(), b.GetRadius())) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
-                    
-                    enemy->TakeDamage((int)b.ComputeDamage()); //damage based on bullets velocity, base 10 damage for blunderbuss
+                    int extraD = 0;
+                    if (enemy->state == CharacterState::Harpooned) extraD = 20;//enemies take more damage when harpooned. 
+                    enemy->TakeDamage((int)b.ComputeDamage() + extraD); //damage based on bullets velocity, base 10 damage for blunderbuss
                     BoundingBox box = enemy->GetBoundingBox(); //we leave an aweful lot up to chance, but it plays well. 
                     Vector3 n = AABBHitNormal(box, b.position);
-                    TryBulletRicochet(b, n, 0.6f, 500, 0.99); //0.9 cosign makes headon bullets get absorbed by enemy. 
+                    TryBulletRicochet(b, n, 0.6f, 500, 0.99); //0.9 cosign threshhold makes headon bullets get absorbed by enemy. 
                     break;
 
                 }else if (b.type == BulletType::Bolt){
@@ -565,9 +566,11 @@ void CheckBulletHits(Camera& camera) {
                         b.maxLifetime = 9999.0f;
 
                         // Trigger pull
-                        if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Skeleton || enemy->type == CharacterType::Pirate){
+                        if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Skeleton || 
+                            enemy->type == CharacterType::Pirate || enemy->type == CharacterType::GiantSpider || enemy->type == CharacterType::Spider){
                             enemy->harpoonTarget = player.position;
                             enemy->ChangeState(CharacterState::Harpooned);
+                            SoundManager::GetInstance().Play("ratchet");
                         }
 
 
@@ -597,7 +600,6 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }
 
-                
             }
         }
 

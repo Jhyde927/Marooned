@@ -205,13 +205,15 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     fireEmitter.Update(deltaTime);
     sparkEmitter.Update(deltaTime); 
     lifeTime -= deltaTime;
+    
     if (!alive){
         timeSinceImpact += deltaTime;
     } 
 
     if (type == BulletType::Harpoon && retracting)
     {
-        Vector3 anchor = GetHarpoonAnchor(camera); // or pass in anchor from player update
+        
+        Vector3 anchor = GetHarpoonAnchor(camera); 
 
         Vector3 toA = Vector3Subtract(anchor, retractTip);
         float d = Vector3Length(toA);
@@ -402,6 +404,46 @@ void DrawBolt(const Bullet& b)
 
 }
 
+void DrawSpiralRope(Vector3 anchor, Vector3 tip, float timeSec)
+{
+    Vector3 delta = Vector3Subtract(tip, anchor);
+    float len = Vector3Length(delta);
+    if (len < 5.0f) return;
+
+    Vector3 dir = Vector3Scale(delta, 1.0f / len);
+
+    Vector3 right = Vector3Normalize(Vector3CrossProduct(dir, (fabsf(dir.y) < 0.99f) ? Vector3{0,1,0} : Vector3{1,0,0}));
+    Vector3 up    = Vector3Normalize(Vector3CrossProduct(right, dir));
+
+    const int segments = 18;
+    const float radius = 0.5f;
+
+    float amp = Clamp(len * 0.006f, 1.5f, 6.0f);
+
+    // how many turns along the rope (slow spiral = < 1.5 turns)
+    float turns = 1.0f;
+
+    Vector3 prev = anchor;
+
+    for (int i = 1; i <= segments; i++)
+    {
+        float t = (float)i / (float)segments;
+        Vector3 p = Vector3Add(anchor, Vector3Scale(delta, t));
+
+        float angle = (t * 6.28318f * turns) + timeSec * 0.8f; // rotate slowly over time
+        float cs = cosf(angle), sn = sinf(angle);
+
+        // rotating offset around the rope axis
+        Vector3 offset = Vector3Add(Vector3Scale(right, cs * amp),
+                                    Vector3Scale(up,    sn * amp));
+        p = Vector3Add(p, offset);
+
+        DrawCylinderEx(prev, p, radius, radius, 6, (Color){150,75,30,255});
+        prev = p;
+    }
+}
+
+
 void DrawHarpoon(const Bullet& b, const Camera& camera)
 {
     if (b.type != BulletType::Harpoon) return;
@@ -451,8 +493,9 @@ void DrawHarpoon(const Bullet& b, const Camera& camera)
         float ropeRadius = 0.5f;   // tweak: 1.0 - 3.0
         int ropeSides = 6;         // cheap but round enough
 
-        DrawCylinderEx(anchor, tip, ropeRadius, ropeRadius, ropeSides,
-                       (Color){150, 75, 30, 255});
+        // DrawCylinderEx(anchor, tip, ropeRadius, ropeRadius, ropeSides,
+        //                (Color){150, 75, 30, 255});
+        DrawSpiralRope(anchor, tip, ElapsedTime);
     }
 }
 
@@ -589,6 +632,7 @@ float Bullet::ComputeDamage()
 
     // clamp to [0,1]
     vFactor = Clamp(vFactor, 0.0f, 1.0f);
+    
 
     return baseDamage * vFactor;
 }

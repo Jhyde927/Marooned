@@ -16,7 +16,7 @@ void Crossbow::FireHarpoon(Camera& camera) {
     if (!hasHarpoon) return;
     float now = GetTime();
     if (now - lastFired < fireCooldown) return;
-
+    if (!harpoonReady) return;
     // Don't fire if we're reloading or not in loaded state
     if (isReloading || state != CrossbowState::Loaded) return;
 
@@ -31,7 +31,7 @@ void Crossbow::FireHarpoon(Camera& camera) {
     isReloading       = false;
     reloadPhase       = 0.0f;
     swappedModelMidDip = false;
-
+    harpoonTimer = 0.0f;
     Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     FireCrossbowHarpoon(muzzlePos, camForward, 2000.0f, 2.0f, false);
     SoundManager::GetInstance().Play("crossbowFire");
@@ -80,33 +80,6 @@ void Crossbow::Reload()
     reloadPhase = 0.0f;
     SoundManager::GetInstance().Play("crossbowReload");
 }
-
-
-
-// void Crossbow::Fire(Camera& camera)
-// {
-
-//     float now = GetTime();
-//     if (now - lastFired < fireCooldown) return;
-
-//     lastFired = now;
-//     triggeredFire = true;
-
-//     if (state == CrossbowState::Loaded) {
-//         state = CrossbowState::Rest;
-
-//         reloadTimer = 0.0f;
-//         Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-//         FireCrossbow(muzzlePos, camForward, 3000, 5.0, false);
-//         SoundManager::GetInstance().Play("crossbowFire");
-//         // spawn bolt, kick recoil, start reload timer, etc.
-//         recoil = 20.0f;
-        
-
-//     }
-
-// }
-
 
 
 void Weapon::Fire(Camera& camera) {
@@ -163,6 +136,17 @@ void Weapon::Fire(Camera& camera) {
 
 void Crossbow::Update(float dt)
 {
+
+    harpoonTimer += dt;
+
+    bool readyNow = (harpoonTimer >= harpoonCooldown);
+    if (!harpoonReady && readyNow)
+    {
+        SoundManager::GetInstance().Play("crossbowReload");
+    }
+
+    harpoonReady = readyNow;
+
     // --- Bobbing ---
     if (isMoving) {
         bobbingTime += dt * 8.0f;

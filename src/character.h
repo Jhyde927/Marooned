@@ -110,7 +110,7 @@ public:
     Vector3 prevPos = {0,0,0};         // to compute velocity
     Vector3 fleeTarget = { 0, 0, 0 };
     Vector3 harpoonTarget = {0};   // usually player position (updated each frame)
-    unsigned int lastBulletIDHit = 0;
+    unsigned int lastBulletIDHit = 2;
     int    approachStreak = 0;         // hysteresis counters
     int    leaveStreak    = 0;
     int    strafeStreak = 0;
@@ -119,6 +119,7 @@ public:
     
     float harpoonDuration = 2.0f;
     float harpoonMinDist  = 175.0f; // stop just in front of player
+ 
 
     int   navPathIndex = -1;        // current waypoint
     bool  navHasPath   = false;     // are we using nav path for this chase?

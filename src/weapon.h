@@ -230,7 +230,9 @@ struct Crossbow {
     float reloadDelayTimer = 0.5f;
 
     bool  swappedModelMidDip = false;  // did we already switch to loaded model?
-
+    float harpoonCooldown = 5.0f;
+    float harpoonTimer = 0.0;
+    bool harpoonReady = true; // persistent state
     bool triggeredFire = false;
 
     void Update(float dt);
@@ -240,46 +242,6 @@ struct Crossbow {
     void Draw(const Camera& camera);
 };
 
-
-// struct Crossbow {
-//     // --- Model + animation ---
-
-
-//     Model loadedModel;
-//     Model restModel;
-
-//     CrossbowState state = CrossbowState::Loaded;
-
-//     Vector3 muzzlePos;
-
-//     // --- Transform offsets (same pattern as blunderbuss) ---
-//     Vector3 scale = { 1.0f, 1.0f, 1.0f };
-//     float forwardOffset  = 60.0f;
-//     float sideOffset     = 15.0f;
-//     float verticalOffset = -35.0f;
-
-//     // --- Bobbing ---
-//     float bobbingTime = 0.0f;
-//     bool isMoving = false;
-//     float bobVertical = 0.0f;
-//     float bobSide = 0.0f;
-
-//     // --- Recoil ---
-//     float recoil = 0.0f;
-//     float recoilAmount = 8.0f;
-//     float recoilRecoverySpeed = 20.0f;
-    
-//     // --- Fire control ---
-//     float lastFired = -999.0f;
-//     float fireCooldown = 0.8f;   // adjust later
-//     float reloadTimer = 0.0;
-//     bool triggeredFire = false;
-
-//     void Update(float dt);
-//     void Fire(Camera& camera);
-//     void Reload();
-//     void Draw(const Camera& camera);
-// };
 
 
 

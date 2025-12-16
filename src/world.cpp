@@ -781,6 +781,7 @@ void ClearLevel() {
     player.hasGoldKey = false;
     player.hasSilverKey = false;
     RemoveAllVegetation();
+    
 
     // if (terrainMesh.vertexCount > 0) UnloadMesh(terrainMesh); //unload mesh and heightmap when switching levels. if they exist
     if (heightmap.data != nullptr) UnloadImage(heightmap); 

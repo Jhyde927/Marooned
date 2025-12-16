@@ -60,7 +60,9 @@ public:
     Vector3 stuckOffset = {0};   // world-space offset from enemy.position
     bool retracting = false;
     float retractSpeed = 4000.0f; // units/sec tweak
+
     Vector3 retractTip = {0};     // where the rope tip currently is during retract
+
     Quaternion rotation;   // NEW
     BulletLight light;
     void Update(Camera& camera, float deltaTime);
