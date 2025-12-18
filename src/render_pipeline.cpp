@@ -14,6 +14,89 @@
 #include "shadows.h"
 #include "terrainChunking.h"
 
+void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
+
+    // --- 3D scene to sceneTexture ---
+    BeginTextureMode(R.GetRenderTexture("sceneTexture"));
+        ClearBackground(SKYBLUE);
+        float farClip = isDungeon ? 16000.0f : 30000.0f;
+        float nearclip = 30.0f;
+        CameraSystem::Get().BeginCustom3D(camera, nearclip, farClip);
+
+        //skybox
+        rlDisableBackfaceCulling(); rlDisableDepthMask(); rlDisableDepthTest();
+        DrawModel(R.GetModel("skyModel"), camera.position, 10000.0f, WHITE);
+        rlEnableDepthMask(); rlEnableDepthTest();
+        BeginBlendMode(BLEND_ALPHA);
+
+
+
+
+
+        if (!isDungeon){
+            float maxDrawDist = 50000.0f; //Higher for menu cam
+            DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
+            rlEnableDepthTest();
+            rlDisableDepthMask();         // don’t write depth for transparent water
+            //DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
+            rlEnableDepthMask();
+            DrawBoat(player_boat);
+            HandleWaves(camera); //update water plane bob. 
+
+        }
+
+        BeginShaderMode(R.GetShader("cutoutShader"));
+        DrawTrees(trees, camera); 
+        DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
+        DrawOverworldProps();
+        EndShaderMode();
+        DrawDungeonGeometry(camera, 20000);
+        DrawDungeonPillars();
+        DrawDungeonBarrels();
+        DrawLaunchers();
+        DrawTransparentDrawRequests(camera);
+
+        EndBlendMode();
+        EndMode3D();
+        rlDisableDepthTest();
+    EndTextureMode();
+
+    // --- post to postProcessTexture ---
+    BeginTextureMode(R.GetRenderTexture("postProcessTexture"));
+    {
+        BeginShaderMode(R.GetShader("fogShader"));
+            auto& sceneRT = R.GetRenderTexture("sceneTexture");
+            Rectangle src = { 0, 0,
+                            (float)sceneRT.texture.width,
+                            -(float)sceneRT.texture.height }; // flip Y!
+            Rectangle dst = { 0, 0,
+                            (float)GetScreenWidth(),
+                            (float)GetScreenHeight() };
+            DrawTexturePro(sceneRT.texture, src, dst, {0,0}, 0.0f, WHITE);
+        EndShaderMode();
+    }
+    EndTextureMode();
+
+
+
+    // --- final to backbuffer + UI ---
+    BeginDrawing();
+        ClearBackground(WHITE);
+        BeginShaderMode(R.GetShader("bloomShader"));
+            auto& post = R.GetRenderTexture("postProcessTexture");
+            Rectangle src = { 0, 0,
+                            (float)post.texture.width,
+                            -(float)post.texture.height }; // flip Y!
+            Rectangle dst = { 0, 0,
+                            (float)GetScreenWidth(),
+                            (float)GetScreenHeight() };
+            DrawTexturePro(post.texture, src, dst, {0,0}, 0.0f, WHITE);
+        EndShaderMode();
+
+        DrawMenu(selectedOption, levelIndex);
+    EndDrawing();
+    }
+
 
 
 

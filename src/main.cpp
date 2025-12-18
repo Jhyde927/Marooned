@@ -40,20 +40,20 @@ int main() {
 
     float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
     float fovy   = (aspect < (16.0f/9.0f)) ? 50.0f : 45.0f; //bump up FOV if it's narrower than 16x9
-
-    CameraSystem::Get().Init(startPosition);
+    Vector3 camPos = {startPosition.x, startPosition.y + 1000, startPosition.z};
+    CameraSystem::Get().Init(camPos);
     CameraSystem::Get().SetFOV(fovy);
+
     
+    InitMenuLevel(levels[0]);
     //main game loop
     while (!WindowShouldClose()) {
         float rawDt = GetFrameTime();
         ElapsedTime += rawDt; //use the same frameTime for both dt and et. 
         float deltaTime = rawDt; // Clamp dt so physics never sees a huge value on a hitch
         if (deltaTime > 0.05f) deltaTime = 0.05f;   
-        
-       // Use the active camera everywhere:
+      // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
-
         UpdateFade(camera); //always update fade regardless of state
 
         //Switch Levels
@@ -69,14 +69,22 @@ int main() {
             continue; // Block anything from touching old resources this frame. skip the rest of game loop. 
         }
 
+        static GameState prevState = currentGameState;
+        bool enteredMenu = (currentGameState == GameState::Menu && prevState != GameState::Menu);
+        prevState = currentGameState;
+
+        if (enteredMenu)
+        {
+            EnterMenu(); //setup cinematic camera for menu view
+        }
+
         //Main Menu - level select 
         if (currentGameState == GameState::Menu) {
-
+            CameraSystem::Get().Update(deltaTime);
+            drawCeiling = false;
             UpdateMenu(camera);
-            UpdateMusicStream(SoundManager::GetInstance().GetMusic("jungleAmbience"));
-            BeginDrawing();
-            DrawMenu(selectedOption, levelIndex);
-            EndDrawing();
+            UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
+            RenderMenuFrame(camera, player, deltaTime);
             if (currentGameState == GameState::Quit) break;
         
             continue; // skip the rest of the game loop
@@ -105,6 +113,7 @@ int main() {
             UpdateDungeonChests();
             UpdateSpiderEggs(deltaTime, player.position);
             ApplyLavaDPS(player, deltaTime, 1);
+            ApplyEnemyLavaDPS();
             UpdateHintManager(deltaTime);
             
             //collisions
@@ -113,7 +122,7 @@ int main() {
 
             HandleWeaponTints();
             if (isDungeon){
-                
+                drawCeiling = levels[levelIndex].hasCeiling;
                 HandleDungeonTints();
             }
 

@@ -105,7 +105,7 @@ extern std::vector<CollectableWeapon> worldWeapons;
 
 extern std::vector<Character> enemies;  
 extern std::vector<Character*> enemyPtrs;
-
+Character* FindEnemyById(int id);
 void ClearLevel();
 void InitLevel(LevelData& level, Camera& camera);
 void InitDungeonLights();
@@ -137,4 +137,5 @@ void StartFadeOutToLevel(int levelIndex);
 void StartFadeInFromBlack(); 
 void OpenEventLockedDoors();
 void InitOverworldWeapons();
-Character* FindEnemyById(int id);
+void InitMenuLevel(LevelData& level);
+void EnterMenu();

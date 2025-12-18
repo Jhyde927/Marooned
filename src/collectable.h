@@ -8,6 +8,7 @@ enum class CollectableType {
     SilverKey,
     Gold,
     ManaPotion,
+    Harpoon,
     // Add more types as needed
 };
 

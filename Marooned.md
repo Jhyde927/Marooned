@@ -734,9 +734,33 @@ archways without doors would fuckup. keep that in mind.
 
 Add harpoon shot to crossbow. -Implemented harpoon secondary fire for crossbow. It's either overpowered or not powerful enough, I can't tell. Fires a bolt with a rope attached. It sticks to enemies then pulls the enemies toward the player where they stand stunned for a second. allowing the player to shoot with the blunderbuss. If this doesn't kill them they can immediatly attack which makes it difficult because you got to switch from crossbow to bb to sword really fast. Harpoon plus BB should insta kill a skeleton everytime. Pirates can survive it, that's fine. Rightnow harpoon shot does 75 damage. any more it would one shot spiders. So make BB even more powerful? make it more consistent with bullet ID checking? Make point blank shots do more damage. Make harpooned enemies take more damage. Like a damage amplifier if harpoon state. 
 
+Added spiral to rope. Looks way better that way. I guess we keep harpoon and it unlocks later. Need a harpoon model or billboard for a pickup in world. Can be a collectable. x
+
 Maybe blunderbuss secondary fire is wider spread bouncing shots, and normal fire is less spread non boncing bullets. 
 
 Make mana potions collectable. what color on PNG? Dark Blue x
+
+harpooning health potions should bing them to you. -how? bullet collision with collectable AABB. collectables don't have an AABB. just add bounding box to collectable struct set to the size of the frame width and height. Collectable would need a harpooned state. Shoot barrels to automatically collect what is in them? 
+
+made player character 40 units taller. You are taller than the enemies by a little bit now. You tower over the pirates. But two different people said the player was too short. It maybe because doors are so tall. After playing with it like that a while I think it is better taller. Maybe it's because your short in real life, you made the character short. 
+
+Need another click sound when trying to fire harpoon before it's loaded.
+
+Added harpoon collectable with billboard art. Gun metal gray on the PNG map. What level should it unlock on? Spider boss? Instead of staff. unlock staff on lava level maybe. 
+
+fixed lava and launchers showing up on river after finishing lava level. We weren't clearing lavaTiles, and launchers, on clearDungeon. 
+
+Giant pirate boss at the end of dungeon 14. 
+
+Lock dungeon 1 after entering? player could go back in and would have to redo all 3 first levels. x
+
+You should be able to harpoon enemies into lava pits. Enemies would need to have floor height change when over lava. instantly kill and have the sprite drop into pit. x
+
+Do something about dungeon chests. It's the only animated 3D model. And it doesn't work. Why doesn't it work? Opening one chest opens all chest instances. Chest model remains open even after level load. We fixed this problem before but it returned some how. Look at chest code. 
+
+
+
+
 
 
 

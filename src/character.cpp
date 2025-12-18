@@ -210,19 +210,48 @@ void Character::Update(float deltaTime, Player& player ) {
     if (!isDungeon) ApplyGroundSnap();
 
     float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale); //get groundY from heightmap
-    if (isDungeon) groundY = dungeonPlayerHeight;
+    if (isDungeon)
+    {
+        
 
-    // Gravity
-    // float gravity = 1980.0f; //we need gravity for outside maps so characters stick to heightmap.
-    // static float verticalVelocity = 0.0f;
+        // 2) If standing over lava, define the lava "sink floor"
+        if (overLava)
+        {
+            const float lavaSinkDepth = 150.0f;
+            const float lavaFallSpeed = 600.0f;
+            const int   lavaDamage    = 500;
 
-    // if (position.y > groundY + spriteHeight / 2.0f) {
-    //     verticalVelocity -= gravity * deltaTime;
-    //     position.y += verticalVelocity * deltaTime;
-    // } else {
-    //     verticalVelocity = 0.0f;
-    //     position.y = groundY + spriteHeight / 2.0f;
-    // }
+            float lavaY = dungeonPlayerHeight - lavaSinkDepth;
+
+            // 3) Move feet down toward lavaY (clamped, no overshoot)
+            float feetY = GetFeetPos().y;
+
+            if (feetY > lavaY)
+            {
+                float step = lavaFallSpeed * deltaTime;
+                position.y -= step;
+
+                // recompute after move
+                feetY = GetFeetPos().y;
+
+                // 4) Trigger damage once when we cross / reach lavaY
+                if (!lavaDamageApplied && feetY <= lavaY)
+                {
+                    TakeDamage(lavaDamage);
+                    lavaDamageApplied = true;
+                }
+            }
+
+            // While over lava, we don't want normal floor snapping
+            //floorY = lavaY;
+        }
+        else
+        {
+            // Reset when not over lava so it can happen again later
+            lavaDamageApplied = false;
+        }
+    }
+
     
     //Run AI state machine depending on characterType
     UpdateAI(deltaTime,player);

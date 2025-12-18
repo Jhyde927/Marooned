@@ -116,10 +116,11 @@ public:
     int    strafeStreak = 0;
     float strafeSideSign = 1.0f; // >0 = one way, <0 = the other
     bool    hasFleeTarget = false;
-    
+    bool overLava = false;
+    bool lavaDamageApplied = false;
     float harpoonDuration = 2.0f;
     float harpoonMinDist  = 175.0f; // stop just in front of player
- 
+
 
     int   navPathIndex = -1;        // current waypoint
     bool  navHasPath   = false;     // are we using nav path for this chase?

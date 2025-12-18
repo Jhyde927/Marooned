@@ -94,6 +94,57 @@ std::vector<DungeonEntrance> dungeonEntrances;
 
 MiniMap miniMap;
 
+void EnterMenu() {
+    CinematicDesc cd{};
+    cd.snapOnStart   = true;
+    cd.orbitSpeedDeg = 1.0f;      // very slow
+    cd.height        = 2000.0f;
+    cd.lookSmooth    = 6.0f;
+    cd.posSmooth     = 1.5f;
+
+    if (isDungeon) {
+        // 32 tiles * 200 = 6400. Center is (3200,0,3200)
+        float worldSize = dungeonWidth * tileSize;   // or just 6400.0f if fixed
+        cd.focus  = { worldSize * 0.5f, 0.0f, worldSize * 0.5f };
+        cd.radius = worldSize * 0.7f;                // bigger than half (half=3200)
+        cd.startAngleDeg = 180.0f;                   // starts on -Z side
+    } else {
+        cd.focus  = { 0.0f, 0.0f, 0.0f };            // set to your island center
+        cd.radius = 12000.0f;
+        cd.height = 3500.0f;
+        cd.startAngleDeg = 180.0f;
+    }
+
+    CameraSystem::Get().StartCinematic(cd);
+}
+
+
+
+
+void InitMenuLevel(LevelData& level){
+    ClearLevel();
+    isDungeon = false;
+    heightmap = LoadImage(level.heightmapPath.c_str());
+    ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
+    terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls.
+    generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances.
+    GenerateEntrances();
+    InitBoat(player_boat,Vector3{0.0, -75, 0.0});
+    R.SetShaderValues();
+    R.SetBloomShaderValues();
+    if (!isDungeon) R.SetTerrainShaderValues();
+
+    CinematicDesc cd;
+    cd.focus = { 0, 0, 0 };        // whatever looks good on your island
+    cd.radius = 12000.0f;
+    cd.height = 3500.0f;
+    cd.orbitSpeedDeg = 2.0f;       // slow
+    cd.posSmooth = 1.5f;
+    cd.lookSmooth = 6.0f;
+    
+    CameraSystem::Get().StartCinematic(cd);
+}
+
 
 void InitLevel(LevelData& level, Camera& camera) {
     //Make sure we end texture mode, was causing problems with terrain.
@@ -104,6 +155,10 @@ void InitLevel(LevelData& level, Camera& camera) {
     
     //Called when starting game and changing level. init the level you pass it. the level is chosen by menu or door's linkedLevelIndex. 
     ClearLevel();//clears everything.
+
+    CameraSystem::Get().StopCinematic();
+    CameraSystem::Get().SetMode(CamMode::Player);
+    //CameraSystem::Get().SnapAllToPlayer(); //put freecam at player pos
     
     camera.position = player.position; //start as player, not freecam.
     levelIndex = level.levelIndex; //update current level index to new level. 
@@ -166,6 +221,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateSpiderWebs(floorHeight);
         GenerateChests(floorHeight);
         GeneratePotions(floorHeight);
+        GenerateHarpoon(floorHeight);
         GenerateKeys(floorHeight);
         GenerateWeapons(200);
 
@@ -201,7 +257,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     Vector3 resolvedSpawn = ResolveSpawnPoint(level, isDungeon, first, floorHeight);
     InitPlayer(player, resolvedSpawn); //start at green pixel if there is one. otherwise level.startPos or first startPos
 
-    CameraSystem::Get().SnapAllToPlayer(); //put freecam at player pos
+   
 
     //start with blunderbus and sword in that order
 
@@ -411,6 +467,7 @@ void GenerateEntrances() {
         d.isOpen = false;
         d.isLocked = e.isLocked;
         if (i == 2) d.isLocked = !unlockEntrances; //entrance 3 unlocks
+        if (i == 0) d.isLocked = unlockEntrances; //lock entrance 1, prevent player from replaying first 3 levels.
         if (e.position.x == -5484.0f) d.isLocked = true; //entrance 2 always remains locked, make damn sure. 
 
         d.scale = {300, 365, 1};
@@ -628,6 +685,9 @@ void UpdateCollectables(float deltaTime) {
             } else if (collectables[i].type == CollectableType::ManaPotion) {
                 player.inventory.AddItem("ManaPotion");
                 SoundManager::GetInstance().Play("clink");
+            } else if (collectables[i].type == CollectableType::Harpoon) {
+                hasHarpoon = true;
+                SoundManager::GetInstance().Play("ratchet");
             }
 
             collectables.erase(collectables.begin() + i);

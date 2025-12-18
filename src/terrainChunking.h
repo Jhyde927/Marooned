@@ -34,7 +34,7 @@ TerrainGrid BuildTerrainGridFromHeightmap(const Image& heightmapGray, Vector3 te
 // Draw with a simple distance ring (fast + good enough to start).
 // maxDrawDist is horizontal (XZ) distance in world units.
 void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDist);
-void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float maxDrawDist,int maxChunksToDraw,std::vector<ChunkDrawInfo>& outList);
+void BuildTerrainChunkDrawList(const TerrainGrid& T,const Camera3D& cam,float maxDrawDist,int maxChunksToDraw,bool disableCulling, std::vector<ChunkDrawInfo>& outList);
 
 // Free all GPU resources owned by the grid.
 void UnloadTerrainGrid(TerrainGrid& T);

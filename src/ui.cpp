@@ -8,6 +8,7 @@
 #include "world.h"
 #include "utilities.h"
 #include "camera_system.h"
+#include "render_pipeline.h"
 
 
 static HintManager hints;   // one global-ish instance, private to UI.cpp
@@ -299,8 +300,7 @@ inline void DrawTextExShadowed(Font font, const std::string& s, Vector2 pos,
 
 void DrawMenu(int selectedOption, int levelIndex) {
 
-    ClearBackground(BLACK);
-   
+    //ClearBackground(BLACK);
     Texture2D backDrop = R.GetTexture("backDrop"); //first texture of the game. 
     // choose contain or cover
     bool cover = false; // true = fill screen (crop), false = fit inside (letterbox)
@@ -308,7 +308,7 @@ void DrawMenu(int selectedOption, int levelIndex) {
     Rectangle src  = { 0, 0, (float)backDrop.width, (float)backDrop.height };
     Rectangle dest = FitTextureDest(backDrop, GetScreenWidth(), GetScreenHeight(), cover);
 
-    if (fade <= 0) DrawTexturePro(backDrop, src, dest, Vector2{0,0}, 0.0f, WHITE);
+    //if (fade <= 0) DrawTexturePro(backDrop, src, dest, Vector2{0,0}, 0.0f, WHITE);
 
     const char* title = "MAROONED";
     int fontSize = 128;
@@ -368,8 +368,6 @@ void DrawMenu(int selectedOption, int levelIndex) {
     DrawTextExShadowed(pieces, quitBuf, {(float)menuX, 480.0f},
                     menuFontSizeF, menuSpacing, WHITE, menuShadowPx, shadowCol);
 
-
-
 }
 
 void UpdateMenu(Camera& camera){
@@ -377,7 +375,10 @@ void UpdateMenu(Camera& camera){
     int optionsCount = 4;
     if (currentGameState == GameState::Menu) {
 
-        if (IsKeyPressed(KEY_ESCAPE) && levelLoaded) currentGameState = GameState::Playing;
+        if (IsKeyPressed(KEY_ESCAPE) && levelLoaded){
+            currentGameState = GameState::Playing;
+            CameraSystem::Get().StopCinematic();
+        } 
         if (IsKeyPressed(KEY_UP)) selectedOption = (selectedOption - 1 + optionsCount) % optionsCount; //loop
         if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % optionsCount;
 

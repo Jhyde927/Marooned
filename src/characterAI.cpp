@@ -374,8 +374,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
     float distance = Vector3Distance(position, player.position);
 
     Vector2 start = WorldToImageCoords(position);
-    //Vector2 goal = WorldToImageCoords(player.position);
-    //changed vision to soley rely on world LOS. More forgiving 
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
 

@@ -10,6 +10,7 @@ static float clampf(float x, float a, float b) { return (x < a) ? a : (x > b) ? 
 HintManager::HintManager()
 : currentIndex(-1), //stays at -1 in dungeons. use setMessage()
   hasOverride(false),
+  harpoonPickup(false),
   anchor{0.5f, 0.85f},
   maxWidthFrac(0.70f),
   paddingPx(12.0f),
@@ -116,7 +117,7 @@ void HintManager::UpdateTutorial(){
     }
 
     if (player.currentMana < 30 && currentIndex == -1 && player.inventory.HasItem("ManaPotion")){
-        SetMessage("Press G TO US MANA POTION");
+        SetMessage("PRESS G TO USE MANA POTION");
         
     }
 
@@ -140,15 +141,28 @@ void HintManager::UpdateTutorial(){
     if (IsKeyPressed(KEY_G)){
         Clear();
     }
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && player.activeWeapon == WeaponType::Crossbow){
+        Clear();
+    }
+
     
     if (!isDungeon){ // hint e to interact when close to dungeon entrance. -it should disappear when further away.
         DungeonEntrance& e = dungeonEntrances[0];
         float distance = Vector3Distance(player.position, e.position);
         if (distance < 500 && currentIndex < 0){
             SetMessage("E TO INTERACT");
+        }else if (distance > 600 && currentIndex < 0 ){
+            Clear();
         }
 
     }
+
+    if (!harpoonPickup && hasHarpoon){
+        harpoonPickup = true;
+        SetMessage("RIGHT CLICK WITH CROSSBOW TO FIRE HARPOON");
+    }
+
 
 }
 

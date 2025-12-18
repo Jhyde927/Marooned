@@ -47,7 +47,7 @@ private:
     int currentIndex;
     std::string overrideMessage;
     bool hasOverride;
-
+    bool harpoonPickup;
     // Visual config
     Vector2 anchor;           // normalized [0..1] of screen
     float maxWidthFrac;       // fraction of screen width for wrapping

@@ -203,6 +203,7 @@ void BuildTerrainChunkDrawList(
     const Camera3D& cam,
     float maxDrawDist,
     int maxChunksToDraw,
+    bool disableCulling,
     std::vector<ChunkDrawInfo>& outList)
 {
     outList.clear();
@@ -220,23 +221,24 @@ void BuildTerrainChunkDrawList(
     // 1) Collect candidates
     for (const TerrainChunk& c : T.chunks)
     {
-        // First do distance + water tests (fast)
-        Vector3 toChunk = Vector3Subtract(c.center, vp.camPos);
+        Vector3 toChunk = Vector3Subtract(c.center, cam.position);
         float distSq = Vector3LengthSqr(toChunk);
 
-        if (distSq > vp.maxDistSq)
-            continue;
+        if (!disableCulling)
+        {
+            if (distSq > maxDrawDist * maxDrawDist)
+                continue;
 
-        if (c.aabb.max.y < WATER_HEIGHT && !player.isSwimming)
-            continue;
+            if (c.aabb.max.y < WATER_HEIGHT && !player.isSwimming)
+                continue;
 
-        // Use new cone function for visibility
-        if (!IsInViewCone(vp, c.center))
-            continue;
+            if (!IsInViewCone(vp, c.center))
+                continue;
+        }
 
-        // Add to draw list
         outList.push_back({ &c, distSq });
     }
+
 
     // 2) Sort by distance
     std::sort(outList.begin(), outList.end(),
@@ -252,11 +254,11 @@ void BuildTerrainChunkDrawList(
 
 
 void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDist) {
-
+    bool disableCulling = (currentGameState == GameState::Menu);
     rlEnableBackfaceCulling();
-    int maxChunksToDraw = 250;
+    int maxChunksToDraw = disableCulling ? 500 : 250;
     static std::vector<ChunkDrawInfo> drawList;
-    BuildTerrainChunkDrawList(T, cam, maxDrawDist, maxChunksToDraw, drawList);
+    BuildTerrainChunkDrawList(T, cam, maxDrawDist, maxChunksToDraw, disableCulling, drawList);
 
     for (const ChunkDrawInfo& info : drawList) {
         const TerrainChunk* c = info.chunk;

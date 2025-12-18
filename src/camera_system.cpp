@@ -71,12 +71,17 @@ void CameraSystem::SetFarClip(float farClip) {
 }
 
 Camera3D& CameraSystem::Active() {
-    if (mode == CamMode::Player) { playerRig.cam.fovy = playerRig.fov; return playerRig.cam; }
-    else                         { freeRig.cam.fovy   = freeRig.fov;   return freeRig.cam;  }
+    if (mode == CamMode::Player)      { playerRig.cam.fovy = playerRig.fov; return playerRig.cam; }
+    else if (mode == CamMode::Free)   { freeRig.cam.fovy   = freeRig.fov;   return freeRig.cam;  }
+    else                              { cinematicRig.cam.fovy = cinematicRig.fov; return cinematicRig.cam; }
 }
+
 const Camera3D& CameraSystem::Active() const {
-    return (mode == CamMode::Player) ? playerRig.cam : freeRig.cam;
+    if (mode == CamMode::Player) return playerRig.cam;
+    if (mode == CamMode::Free)   return freeRig.cam;
+    return cinematicRig.cam;
 }
+
 
 void CameraSystem::Shake(float mag, float dur) { shakeMag = mag; shakeTime = dur; }
 
@@ -90,14 +95,6 @@ void CameraSystem::ApplyShake(float dt) {
     if (mode == CamMode::Player) playerRig.cam.position = Vector3Add(playerRig.cam.position, jitter);
     else                         freeRig.cam.position   = Vector3Add(freeRig.cam.position, jitter);
 }
-
-void CameraSystem::Update(float dt) {
-    if (mode == CamMode::Player) UpdatePlayerCam(dt);
-    else                         UpdateFreeCam(dt);
-    ApplyShake(dt);
-}
-
-
 
 // Exponential smoothing helper
 inline float SmoothStepExp(float current, float target, float speed, float dt) {
@@ -186,3 +183,101 @@ void CameraSystem::BeginCustom3D(const Camera3D& cam, float nearClip, float farC
     Matrix view = MatrixLookAt(cam.position, cam.target, cam.up);
     rlMultMatrixf(MatrixToFloat(view));
 }
+
+static inline float SmoothExp(float current, float target, float speed, float dt) {
+    float a = 1.0f - expf(-speed * dt);
+    return current + (target - current) * a;
+}
+
+static inline Vector3 SmoothExpV3(Vector3 current, Vector3 target, float speed, float dt) {
+    return {
+        SmoothExp(current.x, target.x, speed, dt),
+        SmoothExp(current.y, target.y, speed, dt),
+        SmoothExp(current.z, target.z, speed, dt),
+    };
+}
+
+void CameraSystem::StartCinematic(const CinematicDesc& desc) {
+    cine = desc;
+    cineActive = true;
+
+    // Enter cinematic mode first so Active() doesn't matter anymore.
+    mode = CamMode::Cinematic;
+
+    // Pick starting orbit angle deterministically
+    cineOrbitAngleDeg = cine.startAngleDeg;
+
+    Vector3 focus = cine.useDynamicFocus ? cine.dynamicFocus : cine.focus;
+    float ang = DEG2RAD * cineOrbitAngleDeg;
+
+    Vector3 startPos = {
+        focus.x + sinf(ang) * cine.radius,
+        focus.y + cine.height,
+        focus.z + cosf(ang) * cine.radius
+    };
+
+    if (cine.snapOnStart) {
+        cinematicRig.cam.position = startPos;
+        cinematicRig.cam.target   = focus;
+    } else {
+        // If you want “ease-in” from whatever the cinematic cam currently was:
+        // leave position/target as-is and smoothing will pull it toward the orbit path.
+        // (But default snapOnStart=true is best for menus.)
+    }
+
+    // FOV: use current active fov if you want, or keep a fixed menu fov
+    // Here: copy a reasonable value from rigs (or just set cinematicRig.fov = playerRig.fov;)
+    cinematicRig.fov = (playerRig.fov > 0.f) ? playerRig.fov : 45.f;
+    cinematicRig.cam.fovy = cinematicRig.fov;
+    cinematicRig.cam.up   = {0,1,0};
+    cinematicRig.cam.projection = CAMERA_PERSPECTIVE;
+}
+
+
+void CameraSystem::StopCinematic() {
+    cineActive = false;
+    // You choose where to return. Usually menu -> Player.
+    mode = CamMode::Player;
+}
+
+void CameraSystem::SetCinematicFocus(const Vector3& p) {
+    cine.focus = p;
+}
+
+void CameraSystem::Update(float dt) {
+    if (mode == CamMode::Player)      UpdatePlayerCam(dt);
+    else if (mode == CamMode::Free)   UpdateFreeCam(dt);
+    else                              UpdateCinematicCam(dt);
+
+    ApplyShake(dt);
+}
+
+void CameraSystem::UpdateCinematicCam(float dt) {
+    if (!cineActive) return;
+
+    cineOrbitAngleDeg += cine.orbitSpeedDeg * dt;
+    if (cineOrbitAngleDeg >= 360.0f) cineOrbitAngleDeg -= 360.0f;
+    if (cineOrbitAngleDeg < 0.0f)    cineOrbitAngleDeg += 360.0f;
+
+    float ang = DEG2RAD * cineOrbitAngleDeg;
+
+    Vector3 focus = cine.useDynamicFocus ? cine.dynamicFocus : cine.focus;
+
+    Vector3 desiredPos = {
+        focus.x + sinf(ang) * cine.radius,
+        focus.y + cine.height,
+        focus.z + cosf(ang) * cine.radius
+    };
+
+    if (cine.posSmooth <= 0.0f) cinematicRig.cam.position = desiredPos;
+    else cinematicRig.cam.position = SmoothExpV3(cinematicRig.cam.position, desiredPos, cine.posSmooth, dt);
+
+    if (cine.lookSmooth <= 0.0f) cinematicRig.cam.target = focus;
+    else cinematicRig.cam.target = SmoothExpV3(cinematicRig.cam.target, focus, cine.lookSmooth, dt);
+
+    cinematicRig.cam.up   = {0,1,0};
+    cinematicRig.cam.fovy = cinematicRig.fov;
+
+    SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+}
+

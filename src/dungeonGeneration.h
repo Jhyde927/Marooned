@@ -256,6 +256,7 @@ void GenerateLightSources(float baseY);
 void GenerateDoorways( float baseY, int currentLevelIndex);
 void GenerateDoorsFromArchways();
 void GeneratePotions(float baseY);
+void GenerateHarpoon(float baseY);
 void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
@@ -263,7 +264,7 @@ void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
 void ApplyLavaDPS(Player& player, float dt, float lavaDps);
-
+void ApplyEnemyLavaDPS();
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist);
 void DrawSecrets();
 void BindSecretWallsToRuns();

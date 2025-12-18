@@ -1073,6 +1073,24 @@ void GenerateChests(float baseY) {
     }
 }
 
+void GenerateHarpoon(float baseY){
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            if (EqualsRGB(current, ColorOf(Code::Harpoon))) { // gun metal
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 50); // raised slightly off floor
+                Collectable p = {CollectableType::Harpoon, pos, R.GetTexture("harpoon"), 80};
+                collectables.push_back(p);
+            }
+
+
+
+        }
+    }
+
+}
+
 
 void GeneratePotions(float baseY) {
     for (int y = 0; y < dungeonHeight; y++) {
@@ -1430,6 +1448,17 @@ void ApplyLavaDPS(Player& player, float dt, float lavaDps) {
     }
 }
 
+void ApplyEnemyLavaDPS(){
+    GridCoord g;
+    for (Character* enemy : enemyPtrs){
+        if (!WorldToGrid(enemy->position, g, tileSize, dungeonWidth, dungeonHeight)) return;
+
+        if (lavaMask[g.y * dungeonWidth + g.x]){
+            enemy->overLava = true;
+        }
+    }
+}
+
 
 
 
@@ -1545,7 +1574,7 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
     //Doorways
     for (const DoorwayInstance& d : doorways) {
-        if (!IsInViewCone(vp, d.position)) continue;
+        //if (!IsInViewCone(vp, d.position)) continue;
         Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
         DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
         

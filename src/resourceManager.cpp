@@ -184,8 +184,10 @@ void ResourceManager::EnsureScreenSizedRTs() {
 
 void ResourceManager::LoadAllResources() {
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
-    //render textures
+
     // ResourceManager init once
+    
+    //render textures
     RenderTexture& scene = R.LoadRenderTexture("sceneTexture", screenResolution.x, screenResolution.y);
     SetTextureFilter(scene.texture, TEXTURE_FILTER_BILINEAR);
     SetTextureWrap(scene.texture, TEXTURE_WRAP_CLAMP);
@@ -239,6 +241,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("spiderEggSheet",   "assets/sprites/spiderEggSheet.png");
     R.LoadTexture("blank",            "assets/textures/blank.png");
     R.LoadTexture("silverKey",        "assets/sprites/silverKey.png");
+    R.LoadTexture("harpoon",          "assets/sprites/harpoon.png");
 
 
     // Models (registering with string keys)
