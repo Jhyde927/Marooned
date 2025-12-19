@@ -37,7 +37,7 @@ std::vector<LevelData> levels = {
 
     {
 
-        "(Middle Island)", //display name
+        "MiddleIsland", //display name
         "assets/heightmaps/MiddleIsland.png", //heightmap
         "",//dungeon path
         {0.0f, 300.0f, 0.0f}, //starting position

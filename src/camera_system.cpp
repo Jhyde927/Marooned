@@ -25,7 +25,7 @@ void CameraSystem::Init(const Vector3& startPos) {
 }
 
 static inline float YawFromDir(const Vector3& d) {
-    return RAD2DEG * atan2f(d.x, d.z); // x vs z (matches your forward build)
+    return RAD2DEG * atan2f(d.x, d.z); // x vs z 
 }
 static inline float PitchFromDir(const Vector3& d) {
     // safer than asinf(d.y) when d isn't perfectly normalized
@@ -34,7 +34,7 @@ static inline float PitchFromDir(const Vector3& d) {
 
 void CameraSystem::SnapAllToPlayer() {
     // 1) position/target from the *player camera*, not player entity
-    playerRig.cam.position = playerRig.cam.position; // (no-op, just emphasis)
+    playerRig.cam.position = playerRig.cam.position; 
     Vector3 pos = playerRig.cam.position;
     Vector3 dir = Vector3Normalize(Vector3Subtract(playerRig.cam.target, pos));
 

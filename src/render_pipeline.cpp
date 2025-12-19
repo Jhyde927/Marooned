@@ -13,6 +13,7 @@
 #include "lighting.h"
 #include "shadows.h"
 #include "terrainChunking.h"
+#include "main_menu.h"
 
 void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 
@@ -28,10 +29,6 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         DrawModel(R.GetModel("skyModel"), camera.position, 10000.0f, WHITE);
         rlEnableDepthMask(); rlEnableDepthTest();
         BeginBlendMode(BLEND_ALPHA);
-
-
-
-
 
         if (!isDungeon){
             float maxDrawDist = 50000.0f; //Higher for menu cam
@@ -93,7 +90,8 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
             DrawTexturePro(post.texture, src, dst, {0,0}, 0.0f, WHITE);
         EndShaderMode();
 
-        DrawMenu(selectedOption, levelIndex);
+        MainMenu::Draw(gMenu, levelIndex, levels.data(), (int)levels.size());
+        //DrawMenu(selectedOption, levelIndex);
     EndDrawing();
     }
 

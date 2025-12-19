@@ -15,6 +15,7 @@
 #include "shadows.h"
 #include "miniMap.h"
 #include "heightmapPathfinding.h"
+#include "main_menu.h"
 
 enum class GameState {
     Menu,
@@ -91,7 +92,7 @@ extern float debugDoorOpenAngleDeg;
 
 extern GameState currentGameState;
 extern FadePhase gFadePhase;
-
+extern MainMenu::State gMenu;
 extern HeightmapNavGrid gIslandNav;
 extern TreeShadowMask gTreeShadowMask;
 extern std::vector<DungeonEntrance> dungeonEntrances;

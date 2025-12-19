@@ -150,3 +150,22 @@ float TimingFromPixel(Color c) {
         default:  return 5.0f; // safe default if miscolored
     }
 }
+
+Rectangle FitTextureDest(const Texture2D& tex, int screenW, int screenH, bool cover)
+{
+    float sw = (float)screenW, sh = (float)screenH;
+    float tw = (float)tex.width, th = (float)tex.height;
+
+    float scale = cover ? fmaxf(sw/tw, sh/th)  // fill (crop)
+                        : fminf(sw/tw, sh/th); // fit (bars)
+
+    float dw = tw * scale;
+    float dh = th * scale;
+    float dx = (sw - dw) * 0.5f;  // center
+    float dy = (sh - dh) * 0.5f;
+
+    // (optional) avoid subpixel blur
+    dx = floorf(dx); dy = floorf(dy); dw = floorf(dw); dh = floorf(dh);
+
+    return Rectangle{ dx, dy, dw, dh };
+}

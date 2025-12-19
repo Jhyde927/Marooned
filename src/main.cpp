@@ -27,7 +27,7 @@ int main() {
 
     InitAudioDevice();
     SetTargetFPS(60);
-    DisableCursor();
+    //DisableCursor();
     SetExitKey(KEY_NULL); //Escape brings up menu, not quit
     ResourceManager::Get().LoadAllResources();
     SoundManager::GetInstance().LoadSounds();
@@ -82,7 +82,7 @@ int main() {
         if (currentGameState == GameState::Menu) {
             CameraSystem::Get().Update(deltaTime);
             drawCeiling = false;
-            UpdateMenu(camera);
+            UpdateMenu(camera, deltaTime);
             UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
             RenderMenuFrame(camera, player, deltaTime);
             if (currentGameState == GameState::Quit) break;

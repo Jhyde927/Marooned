@@ -45,7 +45,7 @@ void DrawMagicIcon();
 
 void DrawMenu(int selectedOption, int levelIndex); 
 void DrawTimer(float ElapsedTime);
-void UpdateMenu(Camera& camera);
+void UpdateMenu(Camera& camera, float dt);
 void TutorialSetup();
 void DrawTrapezoidFill(Vector2 TL, Vector2 TR, Vector2 BR, Vector2 BL, float t, Color colFill, Color colBack);
 void DrawTrapezoidBar(float x, float y, float value, float maxValue, const BarStyle& style);

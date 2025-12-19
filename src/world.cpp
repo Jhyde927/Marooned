@@ -22,7 +22,7 @@
 
 
 GameState currentGameState = GameState::Menu;
-
+MainMenu::State gMenu;
 //global variables, clean these up somehow. 
 
 Image heightmap;
@@ -95,6 +95,7 @@ std::vector<DungeonEntrance> dungeonEntrances;
 MiniMap miniMap;
 
 void EnterMenu() {
+    EnableCursor();
     CinematicDesc cd{};
     cd.snapOnStart   = true;
     cd.orbitSpeedDeg = 1.0f;      // very slow
@@ -127,8 +128,9 @@ void InitMenuLevel(LevelData& level){
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls.
-    generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances.
     GenerateEntrances();
+    generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances.
+
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     R.SetShaderValues();
     R.SetBloomShaderValues();
@@ -149,7 +151,7 @@ void InitMenuLevel(LevelData& level){
 void InitLevel(LevelData& level, Camera& camera) {
     //Make sure we end texture mode, was causing problems with terrain.
     EndTextureMode();
-
+    DisableCursor();
     isLoadingLevel = true;
     isDungeon = false;
     
@@ -160,7 +162,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     CameraSystem::Get().SetMode(CamMode::Player);
     //CameraSystem::Get().SnapAllToPlayer(); //put freecam at player pos
     
-    camera.position = player.position; //start as player, not freecam.
+    //camera.position = player.position; //start as player, not freecam.
     levelIndex = level.levelIndex; //update current level index to new level. 
 
     if (level.heightmapPath.empty() && level.dungeonPath.empty()) {

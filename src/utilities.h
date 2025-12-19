@@ -35,3 +35,4 @@ bool IsDirPixel(Color c);
 bool IsTimingPixel(Color c);
 float TimingFromPixel(Color c);
 
+Rectangle FitTextureDest(const Texture2D& tex, int screenW, int screenH, bool cover);
