@@ -16,6 +16,8 @@
 #include "spiderEgg.h"
 #include "miniMap.h"
 
+//as above, so below
+
 bool squareRes = false; // set true for 1280x1024, false for widescreen
 
 int main() { 
@@ -41,7 +43,8 @@ int main() {
     float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
     float fovy   = (aspect < (16.0f/9.0f)) ? 50.0f : 45.0f; //bump up FOV if it's narrower than 16x9
     Vector3 camPos = {startPosition.x, startPosition.y + 1000, startPosition.z};
-    CameraSystem::Get().Init(camPos);
+
+    CameraSystem::Get().Init(camPos); //init camera to player pos, setting it to cinematic overwrites this. but we still need to init with something
     CameraSystem::Get().SetFOV(fovy);
 
     
@@ -52,12 +55,12 @@ int main() {
         ElapsedTime += rawDt; //use the same frameTime for both dt and et. 
         float deltaTime = rawDt; // Clamp dt so physics never sees a huge value on a hitch
         if (deltaTime > 0.05f) deltaTime = 0.05f;   
-      // Use the active camera everywhere:
+        // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
         UpdateFade(camera); //always update fade regardless of state
 
         //Switch Levels
-        //UpdateFade switches FadePhase to swapping after fading out completely. while swapping for 1 frame switch levels then fade in
+        //UpdateFade switches FadePhase to swapping after fading out completely. while swapping, for 1 frame, switch levels then fade in
         if (gFadePhase == FadePhase::Swapping) {
 
             InitLevel(levels[pendingLevelIndex], camera);
@@ -70,28 +73,28 @@ int main() {
         }
 
         static GameState prevState = currentGameState;
-        bool enteredMenu = (currentGameState == GameState::Menu && prevState != GameState::Menu);
+        bool enteredMenu = (currentGameState == GameState::Menu && prevState != GameState::Menu); //first frame of menu state
         prevState = currentGameState;
 
-        if (enteredMenu)
+        if (enteredMenu) //runs once
         {
             EnterMenu(); //setup cinematic camera for menu view
         }
 
-        //Main Menu - level select 
+        //Main Menu - level select - cinematic camera backdrop with menu overlay
         if (currentGameState == GameState::Menu) {
-            CameraSystem::Get().Update(deltaTime);
-            drawCeiling = false;
-            UpdateMenu(camera, deltaTime);
-            UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
-            RenderMenuFrame(camera, player, deltaTime);
-            if (currentGameState == GameState::Quit) break;
+            
+            CameraSystem::Get().Update(deltaTime); //update orbit
+            drawCeiling = false; 
+            UpdateMenu(camera, deltaTime);//lives in UI.cpp calls main_menu
+            UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience")); //menu level can be dungeon
+            if (currentGameState == GameState::Quit) break; //break before we render the next frame. for reasons
+            RenderMenuFrame(camera, player, deltaTime); //Render world with menu on top
         
             continue; // skip the rest of the game loop
         }
         if (currentGameState == GameState::Playing){
-
-
+            //play the game
             if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
             UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
 
@@ -127,6 +130,7 @@ int main() {
             }
 
             //gather up everything 2d and put it into a vector of struct drawRequests, then we sort and draw every billboard/quad in the game.
+            //sorting is now done by saving to depthmask automatically. alpha cutoff shader handles occlusion problem. legacy code remains. 
             GatherTransparentDrawRequests(camera, deltaTime);
             controlPlayer = CameraSystem::Get().IsPlayerMode();
             // Update camera based on player

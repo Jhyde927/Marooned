@@ -469,7 +469,7 @@ void GenerateEntrances() {
         d.isOpen = false;
         d.isLocked = e.isLocked;
         if (i == 2) d.isLocked = !unlockEntrances; //entrance 3 unlocks
-        if (i == 0) d.isLocked = unlockEntrances; //lock entrance 1, prevent player from replaying first 3 levels.
+        if (i == 0 && levelIndex == 0) d.isLocked = unlockEntrances; //lock entrance 1, prevent player from replaying first 3 levels.
         if (e.position.x == -5484.0f) d.isLocked = true; //entrance 2 always remains locked, make damn sure. 
 
         d.scale = {300, 365, 1};
@@ -834,23 +834,21 @@ void UpdateWorldFrame(float dt, Player& player) {
 }
 
 void ClearLevel() {
-    billboardRequests.clear();
-    removeAllCharacters();\
-    activeBullets.clear();
+    removeAllCharacters();
     ClearDungeon();
+    RemoveAllVegetation();
+    activeBullets.clear();
+    billboardRequests.clear();
     bulletLights.clear();
     dungeonEntrances.clear();
-    player.hasGoldKey = false;
-    player.hasSilverKey = false;
-    RemoveAllVegetation();
     
-
     // if (terrainMesh.vertexCount > 0) UnloadMesh(terrainMesh); //unload mesh and heightmap when switching levels. if they exist
     if (heightmap.data != nullptr) UnloadImage(heightmap); 
     UnloadTerrainGrid(terrain);
-    //UnloadRenderTexture(gTreeShadowMask.rt);
 
     isDungeon = false;
+    player.hasGoldKey = false;
+    player.hasSilverKey = false;
 
 }
 
