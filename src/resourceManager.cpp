@@ -243,6 +243,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("silverKey",        "assets/sprites/silverKey.png");
     R.LoadTexture("harpoon",          "assets/sprites/harpoon.png");
     R.LoadTexture("menuButton",       "assets/sprites/menuButton.png");
+    R.LoadTexture("banner",           "assets/sprites/banner.png");
 
 
     // Models (registering with string keys)

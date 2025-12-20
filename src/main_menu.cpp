@@ -29,21 +29,6 @@ static inline Rectangle MakeButtonRect(float cx, float cy, float w, float h)
     return Rectangle{ cx - w*0.5f, cy - h*0.5f, w, h };
 }
 
-// MainMenu::Layout MainMenu::ComputeLayout(int screenW, int screenH, int menuX,
-//                                         float baseY, float gapY, float btnW, float btnH)
-// {
-//     (void)screenW; (void)screenH;
-
-//     float cx = (float)menuX + btnW * 0.5f;
-
-//     Layout L;
-//     L.start     = MakeButtonRect(cx, baseY + gapY*0.0f, btnW, btnH);
-//     L.level     = MakeButtonRect(cx, baseY + gapY*1.0f, btnW, btnH);
-//     L.levelName = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH); // display-only
-//     L.fullscreen= MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH);
-//     L.quit      = MakeButtonRect(cx, baseY + gapY*4.0f, btnW, btnH);
-//     return L;
-// }
 
 MainMenu::Layout MainMenu::ComputeLayout(float menuX, float baseY, float gapY, float btnW, float btnH)
 {
@@ -60,10 +45,10 @@ MainMenu::Layout MainMenu::ComputeLayout(float menuX, float baseY, float gapY, f
 }
 
 
-static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alphaMul = 1.0f)
+static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alphaMul = 1.0f, bool title = false)
 {
     // Orangish-beige base palette (tweak)
-    Color base      = WithAlpha({214, 182, 132, 255}, alphaMul);
+    Color base      = WithAlpha({214, 182, 132, 255}, alphaMul);   
     Color baseHot   = WithAlpha({232, 202, 154, 240}, alphaMul);
     Color border    = WithAlpha({120,  86,  52, 220}, alphaMul);
     Color borderSel = WithAlpha({210, 170,  80, 235}, alphaMul);
@@ -73,9 +58,43 @@ static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alpha
     float roundness = 0.25f;
     int   segments  = 12;
 
+    Color face = WithAlpha({240, 212, 165, 255}, alphaMul); // lighter, warmer
+
+    // --- Raised face panel ---
+    float faceInset = 4.0f; // thickness of the outer rim
 
 
+    if (title)
+    {
+        base = WithAlpha( { 255,  255,  255, 255 }, 0.9f);
+        face = WithAlpha({ 82,  42,  30, 255 }, 0); // brighter cap
+        faceInset = 8.0f;
+        roundness = .125f;                                 // heavier slab
+    }
+
+    Rectangle faceRect = {
+        r.x + faceInset,
+        r.y + faceInset,
+        r.width  - faceInset * 2.0f,
+        r.height - faceInset * 2.0f
+    };
+
+
+    // Slightly smaller roundness so corners feel tighter
+    float faceRoundness = roundness * 0.8f;
     DrawRectangleRounded(r, roundness, segments, selected ? baseHot : base);
+
+    // Draw face
+    DrawRectangleRounded(faceRect, faceRoundness, segments, face);
+
+    // Optional: subtle edge on face to separate planes
+    DrawRectangleRoundedLines(
+        faceRect,
+        faceRoundness,
+        segments,
+        WithAlpha({255,255,255,40}, alphaMul)
+    );
+
     DrawRectangleRoundedLines(r, roundness, segments, selected ? borderSel : border);
 
     // Thicker inner groove (multiple inset lines)
@@ -107,17 +126,116 @@ static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alpha
     DrawRectangleRounded(hi, 0.9f, 8, topHi);
 }
 
+static inline void DrawVerticalFade(Rectangle r, Color bottom, Color top)
+{
+    DrawRectangleGradientV(
+        (int)r.x, (int)r.y,
+        (int)r.width, (int)r.height,
+        top, bottom
+    );
+}
+
+
+static inline Rectangle InsetRect(Rectangle r, float inset)
+{
+    return { r.x + inset, r.y + inset, r.width - inset*2.0f, r.height - inset*2.0f };
+}
+
+static inline void DrawStoneSlab(Rectangle r, bool selected, float alphaMul = 1.0f)
+{
+    // Cool gray stone palette
+    Color base      = WithAlpha({ 240, 240, 240, 0 }, alphaMul);
+    Color baseHot   = WithAlpha({ 255, 255, 255, 0 }, alphaMul); // selected slightly brighter
+    Color border    = WithAlpha({  45,  50,  58, 0 }, alphaMul);
+    Color bevelHi   = WithAlpha({ 255, 255, 255,  0 }, alphaMul); // top-left rim
+    Color bevelLo   = WithAlpha({   0,   0,   0,  0 }, alphaMul); // bottom-right rim
+    Color face      = WithAlpha({ 0, 0, 0, 0}, alphaMul); // inner face
+    Color faceEdge  = WithAlpha({ 255, 255, 255,  0 }, alphaMul);
+
+    float roundness = 0.1f;
+    int   segments  = 12;
+
+    // Slab fill
+    DrawRectangleRounded(r, roundness, segments, selected ? baseHot : base);
+
+    // Outer dark edge
+    DrawRectangleRoundedLines(r, roundness, segments, border);
+
+    // Bevel rim: draw multiple inset outlines (gives "cut stone" thickness)
+    // We fake lighting: highlight near top-left, shadow near bottom-right
+    for (int i = 0; i < 7; ++i)
+    {
+        float inset = (float)i;
+        Rectangle ri = InsetRect(r, inset);
+
+        // Top-left highlight
+        DrawRectangleRoundedLines(ri, roundness, segments, bevelHi);
+
+        // Bottom-right shadow (same stroke, but stronger as it goes inward)
+        Color lo = bevelLo;
+        lo.a = (unsigned char)std::min(255, (int)lo.a + i*4);
+        DrawRectangleRoundedLines(ri, roundness, segments, lo);
+    }
+
+    // Inner face (slightly inset, slightly tighter corners)
+    float faceInset = 8.0f;
+    Rectangle rf = InsetRect(r, faceInset);
+    float faceRound = roundness * 0.85f;
+    DrawRectangleRounded(rf, faceRound, segments, face);
+    DrawRectangleRoundedLines(rf, faceRound, segments, faceEdge);
+
+    // A couple tiny “chips” (kept minimal so it doesn’t look noisy)
+    // Color chip = WithAlpha({ 40, 45, 52, 70 }, alphaMul);
+    // DrawRectangle((int)(r.x + 14), (int)(r.y + 10), 10, 2, chip);
+    // DrawRectangle((int)(r.x + r.width - 30), (int)(r.y + 18), 12, 2, chip);
+    // DrawRectangle((int)(r.x + 20), (int)(r.y + r.height - 16), 14, 2, chip);
+}
+
+static inline void DrawStoneOutlinedText(Font font, const char* text,
+                                         Rectangle r, float fontSize, float spacing)
+{
+    // Dark stone shadow / outline
+    Color outline = { 25, 28, 34, 255 };   // deep slate
+    Color fill    = { 176,  32,  38, 255 }; // light stone highlight
+
+    Vector2 sz = MeasureTextEx(font, text, fontSize, spacing);
+    Vector2 p  = {
+        r.x + (r.width  - sz.x) * 0.5f,
+        r.y + (r.height - sz.y) * 0.5f
+    };
+
+    // Outline thickness
+    const int t = 3;
+
+    // Draw outline (8-direction)
+    for (int y = -t; y <= t; ++y)
+    {
+        for (int x = -t; x <= t; ++x)
+        {
+            if (x == 0 && y == 0) continue;
+            DrawTextEx(font, text,
+                       { p.x + (float)x, p.y + (float)y },
+                       fontSize, spacing, outline);
+        }
+    }
+
+    // Main fill
+    DrawTextEx(font, text, p, fontSize, spacing, fill);
+}
 
 
 
-static inline void DrawCarvedText(Font font, const char* text,
-                                  Rectangle r, float fontSize, float spacing)
+
+
+static inline void DrawCarvedText(Font font, const char* text, Rectangle r, float fontSize, float spacing, bool title = false)
 {
     // dark “burnt” letter color
     Color ink = { 100, 70, 40, 255 };
 
+    if (title) ink = {60, 40, 20, 255};
+
     // subtle top-left highlight (makes it look carved)
-    Color hi  = { 255, 255, 255, 35 };
+    Color hi  = { 255, 255, 255, 85 };
 
     Vector2 sz = MeasureTextEx(font, text, fontSize, spacing);
     Vector2 p  = { r.x + (r.width - sz.x)*0.5f,
@@ -273,30 +391,48 @@ namespace MainMenu
               int levelsCount)
     {
         // Backdrop (same as your code)
-        Texture2D backDrop = R.GetTexture("backDrop");
+        Texture2D& banner = R.GetTexture("banner");
         bool cover = false;
-        Rectangle src  = { 0, 0, (float)backDrop.width, (float)backDrop.height };
-        Rectangle dest = FitTextureDest(backDrop, GetScreenWidth(), GetScreenHeight(), cover);
-
-        // If you want to draw it, do it here (you had it commented out):
-        // DrawTexturePro(backDrop, src, dest, Vector2{0,0}, 0.0f, WHITE);
-
+        Rectangle src  = { 0, 0, (float)banner.width, (float)banner.height };
+        Rectangle dest = FitTextureDest(banner, GetScreenWidth(), GetScreenHeight(), cover);
         auto& pieces = R.GetFont("Pieces");
 
-        const char* title = "MAROONED";
-        int fontSize = 128;
+        const char* title = "Marooned";
+        float titleFontSize = 200.0f;
+        float titleSpacing  = 10.0f;
 
-        int titleX = GetScreenWidth()/2 - MeasureText(title, fontSize)/2;
-        int titleY = 128;
-        int menuX  = titleX + 150;
+        Vector2 titleSize = MeasureTextEx(pieces, title, titleFontSize, titleSpacing);
 
-        int shadowPx = std::max(1, fontSize/18);
-        Color shadowCol = {0, 0, 0, 180};
+        float padX = -0.0f;
+        float padY = -0.0f;
 
-        DrawTextExShadowed(pieces, title,
-                           {(float)titleX, (float)titleY},
-                           (float)fontSize, 0.5f, GREEN,
-                           shadowPx, shadowCol);
+        float titleCX = GetScreenWidth() * 0.5f;
+        float titleY  = 75.0f;
+
+        Rectangle rTitle = {
+            titleCX - titleSize.x*0.5f - padX,
+            titleY,
+            titleSize.x + padX*2.0f,
+            titleSize.y + padY*2.0f
+        };
+
+        // --- Vertical fade behind title ---
+        Color fadeBottom = { 0, 0, 0, 100 };
+        Color fadeTop    = { 0, 0, 0, 0 };
+
+        Rectangle rFade = {
+            rTitle.x + 10.0,
+            rTitle.y -0.0f,
+            rTitle.width,
+            rTitle.height -40 
+        };
+
+        DrawVerticalFade(rFade, fadeBottom, fadeTop);
+
+        // --- Floating outlined title ---
+        DrawStoneOutlinedText(pieces, title, rTitle, titleFontSize, titleSpacing);
+
+
 
         // --- Menu items (buttons) ---
         float menuFontSizeF = 60.0f;
@@ -307,7 +443,7 @@ namespace MainMenu
         float gapY  = 75.0f;                 // spacing between rows
         float btnH  = menuFontSizeF + 6.0f; // button height
         float btnW  = 320.0f;                // fixed width
-
+        float menuX = rTitle.x + (rTitle.width - btnW) * 0.5f;
         float cx = (float)menuX + btnW * 0.5f;
 
         // Row centers (now 5 rows because we added a display row)
@@ -363,6 +499,8 @@ namespace MainMenu
         //Color levelNameCol = YELLOW;
         Color levelNameCol = WithAlpha(BROWN, 1.0f);
         DrawCenteredShadowedText(pieces, levelName, rLevelName, menuFontSizeF, menuSpacing, levelNameCol, 1, {0,0,0});
+        //DrawCenteredShadowedText(pieces, title, rTitle, titleFontSize, titleSpacing, GRAY, 1, {0,0,0});
+
 
     }
 }
