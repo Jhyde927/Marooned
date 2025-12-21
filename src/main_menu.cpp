@@ -4,7 +4,9 @@
 #include <string>
 #include "world.h"
 #include "utilities.h"
-
+#include "fullscreen_toggle.h"
+#include "raylib.h"
+#include "rlgl.h"
 
 
 int ComputeMenuX(Font titleFont,
@@ -37,9 +39,10 @@ MainMenu::Layout MainMenu::ComputeLayout(float menuX, float baseY, float gapY, f
     Layout L{};
     L.selectable[0] = MakeButtonRect(cx, baseY + gapY*0.0f, btnW, btnH); // Start
     L.selectable[1] = MakeButtonRect(cx, baseY + gapY*1.0f, btnW, btnH); // Level
-    L.selectable[2] = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH); // Fullscreen
-    L.selectable[3] = MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH); // Quit
-    L.levelName     = MakeButtonRect(cx, baseY + gapY*5.0f, btnW, btnH); // display-only
+    L.selectable[2] = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH); //Controls
+    L.selectable[3] = MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH); // Fullscreen
+    L.selectable[4] = MakeButtonRect(cx, baseY + gapY*4.0f, btnW, btnH); // Quit
+    L.levelName     = MakeButtonRect(cx, baseY + gapY*6.0f, btnW, btnH); // display-only
 
     return L;
 }
@@ -58,7 +61,7 @@ static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alpha
     float roundness = 0.25f;
     int   segments  = 12;
 
-    Color face = WithAlpha({240, 212, 165, 255}, alphaMul); // lighter, warmer
+    Color face = WithAlpha({214, 182, 132, 0}, alphaMul); // lighter, warmer
 
     // --- Raised face panel ---
     float faceInset = 4.0f; // thickness of the outer rim
@@ -184,11 +187,6 @@ static inline void DrawStoneSlab(Rectangle r, bool selected, float alphaMul = 1.
     DrawRectangleRounded(rf, faceRound, segments, face);
     DrawRectangleRoundedLines(rf, faceRound, segments, faceEdge);
 
-    // A couple tiny “chips” (kept minimal so it doesn’t look noisy)
-    // Color chip = WithAlpha({ 40, 45, 52, 70 }, alphaMul);
-    // DrawRectangle((int)(r.x + 14), (int)(r.y + 10), 10, 2, chip);
-    // DrawRectangle((int)(r.x + r.width - 30), (int)(r.y + 18), 12, 2, chip);
-    // DrawRectangle((int)(r.x + 20), (int)(r.y + r.height - 16), 14, 2, chip);
 }
 
 static inline void DrawStoneOutlinedText(Font font, const char* text,
@@ -304,6 +302,52 @@ static inline void DrawTextExShadowed(Font font,
     DrawTextExShadowed(font, s.c_str(), pos, fontSize, spacing, color, shadowPx, shadowCol);
 }
 
+struct ControlsPanel
+{
+    Rectangle rect;
+    float padding = 18.0f;
+};
+
+
+
+static inline void DrawControlsPanel(const ControlsPanel& p, Font font)
+{
+    // Panel background + border
+    Color bg     = { 0, 0, 0, 165 };   // semi-transparent black
+    Color border = { 255, 255, 255, 70 };
+
+    DrawRectangleRounded(p.rect, 0.08f, 10, bg);
+    DrawRectangleRoundedLines(p.rect, 0.08f, 10, border);
+
+    // Text
+    const char* txt =
+        "Controls:\n"
+        "\n"
+        "WASD: Move\n"
+        "Mouse: Look\n"
+        "LMB: Fire\n"
+        "RMB: Alt Fire\n"
+        "Space: Jump\n"
+        "Shift: Sprint\n"
+        "E: Interact\n"
+        "1-4: Weapons\n"
+        "F: Use Health Potion\n"
+        "G: Use Mana Potion\n"
+        "Esc: Back / Menu\n";
+
+    float fontSize = 22.0f;
+    float spacing  = 1.0f;
+
+    Vector2 pos = { p.rect.x + p.padding, p.rect.y + p.padding };
+
+    // raylib's default font is a bit thin; a tiny shadow helps readability
+    Color textCol   = { 255, 255, 255, 255 };
+    Color shadowCol = { 0, 0, 0, 180 };
+
+    DrawTextEx(font, txt, { pos.x + 1, pos.y + 1 }, fontSize, spacing, shadowCol);
+    DrawTextEx(font, txt, pos,                 fontSize, spacing, textCol);
+}
+
 // -------- API --------
 
 namespace MainMenu
@@ -317,7 +361,13 @@ namespace MainMenu
                                     const Layout& L)
     {
 
-        for (int i = 0; i < 4; ++i)
+        if (s.showControls && IsKeyPressed(KEY_ESCAPE))
+        {
+            s.showControls = false;
+            return Action::None;
+        }
+
+        for (int i = 0; i < 4; ++i) //button press flash
         {
             if (s.pressFlash[i] > 0.0f)
             {
@@ -326,14 +376,14 @@ namespace MainMenu
             }
         }
 
-        // --- Keyboard navigation (same as before) ---
+        // --- Keyboard navigation 
         if (IsKeyPressed(KEY_UP))   s.selectedOption = (s.selectedOption - 1 + optionsCount) % optionsCount;
         if (IsKeyPressed(KEY_DOWN)) s.selectedOption = (s.selectedOption + 1) % optionsCount;
 
         auto TriggerPress = [&]()
         {
             int idx = s.selectedOption;
-            if (idx >= 0 && idx < 4) s.pressFlash[idx] = 0.10f; // 100ms feels good
+            if (idx >= 0 && idx < 4) s.pressFlash[idx] = 0.1f; // 100ms 
         };
 
         auto ActivateSelected = [&]() -> Action
@@ -344,11 +394,22 @@ namespace MainMenu
                 case 1:
                     if (levelsCount > 0) levelIndex = (levelIndex + 1) % levelsCount;
                     return Action::CycleLevel;
-                case 2:
-                    ToggleFullscreen();
+                case 2: 
+                    s.showControls = !s.showControls;
+                    return Action::Controls;
+                case 3:
+
+                    TraceLog(LOG_INFO,
+                        "Screen: %d x %d | Render: %d x %d | worldRT: %d x %d | fovy: %.2f",
+                        GetScreenWidth(), GetScreenHeight(),
+                        GetRenderWidth(), GetRenderHeight(),
+                        R.GetRenderTexture("sceneTexture").texture.width, R.GetRenderTexture("sceneTexture").texture.height,
+                        CameraSystem::Get().Active().fovy
+                    );
+                    ToggleBorderlessFullscreenClean();
                     isFullscreen = !isFullscreen;
                     return Action::ToggleFullscreen;
-                case 3: return Action::Quit;
+                case 4: return Action::Quit;
             }
             return Action::None;
         };
@@ -363,7 +424,7 @@ namespace MainMenu
         Vector2 m = GetMousePosition();
 
         int hovered = -1;
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 5; ++i)
         {
             if (CheckCollisionPointRec(m, L.selectable[i]))
             {
@@ -390,12 +451,8 @@ namespace MainMenu
               const LevelData* levels,
               int levelsCount)
     {
-        // Backdrop (same as your code)
-        Texture2D& banner = R.GetTexture("banner");
-        bool cover = false;
-        Rectangle src  = { 0, 0, (float)banner.width, (float)banner.height };
-        Rectangle dest = FitTextureDest(banner, GetScreenWidth(), GetScreenHeight(), cover);
         auto& pieces = R.GetFont("Pieces");
+        Texture2D& backFade = R.GetTexture("backFade");
 
         const char* title = "Marooned";
         float titleFontSize = 200.0f;
@@ -421,14 +478,14 @@ namespace MainMenu
         Color fadeTop    = { 0, 0, 0, 0 };
 
         Rectangle rFade = {
-            rTitle.x + 10.0,
+            rTitle.x + 0.0,
             rTitle.y -0.0f,
             rTitle.width,
-            rTitle.height -40 
+            rTitle.height 
         };
 
-        DrawVerticalFade(rFade, fadeBottom, fadeTop);
-
+        //DrawVerticalFade(rFade, fadeBottom, fadeTop);
+        DrawTextureEx(backFade, Vector2 {rTitle.x-10, rTitle.y-85}, 0.0f, 0.98f, WHITE);
         // --- Floating outlined title ---
         DrawStoneOutlinedText(pieces, title, rTitle, titleFontSize, titleSpacing);
 
@@ -447,10 +504,12 @@ namespace MainMenu
         float cx = (float)menuX + btnW * 0.5f;
 
         // Row centers (now 5 rows because we added a display row)
-        Rectangle rStart = MakeButtonRect(cx, baseY + gapY*0.0f, btnW, btnH);
-        Rectangle rLevel = MakeButtonRect(cx, baseY + gapY*1.0f, btnW, btnH);
-        Rectangle rFull  = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH);
-        Rectangle rQuit  = MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH);
+        Rectangle rStart    = MakeButtonRect(cx, baseY + gapY*0.0f, btnW, btnH);
+        Rectangle rLevel    = MakeButtonRect(cx, baseY + gapY*1.0f, btnW, btnH);
+        Rectangle rControls = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH);
+        Rectangle rFull     = MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH);
+        Rectangle rQuit     = MakeButtonRect(cx, baseY + gapY*4.0f, btnW, btnH); 
+        
 
         // Non-selectable display "button" for the level name
         Rectangle rLevelName = MakeButtonRect(cx, baseY + gapY*5.0f, btnW, btnH);
@@ -460,13 +519,17 @@ namespace MainMenu
         // Button labels
         const char* lblStart = "Start";
         const char* lblLevel = "Level";
+        const char* lblControls = "Controls";
         const char* lblFull  = "Fullscreen";
         const char* lblQuit  = "Quit";
+
         
-        bool selStart = (s.selectedOption == 0);
-        bool selLevel = (s.selectedOption == 1);
-        bool selFull  = (s.selectedOption == 2);
-        bool selQuit  = (s.selectedOption == 3);
+        bool selStart    = (s.selectedOption == 0);
+        bool selLevel    = (s.selectedOption == 1);
+        bool selControls = (s.selectedOption == 2);
+        bool selFull     = (s.selectedOption == 3);
+        bool selQuit     = (s.selectedOption == 4);
+        
 
         // Example: blink highlight off for Level when pressed
         if (s.pressFlash[1] > 0.05f)
@@ -474,11 +537,32 @@ namespace MainMenu
             selLevel = false;
         }
 
-        
+
+
+        // Panel box to the right of the buttons
+        float panelX = rStart.x + rStart.width + 30.0f;
+        float panelY = rStart.y;
+        float panelW = 420.0f;
+        float panelH = (rQuit.y + rQuit.height) - rStart.y; // same height as stack
+
+        ControlsPanel panel;
+        panel.rect = { panelX, panelY, panelW, panelH };
+
+        // Keep it on-screen (important for small windows)
+        float rightEdge = panel.rect.x + panel.rect.width;
+        float maxRight  = (float)GetScreenWidth() - 20.0f;
+        if (rightEdge > maxRight) panel.rect.x -= (rightEdge - maxRight);
+
+
+        if (s.showControls)
+            {
+                DrawControlsPanel(panel, GetFontDefault()); // raylib default font for now
+            }
 
         // Draw selectable buttons (highlight only these)
         DrawMenuButtonRounded(rStart, selStart);
         DrawMenuButtonRounded(rLevel, selLevel);
+        DrawMenuButtonRounded(rControls, selControls);
         DrawMenuButtonRounded(rFull,  selFull);
         DrawMenuButtonRounded(rQuit,  selQuit);
 
@@ -489,8 +573,10 @@ namespace MainMenu
 
         DrawCarvedText(pieces, lblStart, rStart, menuFontSizeF, menuSpacing);
         DrawCarvedText(pieces, lblLevel, rLevel, menuFontSizeF, menuSpacing);
+        DrawCarvedText(pieces, lblControls,  rControls,  menuFontSizeF, menuSpacing);
         DrawCarvedText(pieces, lblFull,  rFull,  menuFontSizeF, menuSpacing);
         DrawCarvedText(pieces, lblQuit,  rQuit,  menuFontSizeF, menuSpacing);
+        
 
         // Level name text (centered inside its own display button)
         const char* levelName = (levels && levelsCount > 0) ? levels[levelIndex].name.c_str() : "None";

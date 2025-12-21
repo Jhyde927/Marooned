@@ -6,29 +6,34 @@
 
 namespace MainMenu
 {
+
+
+    struct State
+    {
+        int selectedOption = 0;
+        bool showControls = false;
+        float pressFlash[4] = { 0,0,0,0 }; // seconds remaining for “push” effect
+    };
+
     enum class Action
     {
         None,
         StartGame,
         CycleLevel,
+        Controls,
         ToggleFullscreen,
         Quit
     };
 
-    struct State
+
+    struct Layout
     {
-        int selectedOption = 0;
-        float pressFlash[4] = { 0,0,0,0 }; // seconds remaining for “push” effect
+        Rectangle selectable[5]; // Start, Level, Controls, Fullscreen, Quit, 
+        Rectangle levelName;     // display-only
     };
 
     // Call once if you want to reset selection when entering menu
     inline void Reset(State& s) { s.selectedOption = 0; }
-
-    struct Layout
-    {
-        Rectangle selectable[4]; // Start, Level, Fullscreen, Quit
-        Rectangle levelName;     // display-only
-    };
 
     Layout ComputeLayout(float menuX,
                          float baseY,

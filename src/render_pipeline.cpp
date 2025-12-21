@@ -15,6 +15,29 @@
 #include "terrainChunking.h"
 #include "main_menu.h"
 
+
+static int lastW = 0;
+static int lastH = 0;
+
+static void EnsureRenderTargetsMatchWindow(RenderTexture2D& rt)
+{
+    int w = GetScreenWidth();
+    int h = GetScreenHeight();
+
+    int curW = rt.texture.width;
+    int curH = rt.texture.height;
+
+    if (rt.id != 0 && curW == w && curH == h) return;
+
+    if (rt.id != 0) UnloadRenderTexture(rt);
+    rt = LoadRenderTexture(w, h);
+
+    TraceLog(LOG_INFO, "RESIZED RT -> %d x %d (id=%u)", rt.texture.width, rt.texture.height, rt.texture.id);
+}
+
+
+
+
 void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 
     // --- 3D scene to sceneTexture ---
@@ -99,7 +122,15 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 
 
 void RenderFrame(Camera3D& camera, Player& player, float dt) {
+    RenderTexture2D& sceneTexture = R.GetRenderTexture("sceneTexture");
+    RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
 
+    TraceLog(LOG_INFO, "sceneTexture ptr=%p id=%u size=%d,%d",
+         (void*)&sceneTexture, sceneTexture.texture.id,
+         sceneTexture.texture.width, sceneTexture.texture.height);
+
+    EnsureRenderTargetsMatchWindow(sceneTexture);
+    EnsureRenderTargetsMatchWindow(postTexture);
     // --- 3D scene to sceneTexture ---
     BeginTextureMode(R.GetRenderTexture("sceneTexture"));
         ClearBackground(SKYBLUE);
@@ -196,7 +227,10 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             Rectangle dst = { 0, 0,
                             (float)GetScreenWidth(),
                             (float)GetScreenHeight() };
+
+
             DrawTexturePro(postRT.texture, src, dst, {0,0}, 0.0f, WHITE);
+            //DrawTexturePro(postRT.texture, src, dst, {0,0}, 0.0f, WHITE);
         EndShaderMode();
 
         

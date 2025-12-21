@@ -100,18 +100,55 @@ Shader& ResourceManager::GetShader(const std::string& name) const {
 }
 
 
+
 // RenderTexture
-RenderTexture2D& ResourceManager::LoadRenderTexture(const std::string& name, int w, int h) { 
-    auto it = _renderTextures.find(name); if (it != _renderTextures.end()) return it->second; 
-    RenderTexture2D rt = ::LoadRenderTexture(w, h); _renderTextures.emplace(name, rt); 
-    return _renderTextures[name]; 
+RenderTexture2D& ResourceManager::LoadRenderTexture(const std::string& name, int w, int h)
+{
+    auto it = _renderTextures.find(name);
+    if (it != _renderTextures.end())
+    {
+        // If you want: validate size here, or just return existing.
+        return *it->second;
+    }
+
+    RenderTexture2D rt = ::LoadRenderTexture(w, h);
+    auto ptr = std::make_unique<RenderTexture2D>(rt);
+
+    auto [insertIt, ok] = _renderTextures.emplace(name, std::move(ptr));
+    return *insertIt->second;
 }
 
-RenderTexture2D& ResourceManager::GetRenderTexture(const std::string& name) const {
+RenderTexture2D& ResourceManager::GetRenderTexture(const std::string& name)
+{
     auto it = _renderTextures.find(name);
-    if (it == _renderTextures.end()) throw std::runtime_error("RenderTexture not found: " + name);
-    return const_cast<RenderTexture2D&>(it->second);
+    if (it == _renderTextures.end())
+        throw std::runtime_error("RenderTexture not found: " + name);
+
+    return *it->second;
 }
+
+    const RenderTexture2D& ResourceManager::GetRenderTexture(const std::string& name) const
+    {
+        auto it = _renderTextures.find(name);
+        if (it == _renderTextures.end())
+            throw std::runtime_error("RenderTexture not found: " + name);
+
+        return *it->second;
+    }
+
+
+
+// RenderTexture2D& ResourceManager::LoadRenderTexture(const std::string& name, int w, int h) { 
+//     auto it = _renderTextures.find(name); if (it != _renderTextures.end()) return it->second; 
+//     RenderTexture2D rt = ::LoadRenderTexture(w, h); _renderTextures.emplace(name, rt); 
+//     return _renderTextures[name]; 
+// }
+
+// RenderTexture2D& ResourceManager::GetRenderTexture(const std::string& name) const {
+//     auto it = _renderTextures.find(name);
+//     if (it == _renderTextures.end()) throw std::runtime_error("RenderTexture not found: " + name);
+//     return const_cast<RenderTexture2D&>(it->second);
+// }
 
 Font& ResourceManager::LoadFont(const std::string& name,const std::string& path, int baseSize, int filter)
 {
@@ -159,26 +196,26 @@ void ResourceManager::UnloadAllFonts()
 // ResourceManager.cpp (example)
 static int gLastW = -1, gLastH = -1;
 
-void ResourceManager::EnsureScreenSizedRTs() {
-    int w = GetScreenWidth(), h = GetScreenHeight();
-    if (w == gLastW && h == gLastH) return;
+// void ResourceManager::EnsureScreenSizedRTs() {
+//     int w = GetScreenWidth(), h = GetScreenHeight();
+//     if (w == gLastW && h == gLastH) return;
 
-    // Recreate sceneTexture
-    if (_renderTextures.count("sceneTexture")) {
-        UnloadRenderTexture(_renderTextures["sceneTexture"]);
-    }
-    _renderTextures["sceneTexture"] = LoadRenderTexture("sceneTexture", w, h);
-    SetTextureWrap(_renderTextures["sceneTexture"].texture, TEXTURE_WRAP_CLAMP);
+//     // Recreate sceneTexture
+//     if (_renderTextures.count("sceneTexture")) {
+//         UnloadRenderTexture(_renderTextures["sceneTexture"]);
+//     }
+//     _renderTextures["sceneTexture"] = LoadRenderTexture("sceneTexture", w, h);
+//     SetTextureWrap(_renderTextures["sceneTexture"].texture, TEXTURE_WRAP_CLAMP);
 
-    // Recreate postProcessTexture
-    if (_renderTextures.count("postProcessTexture")) {
-        UnloadRenderTexture(_renderTextures["postProcessTexture"]);
-    }
-    _renderTextures["postProcessTexture"] = LoadRenderTexture("postProcessTexture", w, h);
-    SetTextureWrap(_renderTextures["postProcessTexture"].texture, TEXTURE_WRAP_CLAMP);
+//     // Recreate postProcessTexture
+//     if (_renderTextures.count("postProcessTexture")) {
+//         UnloadRenderTexture(_renderTextures["postProcessTexture"]);
+//     }
+//     _renderTextures["postProcessTexture"] = LoadRenderTexture("postProcessTexture", w, h);
+//     SetTextureWrap(_renderTextures["postProcessTexture"].texture, TEXTURE_WRAP_CLAMP);
 
-    gLastW = w; gLastH = h;
-}
+//     gLastW = w; gLastH = h;
+// }
 
 
 
@@ -242,8 +279,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("blank",            "assets/textures/blank.png");
     R.LoadTexture("silverKey",        "assets/sprites/silverKey.png");
     R.LoadTexture("harpoon",          "assets/sprites/harpoon.png");
-    R.LoadTexture("menuButton",       "assets/sprites/menuButton.png");
-    R.LoadTexture("banner",           "assets/sprites/banner.png");
+    R.LoadTexture("backFade",         "assets/sprites/backFade.png");
+
 
 
     // Models (registering with string keys)
@@ -775,12 +812,23 @@ void ResourceManager::UpdateShaders(Camera& camera){
 
 }
 
+void ResourceManager::UnloadRenderTextures()
+{
+    for (auto& [name, ptr] : _renderTextures)
+    {
+        if (ptr && ptr->id != 0)
+            UnloadRenderTexture(*ptr);
+    }
+    _renderTextures.clear();
+}
+
+
 
 void ResourceManager::UnloadAll() {
     UnloadContainer(_textures,        ::UnloadTexture);
     UnloadContainer(_models,          ::UnloadModel);
     UnloadContainer(_shaders,         ::UnloadShader);
-    UnloadContainer(_renderTextures,  ::UnloadRenderTexture);
+    R.UnloadRenderTextures();
     UnloadAllFonts();
     if (_fallbackTex.id) { UnloadTexture(_fallbackTex); _fallbackTex = {}; }
     _fallbackReady = false;

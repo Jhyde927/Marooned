@@ -13,6 +13,7 @@ enum class Code {
     Void,               // Transparent
     Wall,               // Black (0,0,0)
     Floor,              // White (255,255,255) - informational
+    LavaTile,
     PlayerStart,        // Green (0,255,0)
     Barrel,             // Blue (0,0,255)
     Skeleton,           // Red (255,0,0)
@@ -88,6 +89,7 @@ constexpr Color ColorOf(Code c) {
         case Code::SilverKey:              return Make(180, 190, 205);
         case Code::ManaPotion:             return Make(0, 0, 128);
         case Code::Harpoon:                return Make(96, 128, 160);
+        case Code::LavaTile:               return Make(200, 0, 0);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

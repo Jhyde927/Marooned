@@ -59,6 +59,8 @@ int main() {
         Camera3D& camera = CameraSystem::Get().Active();
         UpdateFade(camera); //always update fade regardless of state
 
+
+
         //Switch Levels
         //UpdateFade switches FadePhase to swapping after fading out completely. while swapping, for 1 frame, switch levels then fade in
         if (gFadePhase == FadePhase::Swapping) {

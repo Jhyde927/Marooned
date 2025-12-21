@@ -3,6 +3,9 @@
 #include <unordered_map>
 #include "raylib.h"
 #include <stdexcept>
+#include <memory>
+
+
 
 class ResourceManager {
 public:
@@ -23,8 +26,12 @@ public:
 
 
     // RenderTexture
-    RenderTexture2D& LoadRenderTexture(const std::string& name, int width, int height);
-    RenderTexture2D& GetRenderTexture(const std::string& name) const;
+    RenderTexture2D& LoadRenderTexture(const std::string& name, int w, int h);
+    RenderTexture2D& GetRenderTexture(const std::string& name);             // non-const
+    const RenderTexture2D& GetRenderTexture(const std::string& name) const; // const
+
+    // RenderTexture2D& LoadRenderTexture(const std::string& name, int width, int height);
+    // RenderTexture2D& GetRenderTexture(const std::string& name) const;
 
     Font& LoadFont(const std::string& name,
                    const std::string& path,
@@ -45,13 +52,8 @@ public:
     void SetPortalShaderValues();
     void SetWaterShaderValues(Camera& camera);
     void SetShaderValues();
-    void EnsureScreenSizedRTs();
+    // void EnsureScreenSizedRTs();
 
-    void UploadDungeonLightsToShader();
-    void InitForwardLightingUniforms();
-
-    void SetForwardLightingShaderValues();
-    void InitForwardLightingShaderParams();
 
     // Clean-up
     void UnloadAll();
@@ -61,7 +63,7 @@ private:
     ResourceManager() = default;
     ResourceManager(const ResourceManager&) = delete;
     ResourceManager& operator=(const ResourceManager&) = delete;
-
+    void UnloadRenderTextures();
     template<typename T, typename UnloadFn>
     void UnloadContainer(std::unordered_map<std::string, T>& container, UnloadFn unloadFn) {
         for (auto& kv : container) unloadFn(kv.second);
@@ -72,7 +74,7 @@ private:
     std::unordered_map<std::string, Texture2D>      _textures;
     std::unordered_map<std::string, Model>          _models;
     std::unordered_map<std::string, Shader>         _shaders;
-    std::unordered_map<std::string, RenderTexture2D> _renderTextures;
+    std::unordered_map<std::string, std::unique_ptr<RenderTexture2D>> _renderTextures; //render textures need to be resized on fullscreen. use safer method
     std::unordered_map<std::string, Font> _fonts;
 
     // Fallback texture (not in the map); 'mutable' so const GetTexture can lazy-init it
