@@ -7,8 +7,8 @@
 std::vector<std::string> slotOrder = {
     "HealthPotion",
     "ManaPotion",
-    "GoldKey",
     "PlaceHolder",
+    "PlaceHolder2",
     
 };
 
@@ -16,7 +16,6 @@ std::map<std::string, Texture2D> itemTextures;
 
 void Inventory::SetupItemTextures() {
     itemTextures["HealthPotion"] = R.GetTexture("healthPotTexture");
-    itemTextures["GoldKey"] = R.GetTexture("keyTexture");
     itemTextures["ManaPotion" ] = R.GetTexture("manaPotion");
 }
 
@@ -45,8 +44,9 @@ int Inventory::GetItemCount(const std::string& itemId) const {
 }
 
 
-void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize) const {
+void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey) const {
     int spacing = slotSize + 10;
+    auto &font = R.GetFont("Pieces");
 
     for (int i = 0; i < slotOrder.size(); ++i) {
         const std::string& itemId = slotOrder[i];
@@ -72,8 +72,36 @@ void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>&
 
             int count = GetItemCount(itemId);
             if (count > 1) {
-                DrawText(TextFormat("x%d", count), (int)slotRect.x + 4, (int)slotRect.y + slotSize - 20, 16, WHITE);
+                DrawTextEx(font, TextFormat("x%d", count), {slotRect.x + slotSize - 30, slotRect.y + slotSize - 25}, 24, 1, WHITE);
             }
+
+            const char *key = (itemId == "HealthPotion" ? "F" : "G");
+            DrawTextEx(font, key, {slotRect.x + slotSize - 15, slotRect.y}, 24, 1, WHITE);
         }
+    }
+        // Only show key icon if you have it
+    if (hasGoldKey) {
+        Texture2D keyIcon = ResourceManager::Get().GetTexture("keyTexture"); 
+        DrawTexturePro(
+            keyIcon,
+            Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
+            Rectangle{(float)(x + 2 * spacing), (float)y, (float)slotSize, (float)slotSize},
+            Vector2{0,0},
+            0.0f,
+            WHITE
+        );
+    }
+
+    // Only show key icon if you have it
+    if (hasSilverKey) {
+        Texture2D keyIcon = ResourceManager::Get().GetTexture("silverKey"); 
+        DrawTexturePro(
+            keyIcon,
+            Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
+            Rectangle{(float)(x + 3 * spacing), (float)y, (float)slotSize, (float)slotSize},
+            Vector2{0,0},
+            0.0f,
+            WHITE
+        );
     }
 }

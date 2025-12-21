@@ -242,9 +242,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 if (player.activeWeapon == WeaponType::MagicStaff) DrawMagicIcon();
                 auto& pieces = R.GetFont("Pieces"); 
                 std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);
-                DrawTextEx(pieces, goldText.c_str(), { 32, (float)GetScreenHeight() - 120 }, 30.0f, 1.0f, GOLD);
-                DrawKeySlotUI(player);
-                player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64);
+                DrawTextEx(pieces, goldText.c_str(), { 22.0f, 100.f }, 30.0f, 1.0f, GOLD);
+                player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, player.hasGoldKey, player.hasSilverKey);
                 DrawHints();
 
             } 

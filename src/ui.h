@@ -53,4 +53,3 @@ void DrawHUDBars(const Player& player);
 void UpdateHintManager(float deltaTime);
 void DrawHints();
 void TutorialSetup();
-void DrawKeySlotUI(const Player& player);
