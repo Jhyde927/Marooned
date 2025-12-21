@@ -272,21 +272,16 @@ void UpdateMenu(Camera& camera, float dt)
         return;
     }
 
-    const char* title = "MAROONED";
-    int titleFontSize = 128;
-
-    // must use the SAME font + offset
-    int menuX = ComputeMenuX(R.GetFont("Pieces"), title, titleFontSize, 150);
-
-    float baseY = 340.0f;
+    // MUST use the same constants as in main_menu.cpp
+    float baseY = 375.0f;
     float gapY  = 75.0f;
-    float btnW  = 520.0f;
-    float btnH  = 80.0f; 
-
+    float btnW  = 320.0f;
+    float btnH  = 66.0f; 
+    int menuX = GetScreenWidth() / 2.0f - btnW / 2.0f;
 
     MainMenu::Layout layout = MainMenu::ComputeLayout(menuX, baseY, gapY, btnW, btnH);
 
-    MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, 4, levelIndex, (int)levels.size(), layout);
+    MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, 5, levelIndex, (int)levels.size(), layout);
 
     if (a == MainMenu::Action::StartGame)
 

@@ -29,7 +29,6 @@ namespace MainMenu
     struct Layout
     {
         Rectangle selectable[5]; // Start, Level, Controls, Fullscreen, Quit, 
-        Rectangle levelName;     // display-only
     };
 
     // Call once if you want to reset selection when entering menu
@@ -58,9 +57,3 @@ namespace MainMenu
               int levelsCount);
     
 }
-
-int ComputeMenuX(Font titleFont,
-    const char* title,
-    int titleFontSize,
-    int offset);
-
