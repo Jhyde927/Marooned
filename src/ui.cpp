@@ -232,9 +232,9 @@ void DrawHUDBars(const Player& player) {
     stam.outline = stam.highColor;
 
     //Position the bars on screen
-    float baseY   = GetScreenHeight() - 80.0f; // top of the stack, aligned with inventory
+    float baseY   = 22.0f;
     float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
-    float xCenter = 550;
+    float xCenter = baseY + hp.width / 2.f;
  
     // Vertical spacing between bars 
     float gap = 8.0f;
@@ -272,21 +272,16 @@ void UpdateMenu(Camera& camera, float dt)
         return;
     }
 
-    const char* title = "MAROONED";
-    int titleFontSize = 128;
-
-    // must use the SAME font + offset
-    int menuX = ComputeMenuX(R.GetFont("Pieces"), title, titleFontSize, 150);
-
-    float baseY = 340.0f;
+    // MUST use the same constants as in main_menu.cpp
+    float baseY = 375.0f;
     float gapY  = 75.0f;
-    float btnW  = 520.0f;
-    float btnH  = 80.0f; 
-
+    float btnW  = 320.0f;
+    float btnH  = 66.0f; 
+    int menuX = GetScreenWidth() / 2.0f - btnW / 2.0f;
 
     MainMenu::Layout layout = MainMenu::ComputeLayout(menuX, baseY, gapY, btnW, btnH);
 
-    MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, 4, levelIndex, (int)levels.size(), layout);
+    MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, 5, levelIndex, (int)levels.size(), layout);
 
     if (a == MainMenu::Action::StartGame)
 
@@ -312,43 +307,3 @@ void DrawTimer(float ElapsedTime){
 
     DrawText(buffer, GetScreenWidth()-150, 30, 20, WHITE); 
 }
-
-void DrawKeySlotUI(const Player& player)
-{
-    Rectangle slot = { 20, 44, 64, 64 }; 
-    Rectangle slot2 = {20, 128, 64, 64};
-    // Slot background + border
-    DrawRectangleRec(slot, (Color){20,20,20,200});
-    DrawRectangleLinesEx(slot, 2, (Color){200,180,120,255});
-
-    DrawRectangleRec(slot2, (Color){20,20,20,200});
-    DrawRectangleLinesEx(slot2, 2, (Color){200,180,120,255});
-
-    // Only show key icon if you have it
-    if (player.hasGoldKey) {
-        Texture2D keyIcon = ResourceManager::Get().GetTexture("keyTexture"); 
-        DrawTexturePro(
-            keyIcon,
-            Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
-            Rectangle{slot.x-2, slot.y-2, slot.width+4, slot.height+4},
-            Vector2{0,0},
-            0.0f,
-            WHITE
-        );
-    }
-
-    // Only show key icon if you have it
-    if (player.hasSilverKey) {
-        Texture2D keyIcon = ResourceManager::Get().GetTexture("silverKey"); 
-        DrawTexturePro(
-            keyIcon,
-            Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
-            Rectangle{slot2.x-2, slot2.y-2, slot2.width+4, slot2.height+4},
-            Vector2{0,0},
-            0.0f,
-            WHITE
-        );
-    }
-}
-
-

@@ -17,7 +17,7 @@ public:
     void SetupItemTextures();
 
     //void DrawInventoryUI(int x = 20, int y = 800) const;
-    void DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize) const;
+    void DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey) const;
 
 private:
     std::map<std::string, int> items;

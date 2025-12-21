@@ -3,22 +3,9 @@
 #include <cmath>
 #include <string>
 #include "world.h"
-#include "utilities.h"
 #include "fullscreen_toggle.h"
 #include "raylib.h"
 #include "rlgl.h"
-
-
-int ComputeMenuX(Font titleFont,
-                               const char* title,
-                               int titleFontSize,
-                               int offset)
-{
-    int titleWidth = MeasureText(title, titleFontSize);
-    int titleX = GetScreenWidth() / 2 - titleWidth / 2;
-    return titleX + offset;
-}
-
 
 static inline Color WithAlpha(Color c, float alphaMul)
 {
@@ -42,7 +29,6 @@ MainMenu::Layout MainMenu::ComputeLayout(float menuX, float baseY, float gapY, f
     L.selectable[2] = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH); //Controls
     L.selectable[3] = MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH); // Fullscreen
     L.selectable[4] = MakeButtonRect(cx, baseY + gapY*4.0f, btnW, btnH); // Quit
-    L.levelName     = MakeButtonRect(cx, baseY + gapY*6.0f, btnW, btnH); // display-only
 
     return L;
 }
@@ -52,7 +38,7 @@ static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alpha
 {
     // Orangish-beige base palette (tweak)
     Color base      = WithAlpha({214, 182, 132, 255}, alphaMul);   
-    Color baseHot   = WithAlpha({232, 202, 154, 240}, alphaMul);
+    Color baseHot   = WithAlpha({242, 212, 164, 240}, alphaMul);
     Color border    = WithAlpha({120,  86,  52, 220}, alphaMul);
     Color borderSel = WithAlpha({210, 170,  80, 235}, alphaMul);
     Color topHi     = WithAlpha({255, 255, 255,  35}, alphaMul);
@@ -225,10 +211,11 @@ static inline void DrawStoneOutlinedText(Font font, const char* text,
 
 
 
-static inline void DrawCarvedText(Font font, const char* text, Rectangle r, float fontSize, float spacing, bool title = false)
+static inline void DrawCarvedText(Font font, const char* text, Rectangle r, float fontSize, float spacing, bool title = false, bool selected = false)
 {
     // dark “burnt” letter color
     Color ink = { 100, 70, 40, 255 };
+    Color inkSelected = { 120, 90, 60, 255 };
 
     if (title) ink = {60, 40, 20, 255};
 
@@ -243,10 +230,10 @@ static inline void DrawCarvedText(Font font, const char* text, Rectangle r, floa
     DrawTextEx(font, text, { p.x - 1, p.y - 1 }, fontSize, spacing, hi);
 
     // Main “engraved” text (slightly down-right)
-    DrawTextEx(font, text, { p.x + 1, p.y + 1 }, fontSize, spacing, ink);
+    DrawTextEx(font, text, { p.x + 1, p.y + 1 }, fontSize, spacing, (selected ? inkSelected : ink));
 
     // Optional: reinforce center
-    DrawTextEx(font, text, p, fontSize, spacing, ink);
+    DrawTextEx(font, text, p, fontSize, spacing, (selected ? inkSelected : ink));
 }
 
 
@@ -376,9 +363,34 @@ namespace MainMenu
             }
         }
 
-        // --- Keyboard navigation 
-        if (IsKeyPressed(KEY_UP))   s.selectedOption = (s.selectedOption - 1 + optionsCount) % optionsCount;
-        if (IsKeyPressed(KEY_DOWN)) s.selectedOption = (s.selectedOption + 1) % optionsCount;
+        // --- Keyboard navigation
+        static constexpr float KEY_DELAY = 0.1f;
+        static float upKeyTimer = 0.0f;
+        static float downKeyTimer = 0.0f;
+
+        bool shouldGoUp   = IsKeyPressed(KEY_UP);
+        bool shouldGoDown = IsKeyPressed(KEY_DOWN);
+
+        if (IsKeyDown(KEY_UP) && upKeyTimer >= KEY_DELAY) {
+            upKeyTimer = 0.0f;
+            shouldGoUp = true;
+        } else if (IsKeyDown(KEY_UP) && upKeyTimer < KEY_DELAY) {
+            upKeyTimer += GetFrameTime();
+        } else {
+            upKeyTimer = 0.0f; // Reset if key is not down
+        }
+
+        if (IsKeyDown(KEY_DOWN) && downKeyTimer >= KEY_DELAY) {
+            downKeyTimer = 0.0f;
+            shouldGoDown = true;
+        } else if (IsKeyDown(KEY_DOWN) && downKeyTimer < KEY_DELAY) {
+            downKeyTimer += GetFrameTime();
+        } else {
+            downKeyTimer = 0.0f; // Reset if key is not down
+        }
+
+        if (shouldGoUp)   s.selectedOption = (s.selectedOption - 1 + optionsCount) % optionsCount;
+        if (shouldGoDown) s.selectedOption = (s.selectedOption + 1) % optionsCount;
 
         auto TriggerPress = [&]()
         {
@@ -474,47 +486,56 @@ namespace MainMenu
         };
 
         // --- Vertical fade behind title ---
-        Color fadeBottom = { 0, 0, 0, 100 };
-        Color fadeTop    = { 0, 0, 0, 0 };
+        // Color fadeBottom = { 0, 0, 0, 100 };
+        // Color fadeTop    = { 0, 0, 0, 0 };
 
-        Rectangle rFade = {
-            rTitle.x,
-            rTitle.y,
-            rTitle.width,
-            rTitle.height 
-        };
+        // Rectangle rFade = {
+        //     rTitle.x,
+        //     rTitle.y,
+        //     rTitle.width,
+        //     rTitle.height 
+        // };
 
-        //DrawVerticalFade(rFade, fadeBottom, fadeTop);
-        DrawTextureEx(backFade, Vector2 {rTitle.x-10, rTitle.y-85}, 0.0f, 0.98f, WHITE);
+        // //DrawVerticalFade(rFade, fadeBottom, fadeTop);
+        // DrawTextureEx(backFade, Vector2 {rTitle.x-10, rTitle.y-85}, 0.0f, 0.98f, WHITE);
         // --- Floating outlined title ---
         DrawStoneOutlinedText(pieces, title, rTitle, titleFontSize, titleSpacing);
 
+        const char* levelName = (levels && levelsCount > 0) ? levels[levelIndex].name.c_str() : "None";
+        float subtitleFontSize = 80.0f;
+        float subtitleSpacing = 4.0f;
 
+        Vector2 subtitleSize = MeasureTextEx(pieces, levelName, subtitleFontSize, subtitleSpacing);
+
+        float subtitleCX = GetScreenWidth() * 0.5f;
+        float subtitleY = titleY + titleSize.y * 0.5f + subtitleSize.y * 0.5f + 35.0f;
+
+        Rectangle rSubtitle = {
+            subtitleCX - subtitleSize.x * 0.5f,
+            subtitleY,
+            subtitleSize.x,
+            subtitleSize.y
+        };
+
+        DrawStoneOutlinedText(pieces, levelName, rSubtitle, subtitleFontSize, subtitleSpacing);
 
         // --- Menu items (buttons) ---
         float menuFontSizeF = 60.0f;
         float menuSpacing   = 1.0f;
         int   menuShadowPx  = std::max(1, (int)(menuFontSizeF/18.0f));
 
-        float baseY = 340.0f;
+        float baseY = 375.0f;
         float gapY  = 75.0f;                 // spacing between rows
         float btnH  = menuFontSizeF + 6.0f; // button height
         float btnW  = 320.0f;                // fixed width
-        float menuX = rTitle.x + (rTitle.width - btnW) * 0.5f;
-        float cx = (float)menuX + btnW * 0.5f;
+        float menuX = GetScreenWidth() / 2.f;// rTitle.x + (rTitle.width - btnW) * 0.5f;
 
         // Row centers (now 5 rows because we added a display row)
-        Rectangle rStart    = MakeButtonRect(cx, baseY + gapY*0.0f, btnW, btnH);
-        Rectangle rLevel    = MakeButtonRect(cx, baseY + gapY*1.0f, btnW, btnH);
-        Rectangle rControls = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH);
-        Rectangle rFull     = MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH);
-        Rectangle rQuit     = MakeButtonRect(cx, baseY + gapY*4.0f, btnW, btnH); 
-        
-
-        // Non-selectable display "button" for the level name
-        Rectangle rLevelName = MakeButtonRect(cx, baseY + gapY*5.0f, btnW, btnH);
-
-
+        Rectangle rStart    = MakeButtonRect(menuX, baseY + gapY*0.0f, btnW, btnH);
+        Rectangle rLevel    = MakeButtonRect(menuX, baseY + gapY*1.0f, btnW, btnH);
+        Rectangle rControls = MakeButtonRect(menuX, baseY + gapY*2.0f, btnW, btnH);
+        Rectangle rFull     = MakeButtonRect(menuX, baseY + gapY*3.0f, btnW, btnH);
+        Rectangle rQuit     = MakeButtonRect(menuX, baseY + gapY*4.0f, btnW, btnH); 
 
         // Button labels
         const char* lblStart = "Start";
@@ -566,28 +587,13 @@ namespace MainMenu
         DrawMenuButtonRounded(rFull,  selFull);
         DrawMenuButtonRounded(rQuit,  selQuit);
 
-        // Level name display button (non-selectable, faded)
-        DrawMenuButtonRounded(rLevelName, false, 1.0f);
-
         // Centered text
 
-        DrawCarvedText(pieces, lblStart, rStart, menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblLevel, rLevel, menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblControls,  rControls,  menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblFull,  rFull,  menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblQuit,  rQuit,  menuFontSizeF, menuSpacing);
-        
-
-        // Level name text (centered inside its own display button)
-        const char* levelName = (levels && levelsCount > 0) ? levels[levelIndex].name.c_str() : "None";
-
-        // Optional: slightly different color so it reads as “value”
-        //Color levelNameCol = YELLOW;
-        Color levelNameCol = WithAlpha(BROWN, 1.0f);
-        DrawCenteredShadowedText(pieces, levelName, rLevelName, menuFontSizeF, menuSpacing, levelNameCol, 1, {0,0,0});
-        //DrawCenteredShadowedText(pieces, title, rTitle, titleFontSize, titleSpacing, GRAY, 1, {0,0,0});
-
-
+        DrawCarvedText(pieces, lblStart, rStart, menuFontSizeF, menuSpacing, false, selStart);
+        DrawCarvedText(pieces, lblLevel, rLevel, menuFontSizeF, menuSpacing, false, selLevel);
+        DrawCarvedText(pieces, lblControls,  rControls,  menuFontSizeF, menuSpacing, false, selControls);
+        DrawCarvedText(pieces, lblFull,  rFull,  menuFontSizeF, menuSpacing, false, selFull);
+        DrawCarvedText(pieces, lblQuit,  rQuit,  menuFontSizeF, menuSpacing, false, selQuit);
     }
 }
 
