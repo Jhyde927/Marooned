@@ -274,6 +274,7 @@ void EnemyWallCollision(){
 
 
 void HandleMeleeHitboxCollision(Camera& camera) {
+    if (player.activeWeapon != WeaponType::Sword) return;
     //we never check if meleeHitbox is active, this could result in telefragging anything on top of playerpos, enemy bounding boxes prevent this
     for (BarrelInstance& barrel : barrelInstances){
         if (barrel.destroyed) continue;
@@ -619,6 +620,35 @@ void CheckBulletHits(Camera& camera) {
                 }
 
             }
+        }
+
+        for (GrapplePoint& gp : grapplePoints){
+            if (CheckCollisionBoxSphere(gp.box, b.position, b.radius)) {
+                if (b.type == BulletType::Harpoon && gp.enabled) {
+
+                    // Stick bullet to grapple point
+                    b.stuck = true;
+                    b.stuckToGrapple = true;
+                    b.stuckWorldPos = gp.position;
+
+                    b.velocity = {0,0,0};
+                    b.age = 0.0f;
+                    b.maxLifetime = 9999.0f;
+
+                    // Trigger player grapple (only if not already grappling)
+                    if (player.state != PlayerState::Grappling) {
+                        player.state = PlayerState::Grappling;
+                        player.grappleTarget = gp.position;
+                        player.grappleSpeed = 3000.0f;          // or gp.pullSpeed
+                        player.grappleStopDist = 120.0f;        // or gp.stopDistance
+                        player.grappleBulletId = b.id;          // optional, for rope rendering/cleanup
+                        SoundManager::GetInstance().Play("ratchet");
+                    }
+                    b.Erase();
+                    break;
+                }
+            }
+
         }
 
 

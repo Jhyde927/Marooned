@@ -70,6 +70,19 @@ struct LightSample {
     float   intensity;
 };
 
+struct GrapplePoint {
+    Vector3 position;        // world-space anchor position
+    BoundingBox box;     // bullet collision box
+    Texture2D tex;
+    float scale;
+    // --- Gameplay rules ---
+    float   snapRadius;      // how close the aim ray must be to lock on
+    float   maxRange;        // max distance player can grapple from
+    float   stopDistance;    // how close player stops from anchor
+    float   pullSpeed;       // units per second toward anchor
+    bool    enabled;         // can this point currently be used
+
+};
 
 struct DoorwayInstance {
     Vector3 position;
@@ -231,6 +244,7 @@ extern std::vector<DoorwayInstance> doorways;
 extern std::vector<BillboardDrawRequest> billboardRequests;
 extern std::vector<Door> doors;
 extern std::vector<SecretWall> secretWalls;
+extern std::vector<GrapplePoint> grapplePoints;
 
 
 
@@ -260,6 +274,9 @@ void GenerateHarpoon(float baseY);
 void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
+
+void GenerateGrapplePoints(float baseY);
+
 void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
@@ -271,7 +288,6 @@ void BindSecretWallsToRuns();
 void OpenSecrets();
 void DrawDungeonChests(); 
 void DrawDungeonPillars();
-
 //void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint);
 void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height, float rotationY, Color tint);
 void GenerateWeapons(float Height);

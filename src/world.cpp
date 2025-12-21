@@ -226,7 +226,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateHarpoon(floorHeight);
         GenerateKeys(floorHeight);
         GenerateWeapons(200);
-
+        GenerateGrapplePoints(floorHeight);
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index, 
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 

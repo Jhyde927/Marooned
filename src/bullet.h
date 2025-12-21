@@ -50,6 +50,10 @@ public:
     float radius = 25.0f;
     float spinAngle = 0.0f;
     float size = 3.0f;
+    
+    //Grapple
+    bool stuckToGrapple = false;
+    Vector3 stuckWorldPos = {0,0,0};   // where it sticks if not attached to enemy
 
     bool exploded = false;
     float timeSinceExploded = 0.0f;

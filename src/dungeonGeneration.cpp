@@ -35,6 +35,7 @@ std::vector<SecretWall> secretWalls;
 std::vector<PillarInstance> pillars;
 std::vector<WallRun> wallRunColliders;
 std::vector<LightSource> dungeonLights; //static lights.
+std::vector<GrapplePoint> grapplePoints;
 
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
@@ -1083,13 +1084,54 @@ void GenerateHarpoon(float baseY){
                 Collectable p = {CollectableType::Harpoon, pos, R.GetTexture("harpoon"), 80};
                 collectables.push_back(p);
             }
-
-
-
         }
     }
 
 }
+
+static BoundingBox MakeBoxCentered(Vector3 p, Vector3 half)
+{
+    BoundingBox b;
+    b.min = (Vector3){ p.x - half.x, p.y - half.y, p.z - half.z };
+    b.max = (Vector3){ p.x + half.x, p.y + half.y, p.z + half.z };
+    return b;
+}
+
+void GenerateGrapplePoints(float baseY)
+{
+    grapplePoints.clear();
+
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            if (EqualsRGB(current, ColorOf(Code::GrapplePoint))) { // steel blue
+
+                Vector3 half = { 60.0f, 60.0f, 60.0f }; // tweak this (width/height/depth)
+                Vector3 pos = GetDungeonWorldPos(
+                    x,
+                    y,
+                    tileSize,
+                    baseY + 50.0f   // anchor height offset
+                );
+
+                GrapplePoint gp;
+                gp.position     = pos;
+                gp.box          = MakeBoxCentered(pos, half);
+                gp.tex          = R.GetTexture("grapplePoint");
+                gp.snapRadius   = 120.0f;
+                gp.maxRange     = 4000.0f;
+                gp.stopDistance = 100.0f;
+                gp.pullSpeed    = 6000.0f;
+                gp.enabled      = true;
+                gp.scale        = 50.0f;
+                grapplePoints.push_back(gp);
+            }
+        }
+    }
+}
+
 
 
 void GeneratePotions(float baseY) {

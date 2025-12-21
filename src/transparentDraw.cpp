@@ -21,6 +21,26 @@ float GetAdjustedBillboardSize(float baseSize, float distance) {
     return baseSize * (1.0f + distance * compensationFactor);
 }
 
+void GatherGrapplePoint(Camera& camera) {
+    for (GrapplePoint& g : grapplePoints){
+        float dist = Vector3Distance(camera.position, g.position);
+
+        billboardRequests.push_back({
+            Billboard_FacingCamera, 
+            g.position,
+            g.tex,
+            Rectangle{0, 0, (float)g.tex.width, (float)g.tex.height},
+            g.scale,
+            WHITE,
+            dist,
+            1.0f,
+            false,
+            false,
+            false
+        });
+    }
+}
+
 void GatherEnemies(Camera& camera) {
     for (Character* enemy : enemyPtrs) {
         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
@@ -313,6 +333,7 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
     GatherMuzzleFlashes(camera, activeMuzzleFlashes);
     GatherCollectables(camera, collectables);
     GatherSpiderEggDrawRequests(camera);
+    GatherGrapplePoint(camera);
 }
 
 void DrawTransparentDrawRequests(Camera& camera) {

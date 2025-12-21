@@ -8,6 +8,7 @@ extern Weapon weapon;
 extern MeleeWeapon meleeWeapon;
 extern MagicStaff magicStaff;
 
+enum class PlayerState { Normal, Grappling };
 
 
 struct Player {
@@ -19,8 +20,10 @@ struct Player {
     Vector3 previousPosition;
     BoundingBox meleeHitbox;
     BoundingBox blockHitbox;
-
     Inventory inventory;
+
+    
+    PlayerState state = PlayerState::Normal;
     bool hasGoldKey   = false;
     bool hasSilverKey = false;
     const float ACCEL_GROUND   = 8000.0f;   // how fast we reach target speed
@@ -34,6 +37,11 @@ struct Player {
 
     float lastGroundedTime = 0.0f;
     float lastJumpPressedTime = -999.0f;
+
+    Vector3 grappleTarget = {0,0,0};   // where you're being pulled to
+    float   grappleSpeed = 3000.0f;
+    float   grappleStopDist = 120.0f;
+    int     grappleBulletId = -1;      // optional: link to the harpoon bullet
 
     int gold = 0;
     float displayedGold = 0.0f;

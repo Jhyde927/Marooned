@@ -151,6 +151,6 @@ int main() {
     CloseAudioDevice();
     CloseWindow();
 
-    system("pause"); // ← waits for keypress
+    //system("pause"); // ← waits for keypress
     return 0;
 }

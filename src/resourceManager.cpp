@@ -280,6 +280,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("silverKey",        "assets/sprites/silverKey.png");
     R.LoadTexture("harpoon",          "assets/sprites/harpoon.png");
     R.LoadTexture("backFade",         "assets/sprites/backFade.png");
+    R.LoadTexture("grapplePoint",     "assets/sprites/grapplePoint.png");
 
 
 

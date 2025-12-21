@@ -19,6 +19,7 @@ MagicStaff magicStaff;
 Crossbow crossbow;
 
 
+
 //Refactor this whole mess at some point. 
 void InitPlayer(Player& player, Vector3 startPosition) {
 
@@ -48,6 +49,38 @@ void InitPlayer(Player& player, Vector3 startPosition) {
 
     
 }
+
+void UpdatePlayerGrapple(Player& player, float dt)
+{
+    if (player.state != PlayerState::Grappling) return;
+
+    
+
+    Vector3 toTarget = Vector3Subtract(player.grappleTarget, player.position);
+    float dist = Vector3Length(toTarget);
+    // Stop condition
+    if (dist <= player.grappleStopDist + 20.0f) {
+        player.state = PlayerState::Normal;
+        player.grappleBulletId = -1;
+        return;
+    }
+
+    Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+    float step = player.grappleSpeed * dt;
+
+    // Clamp step so you don't overshoot
+    if (step > dist - player.grappleStopDist)
+        step = dist - player.grappleStopDist;
+
+    // Move player
+    player.position = Vector3Add(player.position, Vector3Scale(dir, step));
+
+    // Optional: zero out velocity if your controller uses velocity
+    player.velocity = {0,0,0};
+
+    
+}
+
 
 
 
@@ -583,6 +616,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
 
 
+
     //start the dying process. 
     if (player.dying) {
         player.deathTimer += deltaTime;
@@ -613,7 +647,14 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     //PLAYER MOVEMENT KEYBOARD INPUT
     if (controlPlayer){
         HandleKeyboardInput(camera);
-        if (!player.onBoard) HandlePlayerMovement(deltaTime);
+
+        if (player.state == PlayerState::Grappling) {
+            UpdatePlayerGrapple(player, deltaTime);
+            // skip normal movement update
+        } else {
+            if (!player.onBoard) HandlePlayerMovement(deltaTime);
+        }
+        
     } 
 
     // === Ground Check ===

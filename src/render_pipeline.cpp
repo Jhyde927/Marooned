@@ -73,6 +73,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         DrawOverworldProps();
         EndShaderMode();
         DrawDungeonGeometry(camera, 20000);
+        
         DrawDungeonPillars();
         DrawDungeonBarrels();
         DrawLaunchers();
@@ -172,6 +173,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawLaunchers();
             DrawDungeonChests();
             DrawDungeonPillars();
+            
             // for (WallRun& b : wallRunColliders){ //debug draw wall colliders
             //     DrawBoundingBox(b.bounds, WHITE);
             // }
