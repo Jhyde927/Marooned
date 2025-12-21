@@ -51,11 +51,7 @@ void debugControls(Camera& camera, float deltaTime){
         }
 
         if (IsKeyPressed(KEY_APOSTROPHE)){ //hide ceiling for better screenshots. 
-            if (!drawCeiling){
-                drawCeiling = true;
-            }else{
-                drawCeiling = false;
-            }
+            drawCeiling = false;
         }
         //control player with arrow keys while in free cam. 
         Vector3 input = {0};

@@ -249,7 +249,9 @@ void CameraSystem::Update(float dt) {
     else if (mode == CamMode::Free)   UpdateFreeCam(dt);
     else                              UpdateCinematicCam(dt);
 
+    
     ApplyShake(dt);
+
 }
 
 void CameraSystem::UpdateCinematicCam(float dt) {

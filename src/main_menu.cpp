@@ -478,8 +478,8 @@ namespace MainMenu
         Color fadeTop    = { 0, 0, 0, 0 };
 
         Rectangle rFade = {
-            rTitle.x + 0.0,
-            rTitle.y -0.0f,
+            rTitle.x,
+            rTitle.y,
             rTitle.width,
             rTitle.height 
         };

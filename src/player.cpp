@@ -542,10 +542,10 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     //FOV punch on hit
     if (player.hitTimer > 0.0f){
         player.hitTimer -= deltaTime;
-        camera.fovy = Lerp(camera.fovy, player.targetFOV, deltaTime * 12.0f); // fast zoom
+        //camera.fovy = Lerp(camera.fovy, player.targetFOV, deltaTime * 12.0f); // fast zoom
     }else{
         player.hitTimer = 0;
-        camera.fovy = Lerp(camera.fovy, 45, deltaTime * 4.0f); // smooth return
+        //camera.fovy = Lerp(camera.fovy, 45, deltaTime * 4.0f); // smooth return
     }
 
     float goldLerpSpeed = 5.0f;
@@ -640,6 +640,8 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 }
 
 void Player::TakeDamage(int amount){
+  
+    CameraSystem::Get().Shake(0.01f, 0.25f); // 0.01 magnitude //consider removing fovY jump on hit
 
     if (!player.dying && !player.dead) {
         player.currentHealth -= amount;

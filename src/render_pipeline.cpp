@@ -21,6 +21,7 @@ static int lastH = 0;
 
 static void EnsureRenderTargetsMatchWindow(RenderTexture2D& rt)
 {
+    //resize RenderTextures to match new fullscreen size
     int w = GetScreenWidth();
     int h = GetScreenHeight();
 
@@ -32,13 +33,18 @@ static void EnsureRenderTargetsMatchWindow(RenderTexture2D& rt)
     if (rt.id != 0) UnloadRenderTexture(rt);
     rt = LoadRenderTexture(w, h);
 
-    TraceLog(LOG_INFO, "RESIZED RT -> %d x %d (id=%u)", rt.texture.width, rt.texture.height, rt.texture.id);
 }
 
 
 
 
 void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
+
+    RenderTexture2D& sceneTexture = R.GetRenderTexture("sceneTexture");
+    RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
+
+    EnsureRenderTargetsMatchWindow(sceneTexture);
+    EnsureRenderTargetsMatchWindow(postTexture);
 
     // --- 3D scene to sceneTexture ---
     BeginTextureMode(R.GetRenderTexture("sceneTexture"));
@@ -56,10 +62,6 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         if (!isDungeon){
             float maxDrawDist = 50000.0f; //Higher for menu cam
             DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
-            rlEnableDepthTest();
-            rlDisableDepthMask();         // don’t write depth for transparent water
-            //DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
-            rlEnableDepthMask();
             DrawBoat(player_boat);
             HandleWaves(camera); //update water plane bob. 
 
@@ -124,10 +126,6 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 void RenderFrame(Camera3D& camera, Player& player, float dt) {
     RenderTexture2D& sceneTexture = R.GetRenderTexture("sceneTexture");
     RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
-
-    TraceLog(LOG_INFO, "sceneTexture ptr=%p id=%u size=%d,%d",
-         (void*)&sceneTexture, sceneTexture.texture.id,
-         sceneTexture.texture.width, sceneTexture.texture.height);
 
     EnsureRenderTargetsMatchWindow(sceneTexture);
     EnsureRenderTargetsMatchWindow(postTexture);

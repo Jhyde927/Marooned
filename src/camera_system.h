@@ -74,6 +74,7 @@ public:
     bool IsPlayerMode() const { return GetMode() == CamMode::Player; }
     bool aspectSquare = false;
 
+
 private:
     CameraSystem() = default;
 
@@ -93,6 +94,6 @@ private:
     CinematicDesc cine{};
     bool cineActive = false;
     float cineOrbitAngleDeg = 0.0f;
-
-    float shakeTime = 0.f, shakeMag = 0.f;
+    float shakeTime = 0.0f;
+    float shakeMag = 0.0f;
 };

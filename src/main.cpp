@@ -99,7 +99,7 @@ int main() {
             //play the game
             if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
             UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
-
+            CameraSystem::Get().Update(deltaTime);
             //update context
 
             debugControls(camera, deltaTime); 
@@ -127,7 +127,7 @@ int main() {
 
             HandleWeaponTints();
             if (isDungeon){
-                drawCeiling = levels[levelIndex].hasCeiling;
+                if (!debugInfo) drawCeiling = levels[levelIndex].hasCeiling;
                 HandleDungeonTints();
             }
 
@@ -151,6 +151,6 @@ int main() {
     CloseAudioDevice();
     CloseWindow();
 
-    //system("pause"); // ← waits for keypress
+    system("pause"); // ← waits for keypress
     return 0;
 }
