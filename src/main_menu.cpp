@@ -38,7 +38,7 @@ static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alpha
 {
     // Orangish-beige base palette (tweak)
     Color base      = WithAlpha({214, 182, 132, 255}, alphaMul);   
-    Color baseHot   = WithAlpha({232, 202, 154, 240}, alphaMul);
+    Color baseHot   = WithAlpha({242, 212, 164, 240}, alphaMul);
     Color border    = WithAlpha({120,  86,  52, 220}, alphaMul);
     Color borderSel = WithAlpha({210, 170,  80, 235}, alphaMul);
     Color topHi     = WithAlpha({255, 255, 255,  35}, alphaMul);
@@ -211,10 +211,11 @@ static inline void DrawStoneOutlinedText(Font font, const char* text,
 
 
 
-static inline void DrawCarvedText(Font font, const char* text, Rectangle r, float fontSize, float spacing, bool title = false)
+static inline void DrawCarvedText(Font font, const char* text, Rectangle r, float fontSize, float spacing, bool title = false, bool selected = false)
 {
     // dark “burnt” letter color
     Color ink = { 100, 70, 40, 255 };
+    Color inkSelected = { 120, 90, 60, 255 };
 
     if (title) ink = {60, 40, 20, 255};
 
@@ -229,10 +230,10 @@ static inline void DrawCarvedText(Font font, const char* text, Rectangle r, floa
     DrawTextEx(font, text, { p.x - 1, p.y - 1 }, fontSize, spacing, hi);
 
     // Main “engraved” text (slightly down-right)
-    DrawTextEx(font, text, { p.x + 1, p.y + 1 }, fontSize, spacing, ink);
+    DrawTextEx(font, text, { p.x + 1, p.y + 1 }, fontSize, spacing, (selected ? inkSelected : ink));
 
     // Optional: reinforce center
-    DrawTextEx(font, text, p, fontSize, spacing, ink);
+    DrawTextEx(font, text, p, fontSize, spacing, (selected ? inkSelected : ink));
 }
 
 
@@ -362,9 +363,34 @@ namespace MainMenu
             }
         }
 
-        // --- Keyboard navigation 
-        if (IsKeyPressed(KEY_UP))   s.selectedOption = (s.selectedOption - 1 + optionsCount) % optionsCount;
-        if (IsKeyPressed(KEY_DOWN)) s.selectedOption = (s.selectedOption + 1) % optionsCount;
+        // --- Keyboard navigation
+        static constexpr float KEY_DELAY = 0.1f;
+        static float upKeyTimer = 0.0f;
+        static float downKeyTimer = 0.0f;
+
+        bool shouldGoUp   = IsKeyPressed(KEY_UP);
+        bool shouldGoDown = IsKeyPressed(KEY_DOWN);
+
+        if (IsKeyDown(KEY_UP) && upKeyTimer >= KEY_DELAY) {
+            upKeyTimer = 0.0f;
+            shouldGoUp = true;
+        } else if (IsKeyDown(KEY_UP) && upKeyTimer < KEY_DELAY) {
+            upKeyTimer += GetFrameTime();
+        } else {
+            upKeyTimer = 0.0f; // Reset if key is not down
+        }
+
+        if (IsKeyDown(KEY_DOWN) && downKeyTimer >= KEY_DELAY) {
+            downKeyTimer = 0.0f;
+            shouldGoDown = true;
+        } else if (IsKeyDown(KEY_DOWN) && downKeyTimer < KEY_DELAY) {
+            downKeyTimer += GetFrameTime();
+        } else {
+            downKeyTimer = 0.0f; // Reset if key is not down
+        }
+
+        if (shouldGoUp)   s.selectedOption = (s.selectedOption - 1 + optionsCount) % optionsCount;
+        if (shouldGoDown) s.selectedOption = (s.selectedOption + 1) % optionsCount;
 
         auto TriggerPress = [&]()
         {
@@ -563,11 +589,11 @@ namespace MainMenu
 
         // Centered text
 
-        DrawCarvedText(pieces, lblStart, rStart, menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblLevel, rLevel, menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblControls,  rControls,  menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblFull,  rFull,  menuFontSizeF, menuSpacing);
-        DrawCarvedText(pieces, lblQuit,  rQuit,  menuFontSizeF, menuSpacing);
+        DrawCarvedText(pieces, lblStart, rStart, menuFontSizeF, menuSpacing, false, selStart);
+        DrawCarvedText(pieces, lblLevel, rLevel, menuFontSizeF, menuSpacing, false, selLevel);
+        DrawCarvedText(pieces, lblControls,  rControls,  menuFontSizeF, menuSpacing, false, selControls);
+        DrawCarvedText(pieces, lblFull,  rFull,  menuFontSizeF, menuSpacing, false, selFull);
+        DrawCarvedText(pieces, lblQuit,  rQuit,  menuFontSizeF, menuSpacing, false, selQuit);
     }
 }
 
