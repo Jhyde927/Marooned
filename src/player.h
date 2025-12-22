@@ -40,7 +40,7 @@ struct Player {
 
     Vector3 grappleTarget = {0,0,0};   // where you're being pulled to
     float   grappleSpeed = 3000.0f;
-    float   grappleStopDist = 120.0f;
+    float   grappleStopDist = 0.0f;
     int     grappleBulletId = -1;      // optional: link to the harpoon bullet
 
     int gold = 0;

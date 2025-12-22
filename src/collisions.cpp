@@ -639,10 +639,13 @@ void CheckBulletHits(Camera& camera) {
                     if (player.state != PlayerState::Grappling) {
                         player.state = PlayerState::Grappling;
                         player.grappleTarget = gp.position;
-                        player.grappleSpeed = 3000.0f;          // or gp.pullSpeed
-                        player.grappleStopDist = 120.0f;        // or gp.stopDistance
+                        player.grappleSpeed = 3500.0f;          // or gp.pullSpeed
+                        player.grappleStopDist = 70.0f;        // or gp.stopDistance
                         player.grappleBulletId = b.id;          // optional, for rope rendering/cleanup
                         SoundManager::GetInstance().Play("ratchet");
+
+
+                     
                     }
                     b.Erase();
                     break;

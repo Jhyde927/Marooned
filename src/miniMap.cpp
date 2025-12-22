@@ -249,7 +249,7 @@ void MiniMap::Update(float dt, Vector3 playerPos)
     RevealAroundPlayer(playerPos);
 }
 
-void MiniMap::Draw(int screenX, int screenY) const
+void MiniMap::Draw(int screenX, int screenY, Player& player) const
 {
     if (!initialized || !isDungeon) return;
 
@@ -323,12 +323,33 @@ void MiniMap::Draw(int screenX, int screenY) const
         }
     }
 
+    DrawPlayer(player, screenX, screenY);
+
+}
+
+void MiniMap::DrawPlayer(Player& player, float screenX, float screenY) const {
+
     // 4) Player marker (on top)
     float px = screenX + playerU * drawSize;
     float py = screenY + playerV * drawSize;
-    DrawCircleV(Vector2{ px, py }, 3.0f, GREEN);
-}
 
+    Vector2 p = { px, py };
+    DrawCircleV(p, 3.0f, GREEN);
+
+    // 5) Facing direction indicator (line coming out of the dot)
+    const float headingLen = 5.0f;   // pixels on the minimap
+    const float lineThick  = 2.0f;
+
+
+    float yaw = player.rotation.y * DEG2RAD; // radians
+
+    // 180° fix applied here:
+    Vector2 dir = { -sinf(yaw), -cosf(yaw) };
+
+    Vector2 end = { p.x + dir.x * headingLen, p.y + dir.y * headingLen };
+
+    DrawLineEx(p, end, lineThick, GREEN);
+}
 
 void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
                           int screenX, int screenY) 

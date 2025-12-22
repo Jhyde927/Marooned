@@ -257,7 +257,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 int x = (int)(GetScreenWidth() - size - pad);
                 int y = (int)pad;
 
-                miniMap.Draw(x, y);
+                miniMap.Draw(x, y, player);
                 miniMap.DrawEnemies(enemyPtrs, x, y);
                 miniMap.DrawDoors(doors, x, y);
                 miniMap.RevealDoorsFromPlayer(player.position, doors);

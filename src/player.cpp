@@ -59,8 +59,9 @@ void UpdatePlayerGrapple(Player& player, float dt)
     Vector3 toTarget = Vector3Subtract(player.grappleTarget, player.position);
     float dist = Vector3Length(toTarget);
     // Stop condition
-    if (dist <= player.grappleStopDist + 20.0f) {
+    if (dist <= player.grappleStopDist) {
         player.state = PlayerState::Normal;
+ 
         player.grappleBulletId = -1;
         return;
     }
@@ -69,8 +70,8 @@ void UpdatePlayerGrapple(Player& player, float dt)
     float step = player.grappleSpeed * dt;
 
     // Clamp step so you don't overshoot
-    if (step > dist - player.grappleStopDist)
-        step = dist - player.grappleStopDist;
+    // if (step > dist - player.grappleStopDist)
+    //     step = dist - player.grappleStopDist;
 
     // Move player
     player.position = Vector3Add(player.position, Vector3Scale(dir, step));

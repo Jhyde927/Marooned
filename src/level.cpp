@@ -300,6 +300,22 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         16, 
+        17, 
+        {}, 
+        true,// ceiling
+    },
+
+        {
+        "Dungeon17", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map21.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        17, 
         1, //change to river. 
         {}, 
         true,// ceiling
