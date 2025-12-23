@@ -14,9 +14,10 @@
 
 void Crossbow::FireHarpoon(Camera& camera) {
     if (!hasHarpoon) return;
+    if (!harpoonReady) return;
     float now = GetTime();
     if (now - lastFired < fireCooldown) return;
-    if (!harpoonReady) return;
+    
     // Don't fire if we're reloading or not in loaded state
     if (isReloading || state != CrossbowState::Loaded) return;
 

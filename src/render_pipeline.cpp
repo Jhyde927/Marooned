@@ -241,6 +241,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //health mana stam bars UI
             if (controlPlayer){
                 DrawHUDBars(player);
+                gWeaponBar.Draw(player.activeWeapon);
                 if (player.activeWeapon == WeaponType::MagicStaff) DrawMagicIcon();
                 auto& pieces = R.GetFont("Pieces"); 
                 std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);

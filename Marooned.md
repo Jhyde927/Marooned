@@ -758,6 +758,81 @@ You should be able to harpoon enemies into lava pits. Enemies would need to have
 
 Do something about dungeon chests. It's the only animated 3D model. And it doesn't work. Why doesn't it work? Opening one chest opens all chest instances. Chest model remains open even after level load. We fixed this problem before but it returned some how. Look at chest code. 
 
+Make more levels. go up to 20. then cull the bad ones. 
+
+What makes a good level? Not a lot of backtracking. That makes a bad level. Finding a new item makes a good level. Multiple paths that end up in the same place. Dungeon3 does this. 
+
+Cinematic Camera x
+
+Implemented cinematic camera that orbits current level. It is displayed in the background of the main menu. Added cinematic camera rig. Right now it automaticaly starts orbiting when switching to cinematic camera. Consider using it for cut scenes later maybe. 
+
+Needed to make a whole separate "RenderMenuFrame" function. Since we skip the game loop when in menu state, we need to call a separate render function just for the menu. It draws almost everything the normal render loop does but we disable frustum culling and set the far clip further so you can see the full map. Nothing gets updated in the world except the cinematic camera. 
+
+We now need to initLevel on first starting the game so we can show the level as a backdrop. This increases initial load time by a few seconds. InitMenuLevel function inits level 0. generateRaptors and entrances don't get called for this display only level. Once you have started the game and loaded a level and hit escape to go back to the menu. It draws what ever level got loaded last. For dungeon levels I disable ceilings so you can see a top down orbiting view of the dungeon. I had to disable the water plane for menu level rendering because the water shader was fucking up but it looks good with no water plane, because the terrain shader colors the mesh blue at the lowest areas so it looks like water. You can see a hard cut off where the level ends. I don't know how to hide this other than making the camera orbit height less so you can see the closest edge of the map while it's rotating. 
+
+Implemented menu buttons. Ported main menu code into it's own file. main_menu.h/cpp. A lot of work. but we now have a separate main menu module that handles all the buttons and input and mouse and everything. First I tried making the buttons a texture. I tried a driftwood sign texture for the pirate theme but when resizing the texture it looked pretty bad. So I decided to do it all with code. I made the buttons orangish beige and added black lines around the edge so it sort of looks like wood. I think the color goes well with both the sky blue of the island background and the dark color of the dungeons. They could maybe be 5 percent darker over all. I tried 25 percent darker and it was the color of poop, so too much. The display name for the level select is it's own button that is not clickable set 1 button height below the other buttons. I tried it directly under the level select button but it didn't look as good as having it be a separate thing below the rest. 
+
+Made mouse work for button selecting and highlighting. It's basically the same menu as dead city nights but different colors. With DCN we used rayGUI for the buttons. Here they are made out of drawRoundedRect and draw lines. This way I don't need to depend on ImgGUI or rayGUI or whatever. 
+
+Coming back to main menu code later might be a little dicey because it's pretty complicated how it ended up being set up. Since it was ported from old code. I probably should have just started completely clean but hopefully I won't have to touch it ever again other than tweeking the look of it.
+
+River entrance is locked. It should lead to dungeon 11 x fixed 
+
+Add title card backdrop same color as button. You might as well do it now. While it's fresh in your head. 
+
+Added better title card. Black and red. Red pirate font with thick black outline. Tried putting a black to transparent gradient behind title text. So it's not just floating text. Makes me think we need a buring fire animation behind the title or something. Can't do rounded rectangle gradient. or can we? 
+
+raylib has a drawGradientRectangle function. but I wanted a rounded rectangle. So instead I made a gradient texture in the shap of a pill that fades to transparent at like midway up the title. 
+
+Controls menu. It would live inside main menu structure. x Looks bad, redo the visuals.
+
+Finally fixed full screen problems. I was using raylibs ToggleFullscreen() but it would push the windows around on my desktop when entering full screen. I then tried ToggleBorderlessWindow() but when playing the view was super zoomed in. This was because the render textures where not being resized to fit the new screen resolution. Ended up having to store the render texture inside a diffrent type of container to let me safely refrence the real texture not a stale copy. or something. I had this issue like twice before. Finally know the reason why fullscreen was always a pain. 
+
+Tried screen shake. It was implemented but we never tested it. I think I like it better than the FOV punch. FOV punch and screen shake together seems to much. Just a subtle screen shake on hit is good. IMO. 
+
+CameraSystem::Get().Shake(0.01f, 0.25f); try even less magnitude, durration seems ok. 
+
+The plan: 
+
+    Grapple Points...The crossbow has a secondary fire. Harpoon shot. It fires a harpoon that sticks to enemies and pulls them toward the players position. It stuns the enemy alowing the player to finish them off with a blunderbuss shot. The idea is to use the same harpoon to pull the player toward a grapple attach area. What would this entail? A struct grapple point. with an AABB? collision with bullet triggers it? It must. harpoon is a bullet. 
+
+Ok. Enemies move toward player when they are in a harpooned state and we just lerp the position toward player, and stop at 175 units away and wait for stun timer to run out. We have canMove. I think this stops keyboard player control from updating. Could we have a grapple state for player? yeah player doesn't have a state really. maybe it should. 
+
+Death, active, grappling, swimming, onboard. This would be the correct thing. We want to implement this in the next 2 hours. just stop updating keyboard input and lerp player position toward bullet/grapple point collision. What are you waiting for? velocity? seems more messy than lerp pos. -LLM says we should have a grapple state. worry about that later. implement grapple point on map. what color? 
+
+a std::vector of grapple points. grapplepiont struct then. could we have outside grapple points. then put it in world. 
+fuck that put it in dugneon generation. 
+
+make harpoon attach to grapple position. grapple state? 
+
+1:47, 13 minutes. what is left to do? collision, movestate, 
+
+ok, almost there. DrawDrawRequest doesn't know what a grapple point is. size is too small? 
+
+pulling enemies into lava pits pulls them too far. They should stop at the edge and fall straight in. 
+
+player was stopping outside grappleStopPosition, so state never switch back to normal and you couldn't move. I now check for dist < stopDistance + 20. 
+
+New Plan: 48x48 grapple level. -lava pit every where. firball lauchers make it treacherous. use grapple to quickly navigate the dungeon. Lots of pirates. 
+
+lowered harpoon cooldown time to 1 second, make it just match the normal shot cooldown. If it's op so be it. Put grapple points in early levels and unlock the harpoon at the start of dungeon3. 
+
+Lading on one tile grapple points feels bad. make top distance close so you end up in the middle of the tile, not just short. 
+
+Put grapple on level 3
+
+show player direction on minimap. <-- x
+
+turn down screen shake.x
+
+slow down raptors.x
+
+The Plan: Add grapple points to all levels after 3. 
+
+
+
+
+
 
 
 

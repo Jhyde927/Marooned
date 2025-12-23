@@ -230,10 +230,12 @@ struct Crossbow {
     float reloadDelayTimer = 0.5f;
 
     bool  swappedModelMidDip = false;  // did we already switch to loaded model?
-    float harpoonCooldown = 0.8f;
+    float harpoonCooldown = 2.0f;
     float harpoonTimer = 0.0;
+  
     bool harpoonReady = true; // persistent state
     bool triggeredFire = false;
+
 
     void Update(float dt);
     void Fire(Camera& camera);

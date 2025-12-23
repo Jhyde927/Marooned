@@ -24,6 +24,9 @@ Sounds:
 
 	https://pixabay.com/sound-effects/nature-soundstropicaljunglebirds-108380/
 
+Sprites:
+	https://opengameart.org/node/12210
+
 
 Animations:
 	https://opengameart.org/content/animated-fire

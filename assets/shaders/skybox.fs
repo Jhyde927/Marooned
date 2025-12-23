@@ -99,8 +99,8 @@ void main() {
         float cosTheta = clamp(dot(dir, moonDir), -1.0, 1.0);
         float theta    = acos(cosTheta);
 
-        float moonRadius = radians(3.0);   // keep this
-        float edgeSoft   = radians(0.5);   // was 1.5, much narrower band now
+        float moonRadius = radians(4.0);   // keep this
+        float edgeSoft   = radians(0.95);   // was 1.5, much narrower band now
 
         // Sharper edge: narrower smoothstep band
         float moonMask = smoothstep(moonRadius + edgeSoft,
@@ -124,23 +124,20 @@ void main() {
             float y = dot(dir, moonUp);
             vec2  uv = vec2(x, y);
 
-            // --- higher-frequency noise for multiple patches ---
-            // bigger scale => more features within the small moon
-            vec2 p = uv * 35.0;  // try 15–30
+            vec2 pBig  = uv * 20.0;   // big crater size
+            vec2 pFine = uv * 120.0;  // tiny surface detail
 
-            float n1 = fbm3f(vec3(p, 0.0));
-            float n2 = fbm3f(vec3(p * 2.7 + 12.3, 0.0));
+            float nBig  = fbm3f(vec3(pBig,  0.0));
+            float nFine = fbm3f(vec3(pFine + 19.7, 0.0));
 
-            // "Ridge" style noise to get crater-ish structures
-            float ridge = 1.0 - abs(2.0 * n1 - 1.0);   // maps 0..1 to ridges
+            // ridge from big noise -> crater rims
+            float ridgeBig = 1.0 - abs(2.0 * nBig - 1.0);
 
-            // blend in some secondary noise for variation
-            float combined = ridge + 0.35 * n2;
+            // combine: strong big rims, subtle fine breakup
+            float combined = ridgeBig + 0.15 * nFine;
 
-            // shape into 0..1 range with a smoothstep
-            float detail = smoothstep(0.6, 0.95, combined);
-
-            // base surface shading (0.5..1.0)
+            // remap
+            float detail = smoothstep(0.55, 0.9, combined);
             float surfaceShade = mix(0.5, 1.0, detail);
 
             // slight limb brightening so it reads as a sphere
@@ -159,24 +156,6 @@ void main() {
         return;
     }
 
-
-    // if (isDungeon == 1) {
-    //     // --- NIGHT: minimal starfield ---
-    //     vec3 night = vec3(0.001, 0.002, 0.004);
-
-    //     // small stars
-    //     float n1 = valueNoise3f(dir * 80.0);
-    //     float starsSmall = step(0.97, n1) * pow(n1, 40.0);
-
-    //     // rare bright stars (snap to a coarse grid to keep them stable)
-    //     vec3 p = floor(dir * 220.0) + 0.1;
-    //     float n = hash31(p);
-    //     float starsBig = step(0.9999, n);
-
-    //     vec3 col = night + vec3(1.0) * (starsSmall + starsBig);
-    //     finalColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
-    //     return;
-    // }
 
     // --- DAY: blue sky + soft clouds ---
     float h = clamp(dir.y*0.5 + 0.5, 0.0, 1.0);

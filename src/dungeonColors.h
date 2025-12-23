@@ -38,7 +38,7 @@ enum class Code {
     TimingMediumYellow2,    // (200,100,0)
     TimingMediumYellow3,     // (200,150,0)
     EventLocked,            // (0, 255, 128) spring green
-    SlimeGreen,             // (128, 255, 0)
+    SlimeGreen,             // (128, 255, 0) //spider egg
     Blunderbuss,             // (204, 204, 255) Periwinkle
     SecretDoor,              // (64, 0, 64) very dark purple
     SilverDoor,             // (0, 64, 64) dark cyan
@@ -83,7 +83,7 @@ constexpr Color ColorOf(Code c) {
         case Code::TimingMediumYellow2:    return Make(200, 100, 0);
         case Code::TimingMediumYellow3:    return Make(200, 150, 0);
         case Code::EventLocked:            return Make(0, 255, 128);
-        case Code::SlimeGreen:             return Make(128, 255, 0);
+        case Code::SlimeGreen:             return Make(128, 255, 0); //spider egg
         case Code::Blunderbuss:            return Make(204, 204, 255);
         case Code::SecretDoor:             return Make(64, 0, 64);
         case Code::SilverDoor:             return Make(0, 64, 64);

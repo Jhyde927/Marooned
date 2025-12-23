@@ -54,7 +54,16 @@ void UpdatePlayerGrapple(Player& player, float dt)
 {
     if (player.state != PlayerState::Grappling) return;
 
-    
+    if (player.harpoonLifeTimer > 0.0f) {
+        player.harpoonLifeTimer -= dt;
+    }else {
+        player.harpoonLifeTimer = 0.0f;
+    }
+
+    if (player.harpoonLifeTimer <= 0){
+        player.state = PlayerState::Normal;
+        return;
+    }
 
     Vector3 toTarget = Vector3Subtract(player.grappleTarget, player.position);
     float dist = Vector3Length(toTarget);
@@ -683,7 +692,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
 void Player::TakeDamage(int amount){
   
-    CameraSystem::Get().Shake(0.01f, 0.25f); // 0.01 magnitude //consider removing fovY jump on hit
+    CameraSystem::Get().Shake(0.003f, 0.25f); // 0.003 barely perceptable
 
     if (!player.dying && !player.dead) {
         player.currentHealth -= amount;
@@ -725,6 +734,7 @@ void DrawWeapons(const Player& player, Camera& camera) {
                 break;
             case WeaponType::MagicStaff:
                 magicStaff.Draw(camera);
+                DrawBoundingBox(player.meleeHitbox, RED);
                 break;
 
             case WeaponType::Crossbow:

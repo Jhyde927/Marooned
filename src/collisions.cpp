@@ -274,7 +274,7 @@ void EnemyWallCollision(){
 
 
 void HandleMeleeHitboxCollision(Camera& camera) {
-    if (player.activeWeapon != WeaponType::Sword) return;
+    if (player.activeWeapon != WeaponType::Sword  && player.activeWeapon != WeaponType::MagicStaff) return;
     //we never check if meleeHitbox is active, this could result in telefragging anything on top of playerpos, enemy bounding boxes prevent this
     for (BarrelInstance& barrel : barrelInstances){
         if (barrel.destroyed) continue;
@@ -552,7 +552,7 @@ void CheckBulletHits(Camera& camera) {
 
                 }else if (b.type == BulletType::Harpoon){
                     if (b.id != enemy->lastBulletIDHit) {
-
+                        //you can still harpoon mutliple enemies at once. fix this. 
                         enemy->TakeDamage(75);
                         enemy->lastBulletIDHit = b.id;  
 
@@ -642,10 +642,8 @@ void CheckBulletHits(Camera& camera) {
                         player.grappleSpeed = 3500.0f;          // or gp.pullSpeed
                         player.grappleStopDist = 70.0f;        // or gp.stopDistance
                         player.grappleBulletId = b.id;          // optional, for rope rendering/cleanup
+                        player.harpoonLifeTimer = 3.0f; //start life timer to prevent grappling to an area you can't reach and getting stuck in grapple state
                         SoundManager::GetInstance().Play("ratchet");
-
-
-                     
                     }
                     b.Erase();
                     break;
@@ -654,6 +652,32 @@ void CheckBulletHits(Camera& camera) {
 
         }
 
+        for (Collectable& c : collectables)
+{
+            // Optional: don't harpoon the harpoon pickup itself
+            if (c.type == CollectableType::Harpoon) continue;
+
+            // Prevent repeated hits by the same bullet id
+            if (c.lastHarpoonBulletId == b.id) continue;
+
+            if (CheckCollisionBoxSphere(c.hitBox, b.position, b.radius))
+            {
+                if (b.type == BulletType::Harpoon)
+                {
+                    c.isHarpooned = true;
+                    c.lastHarpoonBulletId = b.id;
+
+                    // Optional: stick the harpoon bullet to the collectable for rope visuals
+                    b.stuck = true;
+                    b.stuckEnemyId = -1; // means "not enemy"
+                    b.stuckOffset = Vector3Subtract(b.position, c.position);
+                    b.velocity = {0,0,0};
+                    b.maxLifetime = 9999.0f;
+
+                    SoundManager::GetInstance().Play("ratchet");
+                }
+            }
+        }
 
 
         // 🔹 3. Hit walls

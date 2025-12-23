@@ -258,7 +258,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     Vector3 resolvedSpawn = ResolveSpawnPoint(level, isDungeon, first, floorHeight);
     InitPlayer(player, resolvedSpawn); //start at green pixel if there is one. otherwise level.startPos or first startPos
-
+    InitWeaponBar();
    
 
     //start with blunderbus and sword in that order
@@ -664,7 +664,7 @@ void EraseBullets() {
 
 void UpdateCollectables(float deltaTime) { 
     for (size_t i = 0; i < collectables.size(); i++) {
-        collectables[i].Update(deltaTime);
+        collectables[i].Update(deltaTime, player.position);
 
         // Pickup logic
         if (collectables[i].CheckPickup(player.position, 180.0f)) { //180 radius

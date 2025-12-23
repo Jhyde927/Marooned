@@ -7,6 +7,63 @@
 #include "raylib.h"
 #include "rlgl.h"
 
+
+static inline void DrawControlsText(Font font, Rectangle r)
+{
+    const char* txt =
+        "CONTROLS:\n"
+        "\n"
+        "WASD: Move\n"
+        "Mouse: Look\n"
+        "LMB: Fire\n"
+        "RMB: Alt Fire\n"
+        "Space: Jump\n"
+        "Shift: Sprint\n"
+        "E: Interact\n"
+        "1-4: Weapons\n"
+        "F: Use Health Potion\n"
+        "G: Use Mana Potion\n"
+        "Esc: Back / Menu\n";
+
+    float fontSize = 32.0f;
+    float spacing  = 1.0f;
+
+    float pad = 22.0f;
+    Vector2 pos = { r.x + pad, r.y + pad };
+
+    // Simple readability shadow
+    Color shadow = {0,0,0,180};
+    Color col    = BLACK;
+
+    DrawTextEx(font, txt, {pos.x+1, pos.y+1}, fontSize, spacing, shadow);
+    DrawTextEx(font, txt, pos,               fontSize, spacing, col);
+}
+
+
+Rectangle ComputeControlsPanelRect(Rectangle rTopButton, Rectangle rBottomButton)
+{
+    float gap = 24.0f;
+
+    float x = rTopButton.x + rTopButton.width + gap;
+    float y = rTopButton.y;
+
+    float h = (rBottomButton.y + rBottomButton.height) - rTopButton.y + 120.0f;
+    float w = 300.0f; // pick a fixed width or compute from screen
+
+    Rectangle r = { x, y, w, h };
+
+    // Clamp to screen (important)
+    float right = r.x + r.width;
+    float maxRight = (float)GetScreenWidth() - 20.0f;
+    if (right > maxRight) r.x -= (right - maxRight);
+
+    return r;
+}
+
+
+
+
+
 static inline Color WithAlpha(Color c, float alphaMul)
 {
     c.a = (unsigned char)(c.a * alphaMul);
@@ -29,6 +86,8 @@ MainMenu::Layout MainMenu::ComputeLayout(float menuX, float baseY, float gapY, f
     L.selectable[2] = MakeButtonRect(cx, baseY + gapY*2.0f, btnW, btnH); //Controls
     L.selectable[3] = MakeButtonRect(cx, baseY + gapY*3.0f, btnW, btnH); // Fullscreen
     L.selectable[4] = MakeButtonRect(cx, baseY + gapY*4.0f, btnW, btnH); // Quit
+
+   
 
     return L;
 }
@@ -55,8 +114,8 @@ static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alpha
 
     if (title)
     {
-        base = WithAlpha( { 255,  255,  255, 255 }, 0.9f);
-        face = WithAlpha({ 82,  42,  30, 255 }, 0); // brighter cap
+        base = WithAlpha( { 200,  150,  100, 240 }, 0.9f);
+        face = WithAlpha({ 214, 182, 132, 255 }, 1.0); // brighter cap
         faceInset = 8.0f;
         roundness = .125f;                                 // heavier slab
     }
@@ -208,7 +267,12 @@ static inline void DrawStoneOutlinedText(Font font, const char* text,
 }
 
 
-
+static inline void DrawControlsPanelAsButton(Rectangle r, bool titleStyle = false)
+{
+    // Reuse your existing button renderer as the panel background
+    // selected=false so it uses the normal palette
+    DrawMenuButtonRounded(r, false, 1.0f, true);
+}
 
 
 static inline void DrawCarvedText(Font font, const char* text, Rectangle r, float fontSize, float spacing, bool title = false, bool selected = false)
@@ -297,43 +361,45 @@ struct ControlsPanel
 
 
 
-static inline void DrawControlsPanel(const ControlsPanel& p, Font font)
-{
-    // Panel background + border
-    Color bg     = { 0, 0, 0, 165 };   // semi-transparent black
-    Color border = { 255, 255, 255, 70 };
+// static inline void DrawControlsPanel(const ControlsPanel& p, Font font)
+// {
+//     // Panel background + border
+//     Color bg     = { 0, 0, 0, 165 };   // semi-transparent black
+//     Color border = { 255, 255, 255, 70 };
 
-    DrawRectangleRounded(p.rect, 0.08f, 10, bg);
-    DrawRectangleRoundedLines(p.rect, 0.08f, 10, border);
+    
 
-    // Text
-    const char* txt =
-        "Controls:\n"
-        "\n"
-        "WASD: Move\n"
-        "Mouse: Look\n"
-        "LMB: Fire\n"
-        "RMB: Alt Fire\n"
-        "Space: Jump\n"
-        "Shift: Sprint\n"
-        "E: Interact\n"
-        "1-4: Weapons\n"
-        "F: Use Health Potion\n"
-        "G: Use Mana Potion\n"
-        "Esc: Back / Menu\n";
+//     DrawRectangleRounded(p.rect, 0.08f, 10, bg);
+//     DrawRectangleRoundedLines(p.rect, 0.08f, 10, border);
 
-    float fontSize = 22.0f;
-    float spacing  = 1.0f;
+//     // Text
+//     const char* txt =
+//         "Controls:\n"
+//         "\n"
+//         "WASD: Move\n"
+//         "Mouse: Look\n"
+//         "LMB: Fire\n"
+//         "RMB: Alt Fire\n"
+//         "Space: Jump\n"
+//         "Shift: Sprint\n"
+//         "E: Interact\n"
+//         "1-4: Weapons\n"
+//         "F: Use Health Potion\n"
+//         "G: Use Mana Potion\n"
+//         "Esc: Back / Menu\n";
 
-    Vector2 pos = { p.rect.x + p.padding, p.rect.y + p.padding };
+//     float fontSize = 22.0f;
+//     float spacing  = 1.0f;
 
-    // raylib's default font is a bit thin; a tiny shadow helps readability
-    Color textCol   = { 255, 255, 255, 255 };
-    Color shadowCol = { 0, 0, 0, 180 };
+//     Vector2 pos = { p.rect.x + p.padding, p.rect.y + p.padding };
 
-    DrawTextEx(font, txt, { pos.x + 1, pos.y + 1 }, fontSize, spacing, shadowCol);
-    DrawTextEx(font, txt, pos,                 fontSize, spacing, textCol);
-}
+//     // raylib's default font is a bit thin; a tiny shadow helps readability
+//     Color textCol   = { 255, 255, 255, 255 };
+//     Color shadowCol = { 0, 0, 0, 180 };
+
+//     DrawTextEx(font, txt, { pos.x + 1, pos.y + 1 }, fontSize, spacing, shadowCol);
+//     DrawTextEx(font, txt, pos,                 fontSize, spacing, textCol);
+// }
 
 // -------- API --------
 
@@ -445,7 +511,11 @@ namespace MainMenu
             }
         }
 
-        if (hovered != -1) s.selectedOption = hovered;
+        if (hovered != -1){
+            s.selectedOption = hovered;
+        } else{
+            s.selectedOption = -1;
+        }
 
         if (hovered != -1 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
@@ -537,6 +607,8 @@ namespace MainMenu
         Rectangle rFull     = MakeButtonRect(menuX, baseY + gapY*3.0f, btnW, btnH);
         Rectangle rQuit     = MakeButtonRect(menuX, baseY + gapY*4.0f, btnW, btnH); 
 
+        Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
+
         // Button labels
         const char* lblStart = "Start";
         const char* lblLevel = "Level";
@@ -577,7 +649,11 @@ namespace MainMenu
 
         if (s.showControls)
             {
-                DrawControlsPanel(panel, GetFontDefault()); // raylib default font for now
+                //DrawControlsPanel(panel, GetFontDefault()); // raylib default font for now
+                Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
+
+                DrawControlsPanelAsButton(rPanel, false);     // background uses your button style
+                DrawControlsText(R.GetFont("Pieces"), rPanel);   // text inside
             }
 
         // Draw selectable buttons (highlight only these)

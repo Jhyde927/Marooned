@@ -11,7 +11,7 @@
 #include "render_pipeline.h"
 #include "main_menu.h"
 
-
+WeaponBar gWeaponBar;
 static HintManager hints;   // one global-ish instance, private to UI.cpp
 
 void TutorialSetup(){
@@ -306,4 +306,56 @@ void DrawTimer(float ElapsedTime){
     sprintf(buffer, "Time: %02d:%02d", minutes, seconds);
 
     DrawText(buffer, GetScreenWidth()-150, 30, 20, WHITE); 
+}
+
+void InitWeaponBar(){
+
+    gWeaponBar.position = { 380, (float)GetScreenHeight() - 80 };
+    gWeaponBar.slotSize = 64;
+    gWeaponBar.spacing  = 8;
+
+    gWeaponBar.slots = {{
+        { WeaponType::Sword,       "swordIcon",       nullptr },          // always
+        { WeaponType::Crossbow,    "crossbowIcon",    &hasCrossbow },
+        { WeaponType::Blunderbuss, "blunderbussIcon", &hasBlunderbuss },
+        { WeaponType::MagicStaff,  "staffIcon",       &hasStaff }
+    }};
+
+}
+
+void WeaponBar::Draw(WeaponType activeWeapon) const
+{
+    for (int i = 0; i < (int)slots.size(); ++i)
+    {
+        const WeaponSlot& slot = slots[i];
+        bool isActive = (slot.type == activeWeapon);
+
+        Rectangle box = {
+            position.x + i * (slotSize + spacing),
+            position.y,
+            slotSize,
+            slotSize
+        };
+
+        DrawRectangleRec(box, (Color){20, 20, 20, 180});
+        DrawRectangleLinesEx(box, 2, isActive ? GOLD : DARKGRAY);
+
+        // locked?
+        if (slot.unlocked && !(*slot.unlocked))
+        {
+            DrawRectangleRec(box, (Color){0,0,0,160});
+            continue;
+        }
+
+        Texture2D tex = R.GetTexture(slot.iconKey); // by value = safe
+        if (tex.id == 0) continue;
+
+        float scale = slotSize / (float)tex.width;
+        Vector2 p = {
+            box.x + slotSize*0.5f - tex.width*scale*0.5f,
+            box.y + slotSize*0.5f - tex.height*scale*0.5f
+        };
+
+        DrawTextureEx(tex, p, 0.0f, scale, WHITE);
+    }
 }

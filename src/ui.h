@@ -3,9 +3,33 @@
 #include "raylib.h"
 #include "player.h"
 #include "hintManager.h" 
+#include <array>
 
+
+
+
+// ui.h
+struct WeaponSlot
+{
+    WeaponType type;
+    const char* iconKey;   // "icon_sword", etc.
+    bool* unlocked;
+};
+
+struct WeaponBar
+{
+    Vector2 position;
+    float slotSize;
+    float spacing;
+    std::array<WeaponSlot, 4> slots;
+
+    void Draw(WeaponType activeWeapon) const;
+};
+
+extern WeaponBar gWeaponBar;
 
 enum class SlantSide { Right, Left };
+
 
 // ---------- customizable style ----------
 struct BarStyle {
@@ -43,7 +67,7 @@ struct BarStyle {
 
 void DrawMagicIcon();
 
-void DrawMenu(int selectedOption, int levelIndex); 
+// void DrawMenu(int selectedOption, int levelIndex); 
 void DrawTimer(float ElapsedTime);
 void UpdateMenu(Camera& camera, float dt);
 void TutorialSetup();
@@ -53,3 +77,4 @@ void DrawHUDBars(const Player& player);
 void UpdateHintManager(float deltaTime);
 void DrawHints();
 void TutorialSetup();
+void InitWeaponBar();

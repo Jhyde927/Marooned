@@ -1121,7 +1121,7 @@ void GenerateGrapplePoints(float baseY)
                 gp.box          = MakeBoxCentered(pos, half);
                 gp.tex          = R.GetTexture("grapplePoint");
                 gp.snapRadius   = 120.0f;
-                gp.maxRange     = 4000.0f;
+                gp.maxRange     = 4000.0f; 
                 gp.stopDistance = 100.0f;
                 gp.pullSpeed    = 6000.0f;
                 gp.enabled      = true;

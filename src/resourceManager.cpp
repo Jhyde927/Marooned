@@ -281,8 +281,10 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("harpoon",          "assets/sprites/harpoon.png");
     R.LoadTexture("backFade",         "assets/sprites/backFade.png");
     R.LoadTexture("grapplePoint",     "assets/sprites/grapplePoint.png");
-
-
+    R.LoadTexture("swordIcon",        "assets/sprites/cutlassIcon.png");
+    R.LoadTexture("crossbowIcon",     "assets/sprites/crossbowIcon2.png");
+    R.LoadTexture("blunderbussIcon",  "assets/sprites/blunderbussIcon.png");
+    R.LoadTexture("staffIcon",        "assets/sprites/staffIcon2.png");
 
     // Models (registering with string keys)
     R.LoadModel("palmTree",               "assets/Models/bigPalmTree.glb");
@@ -309,18 +311,14 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("bolt",                   "assets/Models/bolt.glb");
 
 
-
-
     //generated models
-    // Fins: a bit wider and flatter, slightly shorter
-    R.LoadModelFromMesh("boltFinsModel", GenMeshCube(3.0f, 3.0f, 5.0f));
 
     R.LoadModelFromMesh("squareBolt", GenMeshCube(2.0f, 2.0f, 20.0f));
 
     R.LoadModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
     R.LoadModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
     R.LoadModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
-    R.LoadModelFromMesh("bottomPlane",GenMeshPlane(16000, 160000, 1, 1));
+    //R.LoadModelFromMesh("bottomPlane",GenMeshPlane(16000, 160000, 1, 1));
     
     //shaders
     R.LoadShader("terrainShader",  "assets/shaders/height_color.vs",       "assets/shaders/height_color.fs");

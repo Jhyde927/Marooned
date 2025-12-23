@@ -1727,7 +1727,7 @@ void Character::UpdateChase(float deltaTime)
     }
 
     float MAX_SPEED = raptorSpeed;  // per-type speed 700
-    if (type == CharacterType::Raptor) MAX_SPEED = 1400.0f; // double fast raptors.
+    if (type == CharacterType::Raptor) MAX_SPEED = 1000.0f; // double fast raptors.
 
     const float SLOW_RADIUS = 400.0f;       // ease-in so we don’t overshoot
 
