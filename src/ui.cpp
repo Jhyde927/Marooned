@@ -286,10 +286,16 @@ void UpdateMenu(Camera& camera, float dt)
     if (a == MainMenu::Action::StartGame)
 
     {
-        
-        InitLevel(levels[levelIndex], camera);
+        //fade out of menu, init level is called from update fade just like level switching. Remember to set PendingLevelIndex to not -1
+        gFadePhase = FadePhase::FadingOut;
+        levelLoaded = true;// shouldn't we set this after the fade not before? 
+    }
+    else if (a == MainMenu::Action::Resume){
+        DisableCursor();
         currentGameState = GameState::Playing;
-        levelLoaded = true;
+        CameraSystem::Get().StopCinematic();
+        return;
+
     }
     else if (a == MainMenu::Action::Quit)
     {

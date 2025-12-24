@@ -16,7 +16,7 @@
 #include "spiderEgg.h"
 #include "miniMap.h"
 
-//as above, so below
+//As above, so below.
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
 
@@ -59,8 +59,6 @@ int main() {
         Camera3D& camera = CameraSystem::Get().Active();
         UpdateFade(camera); //always update fade regardless of state
 
-
-
         //Switch Levels
         //UpdateFade switches FadePhase to swapping after fading out completely. while swapping, for 1 frame, switch levels then fade in
         if (gFadePhase == FadePhase::Swapping) {
@@ -87,6 +85,7 @@ int main() {
         if (currentGameState == GameState::Menu) {
             
             CameraSystem::Get().Update(deltaTime); //update orbit
+            R.UpdateShaders(camera);
             drawCeiling = false; 
             UpdateMenu(camera, deltaTime);//lives in UI.cpp calls main_menu
             UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience")); //menu level can be dungeon
@@ -117,7 +116,8 @@ int main() {
 
             UpdateDungeonChests();
             UpdateSpiderEggs(deltaTime, player.position);
-            ApplyLavaDPS(player, deltaTime, 1);
+            //ApplyLavaDPS(player, deltaTime, 1);
+            UpdateDungeonTileFlags(player, deltaTime);
             ApplyEnemyLavaDPS();
             UpdateHintManager(deltaTime);
             

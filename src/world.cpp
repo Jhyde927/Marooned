@@ -78,6 +78,7 @@ bool isFullscreen = true;
 bool hasIslandNav = false;
 int gEnemyCounter = 0;
 float debugDoorOpenAngleDeg = 0.0f;
+int gCurrentLevelIndex = -1;
 
 FadePhase gFadePhase = FadePhase::Idle;
 
@@ -164,7 +165,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     
     //camera.position = player.position; //start as player, not freecam.
     levelIndex = level.levelIndex; //update current level index to new level. 
-
+    gCurrentLevelIndex = levelIndex; //save current level globally so we can tell if we are changing levels or resuming. 
     if (level.heightmapPath.empty() && level.dungeonPath.empty()) {
         TraceLog(LOG_INFO, "Skipping placeholder level index %d", levelIndex);
         level = levels[2];
@@ -215,6 +216,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
+        GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);
         GenerateCeilingTiles(ceilingHeight);//400
@@ -270,7 +272,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     player.currentWeaponIndex = 0;
 
     StartFadeInFromBlack();
-
+    levelLoaded = true;
 
 }
 
@@ -285,7 +287,12 @@ inline float FadeDt() {
 }
 
 
-
+void StartFadeOutFromMenu(int LevelIndex) {
+    queuedLevel = levelIndex;
+    gFadePhase = FadePhase::FadingOut;
+    // don't rely on previous value; clamp explicitly
+    fadeValue = std::clamp(fadeValue, 0.0f, 1.0f);   
+}
 
 
 void StartFadeOutToLevel(int levelIndex) {
@@ -308,8 +315,19 @@ void UpdateFade(Camera& camera) {
     switch (gFadePhase) {
     case FadePhase::FadingOut:
         player.canMove = false;
+
+        if (currentGameState == GameState::Menu){
+            //it didn't print 0.99 it never reaches 1, clamp? 
+            if (fadeValue >= 0.98) {
+                pendingLevelIndex = levelIndex;
+                gFadePhase = FadePhase::Swapping;
+                break;
+            }
+        }
+
+
         if (pendingLevelIndex != -1){ //fade out to next level
-            player.canMove = false;
+
             fadeValue = fminf(1.0f, fadeValue + fadeSpeed * dt);
             if (fadeValue >= 1.0f) {
                 gFadePhase = FadePhase::Swapping;   // <-- stop here; main loop will do the swap

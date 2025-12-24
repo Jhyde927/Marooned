@@ -126,7 +126,11 @@ void CameraSystem::UpdatePlayerCam(float dt) {
     playerRig.yaw   = pv.yawDeg;
     playerRig.pitch = pv.pitchDeg;
 
-    SetFarClip(isDungeon ? 16000.0f : 16000.0f);
+    if (debugInfo){
+        SetFarClip(isDungeon ? 50000.0f : 50000.0f);
+    }else{
+        SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+    }
 }
 
 
@@ -165,6 +169,12 @@ void CameraSystem::UpdateFreeCam(float dt) {
     };
     freeRig.cam.target = Vector3Add(freeRig.cam.position, dir);
     freeRig.cam.fovy   = freeRig.fov;
+
+    if (debugInfo){
+        SetFarClip(isDungeon ? 50000.0f : 50000.0f);
+    }else{
+        SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+    }
 }
 
 
@@ -280,6 +290,11 @@ void CameraSystem::UpdateCinematicCam(float dt) {
     cinematicRig.cam.up   = {0,1,0};
     cinematicRig.cam.fovy = cinematicRig.fov;
 
-    SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+    if (debugInfo){
+        SetFarClip(isDungeon ? 50000.0f : 50000.0f);
+    }else{
+        SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+    }
+    
 }
 

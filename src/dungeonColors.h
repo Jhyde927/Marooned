@@ -46,6 +46,7 @@ enum class Code {
     ManaPotion,               // (0, 0, 128) dark blue
     Harpoon,                  // (96, 128, 160) //gun metal blue
     GrapplePoint,             //  { 70, 100, 130 } steel blue
+    InvisibleWall,            // (255, 203, 164) Peach
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -92,6 +93,7 @@ constexpr Color ColorOf(Code c) {
         case Code::Harpoon:                return Make(96, 128, 160);
         case Code::LavaTile:               return Make(200, 0, 0);
         case Code::GrapplePoint:           return Make(70, 100, 130);
+        case Code::InvisibleWall:          return Make(255, 203, 164);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

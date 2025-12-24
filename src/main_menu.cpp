@@ -361,46 +361,6 @@ struct ControlsPanel
 
 
 
-// static inline void DrawControlsPanel(const ControlsPanel& p, Font font)
-// {
-//     // Panel background + border
-//     Color bg     = { 0, 0, 0, 165 };   // semi-transparent black
-//     Color border = { 255, 255, 255, 70 };
-
-    
-
-//     DrawRectangleRounded(p.rect, 0.08f, 10, bg);
-//     DrawRectangleRoundedLines(p.rect, 0.08f, 10, border);
-
-//     // Text
-//     const char* txt =
-//         "Controls:\n"
-//         "\n"
-//         "WASD: Move\n"
-//         "Mouse: Look\n"
-//         "LMB: Fire\n"
-//         "RMB: Alt Fire\n"
-//         "Space: Jump\n"
-//         "Shift: Sprint\n"
-//         "E: Interact\n"
-//         "1-4: Weapons\n"
-//         "F: Use Health Potion\n"
-//         "G: Use Mana Potion\n"
-//         "Esc: Back / Menu\n";
-
-//     float fontSize = 22.0f;
-//     float spacing  = 1.0f;
-
-//     Vector2 pos = { p.rect.x + p.padding, p.rect.y + p.padding };
-
-//     // raylib's default font is a bit thin; a tiny shadow helps readability
-//     Color textCol   = { 255, 255, 255, 255 };
-//     Color shadowCol = { 0, 0, 0, 180 };
-
-//     DrawTextEx(font, txt, { pos.x + 1, pos.y + 1 }, fontSize, spacing, shadowCol);
-//     DrawTextEx(font, txt, pos,                 fontSize, spacing, textCol);
-// }
-
 // -------- API --------
 
 namespace MainMenu
@@ -468,7 +428,9 @@ namespace MainMenu
         {
             switch (s.selectedOption)
             {
-                case 0: return Action::StartGame;
+                case 0:
+                    if (playerInit && levelIndex == gCurrentLevelIndex) return Action::Resume;
+                    return Action::StartGame;
                 case 1:
                     if (levelsCount > 0) levelIndex = (levelIndex + 1) % levelsCount;
                     return Action::CycleLevel;
@@ -476,14 +438,6 @@ namespace MainMenu
                     s.showControls = !s.showControls;
                     return Action::Controls;
                 case 3:
-
-                    TraceLog(LOG_INFO,
-                        "Screen: %d x %d | Render: %d x %d | worldRT: %d x %d | fovy: %.2f",
-                        GetScreenWidth(), GetScreenHeight(),
-                        GetRenderWidth(), GetRenderHeight(),
-                        R.GetRenderTexture("sceneTexture").texture.width, R.GetRenderTexture("sceneTexture").texture.height,
-                        CameraSystem::Get().Active().fovy
-                    );
                     ToggleBorderlessFullscreenClean();
                     isFullscreen = !isFullscreen;
                     return Action::ToggleFullscreen;
@@ -555,19 +509,7 @@ namespace MainMenu
             titleSize.y + padY*2.0f
         };
 
-        // --- Vertical fade behind title ---
-        // Color fadeBottom = { 0, 0, 0, 100 };
-        // Color fadeTop    = { 0, 0, 0, 0 };
 
-        // Rectangle rFade = {
-        //     rTitle.x,
-        //     rTitle.y,
-        //     rTitle.width,
-        //     rTitle.height 
-        // };
-
-        // //DrawVerticalFade(rFade, fadeBottom, fadeTop);
-        // DrawTextureEx(backFade, Vector2 {rTitle.x-10, rTitle.y-85}, 0.0f, 0.98f, WHITE);
         // --- Floating outlined title ---
         DrawStoneOutlinedText(pieces, title, rTitle, titleFontSize, titleSpacing);
 
@@ -611,6 +553,8 @@ namespace MainMenu
 
         // Button labels
         const char* lblStart = "Start";
+        if (playerInit && levelIndex == gCurrentLevelIndex) lblStart = "Resume"; //only resume if the current level = selected level. 
+        
         const char* lblLevel = "Level";
         const char* lblControls = "Controls";
         const char* lblFull  = "Fullscreen";

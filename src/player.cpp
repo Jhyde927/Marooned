@@ -78,9 +78,6 @@ void UpdatePlayerGrapple(Player& player, float dt)
     Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
     float step = player.grappleSpeed * dt;
 
-    // Clamp step so you don't overshoot
-    // if (step > dist - player.grappleStopDist)
-    //     step = dist - player.grappleStopDist;
 
     // Move player
     player.position = Vector3Add(player.position, Vector3Scale(dir, step));
@@ -170,7 +167,8 @@ void HandlePlayerMovement(float deltaTime){
     player.velocity.z = approach(player.velocity.z, desiredVel.z, (fabsf(desiredVel.z) > 0.001f) ? accel : decel, dt);
 
     // --- gravity
-    player.velocity.y += player.GRAVITY * dt;
+    if (player.state != PlayerState::Grappling) player.velocity.y += player.GRAVITY * dt;
+
     HandleJumpButton(GetTime());
     
     TryQueuedJump();
@@ -561,6 +559,16 @@ void TryQueuedJump(){
     }
 }
 
+constexpr float LAVA_DROP      = 150.0f;
+constexpr float VOID_DROP      = 1200.0f;  // how far you "fall"
+constexpr float VOID_KILL_PAD  = 50.0f;    // extra depth below that
+constexpr float VOID_SNAP_REENABLE_Y = 200.0f;  // how close to a floor you must be before snapping is allowed again
+
+
+
+constexpr float VOID_COMMIT_FALL = 200.0f;      // how far below the "expected floor" before we commit to void fall
+constexpr float VOID_SNAP_MAX_UP = 200.0f;      // max upward snap allowed (prevents big teleports)
+
 
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
@@ -623,10 +631,6 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         if (player.stamina > 50.0) player.canRun = true;
     }
 
-
-
-
-
     //start the dying process. 
     if (player.dying) {
         player.deathTimer += deltaTime;
@@ -646,7 +650,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     if (player.dead) {
         // Reset position and state
-        player.position = player.startPosition;
+        player.position = player.startPosition + Vector3 {0, 100, 0}; //high off ground 
         player.velocity = {}; 
         player.currentHealth = player.maxHealth;
         player.dead = false;
@@ -668,26 +672,74 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     } 
 
     // === Ground Check ===
-    //check gound after moving, use clamped deltaTime. 
     player.groundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
-    
-    if (isDungeon) {
+
+    if (isDungeon)
+    {
         player.groundY = dungeonPlayerHeight;
-        if (player.overLava) {
-            player.groundY -= 150.0f; // or LAVA_DROP
-        }
+
+        if (player.overLava)
+            player.groundY -= LAVA_DROP;
+
+        if (player.overVoid)
+            player.groundY -= VOID_DROP;
     }
+
     float feetY = player.position.y - player.height / 2.0f;
 
-    if (feetY <= player.groundY + 5.0f) { //+5 buffer for uneven terrain. 
-        player.grounded = true;
-        player.velocity.y = 0;
-        player.position.y = player.groundY + player.height / 2.0f;
-    } else {
+    // --- VOID FALL LATCH ---
+    // If we ever detect void under us, commit to falling until death (or until you explicitly clear it).
+    if (isDungeon && player.overVoid)
+    {
+        player.isFallingIntoVoid = true;
+    }
+
+    // If we're latched into a void fall, do NOT allow snapping back up just because XZ moved under a floor.
+    if (isDungeon && player.isFallingIntoVoid)
+    {
         player.grounded = false;
+
+        float killY = (dungeonPlayerHeight - VOID_DROP) - VOID_KILL_PAD;
+        if (player.position.y <= killY)
+        {
+            player.TakeDamage(9999);
+            // If your death handler respawns immediately, you can clear latch there instead.
+            // player.isFallingIntoVoid = false;
+        }
+
+        // Optional escape hatch:
+        // If you want to allow recovery (like falling into a lower playable area),
+        // only re-enable snapping when you're already very near the computed groundY.
+        // That prevents teleporting upward from deep below.
+        if (!player.overVoid)
+        {
+            float snapDelta = (player.groundY + player.height / 2.0f) - player.position.y;
+            if (snapDelta >= 0.0f && snapDelta <= VOID_SNAP_REENABLE_Y)
+            {
+                // close enough to a legit floor: allow normal snap next frame
+                player.isFallingIntoVoid = false;
+            }
+        }
+
+        // Important: skip the normal snap logic entirely this frame.
+    }
+    else
+    {
+        // Normal ground snapping logic (unchanged)
+        if (feetY <= player.groundY + 5.0f)
+        {
+            player.grounded = true;
+            player.velocity.y = 0;
+            player.position.y = player.groundY + player.height / 2.0f;
+        }
+        else
+        {
+            player.grounded = false;
+        }
     }
 
     player.previousPosition = player.position;
+
 }
 
 void Player::TakeDamage(int amount){

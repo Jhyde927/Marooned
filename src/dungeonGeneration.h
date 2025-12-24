@@ -228,7 +228,17 @@ struct SecretWall {
     
 };
 
+struct InvisibleWall {
+    int x = 0;
+    int y = 0;
+    Vector3 position;
+    BoundingBox tileBounds;      // AABB for that tile
+    bool enabled = true;
+
+};
+
 extern std::vector<uint8_t> lavaMask;
+extern std::vector<uint8_t> voidMask;
 extern std::vector<LightSample> frameLights;
 extern std::vector<LauncherTrap> launchers;
 extern std::vector<PillarInstance> pillars;
@@ -244,6 +254,7 @@ extern std::vector<DoorwayInstance> doorways;
 extern std::vector<BillboardDrawRequest> billboardRequests;
 extern std::vector<Door> doors;
 extern std::vector<SecretWall> secretWalls;
+extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 
 
@@ -274,13 +285,15 @@ void GenerateHarpoon(float baseY);
 void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
+void GenerateInvisibleWalls(float baseY);
 
 void GenerateGrapplePoints(float baseY);
-
+void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
 void ApplyLavaDPS(Player& player, float dt, float lavaDps);
+void UpdateDungeonTileFlags(Player& player, float dt);
 void ApplyEnemyLavaDPS();
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist);
 void DrawSecrets();

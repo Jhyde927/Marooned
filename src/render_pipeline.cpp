@@ -73,7 +73,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         DrawOverworldProps();
         EndShaderMode();
         DrawDungeonGeometry(camera, 20000);
-        
+
         DrawDungeonPillars();
         DrawDungeonBarrels();
         DrawLaunchers();
@@ -116,8 +116,9 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
             DrawTexturePro(post.texture, src, dst, {0,0}, 0.0f, WHITE);
         EndShaderMode();
 
-        MainMenu::Draw(gMenu, levelIndex, levels.data(), (int)levels.size());
-        //DrawMenu(selectedOption, levelIndex);
+        if (gFadePhase != FadePhase::FadingOut) MainMenu::Draw(gMenu, levelIndex, levels.data(), (int)levels.size());
+        
+        
     EndDrawing();
     }
 
@@ -169,6 +170,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //draw the dungeon
             DrawDungeonGeometry(camera, 8000);
             DrawSecrets();
+            //DebugDrawGrappleBox();
             DrawDungeonBarrels();
             DrawLaunchers();
             DrawDungeonChests();

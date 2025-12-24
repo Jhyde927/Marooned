@@ -6,8 +6,6 @@
 
 namespace MainMenu
 {
-
-
     struct State
     {
         int selectedOption = 0;
@@ -19,6 +17,7 @@ namespace MainMenu
     {
         None,
         StartGame,
+        Resume,
         CycleLevel,
         Controls,
         ToggleFullscreen,

@@ -86,6 +86,7 @@ extern bool isFullscreen;
 extern bool hasIslandNav;
 extern int gEnemyCounter;
 extern float debugDoorOpenAngleDeg;
+extern int gCurrentLevelIndex; //for resuming game
 //extern float muzzleFlashTimer;
 
 

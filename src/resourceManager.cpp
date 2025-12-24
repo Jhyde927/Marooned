@@ -3,11 +3,11 @@
 #include "world.h"
 #include "lighting.h"
 #include "level.h"
-//#include "shadows.h"
 #include "vegetation.h"
 #include "terrainChunking.h"
 #include "rlgl.h"
 #include "utilities.h"
+#include "camera_system.h"
 
 
 ResourceManager* ResourceManager::_instance = nullptr;
@@ -283,7 +283,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("grapplePoint",     "assets/sprites/grapplePoint.png");
     R.LoadTexture("swordIcon",        "assets/sprites/cutlassIcon.png");
     R.LoadTexture("crossbowIcon",     "assets/sprites/crossbowIcon2.png");
-    R.LoadTexture("blunderbussIcon",  "assets/sprites/blunderbussIcon.png");
+    R.LoadTexture("blunderbussIcon",  "assets/sprites/blunderbussIcon2.png");
     R.LoadTexture("staffIcon",        "assets/sprites/staffIcon2.png");
 
     // Models (registering with string keys)
@@ -750,6 +750,12 @@ void ResourceManager::UpdateShaders(Camera& camera){
     int isDungeonLoc = GetShaderLocation(skyShader, "isDungeon");
     int camLoc = GetShaderLocation(waterShader, "cameraPos");
     int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
+    int fogStartLoc = GetShaderLocation(treeShader, "u_FogStart");
+    int tFogStartLoc = GetShaderLocation(terrainShader, "u_FogStart");
+
+    float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
+    SetShaderValue(treeShader, fogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(terrainShader, tFogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
 
     //water shader needs cameraPos for reasons. 
     SetShaderValue(waterShader, camLoc, &camPos, SHADER_UNIFORM_VEC3);
@@ -757,8 +763,6 @@ void ResourceManager::UpdateShaders(Camera& camera){
     
     //distance based desaturation on terrain needs camera pos
     SetShaderValue(terrainShader, camPosLoc, &camPos, SHADER_UNIFORM_VEC3);
-
-
 
     //animate sky needs elapsed time
     SetShaderValue(skyShader, GetShaderLocation(skyShader, "time"), &t, SHADER_UNIFORM_FLOAT);

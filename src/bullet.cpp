@@ -116,7 +116,7 @@ void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
 
             return;
         }
-        if (position.y >= ceilingHeight) {
+        if (position.y >= ceilingHeight && drawCeiling) { //don't explode bullets on ceiling if there is no ceiling. 
             Explode(camera);
             
             return;

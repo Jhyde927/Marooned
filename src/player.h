@@ -32,7 +32,7 @@ struct Player {
     const float FRICTION_AIR   = 0.01f;    // bleed a bit of air speed
     const float GRAVITY        = -980.0f;
 
-    const float COYOTE_TIME    = 0.05f;  // grace after walking off ledge
+    const float COYOTE_TIME    = 0.0f;  // grace after walking off ledge
     const float JUMP_BUFFER    = 0.05f;  // grace before touching ground
 
     float lastGroundedTime = 0.0f;
@@ -75,10 +75,14 @@ struct Player {
     bool grounded = false;
     bool isSwimming = false;
     bool overLava = false;
+    bool overVoid = false;
     bool isMoving = false;
     bool onBoard = false;
     bool disableMovement = false;
     bool blocking = false;
+    bool isFallingIntoVoid = false; 
+
+    float lastSafeGroundY   = 100.0f; 
 
 
     bool canRun = true;

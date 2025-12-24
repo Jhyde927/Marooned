@@ -17,7 +17,7 @@
 #include "viewCone.h"
 
 
-
+std::vector<uint8_t> voidMask;
 std::vector<uint8_t> lavaMask; // width*height, 1 = lava, 0 = not
 
 std::vector<LightSample> frameLights;
@@ -34,6 +34,7 @@ std::vector<Door> doors;
 std::vector<SecretWall> secretWalls;
 std::vector<PillarInstance> pillars;
 std::vector<WallRun> wallRunColliders;
+std::vector<InvisibleWall> invisibleWalls;
 std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
 
@@ -329,14 +330,19 @@ void GenerateFloorTiles(float baseY) {
     floorTiles.clear();
     lavaTiles.clear();
 
+    voidMask.assign(dungeonWidth * dungeonHeight, 0);
     lavaMask.assign(dungeonWidth * dungeonHeight, 0);
+
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color pixel = GetImageColor(dungeonImg, x, y);
             Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
-            // Only skip transparent pixels
-            if (pixel.a == 0) continue;
+            // Void Tiles Build Void Mask
+            if (pixel.a == 0){
+                voidMask[Idx(x,y)] = 1;  //mark as lava on void mask
+                continue; 
+            } 
 
             if (pixel.r == 200 && pixel.g == 0 && pixel.b == 0){
                 //generate lava tile instead, add to vector of lava tiles. 
@@ -395,6 +401,48 @@ void BindSecretWallsToRuns()
         }
 
         sw.wallRunIndex = bestIdx;
+    }
+}
+
+void GenerateInvisibleWalls(float baseY)
+{
+    invisibleWalls.clear();
+
+    for (int y = 0; y < dungeonHeight; ++y)
+    {
+        for (int x = 0; x < dungeonWidth; ++x)
+        {
+            Color c = dungeonPixels[y * dungeonWidth + x];
+
+            if (!EqualsRGB(c, ColorOf(Code::InvisibleWall)))
+                continue;
+
+            InvisibleWall iw;
+            iw.x = x;
+            iw.y = y;
+
+            // Center of the tile in world space
+            iw.position = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+            // Full-tile AABB
+            const float half = tileSize * 0.5f;
+
+            iw.tileBounds.min = {
+                iw.position.x - half,
+                iw.position.y,
+                iw.position.z - half
+            };
+
+            iw.tileBounds.max = {
+                iw.position.x + half,
+                iw.position.y + wallHeight * 2,   // same height as normal walls
+                iw.position.z + half
+            };
+
+            iw.enabled = true;
+
+            invisibleWalls.push_back(iw);
+        }
     }
 }
 
@@ -1108,7 +1156,7 @@ void GenerateGrapplePoints(float baseY)
 
             if (EqualsRGB(current, ColorOf(Code::GrapplePoint))) { // steel blue
 
-                Vector3 half = { 60.0f, 60.0f, 60.0f }; // tweak this (width/height/depth)
+                Vector3 half = { 30.0f, 30.0f, 30.0f }; // tweak this (width/height/depth)
                 Vector3 pos = GetDungeonWorldPos(
                     x,
                     y,
@@ -1471,13 +1519,28 @@ int GetDungeonImageY(float worldZ, float tileSize, int dungeonHeight) {
     return dungeonHeight - 1 - (int)(worldZ / tileSize);
 }
 
-void ApplyLavaDPS(Player& player, float dt, float lavaDps) {
+static inline bool IsMaskSet(const std::vector<uint8_t>& mask, int x, int y)
+{
+    if (x < 0 || y < 0 || x >= dungeonWidth || y >= dungeonHeight) return false;
+    return mask[y * dungeonWidth + x] != 0;
+}
+
+void UpdateDungeonTileFlags(Player& player, float dt)
+{
     GridCoord g;
     player.overLava = false;
-    if (!WorldToGrid(player.position, g, tileSize, dungeonWidth, dungeonHeight)) return;
-    
+    player.overVoid = false;
+
+    if (!WorldToGrid(player.position, g, tileSize, dungeonWidth, dungeonHeight))
+        return;
+
+    player.overLava = IsMaskSet(lavaMask, g.x, g.y);
+
+    player.overVoid = IsMaskSet(voidMask, g.x, g.y);
+
+
     if (lavaMask[g.y * dungeonWidth + g.x]) {
-        player.overLava = true;
+        //player.overLava = true;
         lavaTimer += dt;
         if (lavaTimer > tickDamage && player.grounded && player.position.y < floorHeight){ // only damage if on floor. //floor is lower over lava // a bit fucky
             player.TakeDamage(10);
@@ -1490,6 +1553,7 @@ void ApplyLavaDPS(Player& player, float dt, float lavaDps) {
     }
 }
 
+
 void ApplyEnemyLavaDPS(){
     GridCoord g;
     for (Character* enemy : enemyPtrs){
@@ -1497,6 +1561,10 @@ void ApplyEnemyLavaDPS(){
 
         if (lavaMask[g.y * dungeonWidth + g.x]){
             enemy->overLava = true;
+        }
+
+        if (voidMask[g.y * dungeonWidth + g.x]) {
+            enemy->overVoid = true;
         }
     }
 }
@@ -1595,6 +1663,13 @@ void DrawDungeonChests() {
     
 }
 
+
+void DebugDrawGrappleBox(){
+    for (GrapplePoint& gp : grapplePoints){
+        DrawBoundingBox(gp.box, GREEN);
+    }
+}
+
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     const Vector3 baseScale   = {700, 700, 700};
 
@@ -1607,7 +1682,7 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
     //Walls
     for (const WallInstance& _wall : wallInstances) {
-        if (!IsInViewCone(vp, _wall.position)) continue;
+        if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue;
         DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
 
     }
@@ -1615,8 +1690,8 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
 
     //Doorways
-    for (const DoorwayInstance& d : doorways) {
-        //if (!IsInViewCone(vp, d.position)) continue;
+    for (const DoorwayInstance& d : doorways) { 
+        //if (!IsInViewCone(vp, d.position)) continue;  //dont cull doorways because of dungeon entrances outside are doorways
         Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
         DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
         
@@ -1625,13 +1700,13 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     //Floors
 
     for (const FloorTile& tile : floorTiles) {
-        if (!IsInViewCone(vp, tile.position)) continue;
+        if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
         DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);    
     }
 
     //Lava floor
     for (const FloorTile& lavaTile : lavaTiles){
-        if (!IsInViewCone(vp, lavaTile.position)) continue;
+        if (!IsInViewCone(vp, lavaTile.position) && !debugInfo) continue;
 
         DrawModelEx(R.GetModel("lavaTile"), lavaTile.position, {0, 1, 0}, 0.0f, baseScale, lavaTile.tint);
 
@@ -1640,7 +1715,8 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     //Ceilings
     rlEnableBackfaceCulling();
     for (CeilingTile& tile : ceilingTiles){
-        if (!IsInViewCone(vp, tile.position)) continue;
+        if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
+
         if (!drawCeiling) continue;
         DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, baseScale, tile.tint);
     }
@@ -1866,6 +1942,7 @@ void ClearDungeon() {
     lavaMask.clear();
     launchers.clear();
     lavaTiles.clear();
+    grapplePoints.clear();
 
     for (ChestInstance& chest : chestInstances) {
         UnloadModelAnimations(chest.animations, chest.animCount);

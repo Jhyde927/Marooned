@@ -215,9 +215,9 @@ void Character::Update(float deltaTime, Player& player ) {
         
 
         // 2) If standing over lava, define the lava "sink floor"
-        if (overLava)
+        if (overLava || overVoid)
         {
-            const float lavaSinkDepth = 150.0f;
+            float lavaSinkDepth = overVoid ? 1200.0f : 150.0f;
             const float lavaFallSpeed = 600.0f;
             const int   lavaDamage    = 500;
 
@@ -233,6 +233,11 @@ void Character::Update(float deltaTime, Player& player ) {
 
                 // recompute after move
                 feetY = GetFeetPos().y;
+
+                if (overVoid && feetY <= dungeonPlayerHeight - 200.0f && !lavaDamageApplied){
+                    TakeDamage(lavaDamage);
+                    lavaDamageApplied = true;
+                }
 
                 // 4) Trigger damage once when we cross / reach lavaY
                 if (!lavaDamageApplied && feetY <= lavaY)

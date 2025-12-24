@@ -202,8 +202,17 @@ void WallCollision(){
         }
     }
 
+    for (InvisibleWall& iw : invisibleWalls){
+        //if (!iw.enabled) continue;
 
-    // for (const WallRun& run : wallRunColliders) { //player wall collision
+        if (CheckCollisionBoxSphere(iw.tileBounds, player.position, player.radius)) { //player wall collision
+            ResolveBoxSphereCollision(iw.tileBounds, player.position, player.radius);
+        }
+
+    }
+
+
+    // for (const WallRun& run : wallRunColliders) { 
 
     //     // for (Character* enemy : enemyPtrs){ //all enemies
     //     //     if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
@@ -574,7 +583,8 @@ void CheckBulletHits(Camera& camera) {
                             SoundManager::GetInstance().Play("ratchet");
                         }
 
-
+                        b.alive = false;
+                        b.exploded = true;
                         break;
                     }
                 }
