@@ -251,6 +251,53 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, player.hasGoldKey, player.hasSilverKey);
                 DrawHints();
 
+                float yOffset = 100.0f;
+                if (player.activeWeapon == WeaponType::Blunderbuss) yOffset = GetScreenHeight() * 0.075f;
+
+                if (player.activeWeapon == WeaponType::Blunderbuss){
+                    Texture2D tex = R.GetTexture("shotgunReticle");
+
+                    float minScale = 0.25f;
+                    float maxScale = 1.0f;
+
+
+                    player.spreadDegrees = Lerp(player.spreadMinDeg, player.spreadMaxDeg, player.crosshairBloom);
+
+                    float scale = Lerp(minScale, maxScale, player.crosshairBloom);
+
+
+
+                    // ---- Tunables ----
+                    //const float scale      = 0.33f;                 // change this freely
+                    const float xBias      = 0.01f;                // your 0.51f -> +1% width bias
+                    const float yOffsetPct = 0.10f;                // 10% down
+                    Color tint = { 255, 100, 0, 60 };                // semi-transparent red
+
+                    // ---- Position (screen space) ----
+                    float x = GetScreenWidth()  * (0.5f + xBias);
+                    float y = GetScreenHeight() * 0.5f + GetScreenHeight() * yOffsetPct;
+
+                    // ---- Source & destination rects ----
+                    Rectangle src = { 0, 0, (float)tex.width, (float)tex.height };
+
+                    // Destination rect is centered on (x, y) via origin
+                    Rectangle dst = { x, y, tex.width * scale, tex.height * scale };
+                    Vector2 origin = { dst.width * 0.5f, dst.height * 0.5f };
+
+                    DrawTexturePro(tex, src, dst, origin, 0.0f, tint);
+
+
+                }else if (player.activeWeapon == WeaponType::Crossbow){
+                    Vector2 ret = {
+                        GetScreenWidth()  * 0.51f,
+                        GetScreenHeight() * 0.5f + yOffset //half the screen height
+                    };
+                    
+                    DrawLineV({ret.x - 6, ret.y}, {ret.x + 6, ret.y}, RAYWHITE);
+                    DrawLineV({ret.x, ret.y - 6}, {ret.x, ret.y + 6}, RAYWHITE);
+                }
+
+
             } 
             //draw mini map
             if (isDungeon){

@@ -527,6 +527,8 @@ void InitCrossbow()
     Matrix flipY = MatrixRotateY(PI); // 180 degrees
     crossbow.loadedModel.transform = flipY;
     crossbow.restModel.transform = flipY;
+
+    player.crossbowMuzzlePos = crossbow.muzzlePos; //hackish
     
 
 

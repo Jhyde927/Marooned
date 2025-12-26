@@ -122,6 +122,14 @@ struct Weapon {
     float reloadDip = 0.0f; // controls how far the gun dips down
     bool flashTriggered = false;  // set to true when firing
 
+    // --- Crosshair / spread control (for Blunderbuss, can be reused later) ---
+    float crosshairBloom = 0.0f;      // 0..1 (0 = settled, 1 = fully bloomed)
+
+    float bloomExpandRate = 4.0f;     // grows fast when moving
+    float bloomShrinkRate = 3.0f;     // shrinks slower when stopping
+
+
+
     void Fire(Camera& camera);
     void Update(float deltaTime);
     void Draw(const Camera& camera);
@@ -235,6 +243,8 @@ struct Crossbow {
   
     bool harpoonReady = true; // persistent state
     bool triggeredFire = false;
+
+
 
 
     void Update(float dt);

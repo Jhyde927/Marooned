@@ -47,28 +47,69 @@ void Crossbow::Fire(Camera& camera)
 {
     float now = GetTime();
     if (now - lastFired < fireCooldown) return;
-
-    // Don't fire if we're reloading or not in loaded state
     if (isReloading || state != CrossbowState::Loaded) return;
 
     lastFired     = now;
     triggeredFire = true;
 
-    // Show rest model visually (string forward)
     state = CrossbowState::Rest;
 
-    // Start delay BEFORE dip
-    reloadDelayTimer  = 0.0f;
-    isReloading       = false;
-    reloadPhase       = 0.0f;
+    reloadDelayTimer   = 0.0f;
+    isReloading        = false;
+    reloadPhase        = 0.0f;
     swappedModelMidDip = false;
 
-    Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-    FireCrossbow(muzzlePos, camForward, 3000.0f, 5.0f, false);
+    Vector2 ret = { GetScreenWidth()*0.5f, GetScreenHeight()*0.5f + 50.0f };
+    Ray r = GetMouseRay(ret, camera); // works for arbitrary screen point
+
+    Vector3 aimPoint = Vector3Add(r.position, Vector3Scale(r.direction, 5000.0f)); // or raycast hit
+    Vector3 boltDir  = Vector3Normalize(Vector3Subtract(aimPoint, muzzlePos));
+
+    FireCrossbow(muzzlePos, boltDir, 3000.0f, 5.0f, false);
+
+    // // --- Camera center ray ---
+    // Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+
+    // // Aim point far away on the center ray (replace with raycast hit later)
+    // Vector3 aimPoint = Vector3Add(camera.position, Vector3Scale(camDir, 5000.0f));
+
+    // // --- Shoot FROM muzzle TO aimPoint ---
+    // Vector3 boltDir = Vector3Normalize(Vector3Subtract(aimPoint, muzzlePos));
+
+    // FireCrossbow(muzzlePos, boltDir, 3000.0f, 5.0f, false);
     SoundManager::GetInstance().Play("crossbowFire");
 
-    recoil = recoilAmount;  // kick back
+    recoil = recoilAmount;
 }
+
+// void Crossbow::Fire(Camera& camera)
+// {
+//     float now = GetTime();
+//     if (now - lastFired < fireCooldown) return;
+
+//     // Don't fire if we're reloading or not in loaded state
+//     if (isReloading || state != CrossbowState::Loaded) return;
+
+//     lastFired     = now;
+//     triggeredFire = true;
+
+//     // Show rest model visually (string forward)
+//     state = CrossbowState::Rest;
+
+
+
+//     // Start delay BEFORE dip
+//     reloadDelayTimer  = 0.0f;
+//     isReloading       = false;
+//     reloadPhase       = 0.0f;
+//     swappedModelMidDip = false;
+
+//     Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+//     FireCrossbow(muzzlePos, camForward, 3000.0f, 5.0f, false);
+//     SoundManager::GetInstance().Play("crossbowFire");
+
+//     recoil = recoilAmount;  // kick back
+// }
 
 
 
@@ -119,12 +160,12 @@ void Weapon::Fire(Camera& camera) {
         bulletOrigin = Vector3Add(bulletOrigin, Vector3Scale(camRight, sideOffset));
         bulletOrigin = Vector3Add(bulletOrigin, Vector3Scale(camUp, verticalOffset));
 
-        
+
 
         FireBlunderbuss(
             bulletOrigin,
             camForward,
-            2.0f,    // spreadDegrees 
+            player.spreadDegrees,    // spreadDegrees 
             7,        // pelletCount
             2000.0f,   // bulletSpeed //anymore than 2k seems to tunnel through enemies. Maybe we could do something about that. if faster bullets feels better. 
             3.0f,      // lifetimeSeconds
@@ -276,8 +317,26 @@ void MeleeWeapon::Update(float deltaTime) {
     }
 }
 
+static float Approach(float v, float target, float delta)
+{
+    if (v < target) return (v + delta > target) ? target : v + delta;
+    else            return (v - delta < target) ? target : v - delta;
+}
+
+
 
 void Weapon::Update(float deltaTime) {
+
+    float targetBloom = 0.0f;
+
+    if (!isMoving)               targetBloom = 0.0f;   // stopped
+    else if (!player.running)    targetBloom = 0.45f;  // walking
+    else                         targetBloom = 1.0f;   // running
+
+    float rate = (targetBloom > player.crosshairBloom) ? bloomExpandRate : bloomShrinkRate;
+
+    player.crosshairBloom = Approach(player.crosshairBloom, targetBloom, rate * deltaTime);
+
 
     // Handle delayed reload sound
     if (reloadScheduled) {
@@ -321,14 +380,12 @@ void Weapon::Update(float deltaTime) {
 
     if (isMoving) {
         bobbingTime += deltaTime * 12.0f; 
-    } else {
-        // Smoothly return to idle
+    }  else {
+        // Smoothly return to idle (but keep updating crosshairBloom/spread)
         bobbingTime = 0.0f;
         bobVertical = Lerp(bobVertical, 0.0f, deltaTime * 5.0f);
-        bobSide = Lerp(bobSide, 0.0f, deltaTime * 5.0f);
-        return;
+        bobSide     = Lerp(bobSide, 0.0f, deltaTime * 5.0f);
     }
-
 
 }
 
@@ -647,6 +704,8 @@ void Crossbow::Draw(const Camera& camera) {
     Vector3 camRight   = Vector3Normalize(Vector3CrossProduct(camForward, { 0, 1, 0 }));
     Vector3 camUp      = Vector3CrossProduct(camRight, camForward);
 
+    Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+
     // === Aspect ratio correction ===
     float screenAspect = (float)GetScreenWidth() / (float)GetScreenHeight();
     float baseAspect   = 16.0f / 9.0f;
@@ -664,9 +723,13 @@ void Crossbow::Draw(const Camera& camera) {
     weaponPos = Vector3Add(weaponPos, Vector3Scale(camUp,      dynamicVertical));
 
     // Muzzle: still using your rotated local offset
-    Vector3 muzzleLocal = { 15.0f, 0.0f, -100.0f };
+    Vector3 muzzleLocal = { 0.0f, 0.0f, 0.0f };
     Vector3 muzzleOffsetWorld = Vector3RotateByQuaternion(muzzleLocal, q);
+
+
+    // final muzzle position in WORLD space
     muzzlePos = Vector3Add(weaponPos, muzzleOffsetWorld);
+
 
     Color tint = WeaponTintFromDarkness(weaponDarkness);
 

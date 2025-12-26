@@ -285,6 +285,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("crossbowIcon",     "assets/sprites/crossbowIcon2.png");
     R.LoadTexture("blunderbussIcon",  "assets/sprites/blunderbussIcon2.png");
     R.LoadTexture("staffIcon",        "assets/sprites/staffIcon2.png");
+    R.LoadTexture("shotgunReticle",   "assets/sprites/shotgunReticle.png");
 
     // Models (registering with string keys)
     R.LoadModel("palmTree",               "assets/Models/bigPalmTree.glb");

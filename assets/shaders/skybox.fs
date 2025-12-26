@@ -187,7 +187,7 @@ void main() {
         float bandShade = mix(0.85, 1.05, bands);
 
         //PLANET COLOR
-        vec3 planetBase = vec3(0.25, 0.55, 1.10);//blue //vec3(1.10, 0.55, 0.18);   // orange
+        vec3 planetBase = vec3(0.2, 0.5, 1.0);//blue //vec3(1.10, 0.55, 0.18);   // orange
         vec3 planetCol  = planetBase * baseLit * bandShade;
 
         // ----- Ring band -----
@@ -201,7 +201,7 @@ void main() {
         float r = length(e);
 
         float ringR = planetRadius * 2.0;    // ring center radius
-        float ringW = planetRadius * 1.5;    // ring thickness
+        float ringW = planetRadius * 1.25;    // ring thickness
 
         // soft band edges
         float ringMask = smoothstep(ringR + ringW*0.50, ringR + ringW*0.35, r) *
@@ -213,7 +213,7 @@ void main() {
 
 
         //RING COLOR
-        vec3 ringBase =  vec3(0.05, 0.10, 0.35);//vec3(0.2, 0.02, 0.2); //vec3(0.1, 0.08, 0.05);
+        vec3 ringBase =  vec3(0.025, 0.05, 0.175);//vec3(0.2, 0.02, 0.2); //vec3(0.1, 0.08, 0.05);
 
         // "line through it" vibe: boost brightness along centerline of ring thickness
         float centerLine = smoothstep(ringW*0.22, 0.0, abs(r - ringR));
@@ -231,6 +231,97 @@ void main() {
         // composite planet then ring
         col = mix(col, planetCol, planetMask);
         col += ringCol * (ringFront + ringBack);
+
+        // ======================
+        // SPIRAL GALAXY (opposite side, same height as planet)
+        // ======================
+
+        // Put galaxy opposite the planet horizontally but keep same "height" (same Y)
+        vec3 galaxyDir = normalize(vec3(-planetDir.x, planetDir.y, -planetDir.z));
+
+        // Galaxy disk size & edge softness
+        float galaxyRadius = radians(2.5);   // apparent size on sky
+        float galaxyEdge   = radians(1.2);
+
+        // Galaxy mask (like planet/moon)
+        float cosG   = clamp(dot(dir, galaxyDir), -1.0, 1.0);
+        float thetaG = acos(cosG);
+
+        float galaxyMask = smoothstep(galaxyRadius + galaxyEdge,
+                                    galaxyRadius - galaxyEdge * 0.35,
+                                    thetaG);
+        galaxyMask = pow(galaxyMask, 0.9); // edge crispness
+
+        if (galaxyMask > 0.001) {
+            // Basis around galaxyDir -> uv
+            vec3 tmpUpG = vec3(0.0, 1.0, 0.0);
+            if (abs(dot(tmpUpG, galaxyDir)) > 0.9) tmpUpG = vec3(1.0, 0.0, 0.0);
+
+            vec3 gRight = normalize(cross(tmpUpG, galaxyDir));
+            vec3 gUp    = normalize(cross(galaxyDir, gRight));
+
+            vec2 uv = vec2(dot(dir, gRight), dot(dir, gUp));
+
+            // Polar coords
+            float r = length(uv);
+            float a = atan(uv.y, uv.x);          // -pi..pi
+
+            // Normalize r so "1.0" roughly corresponds to galaxyRadius-ish in uv space.
+            // This isn't physically exact, but it tunes nicely.
+            float rn = r / (galaxyRadius);       // ~0 at center, ~1 near edge
+            rn = max(rn, 1e-4);
+
+            // --- Core glow (bright center) ---
+            float core = exp(-rn * 3.0);         // smaller number = bigger core
+            core = pow(core, 1.2);
+
+            // --- Log spiral arms ---
+            // arms: how many main arms
+            // twist: how tightly they wind (bigger = more twist)
+            // armWidth: thickness of arms
+            float arms     = 3.0;
+            float twist    = 3.0;                // 2.0-6.0
+            float armWidth = 0.35;               // smaller = thinner arms
+
+            // log spiral phase: angle minus twist*log(radius)
+            float phase = a - twist * log(rn);
+
+            // Repeat phase for multiple arms
+            float armSignal = cos(arms * phase);
+
+            // Convert armSignal to a soft stripe mask (1 on arms, 0 between)
+            // (armSignal near 1.0 = arm center)
+            float armMask = smoothstep(1.0 - armWidth, 1.0, armSignal);
+
+            // Fade arms toward the edge, keep some near middle
+            float armFalloff = exp(-rn * 2.2);
+            armMask *= armFalloff;
+
+            // Add some “dust lanes” by subtracting noisy filaments
+            float dust = fbm3f(vec3(uv * 140.0 + vec2(17.0, 9.0), 0.0));
+            dust = smoothstep(0.45, 0.85, dust);
+            float dustCut = mix(1.0, 0.55, dust);   // darker lanes
+
+            // Star clumps (small bright speckles)
+            float clump = fbm3f(vec3(uv * 260.0 + vec2(33.0, 71.0), 0.0));
+            clump = smoothstep(0.78, 0.95, clump);
+
+            // Color: bluish arms + warm core
+            vec3 coreCol = vec3(1.05, 0.95, 0.85);
+            vec3 armCol  = vec3(0.65, 0.80, 1.10);
+
+            vec3 galaxyCol =
+                coreCol * (core * 1.4) +
+                armCol  * (armMask * 1.1) * dustCut +
+                vec3(1.0) * (clump * armMask * 0.8);
+
+            // Overall dim so it sits in the sky nicely
+            galaxyCol *= 0.6;
+
+            // Composite
+            col += galaxyCol * galaxyMask;
+        }
+
 
         // Gamma
         finalColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);

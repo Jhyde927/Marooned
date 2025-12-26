@@ -80,7 +80,13 @@ struct Player {
     bool onBoard = false;
     bool disableMovement = false;
     bool blocking = false;
-    bool isFallingIntoVoid = false; 
+    bool isFallingIntoVoid = false;
+    
+    float spreadMinDeg   = 1.5f;
+    float spreadMaxDeg   = 6.0f;
+    float crosshairBloom = 0.0;
+    float spreadDegrees = 2.5f;       // computed each frame (use in Fire)
+    Vector3 crossbowMuzzlePos;
 
     float lastSafeGroundY   = 100.0f; 
 
