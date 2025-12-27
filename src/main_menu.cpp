@@ -389,7 +389,7 @@ namespace MainMenu
             }
         }
 
-        // --- Keyboard navigation
+        // --- Keyboard navigation //broken 
         static constexpr float KEY_DELAY = 0.1f;
         static float upKeyTimer = 0.0f;
         static float downKeyTimer = 0.0f;
@@ -554,7 +554,7 @@ namespace MainMenu
         // Button labels
         const char* lblStart = "Start";
         if (playerInit && levelIndex == gCurrentLevelIndex) lblStart = "Resume"; //only resume if the current level = selected level. 
-        
+
         const char* lblLevel = "Level";
         const char* lblControls = "Controls";
         const char* lblFull  = "Fullscreen";

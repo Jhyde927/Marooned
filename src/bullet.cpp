@@ -199,8 +199,6 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
 
 }
 
-
-
 void Bullet::Update(Camera& camera, float deltaTime) {
     fireEmitter.Update(deltaTime);
     sparkEmitter.Update(deltaTime); 

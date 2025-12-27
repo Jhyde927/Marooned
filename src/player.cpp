@@ -562,11 +562,9 @@ void TryQueuedJump(){
 }
 
 constexpr float LAVA_DROP      = 150.0f;
-constexpr float VOID_DROP      = 1200.0f;  // how far you "fall"
-constexpr float VOID_KILL_PAD  = 50.0f;    // extra depth below that
-constexpr float VOID_SNAP_REENABLE_Y = 200.0f;  // how close to a floor you must be before snapping is allowed again
-
-
+constexpr float VOID_DROP      = 6000.0f;  // how far you "fall"
+constexpr float VOID_KILL_PAD  = 5600.0f;    // extra depth below that
+constexpr float VOID_SNAP_REENABLE_Y = 200.0f;  // how close to a floor you must be before snapping is allowed again, 1 tileSize
 
 constexpr float VOID_COMMIT_FALL = 200.0f;      // how far below the "expected floor" before we commit to void fall
 constexpr float VOID_SNAP_MAX_UP = 200.0f;      // max upward snap allowed (prevents big teleports)
@@ -636,12 +634,13 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     //start the dying process. 
     if (player.dying) {
         player.deathTimer += deltaTime;
-        player.velocity = {0.0f, 0.0f, 0.0f}; //stop moving when dying. should hide the gun as well. 
-        player.canMove = false;
+        //player.velocity = {0.0f, 0.0f, 0.0f}; //stop moving when dying. should hide the gun as well. 
+        //player.canMove = false;
         vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe. 
         vignetteFade = 0.0f;
 
-        gFadePhase = FadePhase::FadingOut; //dont fadeout to level, just fade out. updateFade handles the rest. 
+        gFadePhase = FadePhase::FadingOut; //dont fadeout to level, just fade out. updateFade handles the rest.
+        //fading out stops all updates 
 
 
         if (player.deathTimer > 1.5f) { 
@@ -701,7 +700,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     {
         player.grounded = false;
 
-        float killY = (dungeonPlayerHeight - VOID_DROP) - VOID_KILL_PAD;
+        float killY = (dungeonPlayerHeight - VOID_DROP) + VOID_KILL_PAD;
         if (player.position.y <= killY)
         {
             player.TakeDamage(9999);
@@ -788,7 +787,7 @@ void DrawWeapons(const Player& player, Camera& camera) {
                 break;
             case WeaponType::MagicStaff:
                 magicStaff.Draw(camera);
-                DrawBoundingBox(player.meleeHitbox, RED);
+                //DrawBoundingBox(player.meleeHitbox, RED);
                 break;
 
             case WeaponType::Crossbow:

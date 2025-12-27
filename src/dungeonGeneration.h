@@ -175,14 +175,11 @@ struct LauncherTrap {
 };
 
 
-
 struct WallInstance {
     Vector3 position;
     float rotationY;
     BoundingBox bounds;
     Color tint = WHITE;  // Default to no tinting
-    Color bakedTint;    // Precomputed static lighting
-    float bakedBrightness; // NEW! Used only during baking
     Vector3 scale;
 };
 
@@ -192,6 +189,14 @@ struct WallRun {
     float rotationY;
     BoundingBox bounds; // Precomputed, for fast collision checking
     bool enabled = true;
+};
+
+struct WindowCollider
+{
+    Vector3 a;
+    Vector3 b;
+    float   rotationY;
+    BoundingBox bounds;
 };
 
 struct FloorTile {
@@ -257,6 +262,9 @@ extern std::vector<SecretWall> secretWalls;
 extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 
+extern std::vector<WallInstance>   windowWallInstances;
+extern std::vector<WindowCollider> windowColliders;
+
 
 
 extern Image dungeonImg;
@@ -286,7 +294,7 @@ void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
-
+void GenerateWindows(float baseY);
 void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();

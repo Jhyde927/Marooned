@@ -288,7 +288,7 @@ void UpdateMenu(Camera& camera, float dt)
     {
         //fade out of menu, init level is called from update fade just like level switching. Remember to set PendingLevelIndex to not -1
         gFadePhase = FadePhase::FadingOut;
-        levelLoaded = true;// shouldn't we set this after the fade not before? 
+        levelLoaded = true;// shouldn't we set this after the fade not before?
     }
     else if (a == MainMenu::Action::Resume){
         DisableCursor();

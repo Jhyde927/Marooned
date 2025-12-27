@@ -138,7 +138,7 @@ std::vector<LevelData> levels = {
         true,
     },
         {
-        "Dungeon5",
+        "Dungeon5", //door maze
         "assets/heightmaps/blank.png",
         "assets/maps/map9.png",
         {0.0f, 300.0f, 0.0f},
@@ -153,7 +153,7 @@ std::vector<LevelData> levels = {
         true, 
     },
         {
-        "Dungeon6",
+        "Dungeon6", //SKIPPED BIG LEVEL 
         "assets/heightmaps/blank.png",
         "assets/maps/map10.png",
         {0.0f, 300.0f, 0.0f},
@@ -284,7 +284,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         15, 
-        16, //change to river. 
+        16, 
         {}, 
         true,// ceiling
     },
@@ -316,7 +316,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         17, 
-        18, //change to river. 
+        18, 
         {}, 
         true,// ceiling
     },
@@ -325,6 +325,22 @@ std::vector<LevelData> levels = {
         "Dungeon18", 
         "assets/heightmaps/blank.png",
         "assets/maps/map23.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        18, 
+        1, //change to river. 
+        {}, 
+        false,// ceiling
+    },
+
+        {
+        "Dungeon19", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map24.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},

@@ -87,6 +87,7 @@ extern bool hasIslandNav;
 extern int gEnemyCounter;
 extern float debugDoorOpenAngleDeg;
 extern int gCurrentLevelIndex; //for resuming game
+extern bool quitQued;
 //extern float muzzleFlashTimer;
 
 
@@ -131,6 +132,7 @@ void UpdateCollectables(float deltaTime);
 void DrawBullets(Camera& camera);
 void DrawBloodParticles(Camera& camera);
 void DrawOverworldProps();
+void DrawReticle(WeaponType& weaponType);
 Vector3 ResolveSpawnPoint(const LevelData& level, bool isDungeon, bool first, float floorHeight);
 float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terrainScale);
 void PlayerSwipeDecal(Camera& camera);

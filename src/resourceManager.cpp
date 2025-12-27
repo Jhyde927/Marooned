@@ -310,6 +310,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("crossbow",               "assets/Models/crossbow.glb");
     R.LoadModel("crossbowRest",           "assets/Models/crossbowRest.glb");
     R.LoadModel("bolt",                   "assets/Models/bolt.glb");
+    R.LoadModel("windowedWall",           "assets/Models/windowedWall.glb");
 
 
     //generated models

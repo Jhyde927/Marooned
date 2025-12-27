@@ -16,7 +16,7 @@ static std::vector<Color> gStaticBase;   // same w*h as gDynamic
 //lighting control
 LightingConfig lightConfig =
 {
-    0.15f,  // ambient
+    0.15f, //0.15f // ambient
     0.8f,   // dynStrength
 
     2100.0f,  // staticRadius

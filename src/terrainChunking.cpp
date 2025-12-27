@@ -254,7 +254,7 @@ void BuildTerrainChunkDrawList(
 
 
 void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDist) {
-    bool disableCulling = (currentGameState == GameState::Menu);
+    bool disableCulling = (currentGameState == GameState::Menu || debugInfo); //dont cull in debug mode. or menu
     rlEnableBackfaceCulling();
     int maxChunksToDraw = disableCulling ? 500 : 250;
     static std::vector<ChunkDrawInfo> drawList;

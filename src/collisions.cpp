@@ -633,20 +633,19 @@ void CheckBulletHits(Camera& camera) {
         }
 
         for (GrapplePoint& gp : grapplePoints){
-            if (CheckCollisionBoxSphere(gp.box, b.position, b.radius)) {
+            if (CheckCollisionBoxSphere(gp.box, b.position, b.radius) && b.age > 0.1f) { 
+                //only detect the collision if the age of the bullet is over 0.1 seconds. As to not grapple the gp your standing on.
                 if (b.type == BulletType::Harpoon && gp.enabled) {
-
                     // Stick bullet to grapple point
                     b.stuck = true;
                     b.stuckToGrapple = true;
                     b.stuckWorldPos = gp.position;
 
                     b.velocity = {0,0,0};
-                    b.age = 0.0f;
                     b.maxLifetime = 9999.0f;
-
+                    
                     // Trigger player grapple (only if not already grappling)
-                    if (player.state != PlayerState::Grappling) {
+                    if (player.state != PlayerState::Grappling) { //dont grapple if the hook is too close. 
                         player.state = PlayerState::Grappling;
                         player.grappleTarget = gp.position;
                         player.grappleSpeed = 3500.0f;          // or gp.pullSpeed
@@ -654,8 +653,9 @@ void CheckBulletHits(Camera& camera) {
                         player.grappleBulletId = b.id;          // optional, for rope rendering/cleanup
                         player.harpoonLifeTimer = 3.0f; //start life timer to prevent grappling to an area you can't reach and getting stuck in grapple state
                         SoundManager::GetInstance().Play("ratchet");
+                        
                     }
-                    b.Erase();
+                    //dont erase bullet, it needs to remain alive for the retraction. otherwise it grapples at a wonky angle. 
                     break;
                 }
             }

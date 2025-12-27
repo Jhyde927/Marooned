@@ -120,9 +120,6 @@ void EnterMenu() {
     CameraSystem::Get().StartCinematic(cd);
 }
 
-
-
-
 void InitMenuLevel(LevelData& level){
     ClearLevel();
     isDungeon = false;
@@ -216,6 +213,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
+        //GenerateWindows(wallHeight); //WIP
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);
@@ -314,7 +312,7 @@ void UpdateFade(Camera& camera) {
     const float dt = FadeDt();
     switch (gFadePhase) {
     case FadePhase::FadingOut:
-        player.canMove = false;
+        if (player.position.y > 0) player.canMove = false; //player can still fall into voids, so canMove remains true if below ground level. 
 
         if (currentGameState == GameState::Menu){
             //it didn't print 0.99 it never reaches 1, clamp? 
@@ -824,6 +822,53 @@ float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terra
     // Get grayscale pixel and scale to world height
     float heightValue = (float)pixels[index] / 255.0f;
     return heightValue * terrainScale.y;
+}
+
+void DrawReticle(WeaponType& weaponType){
+    if (weaponType == WeaponType::Blunderbuss){
+        Texture2D tex = R.GetTexture("shotgunReticle");
+
+        float minScale = 0.25f;
+        float maxScale = 1.0f;
+
+
+        player.spreadDegrees = Lerp(player.spreadMinDeg, player.spreadMaxDeg, player.crosshairBloom);
+
+        float scale = Lerp(minScale, maxScale, player.crosshairBloom);
+
+
+
+        // ---- Tunables ----
+        //const float scale      = 0.33f;                 // change this freely
+        const float xBias      = 0.01f;                // your 0.51f -> +1% width bias
+        const float yOffsetPct = 0.10f;                // 10% down
+        Color tint = { 255, 0, 0, 50 };                // semi-transparent red
+
+        // ---- Position (screen space) ----
+        float x = GetScreenWidth()  * (0.5f + xBias);
+        float y = GetScreenHeight() * 0.5f + GetScreenHeight() * yOffsetPct;
+
+        // ---- Source & destination rects ----
+        Rectangle src = { 0, 0, (float)tex.width, (float)tex.height };
+
+        // Destination rect is centered on (x, y) via origin
+        Rectangle dst = { x, y, tex.width * scale, tex.height * scale };
+        Vector2 origin = { dst.width * 0.5f, dst.height * 0.5f };
+
+        DrawTexturePro(tex, src, dst, origin, 0.0f, tint);
+
+    }else if (weaponType == WeaponType::Crossbow){
+        float yOffset = 100.0f;
+        Vector2 ret = {
+            GetScreenWidth()  * 0.51f,
+            GetScreenHeight() * 0.5f + yOffset //half the screen height
+        };
+        
+        DrawLineV({ret.x - 6, ret.y}, {ret.x + 6, ret.y}, RAYWHITE);
+        DrawLineV({ret.x, ret.y - 6}, {ret.x, ret.y + 6}, RAYWHITE);
+    }
+
+    
 }
 
 void UpdateWorldFrame(float dt, Player& player) {

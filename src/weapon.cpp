@@ -67,52 +67,10 @@ void Crossbow::Fire(Camera& camera)
 
     FireCrossbow(muzzlePos, boltDir, 3000.0f, 5.0f, false);
 
-    // // --- Camera center ray ---
-    // Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-
-    // // Aim point far away on the center ray (replace with raycast hit later)
-    // Vector3 aimPoint = Vector3Add(camera.position, Vector3Scale(camDir, 5000.0f));
-
-    // // --- Shoot FROM muzzle TO aimPoint ---
-    // Vector3 boltDir = Vector3Normalize(Vector3Subtract(aimPoint, muzzlePos));
-
-    // FireCrossbow(muzzlePos, boltDir, 3000.0f, 5.0f, false);
     SoundManager::GetInstance().Play("crossbowFire");
 
     recoil = recoilAmount;
 }
-
-// void Crossbow::Fire(Camera& camera)
-// {
-//     float now = GetTime();
-//     if (now - lastFired < fireCooldown) return;
-
-//     // Don't fire if we're reloading or not in loaded state
-//     if (isReloading || state != CrossbowState::Loaded) return;
-
-//     lastFired     = now;
-//     triggeredFire = true;
-
-//     // Show rest model visually (string forward)
-//     state = CrossbowState::Rest;
-
-
-
-//     // Start delay BEFORE dip
-//     reloadDelayTimer  = 0.0f;
-//     isReloading       = false;
-//     reloadPhase       = 0.0f;
-//     swappedModelMidDip = false;
-
-//     Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-//     FireCrossbow(muzzlePos, camForward, 3000.0f, 5.0f, false);
-//     SoundManager::GetInstance().Play("crossbowFire");
-
-//     recoil = recoilAmount;  // kick back
-// }
-
-
-
 
 void Crossbow::Reload()
 {
@@ -445,10 +403,6 @@ void Weapon::Draw(const Camera& camera) {
     Color tint = WeaponTintFromDarkness(weaponDarkness);
     DrawModelEx(model, gunPos, axis, angleDeg, scale, tint);
 }
-
-
-
-
 
 void MeleeWeapon::Draw(const Camera& camera) {
     Matrix lookAt = MatrixLookAt(camera.position, camera.target, { 0, 1, 0 });

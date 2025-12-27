@@ -38,6 +38,9 @@ std::vector<InvisibleWall> invisibleWalls;
 std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
 
+std::vector<WallInstance>   windowWallInstances;
+std::vector<WindowCollider> windowColliders;
+
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
 
@@ -445,6 +448,97 @@ void GenerateInvisibleWalls(float baseY)
         }
     }
 }
+
+void GenerateWindows(float baseY)
+{
+    windowWallInstances.clear();
+    windowColliders.clear();
+
+    const float wallThickness = 50.0f;
+    const float wallHeight    = 400.0f;
+
+    auto IsSolidWall = [&](Color c) {
+        if (c.a == 0) return false;
+        if (!IsWallColor(c)) return false;
+        if (IsBarrelColor(c)) return false;   // barrels carve holes
+        return true;
+    };
+
+    auto IsWindowWall = [&](Color c) {
+        if (c.a == 0) return false;
+        if (!EqualsRGB(c, ColorOf(Code::WindowedWall))) return false;  // <-- you define this color check
+        if (IsBarrelColor(c)) return false;
+        return true;
+    };
+
+    for (int y = 0; y < dungeonHeight; ++y)
+    {
+        for (int x = 0; x < dungeonWidth; ++x)
+        {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            // Only start window segments from the window-colored wall tiles
+            if (!IsWindowWall(current))
+                continue;
+
+            // === Horizontal Pair (window + solid wall to the right) ===
+            if (x < dungeonWidth - 1)
+            {
+                Color right = dungeonPixels[y * dungeonWidth + (x + 1)];
+
+                if (IsSolidWall(right))
+                {
+                    Vector3 a = GetDungeonWorldPos(x,     y, tileSize, baseY);
+                    Vector3 b = GetDungeonWorldPos(x + 1, y, tileSize, baseY);
+
+                    Vector3 mid = Vector3Lerp(a, b, 0.5f);
+                    mid.y = baseY;
+
+                    WallInstance w;
+                    w.position  = mid;
+                    w.rotationY = 90.0f;
+                    w.tint      = WHITE;
+                    windowWallInstances.push_back(w);
+
+                    // Collider matches your wall collider placement
+                    a.y -= 190.0f;
+                    b.y -= 190.0f;
+
+                    BoundingBox bounds = MakeWallBoundingBox(a, b, wallThickness, wallHeight);
+                    windowColliders.push_back({ a, b, 90.0f, bounds });
+                }
+            }
+
+            // === Vertical Pair (window + solid wall below) ===
+            if (y < dungeonHeight - 1)
+            {
+                Color down = dungeonPixels[(y + 1) * dungeonWidth + x];
+
+                if (IsSolidWall(down))
+                {
+                    Vector3 a = GetDungeonWorldPos(x, y,     tileSize, baseY);
+                    Vector3 b = GetDungeonWorldPos(x, y + 1, tileSize, baseY);
+
+                    Vector3 mid = Vector3Lerp(a, b, 0.5f);
+                    mid.y = baseY;
+
+                    WallInstance w;
+                    w.position  = mid;
+                    w.rotationY = 0.0f;
+                    w.tint      = WHITE;
+                    windowWallInstances.push_back(w);
+
+                    a.y -= 190.0f;
+                    b.y -= 190.0f;
+
+                    BoundingBox bounds = MakeWallBoundingBox(a, b, wallThickness, wallHeight);
+                    windowColliders.push_back({ a, b, 0.0f, bounds });
+                }
+            }
+        }
+    }
+}
+
 
 
 
@@ -1687,6 +1781,10 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
     }
 
+    for (const WallInstance& window : windowWallInstances) {
+        if (!IsInViewCone(vp, window.position) && !debugInfo) continue;
+        DrawModelEx(R.GetModel("windowedWall"), window.position, Vector3{0, 1, 0}, window.rotationY, Vector3{700, 700, 700}, window.tint);
+    }
 
 
     //Doorways
