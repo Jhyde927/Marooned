@@ -147,15 +147,20 @@ void Crossbow::Update(float dt)
 
     harpoonReady = readyNow;
 
-    // --- Bobbing ---
-    if (isMoving) {
-        bobbingTime += dt * 8.0f;
-        bobVertical = sinf(bobbingTime) * 1.0f;
-        bobSide     = sinf(bobbingTime * 0.25f) * 1.0f;
-    } else {
-        bobVertical = Lerp(bobVertical, 0.0f, dt * 5.0f);
-        bobSide     = Lerp(bobSide,     0.0f, dt * 5.0f);
+    if (!player.onBoard){ // dont bob while on board boat
+            // --- Bobbing ---
+        if (isMoving) {
+            bobbingTime += dt * 8.0f;
+            bobVertical = sinf(bobbingTime) * 1.0f;
+            bobSide     = sinf(bobbingTime * 0.25f) * 1.0f;
+        } else {
+            bobVertical = Lerp(bobVertical, 0.0f, dt * 5.0f);
+            bobSide     = Lerp(bobSide,     0.0f, dt * 5.0f);
+        }
+
     }
+
+
 
     // --- Recoil recovery ---
     recoil = Lerp(recoil, 0.0f, dt * recoilRecoverySpeed);
@@ -202,9 +207,14 @@ void Crossbow::Update(float dt)
 
 void MeleeWeapon::Update(float deltaTime) {
     if (player.activeWeapon != WeaponType::Sword) return;
-    float amplitude = 1.0f;
-    bobVertical = sinf(bobbingTime) * amplitude;
-    bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
+
+    if (!player.onBoard){
+        float amplitude = 1.0f;
+        bobVertical = sinf(bobbingTime) * amplitude;
+        bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
+
+    }
+
 
     // Smooth transition into and out of block pose
     if (blocking) {
@@ -311,10 +321,14 @@ void Weapon::Update(float deltaTime) {
     }
 
     if (player.activeWeapon != WeaponType::Blunderbuss) return; //dont update the rest if not equipped. 
-    float amplitude = 0.5f;
 
-    bobVertical = sinf(bobbingTime) * amplitude;
-    bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
+    if (!player.onBoard){
+        float amplitude = 0.5f;
+        bobVertical = sinf(bobbingTime) * amplitude;
+        bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
+
+    }
+
 
     if (recoil > 0.0f) { 
         recoil -= recoilRecoverySpeed * deltaTime; 
@@ -552,9 +566,14 @@ void MagicStaff::StartSwing(Camera& camera) {
 
 void MagicStaff::Update(float deltaTime) {
     if (player.activeWeapon != WeaponType::MagicStaff) return;
-    float amplitude = 2.0f;
-    bobVertical = sinf(bobbingTime) * amplitude;
-    bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
+
+    if (!player.onBoard){
+        float amplitude = 2.0f;
+        bobVertical = sinf(bobbingTime) * amplitude;
+        bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
+
+    }
+
 
     // Melee swing timer
     hitboxActive = false;
