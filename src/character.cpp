@@ -530,6 +530,27 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 default:                     return {0, 1, 1.0f, true};
             }
 
+
+        case CharacterType::Pterodactyl:
+            switch (state) {
+
+                case CharacterState::Chase:
+                case CharacterState::Reposition:
+                case CharacterState::RunAway:
+                case CharacterState::Patrol:
+                    return AnimDesc{1, 5, 0.25, true}; // walk
+
+                case CharacterState::Freeze: 
+                case CharacterState::Stagger: 
+                    return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
+
+                case CharacterState::Idle: return {0, 1, 1.0f, true};
+                case CharacterState::Attack: return {2, 4, 0.2f, false};  
+                case CharacterState::Death:  return {4, 5, 0.2f, false};
+                
+                default:                     return {0, 1, 1.0f, true};
+            }
+
         case CharacterType::Skeleton:
             switch (state) {
                 case CharacterState::Chase:

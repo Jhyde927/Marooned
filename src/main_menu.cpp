@@ -39,6 +39,36 @@ static inline void DrawControlsText(Font font, Rectangle r)
     DrawTextEx(font, txt, pos,               fontSize, spacing, col);
 }
 
+static const PreviewInfo* GetPreviewForSelectionIndex(int selectionIndex)
+{
+    if (selectionIndex < 0 || selectionIndex >= (int)MainMenu::gLevelPreviews.size())
+        return nullptr;
+
+    const PreviewInfo& p = MainMenu::gLevelPreviews[selectionIndex];
+    return p.IsValid() ? &p : nullptr;
+}
+
+
+
+static Rectangle ComputePreviewPanelRect(const Rectangle& rStart, const Rectangle& rQuit)
+{
+    float panelX = rStart.x + rStart.width + 30.0f;
+    float panelY = rStart.y;
+    float panelW = 420.0f;
+    float panelH = (rQuit.y + rQuit.height) - rStart.y;
+
+    Rectangle r = { panelX, panelY, panelW, panelH };
+
+    // Keep it on-screen (important for small windows)
+    float rightEdge = r.x + r.width;
+    float maxRight  = (float)GetScreenWidth() - 20.0f;
+    if (rightEdge > maxRight) r.x -= (rightEdge - maxRight);
+
+    return r;
+}
+
+
+
 
 Rectangle ComputeControlsPanelRect(Rectangle rTopButton, Rectangle rBottomButton)
 {
@@ -325,6 +355,67 @@ static inline Rectangle PadRect(Rectangle r, float px, float py)
 }
 
 
+static void DrawLevelPreviewPanel(const Rectangle& panelRect, const PreviewInfo* preview)
+{
+    // Background uses your existing menu/button style
+    DrawControlsPanelAsButton(panelRect, false);
+
+    auto& font = R.GetFont("Pieces");
+
+    // Title
+    const char* header = "Map Preview";
+    float headerSize = 44.0f;
+    float headerSpacing = 2.0f;
+
+    Rectangle rHeader = panelRect;
+    rHeader.height = 60.0f;
+    DrawCarvedText(font, header, rHeader, headerSize, headerSpacing, false, false);
+
+    // Inner content area (padding)
+    Rectangle inner = panelRect;
+    inner.x += 18.0f;
+    inner.y += 72.0f;
+    inner.width  -= 36.0f;
+    inner.height -= 90.0f;
+
+    if (!preview)
+    {
+        DrawTextEx(GetFontDefault(), "No preview available", { inner.x, inner.y }, 20.0f, 1.0f, RAYWHITE);
+        return;
+    }
+
+    Texture2D& tex = R.GetTexture(preview->textureKey);
+
+    // Preserve aspect ratio, fit inside 'inner'
+    float sx = inner.width  / (float)tex.width;
+    float sy = inner.height / (float)tex.height;
+
+    float s = (sx < sy) ? sx : sy;
+
+    float drawW = tex.width  * s;
+    float drawH = tex.height * s;
+
+    float dx = inner.x + (inner.width  - drawW) * 0.5f;
+    float dy = inner.y + (inner.height - drawH) * 0.125f; //quarter of the way down. 
+
+    Rectangle src = { 0, 0, (float)tex.width, (float)tex.height };
+    Rectangle dst = { dx, dy, drawW, drawH };
+
+    DrawTexturePro(tex, src, dst, {0,0}, 0.0f, WHITE);
+
+    // Optional tiny footer line (shows kind)
+    const char* kindStr =
+        (preview->kind == PreviewKind::DungeonMap) ? "Dungeon layout PNG" :
+        (preview->kind == PreviewKind::OverworldHeightmap) ? "Overworld heightmap" :
+        "Preview";
+
+    Vector2 footerPos = { panelRect.x + 18.0f, panelRect.y + panelRect.height -64.0f };
+    Font& pieces = R.GetFont("Pieces");
+    DrawTextEx(pieces, kindStr, footerPos, 36.0f, 1.0f, BLACK);
+}
+
+
+
 
 static inline void DrawTextExShadowed(Font font,
                                       const char* text,
@@ -365,7 +456,9 @@ struct ControlsPanel
 
 namespace MainMenu
 {
-    
+
+    std::vector<PreviewInfo> gLevelPreviews;
+
     MainMenu::Action Update(State& s, float dt,
                                     bool levelLoaded,
                                     int optionsCount,
@@ -433,9 +526,11 @@ namespace MainMenu
                     return Action::StartGame;
                 case 1:
                     if (levelsCount > 0) levelIndex = (levelIndex + 1) % levelsCount;
+                    if (!s.showPreview) s.showPreview = true;
                     return Action::CycleLevel;
                 case 2: 
                     s.showControls = !s.showControls;
+                    s.showPreview = false;
                     return Action::Controls;
                 case 3:
                     ToggleBorderlessFullscreenClean();
@@ -585,20 +680,25 @@ namespace MainMenu
         ControlsPanel panel;
         panel.rect = { panelX, panelY, panelW, panelH };
 
+        Rectangle pPanel = ComputePreviewPanelRect(rStart, rQuit); //preview panel
+
         // Keep it on-screen (important for small windows)
         float rightEdge = panel.rect.x + panel.rect.width;
         float maxRight  = (float)GetScreenWidth() - 20.0f;
         if (rightEdge > maxRight) panel.rect.x -= (rightEdge - maxRight);
 
 
-        if (s.showControls)
-            {
-                //DrawControlsPanel(panel, GetFontDefault()); // raylib default font for now
-                Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
+        if (s.showControls){
+            //DrawControlsPanel(panel, GetFontDefault()); // raylib default font for now
+            Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
+            DrawControlsPanelAsButton(rPanel, false);     // background uses your button style
+            DrawControlsText(R.GetFont("Pieces"), rPanel);   // text inside
 
-                DrawControlsPanelAsButton(rPanel, false);     // background uses your button style
-                DrawControlsText(R.GetFont("Pieces"), rPanel);   // text inside
-            }
+        }else if (s.showPreview) {
+            const PreviewInfo* preview = GetPreviewForSelectionIndex(levelIndex);
+            DrawLevelPreviewPanel(rPanel, preview);
+
+        }
 
         // Draw selectable buttons (highlight only these)
         DrawMenuButtonRounded(rStart, selStart);

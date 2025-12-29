@@ -202,6 +202,12 @@ void WallCollision(){
         }
     }
 
+    for (WindowCollider& wc : windowColliders) {
+        if (CheckCollisionBoxSphere(wc.bounds, player.position, player.radius)) {
+            ResolveBoxSphereCollision(wc.bounds, player.position, player.radius);
+        }
+    }
+
     for (InvisibleWall& iw : invisibleWalls){
         //if (!iw.enabled) continue;
 
@@ -328,7 +334,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
             enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
             enemy->TakeDamage(50);
             PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
-
+            
             if (enemy->type != CharacterType::Skeleton && enemy->type != CharacterType::Ghost){ //skeles and ghosts dont bleed.  
                 if (enemy->currentHealth <= 0){
                     meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordBloody");
@@ -561,9 +567,9 @@ void CheckBulletHits(Camera& camera) {
 
                 }else if (b.type == BulletType::Harpoon){
                     if (b.id != enemy->lastBulletIDHit) {
-                        //you can still harpoon mutliple enemies at once. fix this. 
+                        
                         enemy->TakeDamage(75);
-                        enemy->lastBulletIDHit = b.id;  
+                        enemy->lastBulletIDHit = b.id;  //only hook one enemy at a time
 
                         // Stick this harpoon to the enemy
                         b.stuck = true;
@@ -575,7 +581,17 @@ void CheckBulletHits(Camera& camera) {
                         b.age = 0.0f;
                         b.maxLifetime = 9999.0f;
 
-                        // Trigger pull
+                        //GRAPPLE TO ENEMY
+                        // player.state = PlayerState::Grappling;
+                        // player.grappleTarget = enemy->position;
+                        // player.grappleSpeed = 2000.0f;          // or gp.pullSpeed
+                        // player.grappleStopDist = 200.0f;        // or gp.stopDistance
+                        // player.grappleBulletId = b.id;          // optional, for rope rendering/cleanup
+                        // player.harpoonLifeTimer = 3.0f; //start life timer to prevent grappling to an area you can't reach and getting stuck in grapple state
+                        // SoundManager::GetInstance().Play("ratchet");
+                        // enemy->ChangeState(CharacterState::Stagger); 
+
+                        // PULL ENEMY 
                         if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Skeleton || 
                             enemy->type == CharacterType::Pirate || enemy->type == CharacterType::GiantSpider || enemy->type == CharacterType::Spider){
                             enemy->harpoonTarget = player.position;

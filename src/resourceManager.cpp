@@ -286,6 +286,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("blunderbussIcon",  "assets/sprites/blunderbussIcon2.png");
     R.LoadTexture("staffIcon",        "assets/sprites/staffIcon2.png");
     R.LoadTexture("shotgunReticle",   "assets/sprites/shotgunReticle.png");
+    R.LoadTexture("dactylSheet",      "assets/sprites/dactylSheet.png");
 
     // Models (registering with string keys)
     R.LoadModel("palmTree",               "assets/Models/bigPalmTree.glb");
@@ -311,7 +312,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("crossbowRest",           "assets/Models/crossbowRest.glb");
     R.LoadModel("bolt",                   "assets/Models/bolt.glb");
     R.LoadModel("windowedWall",           "assets/Models/windowedWall.glb");
-
+    R.LoadModel("windowWay",              "assets/Models/windowHole.glb");
 
     //generated models
 
@@ -685,6 +686,7 @@ void ResourceManager::SetLightingShaderValues() {
 
     Model& floorModel    = R.GetModel("floorTileGray");
     Model& wallModel     = R.GetModel("wallSegment");
+    Model& windowModel     = R.GetModel("windowWay");
     Model& doorwayModel  = R.GetModel("doorWayGray");
     Model& launcherModel = R.GetModel("stonePillar");
     Model& barrelModel   = R.GetModel("barrelModel");
@@ -692,6 +694,7 @@ void ResourceManager::SetLightingShaderValues() {
 
     // assign shader to all dungeon materials
     for (int i = 0; i < wallModel.materialCount; i++)      wallModel.materials[i].shader   = lightingShader;
+    for (int i = 0; i < windowModel.materialCount; i++)      windowModel.materials[i].shader   = lightingShader;
     for (int i = 0; i < doorwayModel.materialCount; i++)  doorwayModel.materials[i].shader= lightingShader;
     for (int i = 0; i < floorModel.materialCount; ++i)    floorModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < launcherModel.materialCount; ++i) launcherModel.materials[i].shader = lightingShader;
@@ -710,6 +713,7 @@ void ResourceManager::SetLightingShaderValues() {
     };
     setLightmap(floorModel);
     setLightmap(wallModel);
+    setLightmap(windowModel);
     setLightmap(doorwayModel);
     setLightmap(launcherModel);
     setLightmap(barrelModel);

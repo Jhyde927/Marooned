@@ -557,18 +557,34 @@ void MagicStaff::Update(float deltaTime) {
     bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
 
     // Melee swing timer
+    hitboxActive = false;
     if (swinging) {
         swingTimer += deltaTime;
+        if (swingTimer >= hitWindowStart && swingTimer <= hitWindowEnd) {
+            hitboxActive = true;
+        }
+
         if (swingTimer >= swingDuration) {
             swinging = false;
             hitboxActive = false;
             hitboxTriggered = false;
-        } else if (swingTimer >= hitWindowStart && swingTimer <= hitWindowEnd) {
-            hitboxActive = true;
-        } else {
-            hitboxActive = false;
         }
+
     }
+
+    //was hitting when not swinging. hitbox active was remaining true is my guess. 
+    // if (swinging) {
+    //     swingTimer += deltaTime;
+    //     if (swingTimer >= swingDuration) {
+    //         swinging = false;
+    //         hitboxActive = false;
+    //         hitboxTriggered = false;
+    //     } else if (swingTimer >= hitWindowStart && swingTimer <= hitWindowEnd) {
+    //         hitboxActive = true;
+    //     } else {
+    //         hitboxActive = false;
+    //     }
+    // }
 
     timeSinceLastSwing += deltaTime;
 

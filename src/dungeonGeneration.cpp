@@ -15,6 +15,7 @@
 #include <cstdint>
 #include "spiderEgg.h"
 #include "viewCone.h"
+#include <algorithm>
 
 
 std::vector<uint8_t> voidMask;
@@ -38,6 +39,7 @@ std::vector<InvisibleWall> invisibleWalls;
 std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
 
+std::vector<WindowWall> windowWalls;
 std::vector<WallInstance>   windowWallInstances;
 std::vector<WindowCollider> windowColliders;
 
@@ -194,14 +196,6 @@ void OpenSecrets(){
         }
     }
 }
-
-void DrawSecrets() {
-    for (SecretWall& wall : secretWalls){
-
-        //maybe telegraph secret walls visually somehow. 
-    }
-}
-
 
 
 void UpdateDungeonChests() {
@@ -407,6 +401,8 @@ void BindSecretWallsToRuns()
     }
 }
 
+
+
 void GenerateInvisibleWalls(float baseY)
 {
     invisibleWalls.clear();
@@ -449,96 +445,14 @@ void GenerateInvisibleWalls(float baseY)
     }
 }
 
-void GenerateWindows(float baseY)
+static Vector3 CenterOfBoundsXZ(const BoundingBox& b)
 {
-    windowWallInstances.clear();
-    windowColliders.clear();
-
-    const float wallThickness = 50.0f;
-    const float wallHeight    = 400.0f;
-
-    auto IsSolidWall = [&](Color c) {
-        if (c.a == 0) return false;
-        if (!IsWallColor(c)) return false;
-        if (IsBarrelColor(c)) return false;   // barrels carve holes
-        return true;
+    return {
+        (b.min.x + b.max.x) * 0.5f,
+        0.0f,
+        (b.min.z + b.max.z) * 0.5f
     };
-
-    auto IsWindowWall = [&](Color c) {
-        if (c.a == 0) return false;
-        if (!EqualsRGB(c, ColorOf(Code::WindowedWall))) return false;  // <-- you define this color check
-        if (IsBarrelColor(c)) return false;
-        return true;
-    };
-
-    for (int y = 0; y < dungeonHeight; ++y)
-    {
-        for (int x = 0; x < dungeonWidth; ++x)
-        {
-            Color current = dungeonPixels[y * dungeonWidth + x];
-
-            // Only start window segments from the window-colored wall tiles
-            if (!IsWindowWall(current))
-                continue;
-
-            // === Horizontal Pair (window + solid wall to the right) ===
-            if (x < dungeonWidth - 1)
-            {
-                Color right = dungeonPixels[y * dungeonWidth + (x + 1)];
-
-                if (IsSolidWall(right))
-                {
-                    Vector3 a = GetDungeonWorldPos(x,     y, tileSize, baseY);
-                    Vector3 b = GetDungeonWorldPos(x + 1, y, tileSize, baseY);
-
-                    Vector3 mid = Vector3Lerp(a, b, 0.5f);
-                    mid.y = baseY;
-
-                    WallInstance w;
-                    w.position  = mid;
-                    w.rotationY = 90.0f;
-                    w.tint      = WHITE;
-                    windowWallInstances.push_back(w);
-
-                    // Collider matches your wall collider placement
-                    a.y -= 190.0f;
-                    b.y -= 190.0f;
-
-                    BoundingBox bounds = MakeWallBoundingBox(a, b, wallThickness, wallHeight);
-                    windowColliders.push_back({ a, b, 90.0f, bounds });
-                }
-            }
-
-            // === Vertical Pair (window + solid wall below) ===
-            if (y < dungeonHeight - 1)
-            {
-                Color down = dungeonPixels[(y + 1) * dungeonWidth + x];
-
-                if (IsSolidWall(down))
-                {
-                    Vector3 a = GetDungeonWorldPos(x, y,     tileSize, baseY);
-                    Vector3 b = GetDungeonWorldPos(x, y + 1, tileSize, baseY);
-
-                    Vector3 mid = Vector3Lerp(a, b, 0.5f);
-                    mid.y = baseY;
-
-                    WallInstance w;
-                    w.position  = mid;
-                    w.rotationY = 0.0f;
-                    w.tint      = WHITE;
-                    windowWallInstances.push_back(w);
-
-                    a.y -= 190.0f;
-                    b.y -= 190.0f;
-
-                    BoundingBox bounds = MakeWallBoundingBox(a, b, wallThickness, wallHeight);
-                    windowColliders.push_back({ a, b, 0.0f, bounds });
-                }
-            }
-        }
-    }
 }
-
 
 
 
@@ -686,11 +600,12 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             bool nextLevel = (current.r == 255 && current.g == 128 && current.b == 0); //orange
             bool lockedDoor = (current.r == 0 && current.g == 255 && current.b == 255); //CYAN
             bool silverDoor = {current.r == 0 && current.g == 64 && current.b == 64}; //Dark Cyan
-            bool portal = (current.r == 200 && current.g == 0 && current.b == 200); //portal 
+            bool portal = (current.r == 200 && current.g == 0 && current.b == 200); //portal
+            bool window = EqualsRGB(current, ColorOf(Code::WindowedWall));
 
             bool eventLocked = (current.r == 0   && current.g == 255 && current.b == 128); //spring-green
 
-            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal && !eventLocked && !silverDoor) continue;
+            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal && !eventLocked && !silverDoor && !window) continue;
 
             // Check surrounding walls to determine door orientation
             Color left = dungeonPixels[y * dungeonWidth + (x - 1)];
@@ -716,6 +631,7 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             DoorwayInstance archway = { pos, rotationY, false, false, false, WHITE };
             archway.tileX = x;
             archway.tileY = y;
+            if (window) archway.window = true;
             GenerateSideColliders(pos, rotationY, archway);
 
 
@@ -753,9 +669,24 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
 void GenerateDoorsFromArchways() {
     doors.clear();
 
-    for (const DoorwayInstance& dw : doorways) {
-        if (dw.isOpen) continue; // skip if this archway should remain open
+    float halfWidth = 200.0f;   // Half of the 400-unit wide doorway
+    float height = 365.0f;
+    float depth = 20.0f;        // Thickness into the doorway (forward axis)
 
+    for (DoorwayInstance& dw : doorways) {
+        if (dw.isOpen) continue; // skip if this archway should remain open
+        if (dw.window){
+            //rotate the bounding box by 90
+            BoundingBox bb = MakeDoorBoundingBox(dw.position, dw.rotationY + DEG2RAD * 90.0f, halfWidth, height, depth);
+            WindowCollider wc = {dw.position, dw.rotationY, bb};
+            windowColliders.push_back(wc);
+            Door door{}; //dummy door to give side colliders to windows 
+            door.sideColliders = dw.sideColliders;
+            door.isOpen = true; //side colliders are only active if the door is open. 
+            doors.push_back(door);
+            
+            continue; 
+        }
         // Match position/rotation of archway
         Door door{};
         door.position = dw.position;
@@ -773,9 +704,7 @@ void GenerateDoorsFromArchways() {
         door.sideColliders = dw.sideColliders; //side colliders for when door is open
 
         
-        float halfWidth = 200.0f;   // Half of the 400-unit wide doorway
-        float height = 365.0f;
-        float depth = 20.0f;        // Thickness into the doorway (forward axis)
+
 
         door.collider = MakeDoorBoundingBox(door.position, door.rotationY, halfWidth, height, depth); //covers the whole archway
 
@@ -1790,8 +1719,16 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     //Doorways
     for (const DoorwayInstance& d : doorways) { 
         //if (!IsInViewCone(vp, d.position)) continue;  //dont cull doorways because of dungeon entrances outside are doorways
-        Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
-        DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+        
+
+        if (d.window){
+            Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
+            DrawModelEx(R.GetModel("windowWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+        }else{
+            Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
+            DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+        }
+
         
     }
 

@@ -13,6 +13,11 @@ void Character::UpdateAI(float deltaTime, Player& player) {
     switch (type) {
         case CharacterType::Raptor:
             UpdateRaptorAI(deltaTime, player);
+
+            break;
+
+        case CharacterType::Pterodactyl:
+            UpdateRaptorAI(deltaTime, player);
             break;
 
         case CharacterType::Trex:
@@ -55,6 +60,8 @@ void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime
         }
     }
 }
+
+
 
 
 void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
@@ -210,7 +217,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                     Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
                     Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
 
-                    SoundManager::GetInstance().Play(rand() % 2 ? "spiderBite2" : "spiderBite1");
+                    SoundManager::GetInstance().Play(rand() % 2 ? "giantSpiderBite" : "giantSpiderBite");
                     decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("biteSheet"), 4, 0.4f, 0.1f, 50.0f);
 
                 }
@@ -778,6 +785,41 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
 
 }
 
+
+void Character::UpdateDactylAI(float deltaTime, Player& player) {
+    float distance = Vector3Distance(position, player.position);
+    UpdateLeavingFlag(player.position, player.previousPosition);
+    stateTimer += deltaTime;
+    if (currentHealth <= 0.0f){
+        state = CharacterState::Death;
+    }
+
+    switch (state)
+    {
+
+        case CharacterState::Idle:
+        {
+
+            const float IDLE_TO_PATROL_TIME = 10.0f; // tweak
+            if (stateTimer >= IDLE_TO_PATROL_TIME) {
+                // seed a patrol target around the current position
+                patrolTarget = RandomPointOnRingXZ(position, /*minR*/800.0f, /*maxR*/2200.0f);
+
+                hasPatrolTarget  = true;
+                ChangeState(CharacterState::Patrol);
+                break;
+            }
+
+            break;
+
+        }
+
+        case CharacterState::Patrol:
+            //find random spot xz
+            break;
+    }
+}
+
 void Character::UpdateRaptorAI(float deltaTime, Player& player)
 {
     // --- Perception & timers ---
@@ -825,11 +867,6 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::Patrol:
         {
-            // if (isLeaving && rowIndex != 3){ //check if leaving every frame not just on state change. 
-            //     SetAnimation(3, 4, 0.25, true); //runaway
-            // }else if (!isLeaving && rowIndex != 1){
-            //     SetAnimation(1, 5, 0.15, true); //walk
-            // }
 
             UpdateMovementAnim();
 
@@ -839,11 +876,6 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::Chase:
         {
-            // if (isLeaving && rowIndex != 3){
-            //     SetAnimation(3, 4, 0.25, true); //runaway
-            // }else if (!isLeaving && rowIndex != 1){
-            //     SetAnimation(1, 4, 0.25, true); //walk
-            // }
             UpdateMovementAnim();
             UpdateChase(deltaTime);
           
@@ -900,7 +932,8 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
         } break;
 
         case CharacterState::Harpooned: {
-            stateTimer += deltaTime;
+            //stateTimer += deltaTime;  //we were adding to stateTimer twice. So harpoon timer would only run for 1 second instead of 2. 
+            //never noticed. 
 
             if (currentHealth <= 0) {
                 ChangeState(CharacterState::Death);
@@ -908,7 +941,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
             }
 
             // Keep updating target so if player backpedals, it still pulls toward you
-            Vector3 target = player.position;
+            Vector3 target = player.position; 
 
             // Pull direction XZ only // try it on raptors on a hill. 
             Vector3 toTarget = Vector3Subtract(target, position);

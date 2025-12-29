@@ -70,7 +70,7 @@ void UpdatePlayerGrapple(Player& player, float dt)
     // Stop condition
     if (dist <= player.grappleStopDist) {
         player.state = PlayerState::Normal;
- 
+        player.velocity = {0,0,0};
         player.grappleBulletId = -1;
         return;
     }

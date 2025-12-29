@@ -16,7 +16,7 @@ static std::vector<Color> gStaticBase;   // same w*h as gDynamic
 //lighting control
 LightingConfig lightConfig =
 {
-    0.15f, //0.15f // ambient
+    0.15f, //0.15f // ambient //dark on youtube but anything higher is too orange. 
     0.8f,   // dynStrength
 
     2100.0f,  // staticRadius
@@ -28,9 +28,9 @@ LightingConfig lightConfig =
     {1.0f, 0.3f, 0.0f},   // dynamicFireColor
     {0.0f, 0.7f, 1.0f},   // dynamicIceColor
 
-    {0.5f, 0.5f, 0.5f},   // playerColor
+    {1.0f, 0.75f, 0.2f},   // playerColor
     200.0f,               // playerRadius
-    0.1f,                 // playerIntensity
+    0.5f,                 // playerIntensity
 
     7,        // losNumRays
     0.25f,    // losSpreadFrac
@@ -412,22 +412,22 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
     //skip the player light for now. looks bad when getting close to static lights, makes it too orange.
 
     //Dynamic player light
-    // const LightSample ls =  {
-    //     player.position,
-    //     lightConfig.playerColor, 
-    //     lightConfig.playerRadius,
-    //     lightConfig.playerIntensity,
-    // };
+    const LightSample ls =  {
+        player.position,
+        lightConfig.playerColor, 
+        lightConfig.playerRadius,
+        lightConfig.playerIntensity,
+    };
 
-    // Color c = {
-    //     (unsigned char)Clamp(ls.color.x * 255.0f * ls.intensity, 0.0f, 255.0f),
-    //     (unsigned char)Clamp(ls.color.y * 255.0f * ls.intensity, 0.0f, 255.0f),
-    //     (unsigned char)Clamp(ls.color.z * 255.0f * ls.intensity, 0.0f, 255.0f),
-    //     255
-    // };
+    Color c = {
+        (unsigned char)Clamp(ls.color.x * 255.0f * ls.intensity, 0.0f, 255.0f),
+        (unsigned char)Clamp(ls.color.y * 255.0f * ls.intensity, 0.0f, 255.0f),
+        (unsigned char)Clamp(ls.color.z * 255.0f * ls.intensity, 0.0f, 255.0f),
+        255
+    };
 
     //stamp player light. 
-    //StampDynamicLight(ls.pos, ls.range, c);  
+    StampDynamicLight(ls.pos, ls.range, c);  
 
     // Stamp dynamic movers (fireballs).
     for (const LightSample& L : frameLights) {

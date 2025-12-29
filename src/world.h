@@ -27,11 +27,8 @@ enum class GameState {
 // Globals or in a FadeController:
 enum class FadePhase { Idle, FadingOut, Swapping, FadingIn };
 
-
-
-//extern Model terrainModel;
 extern Image heightmap;
-//extern Mesh terrainMesh;
+
 extern Vector3 terrainScale;
 
 //gobal vars
@@ -103,7 +100,7 @@ extern std::list<Bullet> activeBullets; // instead of std::vector
 extern std::vector<Decal> decals;
 extern std::vector<Collectable> collectables;
 extern std::vector<MuzzleFlash> activeMuzzleFlashes;
-
+extern std::vector<PreviewInfo> levelPreviews;
 extern std::vector<CollectableWeapon> worldWeapons;
 
 extern std::vector<Character> enemies;  
@@ -115,6 +112,7 @@ void InitDungeonLights();
 void UpdateFade(Camera& camera);
 void removeAllCharacters();
 void generateRaptors(int amount, Vector3 centerPos, float radius);
+void generateDactyls(int amount, Vector3 centerPos, float radius);
 void generateTrex(int amount, Vector3 centerPos, float radius);
 //void BeginCustom3D(Camera3D camera, float farClip);
 void GenerateEntrances();
@@ -142,4 +140,7 @@ void StartFadeInFromBlack();
 void OpenEventLockedDoors();
 void InitOverworldWeapons();
 void InitMenuLevel(LevelData& level);
+
 void EnterMenu();
+
+

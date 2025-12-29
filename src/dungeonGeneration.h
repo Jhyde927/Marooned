@@ -99,6 +99,7 @@ struct DoorwayInstance {
     std::vector<BoundingBox> sideColliders{};
     bool eventLocked = false;
     KeyType requiredKey = KeyType::None;
+    bool window = false;
 
 };
 
@@ -174,6 +175,17 @@ struct LauncherTrap {
     BoundingBox bounds;
 };
 
+struct WindowWall
+{
+    int x = 0;
+    int y = 0;
+    
+    Vector3 position;   // tile marker position (for binding distance)
+    float   rotationY;  // inferred from neighbors (0 or 90)
+    int     wallRunIndex;
+    bool    valid;
+};
+
 
 struct WallInstance {
     Vector3 position;
@@ -187,14 +199,17 @@ struct WallRun {
     Vector3 startPos;
     Vector3 endPos;
     float rotationY;
-    BoundingBox bounds; // Precomputed, for fast collision checking
+    BoundingBox bounds;
     bool enabled = true;
+
+    Vector3 a = {0,0,0};
+    Vector3 b = {0,0,0};
 };
+
 
 struct WindowCollider
 {
-    Vector3 a;
-    Vector3 b;
+    Vector3 position;
     float   rotationY;
     BoundingBox bounds;
 };
@@ -262,6 +277,7 @@ extern std::vector<SecretWall> secretWalls;
 extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 
+extern std::vector<WindowWall> windowWalls;
 extern std::vector<WallInstance>   windowWallInstances;
 extern std::vector<WindowCollider> windowColliders;
 
@@ -295,6 +311,8 @@ void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
 void GenerateWindows(float baseY);
+void BindWindowsToRuns(float baseY);
+void ApplyWindowsToRuns(float baseY);
 void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
@@ -304,7 +322,6 @@ void ApplyLavaDPS(Player& player, float dt, float lavaDps);
 void UpdateDungeonTileFlags(Player& player, float dt);
 void ApplyEnemyLavaDPS();
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist);
-void DrawSecrets();
 void BindSecretWallsToRuns();
 void OpenSecrets();
 void DrawDungeonChests(); 

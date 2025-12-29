@@ -13,12 +13,13 @@ enum class CharacterType {
     Ghost,
     Trex,
     GiantSpider,
+    Pterodactyl,
    
 };
 
 
 enum class CharacterState {
-    Idle,
+    Idle, 
     Chase,
     Attack,
     RunAway,
@@ -150,6 +151,7 @@ public:
     void Update(float deltaTime, Player& player);
     void UpdateTrexAI(float deltaTime, Player& player);
     void UpdateRaptorAI(float deltaTime, Player& player);
+    void UpdateDactylAI(float deltaTime, Player& player);
     void UpdateAI(float deltaTime, Player& player); 
     void UpdateSkeletonAI(float deltaTime, Player& player);
     void UpdateGiantSpiderAI(float deltaTime, Player& player);

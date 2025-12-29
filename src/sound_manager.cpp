@@ -164,6 +164,7 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("jump", "assets/sounds/jump.ogg");
     SoundManager::GetInstance().LoadSound("harpoon", "assets/sounds/harpoon.ogg");
     SoundManager::GetInstance().LoadSound("ratchet", "assets/sounds/ratchet.ogg");
+    SoundManager::GetInstance().LoadSound("giantSpiderBite", "assets/sounds/monsterBite.ogg");
 
     SoundManager::GetInstance().LoadSound("swim1", "assets/sounds/swim1.ogg");
     SoundManager::GetInstance().LoadSound("swim2", "assets/sounds/swim2.ogg");

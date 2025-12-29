@@ -6,10 +6,14 @@
 
 namespace MainMenu
 {
+
+    extern std::vector<PreviewInfo> gLevelPreviews;
+
     struct State
     {
         int selectedOption = 0;
         bool showControls = false;
+        bool showPreview = false;
         float pressFlash[4] = { 0,0,0,0 }; // seconds remaining for “push” effect
     };
 

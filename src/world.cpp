@@ -92,6 +92,7 @@ std::vector<CollectableWeapon> worldWeapons; //weapon pickups
 std::vector<Character> enemies;  
 std::vector<Character*> enemyPtrs;
 std::vector<DungeonEntrance> dungeonEntrances;
+std::vector<PreviewInfo> levelPreviews;
 
 MiniMap miniMap;
 
@@ -198,6 +199,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances. 
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
+    //generateDactyls(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
     GenerateEntrances();
 
@@ -213,7 +215,13 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
-        //GenerateWindows(wallHeight); //WIP
+        GenerateSecrets(wallHeight);
+        BindSecretWallsToRuns(); //assign wallrun index, 
+
+        // GenerateWindows(wallHeight);       // reads markers + infers rotations (tile space)
+        // BindWindowsToRuns(wallHeight);          // finds nearest run (run space)
+        // ApplyWindowsToRuns(wallHeight);    // snaps model + moves collider out of wallRunColliders
+
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);
@@ -227,8 +235,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateKeys(floorHeight);
         GenerateWeapons(200);
         GenerateGrapplePoints(floorHeight);
-        GenerateSecrets(wallHeight);
-        BindSecretWallsToRuns(); //assign wallrun index, 
+
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
         //generate enemies.
         GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
@@ -364,7 +371,7 @@ void UpdateFade(Camera& camera) {
 
 void InitOverworldWeapons(){
     Vector3 bpos = {4045.69, 260, -4191.75};
-    worldWeapons.push_back(CollectableWeapon(WeaponType::Crossbow, bpos, R.GetModel("crossbow")));
+    //worldWeapons.push_back(CollectableWeapon(WeaponType::Crossbow, bpos, R.GetModel("crossbow")));
 }
 
 
@@ -557,6 +564,41 @@ void generateTrex(int amount, Vector3 centerPos, float radius) {
         ++spawned;
     }
 
+
+}
+
+void generateDactyls(int amount, Vector3 centerPos, float radius) {
+    //Dactyls on spawn on land. Just like raptors
+    int spawned = 0;
+    int attempts = 0;
+    const int maxAttempts = 1000;
+    //try 1000 times to spawn all the raptors either above 80 on heightmap or on empty floor tiles in dungeon. 
+    while (spawned < amount && attempts < maxAttempts) {
+        ++attempts;
+
+        float angle = GetRandomValue(0, 360) * DEG2RAD;
+        float distance = GetRandomValue(500, (int)radius);
+        float x = centerPos.x + cosf(angle) * distance;
+        float z = centerPos.z + sinf(angle) * distance;
+
+        Vector3 spawnPos = { x, 0.0f, z }; //random x, z  get height diferrently for dungeon
+        
+        float terrainHeight = GetHeightAtWorldPosition(spawnPos, heightmap, terrainScale);
+        if (terrainHeight <= 80.0f) continue; //try again
+
+        float spriteHeight = 200 * 0.5f;
+        spawnPos.y = terrainHeight + spriteHeight / 2.0f;
+    
+
+        Character dactyl(spawnPos, R.GetTexture("dactylSheet"), 512, 512, 1, 0.5f, 0.5f, 0, CharacterType::Pterodactyl);
+        dactyl.scale = 0.4;
+        dactyl.maxHealth = 50; //one harpoon shot will kill it. otherwise we would have to figure out 3d grapple pull
+        dactyl.currentHealth = dactyl.maxHealth;
+        dactyl.state == CharacterState::Idle;
+        enemies.push_back(dactyl);
+        enemyPtrs.push_back(&enemies.back()); 
+        ++spawned;
+    }
 
 }
 
@@ -870,6 +912,7 @@ void DrawReticle(WeaponType& weaponType){
 
     
 }
+
 
 void UpdateWorldFrame(float dt, Player& player) {
     // Toggle mode

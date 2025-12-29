@@ -1,8 +1,77 @@
 #include "level.h"
 #include "dungeonGeneration.h"
 #include <vector>
+#include "resourceManager.h"
 
 std::vector<PropSpawn> overworldProps;
+
+
+
+PreviewInfo MakePreviewInfoFromLevel(const LevelData& level)
+{
+    PreviewInfo p;
+    p.levelIndex  = level.levelIndex;
+    p.displayName = level.name;
+
+    // Decide what kind of preview this level gets
+    if (level.isDungeon)
+    {
+        if (!level.dungeonPath.empty())
+        {
+            p.kind        = PreviewKind::DungeonMap;
+            p.previewPath = level.dungeonPath;
+        }
+    }
+    else
+    {
+        if (!level.heightmapPath.empty())
+        {
+            p.kind        = PreviewKind::OverworldHeightmap;
+            p.previewPath = level.heightmapPath;
+        }
+    }
+
+    // If neither condition matched, kind stays None
+    if (p.kind != PreviewKind::None)
+    {
+        // Stable, predictable resource key
+        // (avoid using raw paths as keys)
+        p.textureKey = "preview_level_" + std::to_string(level.levelIndex);
+    }
+
+    return p;
+}
+
+std::vector<PreviewInfo> BuildLevelPreviews(bool preloadTextures)
+{
+    std::vector<PreviewInfo> previews;
+    previews.reserve(levels.size());
+
+    for (const LevelData& level : levels)
+    {
+        PreviewInfo preview = MakePreviewInfoFromLevel(level);
+
+        if (preview.IsValid())
+        {
+            if (preloadTextures)
+            {
+                // Register/load texture into ResourceManager
+                // Safe even if called multiple times, assuming RM guards duplicates
+                R.LoadTexture(preview.textureKey, preview.previewPath);
+
+                // Optional: touch it once so fallback errors show immediately
+                Texture2D& tex = R.GetTexture(preview.textureKey);
+                (void)tex;
+            }
+        }
+
+        previews.push_back(preview);
+    }
+
+    return previews;
+}
+
+
 
 DungeonEntrance entranceToDungeon1 = {
     {0, 180, 0}, // position
@@ -324,7 +393,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon18", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map23.png",
+        "assets/maps/map22.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -332,13 +401,29 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         18, 
-        1, //change to river. 
+        19, //change to river. 
         {}, 
         false,// ceiling
     },
 
         {
         "Dungeon19", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map23.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        19, 
+        20, //change to river. 
+        {}, 
+        false,// ceiling
+    },
+
+        {
+        "Dungeon20", 
         "assets/heightmaps/blank.png",
         "assets/maps/map24.png",
         {0.0f, 300.0f, 0.0f},
@@ -347,10 +432,27 @@ std::vector<LevelData> levels = {
         0, 
         true, //isDungeon is true
         {},
-        18, 
+        20, 
         1, //change to river. 
         {}, 
         false,// ceiling
+    },
+
+        {
+        "Noise", 
+        "assets/heightmaps/NoiseTest.png",
+        "",
+        {5475.0f, 300.0f, -5665.0f},
+        180.0f,
+        {0.0f, 0, 0.0f},
+        15,//raptor count
+        false,
+        {entranceToDungeon11},
+        21, 
+        1,
+        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
+        false, //ceiling
+   
     },
     
 };

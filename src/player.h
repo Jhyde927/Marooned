@@ -54,7 +54,9 @@ struct Player {
     float lightIntensity = 0.5f;
     float lightRange = 400;
     float gravity = 980.0f;
-    float height = 240.0f;
+
+    float height = 240.0f; //stream says make this higher
+
     float jumpStrength = 600.0f; 
     float footstepTimer = 0.0f;
     float swimTimer = 0.0f;

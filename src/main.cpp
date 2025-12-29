@@ -47,6 +47,8 @@ int main() {
     CameraSystem::Get().Init(camPos); //init camera to player pos, setting it to cinematic overwrites this. but we still need to init with something
     CameraSystem::Get().SetFOV(fovy);
 
+    MainMenu::gLevelPreviews = BuildLevelPreviews(true);
+    
     
     InitMenuLevel(levels[0]);
     //main game loop
