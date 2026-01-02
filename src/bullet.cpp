@@ -518,7 +518,7 @@ void Bullet::Draw(Camera& camera) const {
         
         
     }else if (type == BulletType::Iceball){
-        
+        //actual bullet size is 75, render at 25, maybe iceballs should look bigger as well. 
         DrawModelEx(R.GetModel("iceballModel"), position, { 0, 1, 0 }, spinAngle, { 25.0f, 25.0f, 25.0f }, WHITE);
             
     }else if (type == BulletType::Bolt){
@@ -682,14 +682,23 @@ void Bullet::Explode(Camera& camera) {
         }else if (type == BulletType::Iceball){
             for (Character* enemy : enemyPtrs){
                 float dist = Vector3Distance(position, enemy->position);
-                if (dist < explosionRadius) {
+                if (dist < explosionRadius && !enemy->isDead) {
                     float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
                     enemy->ChangeState(CharacterState::Freeze);
-                    enemy->currentHealth -= dmg; //dont call take damage, it triggers stagger which over rides freeze. 
+                    enemy->TakeDamage(dmg);
+                    //enemy->currentHealth -= dmg; //dont call take damage, it triggers stagger which over rides freeze. 
                     //can cause invincible skeletons if they die to freeze, we check health again on freeze state for skeles not pirates.
                     
 
                 }
+            }
+
+            //damage player if too close, 
+            float pDamage = 50.0f;
+            float pdist = Vector3Distance(player.position, position);
+            if (pdist < explosionRadius){
+                float dmg =  Lerp(pDamage, minDamage, pdist / explosionRadius); //damage fall off with distance.
+                player.TakeDamage(dmg);//upto 50 percent health may be a lot for direct hit. 
             }
 
         }
@@ -809,15 +818,13 @@ void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, b
     b.id = gBulletCounter++;
 
     SoundManager::GetInstance().PlaySoundAtPosition((rand() % 2 == 0 ? "flame1" : "flame2"), origin, player.position, 0.0f, 3000.0f);
-
-    
 }
 
-void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy) {
+void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher) {
     Vector3 direction = Vector3Normalize(Vector3Subtract(target, origin));
     Vector3 velocity = Vector3Scale(direction, speed);
 
-    Bullet& b = activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Iceball, 20.0f);
+    Bullet& b = activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Iceball, 75.0f, launcher); //larger radius 75, so you can't avoid in hallways
 
     b.light.active     = true;
     b.light.color      = lightConfig.dynamicIceColor;
@@ -826,6 +833,7 @@ void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bo
     b.light.detachOnDeath = true;
     b.light.lifeTime   = 0.15f; // short glow after death
     b.id = gBulletCounter++;
-    SoundManager::GetInstance().Play("iceMagic");
+
+    SoundManager::GetInstance().PlaySoundAtPosition("iceMagic", origin, player.position, 0.0f, 3000.0f);
 }
 

@@ -433,6 +433,22 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         20, 
+        21, //change to river. 
+        {}, 
+        false,// ceiling
+    },
+
+        {
+        "Dungeon21", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map25.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        21, 
         1, //change to river. 
         {}, 
         false,// ceiling
@@ -448,12 +464,13 @@ std::vector<LevelData> levels = {
         15,//raptor count
         false,
         {entranceToDungeon11},
-        21, 
+        22, 
         1,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling
    
     },
+
     
 };
 

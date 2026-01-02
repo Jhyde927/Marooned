@@ -157,7 +157,7 @@ void CameraSystem::UpdateFreeCam(float dt) {
 
     // Mouse look
     Vector2 delta = GetMouseDelta();
-    float sens = 0.12f;
+    float sens = 0.05f; //matches player's 
     freeRig.yaw   -= delta.x * sens;
     freeRig.pitch += -delta.y * sens;
     freeRig.pitch = Clamp(freeRig.pitch, -89.f, 89.f);

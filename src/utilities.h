@@ -24,8 +24,12 @@ Vector3 Limit(Vector3 v, float maxLen);
 
 Vector3 AddLightHeadroom(Vector3 base, Vector3 lightColor, float intensity); //stops oversaturating model.tint
 
+
+//XZ 
+Vector3 ClampXZ(Vector3 v, float maxLen);
 Vector3 NormalizeXZ(Vector3 v);
 Vector3 RandomPointOnRingXZ(const Vector3& center, float minR, float maxR);
+Vector3 RandomPointOnHeightmapRingXZ( const Vector3& center, float minR, float maxR, int terrainWidthPx, float terrainScale, float edgeMargin = 0.0f);
 float DistXZ(const Vector3& a, const Vector3& b);
 inline float Rand01() { return (float)GetRandomValue(0, 1000) / 1000.0f; }
 Vector3 DirFromYawDeg(float yawDeg);

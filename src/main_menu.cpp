@@ -459,13 +459,18 @@ namespace MainMenu
 
     std::vector<PreviewInfo> gLevelPreviews;
 
-    MainMenu::Action Update(State& s, float dt,
-                                    bool levelLoaded,
-                                    int optionsCount,
-                                    int& levelIndex,
-                                    int levelsCount,
-                                    const Layout& L)
+    MainMenu::Action Update(State& s, float dt, bool levelLoaded, int optionsCount, int& levelIndex, int levelsCount, const Layout& L)
     {
+
+        auto SplitLevelRow = [&](Rectangle rLevel, Rectangle& rMinus, Rectangle& rCenter, Rectangle& rPlus)
+        {
+            float sideW = rLevel.height; // square buttons
+
+            rMinus  = { rLevel.x, rLevel.y, sideW, rLevel.height };
+            rPlus   = { rLevel.x + rLevel.width - sideW, rLevel.y, sideW, rLevel.height };
+            rCenter = { rLevel.x + sideW, rLevel.y, rLevel.width - sideW*2.0f, rLevel.height };
+        };
+
 
         if (s.showControls && IsKeyPressed(KEY_ESCAPE))
         {
@@ -525,8 +530,9 @@ namespace MainMenu
                     if (playerInit && levelIndex == gCurrentLevelIndex) return Action::Resume;
                     return Action::StartGame;
                 case 1:
-                    if (levelsCount > 0) levelIndex = (levelIndex + 1) % levelsCount;
-                    if (!s.showPreview) s.showPreview = true;
+                    //Handled below. Special case for splitting button into 3. 
+                    //if (levelsCount > 0) levelIndex = (levelIndex + 1) % levelsCount;
+                    //if (!s.showPreview) s.showPreview = true;
                     return Action::CycleLevel;
                 case 2: 
                     s.showControls = !s.showControls;
@@ -568,6 +574,39 @@ namespace MainMenu
 
         if (hovered != -1 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
+            // Special handling for the Level row: split into (-) [center] (+)
+            if (hovered == 1 && levelsCount > 0)
+            {
+                Rectangle rMinus, rCenter, rPlus;
+                SplitLevelRow(L.selectable[1], rMinus, rCenter, rPlus);
+
+                if (CheckCollisionPointRec(m, rMinus))
+                {
+                    // back
+                    levelIndex = (levelIndex - 1 + levelsCount) % levelsCount;
+                    if (!s.showPreview) s.showPreview = true;
+                    TriggerPress();
+                    return Action::CycleLevel;
+                }
+                else if (CheckCollisionPointRec(m, rPlus))
+                {
+                    // forward
+                    levelIndex = (levelIndex + 1) % levelsCount;
+                    if (!s.showPreview) s.showPreview = true;
+                    TriggerPress();
+                    return Action::CycleLevel;
+                }
+                else if (CheckCollisionPointRec(m, rCenter))
+                {
+                    //clicking the center also cycles forward
+                    levelIndex = (levelIndex + 1) % levelsCount;
+                    if (!s.showPreview) s.showPreview = true;
+                    TriggerPress();
+                    return Action::CycleLevel;
+                }
+            }
+
+            // All other buttons behave as before
             TriggerPress();
             return ActivateSelected();
         }
@@ -644,6 +683,14 @@ namespace MainMenu
         Rectangle rFull     = MakeButtonRect(menuX, baseY + gapY*3.0f, btnW, btnH);
         Rectangle rQuit     = MakeButtonRect(menuX, baseY + gapY*4.0f, btnW, btnH); 
 
+        // Split Level row into (-) [center] (+)
+        float sideW = rLevel.height; // square mini-buttons
+
+        Rectangle rLevelMinus  = { rLevel.x, rLevel.y, sideW, rLevel.height };
+        Rectangle rLevelPlus   = { rLevel.x + rLevel.width - sideW, rLevel.y, sideW, rLevel.height };
+        Rectangle rLevelCenter = { rLevel.x + sideW, rLevel.y, rLevel.width - sideW*2.0f, rLevel.height };
+
+
         Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
 
         // Button labels
@@ -661,12 +708,27 @@ namespace MainMenu
         bool selControls = (s.selectedOption == 2);
         bool selFull     = (s.selectedOption == 3);
         bool selQuit     = (s.selectedOption == 4);
+
+        Vector2 m = GetMousePosition();
+        bool hovMinus  = CheckCollisionPointRec(m, rLevelMinus);
+        bool hovPlus   = CheckCollisionPointRec(m, rLevelPlus);
+        bool hovCenter = CheckCollisionPointRec(m, rLevelCenter);
+
+        // If you want hover to highlight these even if your Update sets selectedOption to -1 sometimes:
+        bool selLevelMinus  = hovMinus;
+        bool selLevelPlus   = hovPlus;
+        bool selLevelCenter = hovCenter || (s.selectedOption == 1); // center highlights if row selected
+
         
 
         // Example: blink highlight off for Level when pressed
         if (s.pressFlash[1] > 0.05f)
         {
             selLevel = false;
+            selLevelMinus = false;
+            selLevelPlus = false;
+            //selLevelCenter = false; //looks better without the center flashing. 
+
         }
 
 
@@ -702,7 +764,7 @@ namespace MainMenu
 
         // Draw selectable buttons (highlight only these)
         DrawMenuButtonRounded(rStart, selStart);
-        DrawMenuButtonRounded(rLevel, selLevel);
+        //DrawMenuButtonRounded(rLevel, selLevel); //split this into two buttons some how. 
         DrawMenuButtonRounded(rControls, selControls);
         DrawMenuButtonRounded(rFull,  selFull);
         DrawMenuButtonRounded(rQuit,  selQuit);
@@ -710,10 +772,25 @@ namespace MainMenu
         // Centered text
 
         DrawCarvedText(pieces, lblStart, rStart, menuFontSizeF, menuSpacing, false, selStart);
-        DrawCarvedText(pieces, lblLevel, rLevel, menuFontSizeF, menuSpacing, false, selLevel);
+        //DrawCarvedText(pieces, lblLevel, rLevel, menuFontSizeF, menuSpacing, false, selLevel);
         DrawCarvedText(pieces, lblControls,  rControls,  menuFontSizeF, menuSpacing, false, selControls);
         DrawCarvedText(pieces, lblFull,  rFull,  menuFontSizeF, menuSpacing, false, selFull);
         DrawCarvedText(pieces, lblQuit,  rQuit,  menuFontSizeF, menuSpacing, false, selQuit);
+
+
+
+        // Draw center "Level" button + mini +/- buttons
+        DrawMenuButtonRounded(rLevelCenter, selLevelCenter);
+        DrawMenuButtonRounded(rLevelMinus,  selLevelMinus);
+        DrawMenuButtonRounded(rLevelPlus,   selLevelPlus);
+
+        // Center label
+        DrawCarvedText(pieces, lblLevel, rLevelCenter, menuFontSizeF, menuSpacing, false, selLevelCenter);
+
+        // Mini labels (+ / -) — slightly bigger usually looks nice
+        float pmFont = menuFontSizeF; // or menuFontSizeF * 1.1f
+        DrawCarvedText(GetFontDefault(), "-", rLevelMinus, pmFont, menuSpacing, false, selLevelMinus);
+        DrawCarvedText(GetFontDefault(), "+", rLevelPlus,  pmFont, menuSpacing, false, selLevelPlus);
     }
 }
 

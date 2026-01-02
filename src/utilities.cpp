@@ -103,6 +103,57 @@ float DistXZ(const Vector3& a, const Vector3& b) {
     return sqrtf(dx*dx + dz*dz);
 }
 
+Vector3 ClampXZ(Vector3 v, float maxLen)
+{
+    v.y = 0.0f;
+    float l = sqrtf(v.x*v.x + v.z*v.z);
+    if (l < 1e-5f) return {0,0,0};
+    if (l <= maxLen) return v;
+    float s = maxLen / l;
+    return { v.x*s, 0.0f, v.z*s };
+}
+
+Vector3 RandomPointOnHeightmapRingXZ(
+    const Vector3& center,
+    float minR,
+    float maxR,
+    int terrainWidthPx,
+    float terrainScale,
+    float edgeMargin
+){
+    // --- safety ---
+    if (minR < 0) minR = 0;
+    if (maxR < minR) maxR = minR;
+
+    // Random angle
+    float a = Rand01() * 2.0f * PI;
+
+    // Uniform distribution over ring area
+    float t = Rand01();
+    float r = sqrtf(minR*minR + (maxR*maxR - minR*minR) * t);
+
+    Vector3 p = center;
+    p.x += cosf(a) * r;
+    p.z += sinf(a) * r;
+    p.y  = center.y;
+
+    // --- centered terrain bounds ---
+    float worldW   = (terrainWidthPx - 1) * terrainScale;
+    float halfW    = worldW * 0.5f;
+
+    float minX = -halfW + edgeMargin;
+    float maxX =  halfW - edgeMargin;
+    float minZ = -halfW + edgeMargin;
+    float maxZ =  halfW - edgeMargin;
+
+    // Clamp into bounds
+    p.x = Clamp(p.x, minX, maxX);
+    p.z = Clamp(p.z, minZ, maxZ);
+
+    return p;
+}
+
+
 // Pick a random point on a ring [minR, maxR] around 'center' (XZ only)
 Vector3 RandomPointOnRingXZ(const Vector3& center, float minR, float maxR) {
     float angle = Rand01() * 2.0f * PI;

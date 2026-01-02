@@ -182,7 +182,7 @@ void DoorCollision(){
             }
 
             for (Character* enemy : enemyPtrs){
-                if (door.isOpen && CheckCollisionBoxSphere(side, enemy->position, enemy->radius)){
+                if ((door.isOpen || door.window) && CheckCollisionBoxSphere(side, enemy->position, enemy->radius)){
                     ResolveBoxSphereCollision(side, enemy->position, enemy->radius);
                 }
             }
@@ -208,7 +208,7 @@ void WallCollision(){
         }
     }
 
-    for (InvisibleWall& iw : invisibleWalls){
+    for (InvisibleWall& iw : invisibleWalls){ //not fully implemented. 
         //if (!iw.enabled) continue;
 
         if (CheckCollisionBoxSphere(iw.tileBounds, player.position, player.radius)) { //player wall collision
@@ -532,6 +532,21 @@ void CheckBulletHits(Camera& camera) {
                 //damage delt elseware
                 continue;
             }
+
+            if (b.type == BulletType::Iceball){
+
+                if (player.state != PlayerState::Frozen && player.canFreeze){
+                    player.state = PlayerState::Frozen;
+                    player.canFreeze = false;
+                    b.Explode(camera);
+                    b.alive = false; //kill the bullet
+                    player.freezeTimer = 1.5f;
+
+                }
+
+                continue;
+            }
+
             if (b.IsEnemy()) {
 
                 b.BulletHole(camera); //show bullet whole decal infront of player. 
@@ -592,8 +607,7 @@ void CheckBulletHits(Camera& camera) {
                         // enemy->ChangeState(CharacterState::Stagger); 
 
                         // PULL ENEMY 
-                        if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Skeleton || 
-                            enemy->type == CharacterType::Pirate || enemy->type == CharacterType::GiantSpider || enemy->type == CharacterType::Spider){
+                        if (enemy->type != CharacterType::Trex){
                             enemy->harpoonTarget = player.position;
                             enemy->ChangeState(CharacterState::Harpooned);
                             SoundManager::GetInstance().Play("ratchet");
@@ -614,7 +628,7 @@ void CheckBulletHits(Camera& camera) {
                     break;
 
                 }else if (b.type == BulletType::Iceball){
-                    //enemy->TakeDamage(25);
+ 
                     enemy->ChangeState(CharacterState::Freeze);
                     b.pendingExplosion = true;
                     b.explosionTimer = 0.04f;
@@ -631,7 +645,7 @@ void CheckBulletHits(Camera& camera) {
         }
 
 
-        for (SpiderEgg& egg : eggs){
+        for (SpiderEgg& egg : eggs){ //should you be able to harpoon eggs?
             if (CheckCollisionBoxSphere(egg.collider, b.position, b.radius)){
                 if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
                     DamageSpiderEgg(egg, 100, player.position);

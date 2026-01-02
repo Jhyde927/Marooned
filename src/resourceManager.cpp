@@ -312,7 +312,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("crossbowRest",           "assets/Models/crossbowRest.glb");
     R.LoadModel("bolt",                   "assets/Models/bolt.glb");
     R.LoadModel("windowedWall",           "assets/Models/windowedWall.glb");
-    R.LoadModel("windowWay",              "assets/Models/windowHole.glb");
+    R.LoadModel("windowWay",              "assets/Models/windowHoleSquare.glb");
 
     //generated models
 
@@ -758,6 +758,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
     int fogStartLoc = GetShaderLocation(treeShader, "u_FogStart");
     int tFogStartLoc = GetShaderLocation(terrainShader, "u_FogStart");
+    int vignettModeLoc = GetShaderLocation(fogShader, "vignetteMode");
 
     float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
     SetShaderValue(treeShader, fogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
@@ -776,6 +777,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
 
     //red vignette intensity over time
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "vignetteIntensity"), &vignetteIntensity, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(fogShader, vignettModeLoc, &vignetteMode, SHADER_UNIFORM_INT);
 
     //dungeonDarkness //is there a reason we need to set these every frame? 
     float dungeonDarkness = -0.1f;//it darkens the gun model as well, so go easy. negative number brightens it. 

@@ -56,7 +56,7 @@ void GatherEnemies(Camera& camera) {
 
         // Decide flipping for strafing, Raptors and pirates. 
         bool flipX = false;
-        if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Pirate){
+        if (enemy->type == CharacterType::Raptor || enemy->type == CharacterType::Pirate || enemy->type == CharacterType::Pterodactyl){
             if (enemy->facingMode == FacingMode::Strafing) {
                 flipX = (enemy->strafeSideSign < 0.0f);
             }else{
@@ -380,15 +380,16 @@ void DrawTransparentDrawRequests(Camera& camera) {
                 if (req.isPortal) BeginShaderMode(R.GetShader("portalShader")); 
 
                 float doorWidth  = req.size;    // what we pushed from GatherDoors
-                float doorHeight = 365.0f;      
-                DrawFlatDoor(
-                    (req.texture), 
-                    req.position, 
-                    doorWidth, 
-                    doorHeight, 
-                    req.rotationY, 
-                    req.isOpen,
-                    req.tint);
+                float doorHeight = 365.0f;
+                if (req.isOpen){
+                    rlDisableDepthMask();  // depth writes OFF, Open doors were occluding enemy billboards, so don't write to depth.
+                    DrawFlatDoor( (req.texture),  req.position,  doorWidth,  doorHeight,  req.rotationY,  req.isOpen, req.tint);
+                    rlEnableDepthMask();
+                }else{
+                    rlEnableDepthMask();
+                    DrawFlatDoor( (req.texture),  req.position,  doorWidth,  doorHeight,  req.rotationY,  req.isOpen, req.tint);
+                }      
+                
                 break;
         }
         EndShaderMode();

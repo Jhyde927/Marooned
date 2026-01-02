@@ -57,6 +57,7 @@ extern int pendingLevelIndex;
 extern float fadeToBlack;
 extern float vignetteIntensity;
 extern float vignetteFade;
+extern int  vignetteMode;
 extern float boatSpeed;
 extern float waterHeightY;
 extern float ceilingHeight;
@@ -82,7 +83,6 @@ extern bool levelLoaded;
 extern bool isFullscreen;
 extern bool hasIslandNav;
 extern int gEnemyCounter;
-extern float debugDoorOpenAngleDeg;
 extern int gCurrentLevelIndex; //for resuming game
 extern bool quitQued;
 //extern float muzzleFlashTimer;

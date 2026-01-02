@@ -33,6 +33,7 @@ enum class Code {
     MagicStaffDarkRed,  // Dark Red (128,0,0)
     GhostVeryLightGray, // Very light grey (200,200,200)
     LauncherTrapVermillion, // Vermillion (255,66,52)
+    IceLauncher,             // ice blue (173, 216, 230)
     DirectionYellowish,     // Yellowish (200,200,0)
     TimingMediumYellow1,    // (200,50,0)
     TimingMediumYellow2,    // (200,100,0)
@@ -48,6 +49,8 @@ enum class Code {
     GrapplePoint,             //  { 70, 100, 130 } steel blue
     InvisibleWall,            // (255, 203, 164) Peach
     WindowedWall,             // (83, 104, 120) Payne's Gray
+    InvisibleLight,           // (255, 255, 100) lighter yellow
+    LavaGlow,                 // (178, 34, 34) fire brick
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -65,6 +68,7 @@ constexpr Color ColorOf(Code c) {
         case Code::Barrel:                 return Make(0, 0, 255);
         case Code::Skeleton:               return Make(255, 0, 0);
         case Code::Light:                  return Make(255, 255, 0);
+        case Code::InvisibleLight:         return Make(255, 255, 100);
         case Code::Doorway:                return Make(128, 0, 128);
         case Code::DoorPortal:             return Make(200, 0, 200);
         case Code::ExitTeal:               return Make(0, 128, 128);
@@ -96,6 +100,8 @@ constexpr Color ColorOf(Code c) {
         case Code::GrapplePoint:           return Make(70, 100, 130);
         case Code::InvisibleWall:          return Make(255, 203, 164);
         case Code::WindowedWall:           return Make(83, 104, 120);
+        case Code::IceLauncher:            return Make(173, 216, 230);
+        case Code::LavaGlow:               return Make(178, 34, 34);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

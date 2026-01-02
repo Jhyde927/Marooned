@@ -260,8 +260,11 @@ void main() {
 
         vec3 galaxyDir = normalize(vec3(-planetDir.x, planetDir.y, -planetDir.z));
 
-        float galaxyRadius = radians(2.5);
+        float galaxyRadius = radians(2.0);
         float galaxyEdge   = radians(1.2);
+
+        float galaxyTilt = 1.0;               // 0 = face-on, bigger = more edge-on
+        float galaxyAngle = radians(25.0);    // rotate the ellipse on the sky
 
         float cosG   = clamp(dot(dir, galaxyDir), -1.0, 1.0);
         float thetaG = acos(cosG);
@@ -280,6 +283,13 @@ void main() {
 
             vec2 uv = vec2(dot(dir, gRight), dot(dir, gUp));
 
+            // Rotate (optional) so the squash direction isn't locked to gUp
+            uv = rot2(uv, galaxyAngle);
+
+            // Squash/stretch to make an oblong/tilted disk
+            // Bigger galaxyTilt => more squished (more edge-on look)
+            uv.y *= (1.0 + galaxyTilt);
+
             float r = length(uv);
             float a = atan(uv.y, uv.x);
 
@@ -289,9 +299,9 @@ void main() {
             float core = exp(-rn * 6.0);
             core = pow(core, 1.2);
 
-            float arms     = 3.0;
-            float twist    = 3.0;
-            float armWidth = 0.35;
+            float arms     = 2.0;
+            float twist    = 4.0;
+            float armWidth = 1.5;
 
             float phase = a - twist * log(rn);
 

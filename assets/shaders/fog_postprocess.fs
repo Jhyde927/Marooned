@@ -9,7 +9,9 @@ uniform vec2 resolution;
 // NEW: base vignette (normal dark corners)
 uniform float baseVignetteStrength; // 0.0 = off, ~0.3–0.8 typical
 
-// Existing:
+// 0 = normal (red damage)
+// 1 = frozen (blue ice)
+uniform int vignetteMode;
 uniform float vignetteIntensity; // red damage vignette 0.0–1.0
 uniform float fadeToBlack;       // 0.0 = no fade, 1.0 = full black
 uniform float dungeonDarkness;   // 0.0 = normal, 1.0 = fully dark
@@ -29,7 +31,16 @@ void main()
     final = mix(final, vec3(0.0), vignette * baseVignetteStrength);
 
     // 2) Red vignette overlay (damage)
-    final = mix(final, vec3(1.0, 0.0, 0.0), vignette * vignetteIntensity);
+    //final = mix(final, vec3(1.0, 0.0, 0.0), vignette * vignetteIntensity);
+    
+    // 2) Damage / status vignette
+    vec3 vignetteColor = vec3(1.0, 0.0, 0.0); // red default
+
+    if (vignetteMode == 1) {
+        vignetteColor = vec3(0.2, 0.6, 1.0); // icy blue
+    }
+
+    final = mix(final, vignetteColor, vignette * vignetteIntensity);
 
     // 3) Fade to black
     final = mix(final, vec3(0.0), fadeToBlack);

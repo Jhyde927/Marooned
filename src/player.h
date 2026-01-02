@@ -8,7 +8,16 @@ extern Weapon weapon;
 extern MeleeWeapon meleeWeapon;
 extern MagicStaff magicStaff;
 
-enum class PlayerState { Normal, Grappling };
+enum class PlayerState { Normal, Grappling, Frozen};
+
+struct GroundHit
+{
+    bool  solid;     // snappable floor (not void/lava)
+    bool  lava;
+    bool  voidPit;
+    float groundY;   // what Y you'd snap to if solid
+};
+
 
 
 struct Player {
@@ -30,7 +39,7 @@ struct Player {
     const float DECEL_GROUND   = 7000.0f;   // how fast we slow to zero
     const float ACCEL_AIR      = 1500.0f;    // small air control
     const float FRICTION_AIR   = 0.01f;    // bleed a bit of air speed
-    const float GRAVITY        = -980.0f;
+    const float GRAVITY        = 850.0f;
 
     const float COYOTE_TIME    = 0.0f;  // grace after walking off ledge
     const float JUMP_BUFFER    = 0.05f;  // grace before touching ground
@@ -44,11 +53,13 @@ struct Player {
     int     grappleBulletId = -1;      // optional: link to the harpoon bullet
     float harpoonLifeTimer = 0.0;
 
+    float freezeTimer = 0.0f;
+    float canFreeze = true;
     int gold = 0;
     float displayedGold = 0.0f;
 
     bool running = false;
-    float runSpeed = 800.0f; // faster than walk speed
+    float runSpeed = 700.0f; // faster than walk speed
     float walkSpeed = 500.0f; // regular speed
     float startingRotationY = 0.0f; // in degrees
     float lightIntensity = 0.5f;
@@ -83,6 +94,7 @@ struct Player {
     bool disableMovement = false;
     bool blocking = false;
     bool isFallingIntoVoid = false;
+    bool godMode = false;
     
     float spreadMinDeg   = 1.5f;
     float spreadMaxDeg   = 6.0f;

@@ -53,6 +53,7 @@ float ceilingHeight = 480;
 float fadeToBlack = 0.0f;
 float vignetteIntensity = 0.0f;
 float vignetteFade = 0.0f;
+int vignetteMode = 0;
 float vignetteStrengthValue = 0.2;
 float bloomStrengthValue = 0.0;
 
@@ -77,7 +78,7 @@ float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
 int gEnemyCounter = 0;
-float debugDoorOpenAngleDeg = 0.0f;
+
 int gCurrentLevelIndex = -1;
 
 FadePhase gFadePhase = FadePhase::Idle;
@@ -199,7 +200,12 @@ void InitLevel(LevelData& level, Camera& camera) {
     generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances. 
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
-    //generateDactyls(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
+
+    if (levelIndex == 1 || levelIndex == 22){
+       generateDactyls(level.raptorCount, level.raptorSpawnCenter, 6000.0f);     
+    }
+
+
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
     GenerateEntrances();
 
@@ -404,7 +410,15 @@ void DrawEnemyShadows() {
 
     for (Character& enemy : enemies) {
         // Ideally, raycast to ground to get exact Y; add tiny epsilon to avoid z-fighting
-        Vector3 groundPos = { enemy.position.x, enemy.position.y - 40.1f, enemy.position.z };
+        Vector3 groundPos;
+        if (isDungeon) {
+            groundPos = { enemy.position.x, enemy.position.y - 40.0f, enemy.position.z };
+            
+        }else{
+            float ny = GetHeightAtWorldPosition(enemy.position, heightmap, terrainScale) + 10.0f;
+            groundPos = { enemy.position.x, ny, enemy.position.z };
+        }
+        
         if (enemy.type == CharacterType::Trex) groundPos.y -= 100; //half the frame height? 
         DrawModelEx(shadowModel, groundPos, {0,1,0}, 0.0f, {100,100,100}, BLACK);
     }
@@ -584,7 +598,8 @@ void generateDactyls(int amount, Vector3 centerPos, float radius) {
         Vector3 spawnPos = { x, 0.0f, z }; //random x, z  get height diferrently for dungeon
         
         float terrainHeight = GetHeightAtWorldPosition(spawnPos, heightmap, terrainScale);
-        if (terrainHeight <= 80.0f) continue; //try again
+        //if (terrainHeight <= 80.0f) continue; //try again
+        //dactyls can spawn over water
 
         float spriteHeight = 200 * 0.5f;
         spawnPos.y = terrainHeight + spriteHeight / 2.0f;
@@ -592,7 +607,7 @@ void generateDactyls(int amount, Vector3 centerPos, float radius) {
 
         Character dactyl(spawnPos, R.GetTexture("dactylSheet"), 512, 512, 1, 0.5f, 0.5f, 0, CharacterType::Pterodactyl);
         dactyl.scale = 0.4;
-        dactyl.maxHealth = 50; //one harpoon shot will kill it. otherwise we would have to figure out 3d grapple pull
+        dactyl.maxHealth = 100; //one harpoon shot will kill it. otherwise we would have to figure out 3d grapple pull
         dactyl.currentHealth = dactyl.maxHealth;
         dactyl.state == CharacterState::Idle;
         enemies.push_back(dactyl);
@@ -645,6 +660,7 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
         raptor.scale = 0.18;
         raptor.maxHealth = 150;
         raptor.currentHealth = raptor.maxHealth;
+        raptor.id++;
         enemies.push_back(raptor);
         enemyPtrs.push_back(&enemies.back()); 
         ++spawned;
@@ -917,6 +933,7 @@ void DrawReticle(WeaponType& weaponType){
 void UpdateWorldFrame(float dt, Player& player) {
     // Toggle mode
     if (IsKeyPressed(KEY_TAB) && debugInfo) {
+    
         auto m = CameraSystem::Get().GetMode();
         CameraSystem::Get().SetMode(m == CamMode::Player ? CamMode::Free : CamMode::Player);
         CameraSystem::Get().SnapAllToPlayer();

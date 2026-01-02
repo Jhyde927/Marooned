@@ -47,7 +47,7 @@ public:
     float timeSinceImpact = 0.0f;
     float timer;
     float gravity = 300.0f;
-    float radius = 25.0f;
+    float radius = 25.0f; //draw radius or collider radius? 
     float spinAngle = 0.0f;
     float size = 3.0f;
     
@@ -108,7 +108,7 @@ void ExplodeShrapnelSphere(Vector3 origin, int pelletCount =10,float speed = 200
 void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int pelletCount, float speed, float lifetime, bool enemy);
 void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy);
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher);
-void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy);
+void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher);
 void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);
 void FireCrossbowHarpoon(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);
 Vector3 GetHarpoonAnchor(const Camera& cam);

@@ -174,7 +174,11 @@ void Character::TakeDamage(int amount) {
             SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
         }
 
-        ChangeState(CharacterState::Stagger); //stagger last
+        //dont stagger if your frozen. 
+        if (state != CharacterState::Freeze){
+            ChangeState(CharacterState::Stagger); //stagger last
+        }
+
         
     }
 }
@@ -195,6 +199,43 @@ void Character::eraseCharacters() {
     }
 }
 
+void Character::UpdateAltitude(float dt, float groundY, float desiredAltitude)
+{
+    // desiredAltitude is “meters above ground”
+    const float MAX_CLIMB_SPEED = 800.0f;   // units/sec
+    const float MAX_CLIMB_ACCEL = 2000.0f;  // units/sec^2
+    const float MAX_DIVE_SPEED  = 2200.0f;  // going down (much faster)
+    const float MAX_DIVE_ACCEL = 6000.0f;
+
+    float targetY = groundY + desiredAltitude;
+
+    float dy = targetY - position.y;
+
+    // Desired vertical velocity (simple P controller, capped)
+    // float desiredVY = Clamp(dy * 2.0f, -MAX_CLIMB_SPEED, MAX_CLIMB_SPEED);
+    float desiredVY = dy * 2.0f;
+
+    if (desiredVY > 0)
+        desiredVY = Clamp(desiredVY, 0.0f, MAX_CLIMB_SPEED);
+    else
+        desiredVY = Clamp(desiredVY, -MAX_DIVE_SPEED, 0.0f);
+
+    // Accelerate verticalVel toward desiredVY
+    //float ay = Clamp(desiredVY - verticalVel, -MAX_CLIMB_ACCEL, MAX_CLIMB_ACCEL);
+    float maxAccel = (desiredVY < verticalVel) ? MAX_DIVE_ACCEL : MAX_CLIMB_ACCEL;
+    float ay = Clamp(desiredVY - verticalVel, -maxAccel, maxAccel);
+    verticalVel += ay * dt;
+    position.y  += verticalVel * dt;
+
+    // optional: dead-zone stop
+    if (fabsf(dy) < 5.0f && fabsf(verticalVel) < 5.0f)
+    {
+        position.y = targetY;
+        verticalVel = 0.0f;
+    }
+}
+
+
 
 
 void Character::Update(float deltaTime, Player& player ) {
@@ -207,13 +248,16 @@ void Character::Update(float deltaTime, Player& player ) {
     if (raptorSoundCooldown < 0) raptorSoundCooldown = 0;
 
     spriteHeight = frameHeight * scale;
-    if (!isDungeon) ApplyGroundSnap();
+    if (!isDungeon && type != CharacterType::Pterodactyl) ApplyGroundSnap();
 
     float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale); //get groundY from heightmap
+    if (type == CharacterType::Pterodactyl){
+        if (GetFeetPos().y < groundY) SetFeetPos(Vector3 {position.x, groundY, position.z}); //prevent dactyls from going underground
+    }
+
+
     if (isDungeon)
     {
-        
-
         // 2) If standing over lava, define the lava "sink floor"
         if (overLava || overVoid)
         {
@@ -544,11 +588,11 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Stagger: 
                     return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
 
-                case CharacterState::Idle: return {0, 1, 1.0f, true};
-                case CharacterState::Attack: return {2, 4, 0.2f, false};  
+                case CharacterState::Idle: return {0, 5, 0.2f, true};
+                case CharacterState::Attack: return {2, 5, 0.2f, false};  
                 case CharacterState::Death:  return {4, 5, 0.2f, false};
                 
-                default:                     return {0, 1, 1.0f, true};
+                default:                     return {0, 5, 0.2f, true};
             }
 
         case CharacterType::Skeleton:

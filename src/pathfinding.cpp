@@ -100,10 +100,11 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool yellow  = (c.r == 255 && c.g == 255 && c.b == 0);   // light pedestals
             bool skyBlue = (c.r == 0 && c.g == 128 && c.b == 255);   // chests
             bool purple  = (c.r == 128 && c.g == 0 && c.b == 128);   // closed doors
+            bool window   = (c.r == 83 && c.g == 104 && c.b == 120);  //closed window
             bool aqua    = (c.r == 0 && c.g == 255 && c.b == 255);   // locked doors
             bool lava     = (c.r == 200 && c.g == 0 && c.b == 0);    // lava pit
 
-            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava);
+            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window);
         }
     }
 }
@@ -156,10 +157,11 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
     bool yellow   = (c.r == 255 && c.g == 255 && c.b == 0);   // light pedestals
     bool skyBlue  = (c.r == 0 && c.g == 128 && c.b == 255);   // chests 
     bool purple   = (c.r == 128 && c.g == 0 && c.b == 128);   // closed doors
+    bool window   = (c.r == 83 && c.g == 104 && c.b == 120);  //closed window
     bool aqua     = (c.r == 0 && c.g == 255 && c.b == 255);   // locked doors
     bool lava     = (c.r == 200 && c.g == 0 && c.b == 0);     // lava
 
-    return !(black || blue || yellow || skyBlue || purple || aqua || lava);
+    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window);
 }
 
 extern std::vector<std::vector<bool>> walkable;
@@ -415,7 +417,7 @@ bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction, LOSMod
     if (mode == LOSMode::AI) {
         // For AI vision, a CLOSED door panel blocks. (Open doors do not.)
         for (const Door& door : doors) {
-            if (!door.isOpen) {
+            if (!door.isOpen || door.window) { 
                 RayCollision hit = GetRayCollisionBox(ray, door.collider);
                 if (hit.hit && hit.distance + epsilon < maxDistance) return false;
             }

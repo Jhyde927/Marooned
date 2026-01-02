@@ -525,7 +525,7 @@ void MagicStaff::Fire(const Camera& camera) {
     if (magicType == MagicType::Fireball){
         FireFireball(muzzlePos, targetPoint, 2000, 10, false, false);
     }else{
-        FireIceball(muzzlePos, targetPoint, 2000, 10, false);
+        FireIceball(muzzlePos, targetPoint, 2000, 10, false, false);
     }
     
     

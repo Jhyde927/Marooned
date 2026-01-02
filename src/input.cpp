@@ -27,9 +27,6 @@ void debugControls(Camera& camera, float deltaTime){
             player.hasSilverKey = true;
         }
 
-        if (IsKeyDown(KEY_O)) debugDoorOpenAngleDeg += 60.0f * GetFrameTime();  // open more
-        if (IsKeyDown(KEY_P)) debugDoorOpenAngleDeg -= 60.0f * GetFrameTime();  // close
-
         if (IsKeyPressed(KEY_L)) {
 
             std::cout << "Player Position: ";

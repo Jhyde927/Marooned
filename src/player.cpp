@@ -12,6 +12,7 @@
 #include "weapon.h"
 #include "camera_system.h"
 #include "array"
+#include "utilities.h"
 
 Weapon weapon;
 MeleeWeapon meleeWeapon;
@@ -50,43 +51,105 @@ void InitPlayer(Player& player, Vector3 startPosition) {
     
 }
 
+static inline Vector3 FootSample(const Player& p, float offX, float offZ)
+{
+    Vector3 s = p.position;
+    s.y = player.position.y - player.height / 2.0f; //feet position
+    s.x += offX;
+    s.z += offZ;
+    // y not needed for tile lookup; keep it for completeness
+    return s;
+}
+
 void UpdatePlayerGrapple(Player& player, float dt)
 {
+    //try making player not grounded when grappling. shouldn't matter that code doesn't run. 
     if (player.state != PlayerState::Grappling) return;
 
-    if (player.harpoonLifeTimer > 0.0f) {
-        player.harpoonLifeTimer -= dt;
-    }else {
-        player.harpoonLifeTimer = 0.0f;
-    }
+    player.harpoonLifeTimer = (player.harpoonLifeTimer > 0.0f)
+        ? (player.harpoonLifeTimer - dt)
+        : 0.0f;
 
-    if (player.harpoonLifeTimer <= 0){
+    if (player.harpoonLifeTimer <= 0.0f)
+    {
         player.state = PlayerState::Normal;
         return;
     }
 
-    Vector3 toTarget = Vector3Subtract(player.grappleTarget, player.position);
-    float dist = Vector3Length(toTarget);
-    // Stop condition
-    if (dist <= player.grappleStopDist) {
+    // --- XZ-only chase ---
+    // float keepY = player.position.y; // preserve current vertical
+
+    Vector3 target = player.grappleTarget;
+    // target.y = keepY;                // force same Y
+
+    float dist = DistXZ(target, player.position);
+
+    if (dist <= player.grappleStopDist)
+    {
         player.state = PlayerState::Normal;
         player.velocity = {0,0,0};
         player.grappleBulletId = -1;
         return;
     }
 
-    Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+    player.position.y -= (player.GRAVITY * 0.125) * dt; // a wee bit of gravity
+
+    Vector3 toTarget = Vector3Subtract(target, player.position);
+    toTarget.y = 0.0f; // extra safety
+
+    // Normalize in XZ
+    float invDist = 1.0f / dist;
+    Vector3 dir = { toTarget.x * invDist, 0.0f, toTarget.z * invDist };
+
     float step = player.grappleSpeed * dt;
+    if (step > dist) step = dist; // avoid overshoot
 
-
-    // Move player
-    player.position = Vector3Add(player.position, Vector3Scale(dir, step));
-
-    // Optional: zero out velocity if your controller uses velocity
+    player.position.x += dir.x * step;
+    player.position.z += dir.z * step;
+    //player.position.y = keepY;    // keep locked
+    
     player.velocity = {0,0,0};
+}
+
+
+
+// void UpdatePlayerGrapple(Player& player, float dt)
+// {
+//     if (player.state != PlayerState::Grappling) return;
+
+//     if (player.harpoonLifeTimer > 0.0f) {
+//         player.harpoonLifeTimer -= dt;
+//     }else {
+//         player.harpoonLifeTimer = 0.0f;
+//     }
+
+//     if (player.harpoonLifeTimer <= 0){
+//         player.state = PlayerState::Normal;
+//         return;
+//     }
+
+//     Vector3 toTarget = Vector3Subtract(player.grappleTarget, player.position);
+//     float dist = Vector3Length(toTarget);
+//     // Stop condition
+//     if (dist <= player.grappleStopDist) {
+//         player.state = PlayerState::Normal;
+//         player.velocity = {0,0,0};
+//         player.grappleBulletId = -1;
+//         return;
+//     }
+
+//     Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+//     float step = player.grappleSpeed * dt;
+
+
+//     // Move player
+//     player.position = Vector3Add(player.position, Vector3Scale(dir, step));
+
+//     // Optional: zero out velocity if your controller uses velocity
+//     player.velocity = {0,0,0};
 
     
-}
+// }
 
 
 
@@ -166,8 +229,19 @@ void HandlePlayerMovement(float deltaTime){
     player.velocity.x = approach(player.velocity.x, desiredVel.x, (fabsf(desiredVel.x) > 0.001f) ? accel : decel, dt);
     player.velocity.z = approach(player.velocity.z, desiredVel.z, (fabsf(desiredVel.z) > 0.001f) ? accel : decel, dt);
 
+    
+    const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
+
     // --- gravity
-    if (player.state != PlayerState::Grappling) player.velocity.y += player.GRAVITY * dt;
+    if (player.state != PlayerState::Grappling){
+
+        float g = player.GRAVITY;               // e.g. 2400 (your units)
+        //if (falling) g = player.GRAVITY*2.5;     // e.g. 2.2f
+
+        player.velocity.y -= g * dt;
+        //player.position.y += player.velocity.y * dt;
+        //player.velocity.y += player.GRAVITY * dt;
+    } 
 
     HandleJumpButton(GetTime());
     
@@ -587,7 +661,12 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     UpdateFootsteps(deltaTime);
 
     UpdateBlockHitbox(player, 250, 300, 100);
-    vignetteFade += deltaTime * 2.0f; 
+    if (player.state == PlayerState::Frozen){
+        vignetteFade += deltaTime * 0.25; //keep vignette for longer if frozen
+    }else{
+        vignetteFade += deltaTime * 2.0f; 
+    }
+
     vignetteIntensity = Clamp(1.0f - vignetteFade, 0.0f, 1.0f);
     
     //FOV punch on hit
@@ -659,6 +738,8 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     }
 
+
+
     //PLAYER MOVEMENT KEYBOARD INPUT
     if (controlPlayer){
         HandleKeyboardInput(camera);
@@ -666,27 +747,97 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         if (player.state == PlayerState::Grappling) {
             UpdatePlayerGrapple(player, deltaTime);
             // skip normal movement update
-        } else {
+        } else if (player.state == PlayerState::Frozen){
+            if (player.freezeTimer > 0.0){
+                player.freezeTimer -= deltaTime;
+
+            }else{
+                player.state = PlayerState::Normal;
+                player.freezeTimer = 0.0f;
+                player.canFreeze = true;
+            }
+
+
+        }else{
             if (!player.onBoard) HandlePlayerMovement(deltaTime);
-        }
-        
+        } 
     } 
 
     // === Ground Check ===
-    player.groundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
+    //player.groundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
+    float feetY = player.position.y - player.height / 2.0f;
+    // === Ground Check (multi-sample) ===
+    float footOff = 30.0f; // tune: 50–80
+
+    Vector3 samples[5] = {
+        FootSample(player,  0,        0),
+        FootSample(player, +footOff,  0),
+        FootSample(player, -footOff,  0),
+        FootSample(player,  0,       +footOff),
+        FootSample(player,  0,       -footOff),
+    };
+
+    // Start with something sensible
+    float bestGroundY = -99999.0f;
+
+    // (Optional) if you want to know if ANY foot is over void/lava
+    bool anyOverVoid = false;
+    bool anyOverLava = false;
+
+    for (Vector3 p : samples)
+    {
+        float gy = 0.0f;
+
+        if (!isDungeon)
+        {
+            gy = GetHeightAtWorldPosition(p, heightmap, terrainScale);
+        }
+        else
+        {
+            // In dungeons the "ground" is basically your floor height,
+            // but you likely ALSO want to evaluate which tile you're over
+            // (void/lava) per-foot, not just at player center.
+            gy = floorHeight;
+
+            // If you have a function that checks the dungeon tile at world XZ:
+            // (you probably do, since you already have player.overVoid/overLava)
+            // Replace these with your own:
+            float x = GetDungeonImageX(p.x, tileSize, dungeonWidth);
+            float y = GetDungeonImageY(p.z, tileSize, dungeonHeight);
+
+
+            bool overVoid = IsVoid(x, y);
+            bool overLava = IsLava(x, y);
+
+            if (overLava) { gy -= LAVA_DROP; anyOverLava = true; }
+            if (overVoid) { gy -= VOID_DROP; anyOverVoid = true; }
+        }
+
+        if (gy > bestGroundY) bestGroundY = gy;
+    }
+
+    player.groundY = bestGroundY;
+
+    // If you want your existing logic to still work:
+    if (isDungeon)
+    {
+        player.overVoid = anyOverVoid;
+        player.overLava = anyOverLava;
+    }
+
 
     if (isDungeon)
     {
-        player.groundY = dungeonPlayerHeight;
+        //player.groundY = dungeonPlayerHeight;
 
-        if (player.overLava)
-            player.groundY -= LAVA_DROP;
+        // if (player.overLava)
+        //     player.groundY -= LAVA_DROP;
 
-        if (player.overVoid)
-            player.groundY -= VOID_DROP;
+        // if (player.overVoid)
+        //     player.groundY -= VOID_DROP;
     }
 
-    float feetY = player.position.y - player.height / 2.0f;
+    
 
     // --- VOID FALL LATCH ---
     // If we ever detect void under us, commit to falling until death (or until you explicitly clear it).
@@ -708,10 +859,6 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
             // player.isFallingIntoVoid = false;
         }
 
-        // Optional escape hatch:
-        // If you want to allow recovery (like falling into a lower playable area),
-        // only re-enable snapping when you're already very near the computed groundY.
-        // That prevents teleporting upward from deep below.
         if (!player.overVoid)
         {
             float snapDelta = (player.groundY + player.height / 2.0f) - player.position.y;
@@ -725,12 +872,13 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         // Important: skip the normal snap logic entirely this frame.
     }
     else
-    {
+    {   //GROUND CHECK
+        const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
         // Normal ground snapping logic (unchanged)
-        if (feetY <= player.groundY + 5.0f)
+        if (feetY <= player.groundY + 5.0f && falling)
         {
             player.grounded = true;
-            player.velocity.y = 0;
+            player.velocity.y = 0.0f; 
             player.position.y = player.groundY + player.height / 2.0f;
         }
         else
@@ -744,8 +892,9 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 }
 
 void Player::TakeDamage(int amount){
-  
-    CameraSystem::Get().Shake(0.003f, 0.25f); // 0.003 barely perceptable
+    if (godMode) return;
+
+    CameraSystem::Get().Shake(0.004f, 0.25f); // 0.004 barely perceptable
 
     if (!player.dying && !player.dead) {
         player.currentHealth -= amount;
@@ -757,8 +906,13 @@ void Player::TakeDamage(int amount){
         }
     }
     hitTimer = 0.15;
-    vignetteIntensity = 1.0f;
-    vignetteFade = 0.0f;
+    if (player.state == PlayerState::Frozen) {
+        vignetteMode = 1;
+        vignetteIntensity = 1.0f;
+        vignetteFade = 0.0f;
+    } else {
+        vignetteMode = 0;
+    }
 
     if (rand() % 2 == 0){
         SoundManager::GetInstance().Play("phit1");

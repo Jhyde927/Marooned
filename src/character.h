@@ -71,7 +71,8 @@ public:
     float raptorSoundCooldown = 0.0f;
     Vector3 patrolTarget{0,0,0};
     bool hasPatrolTarget = false;
-    float wanderAngle = 0.0f;    
+    float wanderAngle = 0.0f;
+    Vector3 velocity = {0,0,0};     // steering velocity (world units/sec) flying enemies    
     bool isDead = false;
     bool hasFired = false;
     bool animationLoop;
@@ -123,7 +124,6 @@ public:
     float harpoonDuration = 2.0f;
     float harpoonMinDist  = 175.0f; // stop just in front of player
 
-
     int   navPathIndex = -1;        // current waypoint
     bool  navHasPath   = false;     // are we using nav path for this chase?
 
@@ -131,6 +131,11 @@ public:
     float navRepathTimer = 0.0f;
     static constexpr float NAV_REPATH_INTERVAL = 1.5f; // seconds, tweak
 
+    //dactyl
+    float verticalVel   = 0.0f;   // Y velocity
+    float desiredAlt    = 0.0f;   // target altitude above ground
+    bool  inAir         = false;  // optional latch: are we airborne?
+    float patrolAlt     = 1200.0f;
 
 
 
@@ -152,6 +157,7 @@ public:
     void UpdateTrexAI(float deltaTime, Player& player);
     void UpdateRaptorAI(float deltaTime, Player& player);
     void UpdateDactylAI(float deltaTime, Player& player);
+    void UpdateAltitude(float dt, float groundY, float desiredAltitude);
     void UpdateAI(float deltaTime, Player& player); 
     void UpdateSkeletonAI(float deltaTime, Player& player);
     void UpdateGiantSpiderAI(float deltaTime, Player& player);
@@ -160,7 +166,8 @@ public:
     bool FindRepositionTarget(const Player& player, const Vector3& selfPos, Vector3& outTarget);
     void AlertNearbySkeletons(Vector3 alertOrigin, float radius);
     void UpdateRaptorVisibility(const Player& player, float dt);
-
+    void UpdatePatrolSteering(float dt);
+    void UpdateChaseSteering(float dt);
     void SetPath(Vector2 start);
     void UpdateMovementAnim();
     void SetPathTo(const Vector3& goalWorld);
@@ -176,6 +183,7 @@ public:
     bool MoveAlongPath(std::vector<Vector3>& path, Vector3& pos, float& yawDeg,float speed, float dt, float arriveEps = 100.0f, Vector3 repulsion = {});
     void UpdatePatrol(float deltaTime);
     void UpdateRunaway(float deltaTime);
+    void UpdateRunawaySteering(float dt);
     void UpdateChase(float deltaTime);
     void UpdateTrexStepSFX(float dt);
 

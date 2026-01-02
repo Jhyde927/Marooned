@@ -296,8 +296,12 @@ Vector3 FindSpawnPoint(Color* pixels, int width, int height, float tileSize, flo
 
 int Idx(int x, int y) { return y * dungeonWidth + x; }
 
-inline bool IsLava(int gx, int gy) {
+bool IsLava(int gx, int gy) {
     return lavaMask[Idx(gx,gy)] != 0;
+}
+
+bool IsVoid(int gx, int gy) {
+    return voidMask[Idx(gx,gy)] != 0;
 }
 
 void GenerateCeilingTiles(float ceilingOffsetY) {
@@ -682,7 +686,7 @@ void GenerateDoorsFromArchways() {
             windowColliders.push_back(wc);
             Door door{}; //dummy door to give side colliders to windows 
             door.sideColliders = dw.sideColliders;
-            door.isOpen = true; //side colliders are only active if the door is open. 
+            door.isOpen = false; //side colliders are only active if the door is open. 
             doors.push_back(door);
             
             continue; 
@@ -696,7 +700,7 @@ void GenerateDoorsFromArchways() {
         door.eventLocked = dw.eventLocked;
         door.isLocked = dw.isLocked;
         door.requiredKey = dw.requiredKey;
-
+        door.window = dw.window;
         door.doorTexture = R.GetTexture("doorTexture");
         door.scale = {300, 365, 1}; //stretch it taller
         door.tileX = dw.tileX;
@@ -986,7 +990,18 @@ void GenerateLaunchers(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
             // Vermilion trap pixel
-            if (!(current.r == 255 && current.g == 66 && current.b == 52)) continue; //if not vermillion try again. 
+            //if (!(current.r == 255 && current.g == 66 && current.b == 52)) continue; //if not vermillion try again. 
+
+            TrapType trapType;
+            if (current.r == 255 && current.g == 66 && current.b == 52) {
+                trapType = TrapType::fireball;
+            }//(173, 216, 230)
+            else if (current.r == 173 && current.g == 216 && current.b == 230) {
+                trapType = TrapType::iceball;
+            }
+            else {
+                continue;
+            }
             
             float fireIntervalSec = 3.0f; // default interval
             Vector3 fireDir = {0, 0, 1}; // default forward
@@ -1029,7 +1044,7 @@ void GenerateLaunchers(float baseY) {
             box.min = { pos.x - halfSize, pos.y,          pos.z - halfSize };
             box.max = { pos.x + halfSize, pos.y + 100.0f, pos.z + halfSize };
 
-            launchers.push_back({ TrapType::fireball, pos, fireDir, fireIntervalSec, 0.0f, box });
+            launchers.push_back({ trapType, pos, fireDir, fireIntervalSec, 0.0f, box });
         }
     }
 }
@@ -1489,7 +1504,35 @@ void GenerateLightSources(float baseY) {
 
         }
     }
+    //Invisible light sources
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            
+            // Check for light yellow 
+            if (current.r == 255 && current.g == 255 && current.b == 100) {
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                LightSource L = MakeStaticTorch(pos);
+                dungeonLights.push_back(L);
+            }
 
+        }
+    }
+    //Lava glow
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            
+            // Check for FireBrick red
+            if (EqualsRGB(current,ColorOf(Code::LavaGlow))){
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                LightSource L = MakeStaticTorch(pos);
+                L.colorTint = Vector3 {255, 0, 0};
+                dungeonLights.push_back(L);
+            }
+
+        }
+    }
 
 }
 
@@ -1606,9 +1649,15 @@ void UpdateLauncherTraps(float dt){
 
         Vector3 origin = { L.position.x, L.position.y + 100.0f, L.position.z };
         Vector3 target = Vector3Add(origin, Vector3Scale(L.direction, AHEAD));
+        if (L.type == TrapType::fireball){
+            FireFireball(origin, target, SPEED, LIFE, /*enemy=*/true, /*launcher=*/true);
+            L.cooldown = std::max(0.01f, L.fireIntervalSec);
 
-        FireFireball(origin, target, SPEED, LIFE, /*enemy=*/true, /*launcher=*/true);
-        L.cooldown = std::max(0.01f, L.fireIntervalSec);
+        }else if (L.type == TrapType::iceball){
+            FireIceball(origin, target, SPEED, LIFE,true, true);
+            L.cooldown = std::max(0.01f, L.fireIntervalSec);
+        }
+
     }
 }
 
@@ -1722,8 +1771,8 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         
 
         if (d.window){
-            Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
-            DrawModelEx(R.GetModel("windowWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+            Vector3 dPos = {d.position.x, d.position.y, d.position.z};
+            DrawModelEx(R.GetModel("windowWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {500, 595, 500}, d.tint);
         }else{
             Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
             DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);

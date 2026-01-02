@@ -26,6 +26,7 @@ enum class LightType {
     StaticFire,
     Fireball,
     Iceball,
+    LavaGlow,
     Other // fallback or future expansion
 };
 
@@ -120,7 +121,7 @@ struct Door {
     DoorType doorType = DoorType::Normal;
     bool eventLocked = false;
     KeyType requiredKey = KeyType::None;
-
+    bool window = false;
     int linkedLevelIndex = -1; // -1 means no linked level
 };
 
@@ -354,7 +355,8 @@ void GenerateSpiderEggFromImage(float baseY);
 void SpawnSpiderFromEgg(Vector3 spawnPos);
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
-
+bool IsLava(int gx, int gy);
+bool IsVoid(int gx, int gy);
 void ClearDungeon();
 
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);

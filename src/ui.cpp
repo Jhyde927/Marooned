@@ -296,8 +296,7 @@ void UpdateMenu(Camera& camera, float dt)
         CameraSystem::Get().StopCinematic();
         return;
 
-    }
-    else if (a == MainMenu::Action::Quit)
+    }else if (a == MainMenu::Action::Quit)
     {
         currentGameState = GameState::Quit;
     }

@@ -17,7 +17,8 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             break;
 
         case CharacterType::Pterodactyl:
-            UpdateRaptorAI(deltaTime, player);
+            //UpdateRaptorAI(deltaTime, player);
+            UpdateDactylAI(deltaTime, player);
             break;
 
         case CharacterType::Trex:
@@ -48,6 +49,13 @@ void Character::UpdateAI(float deltaTime, Player& player) {
 }
 
 void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime, float epsilon) {
+    if (player.godMode){
+        canSee = false;
+        playerVisible = false; //birds don't care about visibility
+        return;
+    }
+
+
     canSee = HasWorldLineOfSight(position, playerPos, epsilon);
     if (canSee) {
         lastKnownPlayerPos = playerPos;
@@ -169,7 +177,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
         } break;
 
         case CharacterState::Attack: {
-
+            
 
             if (distance > 350.0f) { 
                 if (spiderAgro){
@@ -194,9 +202,9 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 }
             }
 
-
+            float horizDist = DistXZ(position, player.position);
             attackCooldown -= deltaTime;
-            if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible) { // make sure you can see what your attacking. 
+            if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible && horizDist < 200.0f) { // make sure you can see what your attacking. 
                 attackCooldown = 0.8f; // 0.2 * 4 frames on animation for skele attack. 
 
                 // Play attack sound
@@ -337,12 +345,14 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
         case CharacterState::Freeze: {
             stateTimer += deltaTime;
             //do nothing
-            if (currentHealth <= 0){ //hopefully prevents invincible skeles. 
+            if (currentHealth <= 0 && !isDead){ //hopefully prevents invincible skeles. 
                 ChangeState(CharacterState::Death);
+                break;
             }
 
             if (stateTimer > 5.0f && !isDead){
                 ChangeState(CharacterState::Idle);
+                break;
             }
             break;
 
@@ -461,13 +471,15 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 }
             }
 
-            if (distance > 350.0f) { 
+            if (distance > 210.0f) { 
                 ChangeState(CharacterState::Chase);
 
             }
 
+            float horizDist = DistXZ(position, player.position);
+
             attackCooldown -= deltaTime;
-            if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible) { // make sure you can see what your attacking. 
+            if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible && horizDist < 200.0f) { // make sure you can see what your attacking. 
                 attackCooldown = 0.8f; // 0.2 * 4 frames on animation for skele attack. 
 
                 // Play attack sound
@@ -575,12 +587,14 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         case CharacterState::Freeze: {
             stateTimer += deltaTime;
             //do nothing
-            if (currentHealth <= 0){ //hopefully prevents invincible skeles. 
+            if (currentHealth <= 0 && !isDead){ //hopefully prevents invincible skeles. 
                 ChangeState(CharacterState::Death);
+                break;
             }
 
             if (stateTimer > 5.0f && !isDead){
                 ChangeState(CharacterState::Idle);
+                break;
             }
             break;
 
@@ -786,13 +800,28 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
 }
 
 
-void Character::UpdateDactylAI(float deltaTime, Player& player) {
-    float distance = Vector3Distance(position, player.position);
+void Character::UpdateDactylAI(float deltaTime, Player& player)
+{
+    // --- Perception & timers ---
+    stateTimer     += deltaTime;
+    attackCooldown  = std::max(0.0f, attackCooldown - deltaTime);
+
+    const float distance = Vector3Distance(position, player.position);
+    //UpdateRaptorVisibility(player, deltaTime);
     UpdateLeavingFlag(player.position, player.previousPosition);
-    stateTimer += deltaTime;
-    if (currentHealth <= 0.0f){
-        state = CharacterState::Death;
-    }
+
+    // --- Simple deadbands ---
+    float STALK_ENTER = player.godMode ? 0.0f : 3000.0f; //birds can't see player when in free cam. 
+    float VISION_ENTER = player.godMode ? 0.0f : 4000.0f;
+
+    //const float VISION_ENTER = 4000.0f;
+    //const float STALK_ENTER   = 3000.0f;  // engage if closer than this
+    const float STALK_EXIT    = 3400.0f;  // drop back to idle 
+    const float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
+    const float ATTACK_EXIT   = 300.0f;   // leave attack if beyond this 
+    const float FLEE_ENTER    = 100.0f;   // too close -> run away
+    const float FLEE_EXIT     = 2000.0f;   // far enough -> stop fleeing
+
 
     switch (state)
     {
@@ -800,24 +829,200 @@ void Character::UpdateDactylAI(float deltaTime, Player& player) {
         case CharacterState::Idle:
         {
 
-            const float IDLE_TO_PATROL_TIME = 10.0f; // tweak
+            const float IDLE_TO_PATROL_TIME = 1.0f; // tweak
             if (stateTimer >= IDLE_TO_PATROL_TIME) {
-                // seed a patrol target around the current position
-                patrolTarget = RandomPointOnRingXZ(position, /*minR*/800.0f, /*maxR*/2200.0f);
 
-                hasPatrolTarget  = true;
+                patrolTarget = RandomPointOnHeightmapRingXZ(
+                    position,
+                    /*minR*/ 3000.0f,
+                    /*maxR*/ 8200.0f,
+                    heightmap.width,   // pixels
+                    terrainScale.x,     // world units per pixel
+                    /*edgeMargin*/ 400.0f
+                );
+                //pick a random altitude before patrolling
+                float altitudes[3] = {800.0f, 1200.0f, 1600.0f};
+                int idx = GetRandomValue(0, 2);
+                patrolAlt = altitudes[idx];
+
+                hasPatrolTarget = true;
                 ChangeState(CharacterState::Patrol);
                 break;
             }
 
-            break;
-
-        }
+            if (distance < STALK_ENTER) {
+                ChangeState(CharacterState::Chase);
+                
+                break;
+            }
+        } break;
 
         case CharacterState::Patrol:
-            //find random spot xz
+        {
+
+            UpdateMovementAnim();
+
+            UpdatePatrolSteering(deltaTime);
+            break;   
+        }
+
+        case CharacterState::Chase:
+        {
+            UpdateMovementAnim();
+            UpdateChaseSteering(deltaTime);
+          
+        } break;
+
+
+        case CharacterState::Attack:
+
+        {
+            if (stateTimer > 3.0f){
+                ChangeState(CharacterState::RunAway);
+            }
+            if (distance > ATTACK_EXIT) {
+                if (canSee) ChangeState(CharacterState::Chase);
+                break;
+            }
+            
+            if (distance < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
+
+
+            //float horizDist = DistXZ(position, player.position);
+            float distance = Vector3Distance(position, player.position);
+            if (attackCooldown <= 0.0f && distance < ATTACK_EXIT && distance < ATTACK_ENTER) {
+                attackCooldown = 1.0f; // seconds between attacks
+
+                // Play attack sound
+                SoundManager::GetInstance().Play("dinoBite");
+                // Damage the player
+                if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
+                    // Blocked!
+
+                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
+                    
+                    SoundManager::GetInstance().Play(rand()%2 ? "swordBlock" : "swordBlock2");
+        
+                } else  {
+                    // Player takes damage
+                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("biteSheet"), 4, 0.4f, 0.1f, 50.0f);
+                    
+                    player.TakeDamage(10);
+                }
+            }
+
+        } break;
+
+        case CharacterState::RunAway:
+        {
+
+            UpdateMovementAnim();
+            UpdateRunawaySteering(deltaTime);
+
+            
+        } break;
+
+        case CharacterState::Harpooned: {
+            //stateTimer += deltaTime;  //we were adding to stateTimer twice. So harpoon timer would only run for 1 second instead of 2. 
+            //never noticed. 
+
+            if (currentHealth <= 0) {
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            // Keep updating target so if player backpedals, it still pulls toward you
+            Vector3 target = player.position; 
+
+            // Pull direction XZ only // try it on raptors on a hill. 
+            Vector3 toTarget = Vector3Subtract(target, position);
+            //toTarget.y = 0.0f;
+
+            float dist = Vector3Length(toTarget);
+
+            // Stop distance so you don't overlap the player
+            const float stopDist = harpoonMinDist;
+
+            if (dist > stopDist && dist > 1.0f)
+            {
+                Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+
+                // Pull speed (world units / sec). Tune this.
+                const float pullSpeed = 3000.0f;
+
+                float step = pullSpeed * deltaTime;
+
+                // Don't overshoot past stop distance
+                float desiredMove = fminf(step, dist - stopDist);
+
+                position = Vector3Add(position, Vector3Scale(dir, desiredMove));
+
+            }
+
+            // after position update
+            toTarget = Vector3Subtract(target, position);
+            //toTarget.y = 0.0f;
+            dist = Vector3Length(toTarget);
+            
+            // End condition: time AND close enough
+            bool timeDone = (stateTimer >= harpoonDuration);
+            bool closeEnough = (dist <= stopDist + 5.0f);
+
+            if (timeDone && closeEnough)
+            {
+                currentWorldPath.clear();
+                ChangeState(CharacterState::Stagger);
+                break;
+            }
+
             break;
+        }
+
+
+        case CharacterState::Freeze:
+        {
+
+            //do nothing
+            if (currentHealth <= 0 && !isDead){
+                ChangeState(CharacterState::Death); //check for death to freeze, freeze damage doesn't call takeDamage
+                break;
+            }
+
+            if (stateTimer > 5.0f && !isDead){
+                ChangeState(CharacterState::Idle);
+                break;
+            }
+        } break;
+
+        case CharacterState::Stagger:
+        {
+            //do nothing
+ 
+            if (stateTimer >= 1.0f) {
+                canBleed = true;
+                ChangeState(CharacterState::Chase);
+                
+                chaseDuration = GetRandomValue(4, 8); 
+            }
+        } break;
+
+        case CharacterState::Death:
+        {
+            if (!isDead) {
+                isDead = true;
+                deathTimer = 0.0f;// Start counting
+            }
+
+            deathTimer += deltaTime;
+        } break;
     }
+
 }
 
 void Character::UpdateRaptorAI(float deltaTime, Player& player)
@@ -892,8 +1097,12 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
                 if (canSee) ChangeState(CharacterState::Chase);
                 break;
             }
+            
             if (distance < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
-            if (attackCooldown <= 0.0f && distance < ATTACK_EXIT) {
+
+
+            float horizDist = DistXZ(position, player.position);
+            if (attackCooldown <= 0.0f && distance < ATTACK_EXIT && horizDist < ATTACK_ENTER) {
                 attackCooldown = 1.0f; // seconds between attacks
 
                 // Play attack sound
@@ -990,9 +1199,19 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::Freeze:
         {
-            // TODO: do nothing; exit after freezeDuration or on event
+            stateTimer += deltaTime;
+            //do nothing
+            if (currentHealth <= 0 && !isDead){
+                ChangeState(CharacterState::Death); //check for death to freeze, freeze damage doesn't call takeDamage
+                break;
+            }
+
+            if (stateTimer > 5.0f && !isDead){
+                ChangeState(CharacterState::Idle);
+                break;
+            }
             
-            if (stateTimer >= 5.0f && canSee && !isDead) ChangeState(CharacterState::Chase);
+            
         } break;
 
         case CharacterState::Stagger:
@@ -1122,6 +1341,8 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         case CharacterState::Attack: { //Pirate attack with gun
             stateTimer += deltaTime;
+
+            
             
             Vector2 myTile = WorldToImageCoords(position);
             Character* occupier = GetTileOccupier(myTile.x, myTile.y, enemyPtrs, this);
@@ -1178,9 +1399,10 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         case CharacterState::MeleeAttack: {
             stateTimer += deltaTime;
+            float horizDist = DistXZ(position, player.position);
 
             // Wait until animation is done to apply damage
-            if (canMelee && currentFrame == 2) { // only apply damage on frame 2. Consider enemy attack ID
+            if (canMelee && currentFrame == 2 && horizDist < 280.0f) { // only apply damage on frame 2. Consider enemy attack ID
                 canMelee = false;
 
                 if (distance < 300.0f) {
@@ -1348,15 +1570,17 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         case CharacterState::Freeze: {
             stateTimer += deltaTime;
             //do nothing
-            if (currentHealth <= 0){
+            if (currentHealth <= 0 && !isDead){
                 ChangeState(CharacterState::Death); //check for death to freeze, freeze damage doesn't call takeDamage
+                break;
             }
 
             if (stateTimer > 5.0f && !isDead){
                 ChangeState(CharacterState::Idle);
+                break;
             }
+            
             break;
-
         }
 
 
@@ -1495,6 +1719,7 @@ bool Character::ChoosePatrolTarget()
 
     // Couldn’t find a pathable patrol spot: fall back to “dumb” ring point
     patrolTarget    = RandomPointOnRingXZ(position, 800.0f, 2200.0f);
+
     patrolTarget.y  = position.y;
     hasPatrolTarget = true;
     return false;
@@ -1709,6 +1934,12 @@ void Character::SetPathTo(const Vector3& goalWorld) {
 
 // Call this for raptors/Trex (overworld)
 void Character::UpdateRaptorVisibility(const Player& player, float deltaTime) {
+    if (player.godMode){
+        canSee = false;
+        playerVisible = false;
+        return;
+    }
+
     const float VISION_ENTER = 4000.0f; 
     const float VISION_EXIT  = 4200.0f;  // deadband so it doesn’t flicker at the edge
     const float WATER_LEVEL  = 65.0f;
@@ -1728,6 +1959,88 @@ void Character::UpdateRaptorVisibility(const Player& player, float deltaTime) {
         timeSinceLastSeen += deltaTime;
         if (timeSinceLastSeen > forgetTime) playerVisible = false;
     }
+}
+
+const float HOVER_ALT   = 200.0f;
+const float PATROL_ALT  = 1200.0f;
+const float FLEE_ALT    = 2200.0f;
+const float DIVE_ALT    = -500.0f;
+
+
+void Character::UpdateChaseSteering(float dt)
+{
+    // --- tuning ---
+    const float CHASE_SPEED        = raptorSpeed * 2.00f;  // faster than patrol
+    const float MAX_ACCEL          = CHASE_SPEED * 10.0f;   // snappy “missile”
+    const float SLOW_RADIUS        = 1000.0f;               // soften near player
+    const float ATTACK_ENTER_XZ    = 200.0f;               // switch to attack here
+    const float GIVE_UP_DISTANCE   = 4500.0f;              // optional: fall back
+
+    float feetY = player.position.y - player.height / 2.0f;
+    Vector3 playerFeet = {player.position.x, feetY, player.position.z};
+    // XZ-only target (Y handled elsewhere)
+    Vector3 target = playerFeet;
+    target.y = position.y;
+
+    // Distance to player on XZ
+    float d = DistXZ(position, target);
+
+    float desiredAlt = PATROL_ALT;
+    if (d < 2500.0f) {
+        float t = Clamp((d - 200.0f) / (2500.0f - 200.0f), 0.0f, 1.0f); // 0 close, 1 far
+        desiredAlt = Lerp(DIVE_ALT, PATROL_ALT, t);
+    }
+
+    float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale);
+
+    UpdateAltitude(dt, groundY, desiredAlt);
+    float distance = Vector3Distance(position, player.position);
+    // Close enough → attack
+    if (distance <= ATTACK_ENTER_XZ)
+    {
+        velocity = {0,0,0}; // optional: prevents “slide-through” on state change
+        ChangeState(CharacterState::Attack);
+        return;
+    }
+
+    // Optional: if player is super far, give up
+    if (d > GIVE_UP_DISTANCE)
+    {
+        ChangeState(CharacterState::Patrol);
+        return;
+    }
+
+
+    // --- desired velocity (arrive-ish toward player) ---
+    Vector3 toT = Vector3Subtract(target, position);
+    toT.y = 0.0f;
+
+    Vector3 desiredVel = {0,0,0};
+    if (d > 1e-4f)
+    {
+        float speed = CHASE_SPEED;
+
+        // slow down as we approach so we don’t orbit
+        if (d < SLOW_RADIUS)
+            speed *= (d / SLOW_RADIUS);
+
+        desiredVel = Vector3Scale({toT.x / d, 0.0f, toT.z / d}, speed);
+    }
+
+    // --- steering accel toward desired velocity ---
+    Vector3 accel = Vector3Subtract(desiredVel, velocity);
+    accel.y = 0.0f;
+    accel = ClampXZ(accel, MAX_ACCEL);
+
+    // integrate
+    velocity = Vector3Add(velocity, Vector3Scale(accel, dt));
+    velocity = ClampXZ(velocity, CHASE_SPEED);
+
+    position = Vector3Add(position, Vector3Scale(velocity, dt));
+
+    // face travel direction
+    if (velocity.x*velocity.x + velocity.z*velocity.z > 1e-4f)
+        rotationY = RAD2DEG * atan2f(velocity.x, velocity.z);
 }
 
 
@@ -1829,6 +2142,141 @@ void Character::UpdateChase(float deltaTime)
     }
 
 }
+
+static inline Vector3 PickFleeTargetXZ(
+    const Vector3& enemyPos,
+    const Vector3& playerPos,
+    float minR,
+    float maxR,
+    const Image& heightmap,
+    float terrainScale,
+    float edgeMargin = 0.0f
+){
+    // Base direction away from player
+    Vector3 away = Vector3Subtract(enemyPos, playerPos);
+    away.y = 0.0f;
+
+    float len = sqrtf(away.x*away.x + away.z*away.z);
+    if (len < 1e-4f) {
+        // degenerate: pick random direction
+        float a = GetRandomValue(0, 360) * DEG2RAD;
+        away = { cosf(a), 0.0f, sinf(a) };
+    } else {
+        away.x /= len; away.z /= len;
+    }
+
+    // Radius (uniform by area)
+    float t = (float)GetRandomValue(0, 10000) / 10000.0f;
+    float r = sqrtf(minR*minR + (maxR*maxR - minR*minR) * t);
+
+    // Add some angular noise so they don't all flee in a straight line
+    float jitter = ((float)GetRandomValue(-1000, 1000) / 1000.0f) * 0.75f; // radians-ish
+    float s = sinf(jitter), c = cosf(jitter);
+
+    // rotate away vector by jitter
+    Vector3 dir = { away.x*c - away.z*s, 0.0f, away.x*s + away.z*c };
+
+    Vector3 p = enemyPos;
+    p.x += dir.x * r;
+    p.z += dir.z * r;
+    p.y = enemyPos.y;
+
+    // Clamp to world bounds
+    float worldW = (heightmap.width  - 1) * terrainScale;
+    float worldD = (heightmap.height - 1) * terrainScale;
+
+    p.x = Clamp(p.x, edgeMargin, worldW - edgeMargin);
+    p.z = Clamp(p.z, edgeMargin, worldD - edgeMargin);
+
+    return p;
+}
+
+void Character::UpdateRunawaySteering(float dt)
+{
+    // --- knobs ---
+    const float FLEE_SPEED        = raptorSpeed * 2.0f; // a bit faster than chase
+    const float MAX_ACCEL         = FLEE_SPEED * 5.0f;   // snappy getaway
+    const float SLOW_RADIUS       = 200.0f;              // optional soften near target
+    const float ARRIVE_EPS_XZ     = 250.0f;
+
+    const float FLEE_MIN_TIME     = 5.0f;
+    const float FLEE_MAX_TIME     = 10.0f;
+    const float FLEE_EXIT_DIST    = 4000.0f;
+
+    // --- choose / refresh flee target ---
+    // Refresh if we don't have one, or we reached it, or target is too close to player.
+    const float TARGET_REACHED = ARRIVE_EPS_XZ;
+    const float TARGET_TOO_CLOSE_TO_PLAYER = 900.0f;
+
+    if (!hasFleeTarget ||
+        DistXZ(position, fleeTarget) < TARGET_REACHED ||
+        DistXZ(player.position, fleeTarget) < TARGET_TOO_CLOSE_TO_PLAYER)
+    {
+        fleeTarget = PickFleeTargetXZ(
+            position, player.position,
+            /*minR*/ 2000.0f,
+            /*maxR*/ 4500.0f,
+            heightmap, terrainScale.x,
+            /*edgeMargin*/ 400.0f
+        );
+        hasFleeTarget = true;
+    }
+
+    // --- steer toward fleeTarget (ignore player) ---
+    Vector3 toT = Vector3Subtract(fleeTarget, position);
+    toT.y = 0.0f;
+
+    float d = sqrtf(toT.x*toT.x + toT.z*toT.z);
+
+    Vector3 desiredVel = {0,0,0};
+    if (d > 1e-4f)
+    {
+        float speed = FLEE_SPEED;
+        if (d < SLOW_RADIUS) speed *= (d / SLOW_RADIUS); // optional
+
+        desiredVel = Vector3Scale({toT.x / d, 0.0f, toT.z / d}, speed);
+    }
+
+
+
+    Vector3 accel = Vector3Subtract(desiredVel, velocity);
+    accel.y = 0.0f;
+    accel = ClampXZ(accel, MAX_ACCEL);
+
+    velocity = Vector3Add(velocity, Vector3Scale(accel, dt));
+    velocity = ClampXZ(velocity, FLEE_SPEED);
+
+    Vector3 nextPos = Vector3Add(position, Vector3Scale(velocity, dt));
+
+    position = nextPos;
+
+    // Face travel direction
+    if (velocity.x*velocity.x + velocity.z*velocity.z > 1e-4f)
+        rotationY = RAD2DEG * atan2f(velocity.x, velocity.z);
+
+    // --- exit conditions ---
+    float distFromPlayer = DistXZ(position, player.position);
+
+    //--- altitude ---
+    float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale);
+    UpdateAltitude(dt, groundY, FLEE_ALT);
+    float altT = Clamp((position.y - groundY) / FLEE_ALT, 0.0f, 1.0f);
+    float horizScale = (altT < 0.5f) ? 0.5f : 1.0f;
+    position += velocity * dt * horizScale;
+
+    if ((stateTimer >= FLEE_MIN_TIME && distFromPlayer >= FLEE_EXIT_DIST) ||
+        stateTimer >= FLEE_MAX_TIME)
+    {
+        hasFleeTarget = false;
+        velocity = {0,0,0};
+
+        // After fleeing, decide what to do
+        ChangeState(CharacterState::Idle);
+
+        return;
+    }
+}
+
 
 
 
@@ -1976,6 +2424,78 @@ void Character::UpdateRunaway(float deltaTime)
         return;
     }
 }
+
+
+void Character::UpdatePatrolSteering(float dt)
+{
+    // Pick a new target if we don’t have one
+    if (!hasPatrolTarget)
+    {
+        // Use your new ring picker (no nav path)
+        patrolTarget = RandomPointOnHeightmapRingXZ(position, 3000.0f, 8200.0f,
+                                           heightmap.width, terrainScale.x, 400.0f);
+        hasPatrolTarget = true;
+
+        float maxDist = 10000;
+        float distanceToOrigin = Vector3Length(position);
+        if (distanceToOrigin > maxDist){
+            patrolTarget = Vector3{0}; //if you go too far from center, return to center of the map. 
+        }
+
+
+    }
+
+    const float MAX_SPEED    = raptorSpeed;
+    const float MAX_ACCEL    = MAX_SPEED * 3.0f;   // snappy missile feel
+    const float ARRIVE_EPS   = 150.0f;             // consider “arrived”
+    const float SLOW_RADIUS  = 600.0f;             // optional soften near target
+    const float VISION_ENTER = 4000.0f;
+
+    // --- desired velocity (seek or arrive) ---
+    float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale);
+
+
+    UpdateAltitude(dt, groundY, patrolAlt);
+
+    float currentAlt = position.y - groundY;
+
+    // If still climbing, limit horizontal movement so it “takes off” first
+    float altT = Clamp(currentAlt / PATROL_ALT, 0.0f, 1.0f);
+    float horizScale = (altT < 0.6f) ? 0.25f : 1.0f;  // climb phase = slow XZ
+
+    // XZ steering (same as you already have)
+    Vector3 desiredVel = ArriveXZ(position, patrolTarget, /*maxSpeed*/raptorSpeed*0.6f, /*slow*/400.0f);
+    Vector3 accel = Vector3Subtract(desiredVel, velocity);
+    accel.y = 0.0f;
+    accel = ClampXZ(accel, /*maxAccel*/(raptorSpeed*0.6f)*3.0f);
+
+    velocity = Vector3Add(velocity, Vector3Scale(accel, dt));
+    velocity = ClampXZ(velocity, raptorSpeed*0.6f);
+
+    // Apply the gating scale
+    position = Vector3Add(position, Vector3Scale(velocity, dt * horizScale));
+
+    // Face travel direction
+    if (velocity.x*velocity.x + velocity.z*velocity.z > 1e-4f)
+        rotationY = RAD2DEG * atan2f(velocity.x, velocity.z);
+
+    if (Vector3Distance(position, player.position) <= VISION_ENTER){
+        ChangeState(CharacterState::Chase);
+        return;
+    }
+
+    // Arrived → idle
+    if (DistXZ(position, patrolTarget) <= ARRIVE_EPS)
+    {
+        hasPatrolTarget = false;
+        velocity = {0,0,0};
+        ChangeState(CharacterState::Idle);
+        return;
+    }
+
+
+}
+
 
 
 void Character::UpdatePatrol(float deltaTime)

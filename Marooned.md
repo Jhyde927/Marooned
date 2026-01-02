@@ -784,11 +784,16 @@ Added better title card. Black and red. Red pirate font with thick black outline
 
 raylib has a drawGradientRectangle function. but I wanted a rounded rectangle. So instead I made a gradient texture in the shap of a pill that fades to transparent at like midway up the title. 
 
-Controls menu. It would live inside main menu structure. x Looks bad, redo the visuals.
+-- Linux tester made a pull request. He cleaned up a bunch of bugs and put the level name as a sub tiltle of the menu. He also removed the gradient drop shadow. I spent a lot of time on that stupid shadow. But maybe it was bad. I like how it looks better now. 
 
-Finally fixed full screen problems. I was using raylibs ToggleFullscreen() but it would push the windows around on my desktop when entering full screen. I then tried ToggleBorderlessWindow() but when playing the view was super zoomed in. This was because the render textures where not being resized to fit the new screen resolution. Ended up having to store the render texture inside a diffrent type of container to let me safely refrence the real texture not a stale copy. or something. I had this issue like twice before. Finally know the reason why fullscreen was always a pain. 
+He also moved the UI bars to the top left. and put keys in the other 2 inventory slots. I wasn't sure about this change. because inaventory was supposed to be for consumables and keys aren't consumable anymore. But for now when we only have 2 consumables it makes sense to put keys there. 
 
-Tried screen shake. It was implemented but we never tested it. I think I like it better than the FOV punch. FOV punch and screen shake together seems to much. Just a subtle screen shake on hit is good. IMO. 
+Controls menu. It would live inside main menu structure. x Looks bad, redo the visuals. <--- better
+
+Finally fixed full screen problems. I was using raylibs ToggleFullscreen() but it would push the windows around on my desktop when entering full screen. I then tried ToggleBorderlessWindow() but when playing the view was super zoomed in. This was because the render textures where not being resized to fit the new screen resolution. Ended up having to store the render texture inside a diffrent type of container to let me safely refrence the real texture not a stale copy. or something. I had this issue like twice before. Finally know the reason why fullscreen was always a pain. x
+
+Tried screen shake. It was implemented but we never tested it. I think I like it better than the FOV punch. FOV punch and screen shake together seems to much. Just a subtle screen shake on hit is good. IMO. -Reduced screen shake to 
+0.003f. Barely noticible. 
 
 CameraSystem::Get().Shake(0.01f, 0.25f); try even less magnitude, durration seems ok. 
 
@@ -809,17 +814,17 @@ make harpoon attach to grapple position. grapple state?
 
 ok, almost there. DrawDrawRequest doesn't know what a grapple point is. size is too small? 
 
-pulling enemies into lava pits pulls them too far. They should stop at the edge and fall straight in. 
+pulling enemies into lava pits pulls them too far. They should stop at the edge and fall straight in. <---
 
-player was stopping outside grappleStopPosition, so state never switch back to normal and you couldn't move. I now check for dist < stopDistance + 20. 
+player was stopping outside grappleStopPosition, so state never switch back to normal and you couldn't move. I now check for dist < stopDistance + 20. Set stopDistance to 70 needs to match grapple point stopDistance. 
 
-New Plan: 48x48 grapple level. -lava pit every where. firball lauchers make it treacherous. use grapple to quickly navigate the dungeon. Lots of pirates. 
+New Plan: 48x48 grapple level. -lava pit every where. firball lauchers make it treacherous. use grapple to quickly navigate the dungeon. Lots of pirates. test more. 
 
-lowered harpoon cooldown time to 1 second, make it just match the normal shot cooldown. If it's op so be it. Put grapple points in early levels and unlock the harpoon at the start of dungeon3. 
+lowered harpoon cooldown time to 1 second, make it just match the normal shot cooldown. If it's op so be it. Put grapple points in early levels and unlock the harpoon at the start of dungeon3. x
 
-Lading on one tile grapple points feels bad. make top distance close so you end up in the middle of the tile, not just short. 
+Lading on one tile grapple points feels bad. make top distance close so you end up in the middle of the tile, not just short. x
 
-Put grapple on level 3
+Put grapple on level 3 x
 
 show player direction on minimap. <-- x
 
@@ -828,6 +833,758 @@ turn down screen shake.x
 slow down raptors.x
 
 The Plan: Add grapple points to all levels after 3. 
+
+Maybe you start with the crossbow. and the harpoon. Not until later would you find the blunderbuss. Maybe we need another weapon. flint lock musket pistol. You already tried that. 
+
+what happens when you grapple through a spider web and it doesn't break. test this. --Player gets stuck in grappling state until they reach the grapple position. Add a timer to grapple state. 5 seconds maybe. 3 Seconds x
+
+Do something with code. shaders. tweak the moon. add glow. x
+
+What next. 
+
+Weapons Slots:
+    4 boxes with icons representing the weapons you have collected so far. with little numbers in the corner 1,2,3,4 showing what button to push to switch weapons. 
+
+    Sword Icon x
+    Crossbow Icon x
+    Blunderbuss Icon <----- Find a blunderbuss pixel art Icon
+    Magic Staff Icon x
+
+    LLM tried to fuck me again. First by passing around pointers when we get the texture from resource manager as a value. Then it tried to make me pass the resource manager with fucked it again. But we got there in the end. 
+    Now just get placeholder icons for each weapon. 
+
+    The icons are pretty meh. pixel art instead. Generate pixel art icons? or steal some from the internet. 
+
+
+
+Lighten border on controls page. maybe better? 
+
+staff melee hitbox doesn't collide with webs? we were early returning if not sword. We did this to prevent phantom melee swings that were happening. but I noticed they are still happening somehow. Seems like when crossbow is active weapon a swipe will happen for some reason. 
+
+you should be able to grapple potions and gold. put a bounding box on collectables. They already have a radius I think for pick up interaction. Look at collectable code. Too easy. 
+
+Might as well stream if your going to be working on it. 
+
+Plan
+    Late night level editing again. 
+
+stop the harpoon from grabbing multiple enemies. harpoon already has a unique id. we dont increment it anywhere though. I think. it gets incremented when fired. We dont compare or check it on collision. oh I'm actually retarded. It's a new id to each enemy. we need to kill the bullet imediatly? bolts can pierce remember. is harpoon a bolt though. Kill the bullet and try to snag two enemies with one harpoon. x
+
+That seems to have fixed it. 
+
+You can stand ontop of barrels and enemies loose sight of you. raycast hits barrel bounding box. 
+
+mess with the moon some more. Planets? galaxies? 
+
+Edit some levels. Make another hook level. void tiles? floor would be instant death. need to use hook to traverse the void. Look at level 12? Seems doable. 
+
+new level. void tiles. Middle floating island. too much like the last one. Start in the corner. A linear path around the edge. silver key accesses the middle. Giant spiders every where. We could test out giant spider on a normal level as a regular enemy. double test. 
+
+32 or 48? with giant spiders everywhere it needs to be big I think. We will have multiple boss arenas seperated by void. If you can't get void working just make it lava, or just corridors with skeles. 
+
+void doesn't need skirts. It can be floating in space. Just read the mask and drop the floor. Maybe we should do skirts for void. It would prevent fuckyness. 
+
+Void tiles check. So continue drawing the map. Enemies need to be able to fall into the void. 
+
+Harpoon needs to break when below a certain level. Make harpoon life timer 2 seconds. 
+
+falling in the void is fucky. floors dont really have collision. so you can grapple through the floor. floor bounding box? 
+
+Coyote time? 
+
+
+How did that happen. Raptors animation facing wrong direction. investigate later. Raptors have the same facing code as all other characters yet they are the only ones facing the wrong direction. I recently changed their speed. This could effect the math that derives facing direction. 
+
+ok all characters are effected by the facing bug. What changed? We commented out setting player's previous position.
+it's now fixed. 
+
+We fixed falling into void. We could do the same for lava. just add an or ||. The grapple shot doesn't work to clear big gaps because you fall to far into the void and can't get back up. Need to increase the alowed distance to snap back. Maybe gaps just need to be shorter. 
+
+
+I set these to be more forgiving. I also was adding to player.position.y for debuging and forgot about it so I was getting stuck to grapple points. We can now succefully grapple over void tiles. Falling into void is Death. No teleporting back up from under the floor.
+
+
+Fade out on starting level. - fade runs regardless of game state should be easy to do. come back to that. 
+
+
+Can't seem to grapple though secret walls. Do secret walls have a collider? They dont have a collider, but the walls next to it do and they block maybe. 
+
+We need to not start the game until fade has happened some how. I give up. come back to it later. 
+
+
+Start should say resume when level is loaded, and resume the level when clicked. 
+-We need a way to detect if a level is loaded. if player init has run? We don't update the fade shader your fool.
+
+Island fog should be based on camera position not player. Fixed. but the fog distance should be higher for menu cam.
+-island fog looked too close. it was set to 100 by default in shader setup. That seems real close.  
+
+We need to pass game state to update shaders somehow. x fixed. 
+
+We don't clear grapple hooks on level load. x
+
+Smoke and think of what to work on. 
+
+are raptors still too fast? Probably. especially if it's the first enemy you run into. Maybe we should make baby raptors first. The acid spitting dino from Jurrasic Park. We could do a cool attack frame where it's spitting at the camera and it's side head flaps are out looking scary. 
+Might be doable. Needs to look less mean than the normal raptors. if it's going to be a first enemy. Maybe make regular raptors smaller and less hard. Then add dilophasaur on second island. Ranged attacking raptors could be cool.
+
+smoke break
+
+Working on menu is too mentally taxing. Do something visual. work on the skybox. sure. 
+
+
+fireballs collide with ceiling even if there is no ceiling. fireball is just a bullet. must have it's own collision with ceiling. x
+
+
+
+Enemies can go through secret walls. path finding works through secrets how? is the tile walkable? 
+
+
+The tasks at hand:
+
+Dead pirate needs to be cleaned up. <- x
+
+Added a planet with a ring. It looks really bad. If you could make it smaller it might look ok. 
+
+skybox - Planet needs to be slightly bigger, ring needs to be darker or transparent if we can do that. 
+
+Maybe make the planet and ring purple. Try half planet size and half ring size. 
+
+Internet cut out for a second. 
+
+Make the planet and rings blue. 
+
+We could probably make a spiral galaxy. 
+
+
+
+add debug drawBoundingBox to grapple hooks, so see how big it actually is. <-This first x
+is it too forgiving? Try shrinking them and see how it feels. Seems fine with smaller bounding boxes. x stop debug drawing 
+
+void level needs to have no ceiling by default. x
+
+
+pendingLevelIndex needs to be not -1 to fade out? It was pending level index needed to be set to selected level for fade to work. Still unsure where that happens. 
+
+Need to hide menu when fading out. -Much better. Feels more professional. It did look like it was hanging before. x
+
+walls that fireballs can pass through but player cant. So that one level can look cooler? 
+Crosshair for crossbow. laser sight?
+
+
+
+menu fade out. <-- Fix this last. xxxxx
+
+Make a new void level. One that is not terrible. There should be a starting "island" then a long distance of void. with one tile grapple hooks used to navigate. Here you are attacked by Teradactyls. Teradactyls in a dungeon? A void dungeon. 
+
+
+
+
+
+Disable frustum culling in debug mode. <- and draw distance needs to be increased when in debugMode. X
+
+farclip isn't the thing culling it? or it's set to 50k in another spot. You can see the whole 48x48 dungeon if you sit at the corner of the map. Makes for better screen shots. Not everything culled when in free cam. 
+
+
+
+An invisible wall. Could be useful later. What color would it be? maybe a pink. talk to the clanker about it. 
+clanker says not to use alpha values for PNG map objects. Probably a good idea to remember that. 
+
+Generate invisible walls. Invisible walls need to let fireballs through remember. So they can have there own AABB. 
+Struct InvisibleWall
+
+Invisible walls check. Put them on dungeon 18 at the firball hit spots. 
+
+Window tiles. Lets firballs through but not player. Cut a hole in the middle of the wall tile. In blender. Discuss this with the clanker first. 
+
+There was a huge slowdown in the frame rate there. Invisible walls or was it too many fireballs for too long? Turn off invisible tiles, let it run and see what happens. 
+
+Xmas eve:
+
+Window tiles. Blender knowledge required
+
+ free cam should have the same long view as menu cam. <- check menu cam parameters
+
+blunderbuss could have circular reticle to represent the spread. You could make it match the actual spread of the bullets at a certain distance. 
+
+Flying enemies? would they move in 6 degrees of freedom. How would pathfinding work. It could just be steering behavior like raptors used to be. Steering behavior in the sky. 3D steering behavior. They would need a retreat mechanic so they don't just follow dumbly. 
+
+Dont fuck with Blender yet. maybe some one can help.
+
+Genereate a place holder flying enemy art. 
+
+Take original ghost animation and give it to ImgToImg to see what it does with it. 
+
+Ok get to work. I've had six drinks. 
+
+I want to sovle the blender problem of cutting a whole in the wall, but it's black magic. I can't get it to work. Maybe some one on stream will tell me how to work blender. that would be cool.
+
+Try the ghost animation thing. 
+
+Reticle for Crossbow. Ask the clanker
+
+I might be too drunk.
+
+Need a way to pass crossbow to renderpipline. 
+
+Of course reticle needs to know player rotY
+
+Should reticle conform to crossbow or vise versa? 
+
+whats easier. crossbow always points toward player mid pos + 5k.
+
+
+What is something you can do that doesn't require brain power. art. Skybox
+
+Redo the blunderbuss icon x
+
+weapon bob happens while onboard boat. <- fix this seems easy
+
+default blunderbuss aim is too low. Changing the blunderbuss muzzle pos would fuck the animation. i think. 
+-raise muzzle pos for blunderbuss later. 
+
+
+
+
+
+classical music for streaming? nocturns
+
+12/25/2025:
+
+
+    The blunderbuss is still under the crosshair. Make a blunderbuss specific reticle. Look up cool reticle images on google. 
+
+     - Blunderbuss reticle can be lower without looking weird if it's a different shape. Say a circle. 
+
+     - Should you adjust alpha in the image itself or after? ask the clanker.
+
+    Play Chopin nocturns x
+
+
+
+
+
+We implemented an animated reticle for the blunderbuss. If you are stopped it shrinks to it's minimum size, if you are walking it grows to it's medium size and if you are running it grows to the maximun size. 
+
+The reticle could be a bit brighter for now. 
+
+Consider animated reticle for crossbow. But I think I want the crossbow to be accurate even if running because what about shooting a harpoon while running. we wouldn't want it being inaccurate.
+
+Redo fireball icon image and frost magic icon with original art. Use the current icon as a base and just give it more colors. 
+
+maybe just find a better one online. 
+
+Stream building the game for linux, on the virtual machine. will it capture the linux desktop? may as well find out. 
+
+push to git hub. then clone on the VM. build for linux on VM. x
+
+fade out on quit? Look at start menu fade again. failed. try again later
+
+Stop fucking around with menu code. Play the game from level 7 onward. Report back how the shotgun reticle feels. 
+
+Shotgun reticle feels good. A couple times I missed because I was running and shooting and the spread was too high. waiting a split second for the reticle to shrink before firing feels cool. 
+
+
+freezing raptors still fucks up
+Work on the floor collision more. jumping puzzle are kind of a joke with how the jumping feels. You can very easily slip off platforms when you shouldn't. needs more coyote time? 
+
+the planet could be shaded to look more 3D. Darken the bottom 1/4 or something. failed again
+
+staff melee hit box is always active? How could that be? Ok it only happened for a second, when I switch to the sword it fixed it? search meleeHitbox.active. I think we use it for sword but not staff or vise versa. 
+
+move FPS counter to some where not ontop of healthbar x
+
+factor out shotgun reticle into it's own fucntion and crossbow reticle can go there too. x
+
+DrawReticle() Where though? Just put it in world for now. x
+
+We need the harpoon not to latch if the hook is too close. distance = vec3dist(player.position, grapple.position) If distance to grapple point < 200, dont hook. -we wait until after 0.1 seconds before grapple can collide. 
+
+That wont work. If your stading on top of a grapple point and firing at the next grapple point your too close to a grapple to attach. How do we know which grapple. x Success
+
+
+12262025
+
+
+
+Small void level. A maze with void pits occasionaly. Populate with enemies. Need a late game enemy. Ask the clanker about flying enemies. 
+
+smoke break then continue void level 3
+
+spawn particles on grappleing gp and enemies. Not important 
+
+fix void map 2. Bring back void map 1.  
+
+make fall into void distance longer. - kill Y needs to happen before you reach the bottom. You should see the player land. canMove isn't true when your dead. Allow Y movement when dead? 
+
+Perfect. Player wasn't allowed to move when fading out so he would stop falling. Now canMove = false if the player is above 0 height. That way they can still move if falling into a pit. fades out before they hit the ground. Implies falling forever. x
+
+grapple rope sometimes breaks and shows at a weird angle, like it's grapple to something off to the left.
+
+player the game uptil spider boss to start. x
+
+you should be able to grapple and move the boat faster
+
+add secret passage on dungeon 4 by spider area. the S turn x
+
+it would be cool if fireballs still fired when in the menu. Thats not possible, same with enemies patrolling when in menu. call the update function directly from the menu block. particles wouldnt' run either. not possible. 
+
+Void bats. Flying enemies that appear above void pits. Spit mini fireballs? ice balls. ice enemy that shoots ice projectile that freezes player. 
+
+art is going to be tricky. We have normaly 5 frames of animation per row on the sprite sheets. It's gonna take all 5 frames to make a decent flying loop animation. Although there is nothing really stopping me from having more frames, it's just all other enemies have followed that convention.
+
+Feed the whole skybox shader to clanker and have it give the plant bands and 3d look. 
+
+12/26/2025:
+
+Talk to clanker some more about flying enemy design. Should they allways be in the air, or should they land. Maybe bats could hang from the ceiling. 
+
+Make rings of the planet more slanty. x
+
+fuck with blender some more. x
+
+You said go to 20 maps. your at 19 
+
+portal doors that lead to different area of the map. They would need to be whole different color? I think so yes.
+
+Make a new island. Does it need to be 4k? can it be 8k? Investigate further -it's gotta stay 4k. The real solution is to shrink the entire world by like 800 percent. It was sized this way because of an optical illusion when first making the terrain editor. The speed of the camera was too fast so it seemed like the world was small or something. 
+
+The problem with 8k map with 32k terrain scale is the number chunks. We still have a hard limit of 500 chunks that we draw we would need to make that like twice that for double big maps and that seemed to tank frame rate. Even if the world was 800 times smaller it would still require the same amount of chunks I think. 
+
+void bats
+
+pterodactyls - need a place holder 
+
+Try a 64x64 map and see if it lags. 59 fps. The culling seems to make the size of the map irrelavent. If we run it on the lap top it would probably be slower. Maybe we can have a hard limit on the number of floor + wall tiles like we do with chunks. Do we really need a 64x64 map? 
+
+Make it so you can scroll through the levels forward and back. Buttons on either side of the the level button?  
+We could draw a plus and a minus sign on the right and left of the level button. Just make the plus sign with code. Then we would do the mouse hover check with these imbeded buttons only. Smoke and think about it more. 
+
+oof. fading fast. Maybe leave this one for tomorrow. 
+
+Enemies should turn around and run away if you are on the other side of lava. Not just stand there. Or patrol around? Maybe keep a minimum distance. 
+
+Put an exit to dungeon 16 at the end of dungeon 15 x
+
+put an exit to dungeon 17 at the end of dungeon 16 <- there is an exit you just didn't find it. 
+
+Dungeon 17 doesn't have a gold key and is not finished. 
+
+Gun model too low? -Thats two people says player is still too short. up it a bit more. gun model should come up with camera height. Code is getting to big to remember where I put things. 
+
+roap is messed up. doesn't stay straight. all of the sudden. -Its because we kill the bullet. keep the bullet alive while it retracts. Thats the only that changed. Yep. bullet needs to survive. x
+
+Enemies can get stuck on eggs. -do enemies have collsion with eggs? Is the egg tile unwalkable? yes. unless it's broken. Hatched eggs still block path. We switch it back to walkable on egg death not hatch. I like being able to destroy hatched eggs. 
+
+Redo the egg art. 
+
+Decide what levels are keepers and what gets culled. dungeon4 can go. Replace 4 with 9, also replace 10 the fireball level is lame. That's where the staff unlocks. 
+
+Map14 is a good map. 
+
+rearranging maps is a nightmare. because they have a map number and a dungeon number. They are sort of in order but not really. If I get rid of dungeon 6 I need to go down the line and change the name of all the dungeons that follow. I have the dungeons semi memorized and doing this would break that. 
+
+I think I will start with bats in the dungeon. Even though pterodactyls outside swooping down from above sound terrifying. Void bats though. Maybe it doesn't have to be bats. I was think of an enemy that shoots fireballs. Maybe I can hold off on flying enemies for now.
+
+Necromancers. Cultists. Enemy in a robe with a hood holding a staff that can shoot fireballs. Like a magika type wizard looking guy. 
+
+
+12/27/2025
+
+Work on the water shader maybe. 
+
+Remove the crossbow collectable weapon from start. It starts on both island maps btw. x
+
+Bring back the player light. But only if your holding a torch. It can be another melee weapon. maybe. We could use the same color as the static lights for the illumination around the player. Add a flicker. 
+
+Start by turning on player light. There was a reason I turned it off. It would make sense that it's orange if it's a torch. Make the color orange not white. and see how orange it gets. Maybe it's good.
+
+
+
+
+If you grapple to a very close gp, it plays the ratchet sound twice. Probably because you stay in grapple state for longer? Put a play once check. Maybe it's ok it it plays twice. 
+
+Ok. Now we need to place a windowed wall instead of a normal wall. Durring wall generation. windows need there own color. We set it to invisible wall just for testing. We can use invisible walls later for something. 
+
+
+It's not going to be that easy. wall segments start from the center of the the tile and run to the center of the next tile. So they are offset. The window would need to be between 2 wall segments. Maybe a double sized model? 
+
+fade out on quit <---------------------
+
+We need to place windows carefully. Walls are placed starting from the center of the floor tile. So walls center is at the seam between the two floor tiles. It runs from the center of one to the center of the next floor tile. 
+So we can't just place the window at the tiles position. We need to do it like we did secret walls. Check how we did secret walls. Feed it to clanker.
+
+clanker says the model isn't centered. I think because the original wall tile isn't centered. We may have to use the hack it suggested. because it looks pretty centered in blender. I think I'm close. Come back to it later.
+
+It's not going to work. Fireball is centered on tile. We would need two wall segments with a chunk bitten out of each side. That's a lot of work just to find that out. 
+-is there another way we could do it? Having walls offset like this makes corners and doorways and T intersections just work. So it's kind of needed. Maybe the window tile could have Two wall segments attached
+
+Internet just died for a second. But I had an idea. We could fake it. The window wall segment could have adjacent wall mesh attached to each side. We would build a normal wall collider for the adjacent fake wall segments and a window collider for the center. 
+
+
+Toggle level forward and back. <------------------------------------ This is suprisingly hard. 
+-we need two buttons. one on each side of the big level button. 
+
+Ask the clanker. I don't know why it's way harder to break apart existing code than to start from scratch. 
+
+Run the last dungeon put on good music until you get shut down. 
+
+If you think your gonna get shit for using LLM for coding, Just wait till they see you generate art. 
+
+Need an easy task. Work on the first void level. It was better than the new one. The one with spider bosses.
+
+Giant spider death animation didn't play.
+
+
+People psyched me out. Now I don't want to try to do it on stream. Try it. 
+
+Windows Need to be the same size as doorways you fool. tileSize * 3? 
+
+New plan. Made windows out of doorways. Doorways are already the perfect size. I modified the doorway model by copy pasting it a second time rotating it 90 degrees so the archway door become a hole. 
+
+As soon as I stopped streaming I solved both issues. 
+
+Now I just need to make the model less skuffed. Or make the hole smaller at least..
+
+Make put 3 normal walls together and cut a sphere shaped hole in the middle. <--- scuffed looking
+
+Resize the new window model in blender. The original doorway model was 100 units too low, and we just hardcoded y + 100 to make it fit. This is very old code when I was just fucking around. The real fix is to resize the original and the window to be properly centered and tall enough. I think we just stretched it to fit. We can leave the original the same it's just that the hole in the wall is stretched. It can be an ovoid hole for now? 
+
+
+
+We use the same controls panel for showing the controls and the level preview. Maybe there should be a second panel on the left. It's kind of an eye sore. I think a show preview button is a good idea. 
+
+What else. 
+
+Try making a island map. Spend some actual time on it. Try perlin noise agian. 
+
+Seems legit just cut off the corners in krita. 
+
+12/28/2025
+
+Don't show the preview until you hit the level button once. -Once you bring it up you can't hide it again. Maybe hitting controls button sets show preview false. 
+
+Mouse sensitivity is too high in free cam. 
+
+Make the grapling hook pull you toward the enemy. -Alex Morgan Johnson
+
+We should try this and see. How to make it happen. Harpoon already pulls you to grapple points. We would need to stop retracting the hook. We would need to use the grapple state we use for grapple points for enemies as well. When harpoon collides with enemy, player state = grapple, in the grapple state it's the same code. pull toward to collision point. We may have to ease into this one. I'm not ready yet. 
+
+Thats it? nope. Easy Peezy. Make stop distance like 250. We need to stun the enemy so they don't just immediatly fuck you up. The enemy is moving toward you as you are grappling toward them. Still it checks every frame for distance to enemy. Maybe grapple target needs to be the bullets position not enemy. 
+
+I slowed the grapple speed and it properly collided with the enemy, I guess before we were tunneling through. It's like I'm grappling to something behind the enemy. make grapple target enemy + forward or something. 
+
+-We were setting enemy state to harpooned. Which made the enemy move toward the player while the player was moving toward the enemy so player ended up behind the enemy.
+
+It's better the other way however. Hooking enemies toward you is more strategic I think. Play the game more and test it. 
+
+Putting enemy into stagger is fucking things up. Change it back? Comment it out and keep both ways
+
+It's literally just one spot that has to change in collision. Maybe we could half it both ways. Make it only a harpoon. Left click moves you toward the enemy, right click pulls them to you. maybe. 
+
+The staff melee attack was hitting when I wasn't swinging. Seems to have fixed it. Questionable code.
+
+Windows don't have side colliders like doorways do. So player fireballs can pass through same with normal bullets. This is all just to have that one level look slightly cooler. -Added door to window doorway. We don't initialize anything but the side colliders then set the door to open. So they are active. Seems to work. 
+
+Would having this dummy door be a problem? can you press E next to it to close it and deactive the side colliders?
+
+pterodactyl art
+
+We should have a button that gives mana potions. or just fills mana. for debug purposes. 
+
+The sound is too long. or spider attacks too fast. 
+
+Flying Character AI:
+    I guess I'm going to try and make a new character type with it's own AI. A flying dinosaur. A pterodactyl. I think I will just call it a dactyl for short. The question is. Does it always stay in the air? then dive bombs the player and back up? or does it land? Landed, TakeOff, Soaring, Divebomb, Retreat, 
+
+    Sounds complicated. I made a spirte sheet with only the first frame of every animation. So it won't be animated. Look at giant spider and see what we did there. 
+
+    There is nothing stopping you from making a new enum just for the dactyl. I would be rewriting existing code. Use the current characterState, the names just have different meanings? That's not confusing enough. 
+
+    We are going to need to use the clanker for 3D steering behavior. Talk to clanker about it. 
+
+    Different altitudes the bird can be at. It dumbly seeks the player and depending on it's state we change altitude and animation. It's probably going to look really dumb at first. 
+
+    I wish I had saved that old raptor code.
+
+    If we want to see progress, reuse the raptor generator for birds. done. 
+
+    Just make the idle state 
+
+    level data would need a new field. Maybe there is a better way. but for now just use raptor count. Spawn the same amount of dactyls as raptors. 
+
+    Clean up the sprite more. 
+
+    loose the shadow. Maybe we could project a shadow onto the ground from above. Maybe bird should have a raycast pointing down to measure altitude, but we can just check the heightmap anyway. What's next. Make it patrol. Need to ask clanker about a random position inside the heightmap bounds. Don't animate it yet just have the one frame floating around. 
+
+    Maybe dactyl can just follow the terrain pathfinding for now. Means they can't cross water. Would look weird. I mostly just want to see them flying around, to see if it's viable. Just copy past raptor AI
+
+
+-----------------------------------------------
+
+We have stamina, but I always end up going into debug mode so I have infinite stam. Makes me think we should just have infinite sprint again. 
+
+We play the walking bob in the boat. x
+
+update the readme. <----- Do this immediatly x 
+
+Enemies can still attack you when you are above them. Maybe if player.y is too high they can't hit you. 
+-This means changing it for each enemy AI. so like 4 times. Does distance check include Y, yes it must
+    I should now be able to jump skeles and spiders without being attacked. Hot damn that worked. It seems fair too. If you don't jump over perfectly they can hit you on the way up or down, seems perfect out the gate. Add to pirates.- Using XZ distance solved it. 
+
+
+
+We should probably standarize melee attack range. maybe pirates have a shorter range than skeles would make sense. right now pirates is at 280 and skeles at 200, It's a delicate balance, changing things now is a bad idea. 
+
+jumping raptors makes sense i guess. jumping giant spider should be allowed i think. 
+
+test it. 
+
+Maybe jumping giant spider makes it too easy. maybe horizDist should be shorter? or longer I mean. Pro tip. Jump enemies to avoid them. 
+
+Can't jump ghosts. I forget how their attacks work. They appear once in the whole game. Just a throw away character until I redo the art and I was going to give them a projectile. Maybe work on ghost for a while. 
+
+Let imageToimage chew on it. I drew the ghost my self in like 5 minutes like a year ago for a different game. I wonder what AI will do with it. Not bad. 
+
+I've never tried that before. It tried to give me four sprite sheets. 
+
+Normal enemies are 200x200. Is it easier to just scale with code, just need to remember to pass the correct frameWidth and height. 
+
+All these C++ nerds go to bed too early. It must be a school night. We will have to drum it up on our own. 
+
+I just turned the stream on. Get to work. 
+
+I don't have spellcheck on, on purpose. I dont need no proper spelling for scratch notes. 
+
+You can't record a new gif while OBS is in use. Update the screen shot. Menu with river in background.
+
+Increase stamina? again 
+
+debug mana - infinite mana in debug mode? God mode button? 
+
+We dont generate unique id's for raptors, means they can get hit more than once by the same bullet. or you could harpoon more than one raptor at a time. fix this. -we dont use character unique id's? I think we do for melee. 
+-I'm loosing it. 
+
+Move the preview image up like 100 pixels. Only show the preview image if the player clicks the level button. Maybe a show preview button. 
+
+
+We stretch the doorway model to fit inbetween wall tiles. So the circular hole become ovoid. If it were a square hole. it wouldn't look as bad. You'll have to start over with the 3 wall tiles. 
+
+
+Try the orbital cam more zoomed in. 
+
+12/29/2025:
+A new day has dawned. What do you want to work on. Bird. Get it using Y. 
+
+If they are idle, they should be flapping. Only if they are gliding through the air would they be wings out. We would need like a underneath view. Remember those enemies from Borderlands. That would fly way up in the sky and dive bomb you then go back up. 
+
+Need a side view flapping.
+
+There must me some check that says only attack if your a raptor. Because they are just circling they never approach to attack. Using the raptor code was temporary just to see what they would look like. 
+
+Look at shadow for character code. Change it to always draw it at ground level. Not just feet position. That way the birds shadow would be on the ground instead of in the air. maybe just ditch the shadow for bird. 
+
+
+
+Player weapon bobs a little when first starting level. 
+
+You can still attack after your dead, but maybe that makes sense, it's like your attacking one last time as your dying. 
+
+There was a weird invisible wall on level 3 first door. Maybe inset doorways like that one fuck up? 
+
++ and - buttons don't flash when you click them. x
+
+
+
+If jungle ambience plays to long the bird sounds get loud and obnoxious, cut it down to just before that happens. 
+-That saves a couple of megabytes.
+
+Flight
+
+Need to like two more states to characterState enum, talk to clanker about it. Explain the situation.
+
+We have the birds moving using steering behavior not locked to the grid. It uses the same states as the raptor. idle, patrol, chase, runaway. I guess Idle means hover, patrol means take to the skies, chase means dive bomb the player, runaway means fly away into the air. Attack just works when close enough. 
+
+
+
+we check xz distance to player for vision, we should check vec3 distance.
+
+I think they need to target the players feet. because player position is where the camera is in the middle of the player.
+
+
+Make their health higher so you can harpoon them, and see what happens.
+
+they collide with player and push him around.
+
+It looks dumb when there is that many. If it's just an occasional dactyl it might work ok. Def needs more refinement.
+
+
+They shouldn't stop at their patrol target, they should be continually flying around. 
+
+Could make a flat dactyl shaped drop shadow that follows the current animation, maybe just loose the shadow for now. 
+
+They still don't get low enough, they should be under a certain Y before they are allowed to attack.
+
+Setting the dive target to -1000 below the ground seemed to make them dive a lot better. The ground check stops them from diving through. maybe it doesn't have to be 1000. At zero they ended up way to high. 1k was better
+
+They attack twice then retreat, just like raptors. Maybe they should only attack once. -maybe this is better.
+
+
+
+Dungeon 14 needs enemies.
+
+Where was I. Need a break from dinosaurs. 
+
+Work on floor collision. How to make the character feel like they have weight. Maybe platforms should be slightly sticky. Because it feels like your on ice while jump puzzling. 
+
+Stronger downward gravity, stronger gravity after you reached the top of your jump maybe. 
+
+maybe player speed could be a shade higher. Kinda don't want to touch that because it's been the same speed for so long I'm used to it. 
+
+If you hit the platform right at the edge you can teleport up.
+
+Implement 5 different feet positions like the clanker was saying. If at least 3 of the 5 are on the platform then snap to groundY.
+
+
+12/30/2025
+
+
+If they stray to farr from their starting position, they should return to it. <--
+
+We need sound effects. a "CACAAAW" sound.  
+
+Doors occlude enemies. Do we not run alpha cut off shader on doors? 
+
+Stretch the window to fit the hole. in code. 
+
+I have no real plan. dactyls need work. Could try dungeon bats next. We would need a separate Y controller. Inside dungeons they can just use the pathfinding like normal enemy. What makes them different then. Maybe they bob up and down when they move making them hard to hit. Maybe they have some kind of run away behavior. 
+
+Maybe an exploding enemy. Like all of your games have had kamakazi enemies. Goblin sapper from fools path. Maybe we could make a goblin. a loot goblin. He would just drop potions and gold. Ranged goblin with a bow and arrow. Skeleton archer. You were going to add the dark wizard guy. Cultists. that shoot fireballs. It starts with the art. and I couldn't get good generation. I could probably just draw a hooded figure with a staff. Make them short like the pirate. Cute little necromancers. 
+
+Work on dactyls. It's visually interesting. Maybe they start too high in the air. I kind of like making the player have to look up, allowing raptors to attack when player isn't looking. 
+
+They are not obeying the bounds of the heightmap. I never really understood that part look at it some more. 
+
+It's only when choosing patrol target do we do that check. Which can happen every second. So it would fly back to within max dist for 1 second. patrol time should be longer if returning to center. 1 second is just idle time. They move all the way to patrol target before stopping so we are good. We may get lots of birds at the center over time. 
+
+The ring isn't big enough, min dist is too close
+
+add repulsion. even when idle. should be ok to do lots of repulsion, 3d repulsion. 
+
+
+
+We aren't flipping the sprite depending on direction of travel. x We flip it in transparentDraw right before we draw it. 
+
+They aren't returning to center. They still have to reach there destination before they turn back. in find point on ring we should check if distance to center > maxdist and return center if it's too far. -Redid GetRandomPointOnHeightmapXZ() to properly keep them in bounds around 0,0,0. It was set up for the corner being origin before. 
+
+Patrol speed should be higher, make them bite twice again. x
+
+oof. I got to decide where it's going to live. I'm tripping. I meant player is getting messy. 
+
+We really should have a new file. with all the movement code. Come back to it. Your not ready yet. 
+
+Harpoon should work on birds. x
+
+Skeletons sometimes get stuck swinging at air when they are just the right distance from player. Lower attack enter I think. or lower attack exit maybe. - it still can happen, but it's a lot harder to get them into that state. It went from 150 unit window to 10. so I think it's good for now. 
+
+
+
+Maybe reticle looks to modern. Pirate themed crosshair? Maybe just a circle would be better. 
+
+Make the hole lower in blender
+
+Freezing enemies still fucks up. Giant spider specifically. -If you freeze the spider then kill it when frozen, it doesn't actually die, so it doesn't trip the open door code. soft locking the player. 
+
+Right. the door occlusion. simply apply the alpha cutoff shader to the door quad. We do. it occludes for other reasons. The angle I guess. Ask clanker.
+
+Disable depth mask for open doors. That worked.
+
+Platforming has become impossible. 
+
+
+Hook needs to be xz only, with a special case just for birds. It's not the xz. It's the floor collision. some how. 
+
+It never used to dip like that. only thing that changed was the floor collision. 
+
+That fixed it but it feels less visceral, than before. I think before gravity would bring you down a bit if you grappled far. and it felt more like you were being pulled allong. Here it's too smooth. try a little bit of gravity while grappling. 
+
+investigate spider death animation. 
+
+how can it only play half the animation. It kind of looks cool that frozen skeletons get stuck in a kneeling pose. But I should fix it. 
+
+forcing freeze state from bullet probably isn't how it should be done. We call changeState(freeze) Maybe you can't refreeze a frozen enemy. they wouldn't take damage then. The still could. 
+
+Change state function already handles this. Then why do they get stuck in half animation land. 
+
+
+
+We weren't calling take damage, we were subtracting health with out all the checks that take damage does. We were doing this because I didn't want enemies to stagger instead of being frozen. Better to just don't allow stagger if frozen instead of doing some extra bullshit. 
+
+Maybe they should go to random height level when patrolling. 
+
+There should be a god mode. or an non interactable mode. where player teleports far away or something. I want to observe bird behavior without being attacked. God mode should be activated when in free cam. member var of player
+
+Player should be invisible to enemies also in free cam. Birds don't care about vision. There is like a million vision checks you would have to change. Maybe just teleport the player off the map. 
+
+I like my idea better. it doesn't involve putting early returns in like 50 different places. 
+
+I think birds get stuck on the players capsule and can't get down low enough. If I make them not collide they would probably over shoot. Draw bird bounding box.
+
+
+
+
+
+12/31/2025:
+
+Make the galaxy squished like the rings of the planet. <- do this first -good enough for now. 
+
+Platform Edge Detection. <- this is the big one. Still unsure where to start. or where to put it. Just put it in player and later we will consolidate movement code into something more sane. 
+
+start over. 
+
+The foot samples make it so you can basically climb up platforms. are we putting the sample at actual feet position Y?
+
+come back to it. This jump/ground collision stuff is fucked. 
+
+Maybe we just let the player climb up platforms for now. Maybe it's a feature. 
+
+birds still can always see player, make "bird vision" 
+
+bird's vision enter and stalk enter range get dropped to 1 when player is in god mode yet they still enter chase when they are like 4k away. There must be more than one distance check. there must be a hard coded dist check somewhere. 
+
+Ice shrapnel? Ice bullet. 
+
+Maybe player light isn't so bad. -Make it brighter and longer and see how it looks. maybe a little less orange.
+
+evil wizard art. Does an evil wizard make sense for pirate theme? It's fantasy i guess. 
+
+I didn't have anything planned. Time to sit and think for 10 minutes on what to work on. There is still a million things to do. It all involves tedius art generation. 
+
+Ice ball traps. copy existing firball launchers and make ice ball launchers that freeze the player. Make fast shooting ones where if you are frozen in it's path it's certain death. 
+
+Fireball launchers are enoded into the png map by having specific colored pixels in a row. A vermilion pixel is the launcher itself. a yellowish pixel is the direction pixel, the fireball will shoot in the direction of it. Then there is a timing pixel that can be one of 3 colors. darkest orange is 5 second delay, medium orange is 3 second delay, and bright orange is 2 second delay or something. We can keep the same timing pixel and direction pixel we just need another color for the ice launcher.
+
+ok it took longer to explain it than it did to implement. Player needs a freeze state. We recently added playerState so we could have grapple state, make it one of those. 
+
+I'm loosing it. smoke some more. 
+
+Ok quit fucking around with timers. Maybe tonight isn't the night for coding. generate shitty art instead. 
+
+I wonder if we could do an underneath view. Measure angle to the player. if it's over some threshold show the belly of the bird. Player can't look straight up anyway. 
+
+copy and paste the bird together like frakenstein. generate different types of heads and paste on different bodies to get all the poses needed.  
+
+birds still don't get low enough when attacking. 
+
+Going to call it quits for now. Until I think of what to work on. I should have a plan before starting these. 
+
+
+
+
+
+
+
+
+
 
 
 

@@ -105,6 +105,8 @@ int main() {
             if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
             UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
             CameraSystem::Get().Update(deltaTime);
+
+            player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; 
             //update context
 
             debugControls(camera, deltaTime); 
