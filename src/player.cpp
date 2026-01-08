@@ -111,49 +111,6 @@ void UpdatePlayerGrapple(Player& player, float dt)
     player.velocity = {0,0,0};
 }
 
-
-
-// void UpdatePlayerGrapple(Player& player, float dt)
-// {
-//     if (player.state != PlayerState::Grappling) return;
-
-//     if (player.harpoonLifeTimer > 0.0f) {
-//         player.harpoonLifeTimer -= dt;
-//     }else {
-//         player.harpoonLifeTimer = 0.0f;
-//     }
-
-//     if (player.harpoonLifeTimer <= 0){
-//         player.state = PlayerState::Normal;
-//         return;
-//     }
-
-//     Vector3 toTarget = Vector3Subtract(player.grappleTarget, player.position);
-//     float dist = Vector3Length(toTarget);
-//     // Stop condition
-//     if (dist <= player.grappleStopDist) {
-//         player.state = PlayerState::Normal;
-//         player.velocity = {0,0,0};
-//         player.grappleBulletId = -1;
-//         return;
-//     }
-
-//     Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
-//     float step = player.grappleSpeed * dt;
-
-
-//     // Move player
-//     player.position = Vector3Add(player.position, Vector3Scale(dir, step));
-
-//     // Optional: zero out velocity if your controller uses velocity
-//     player.velocity = {0,0,0};
-
-    
-// }
-
-
-
-
 void Player::EquipNextWeapon() {
     meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = 
         R.GetTexture("swordClean");
@@ -198,6 +155,10 @@ void HandlePlayerMovement(float deltaTime){
     if (IsKeyDown(KEY_A)) wish.x += 1;
     if (IsKeyDown(KEY_D)) wish.x -= 1;
 
+    if (CameraSystem::Get().GetMode() == CamMode::Free){
+        wish = {0,0};
+    }
+
     player.running = IsKeyDown(KEY_LEFT_SHIFT) && player.canRun;
     const float maxSpeed = player.running ? player.runSpeed : player.walkSpeed;
 
@@ -229,7 +190,6 @@ void HandlePlayerMovement(float deltaTime){
     player.velocity.x = approach(player.velocity.x, desiredVel.x, (fabsf(desiredVel.x) > 0.001f) ? accel : decel, dt);
     player.velocity.z = approach(player.velocity.z, desiredVel.z, (fabsf(desiredVel.z) > 0.001f) ? accel : decel, dt);
 
-    
     const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
 
     // --- gravity
@@ -239,15 +199,16 @@ void HandlePlayerMovement(float deltaTime){
         //if (falling) g = player.GRAVITY*2.5;     // e.g. 2.2f
 
         player.velocity.y -= g * dt;
-        //player.position.y += player.velocity.y * dt;
-        //player.velocity.y += player.GRAVITY * dt;
+
     } 
 
     HandleJumpButton(GetTime());
     
     TryQueuedJump();
-
+    
     player.position = Vector3Add(player.position, Vector3Scale(player.velocity, dt)); //apply movement
+    
+    
 
 }
 
@@ -347,7 +308,7 @@ void HandleKeyboardInput(Camera& camera) {
     if (player.onBoard && IsKeyPressed(KEY_E)) {
         player.onBoard = false;
         player_boat.playerOnBoard = false;
-        player.position = Vector3Add(player_boat.position, {2.0f, 0.0f, 0.0f}); // step off
+        player.position = Vector3Add(player_boat.position, {2.0f, 200.0f, 0.0f}); // step off
     }
 
     // --- Sync Player to Boat ---
@@ -381,11 +342,11 @@ void HandleKeyboardInput(Camera& camera) {
         magicStaff.equipDip = 50;
     }
 
-    if (IsKeyPressed(KEY_F) || IsKeyPressed(KEY_LEFT_CONTROL)){
+    if (IsKeyPressed(KEY_F)){
         //use health potion
         if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
-            if (player.currentHealth < player.maxHealth){
+            if (player.currentHealth < player.maxHealth){ //don't use pot when full health
                 player.currentHealth = player.maxHealth;
                 player.inventory.UseItem("HealthPotion");
                 SoundManager::GetInstance().Play("gulp");
@@ -682,7 +643,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     player.displayedGold += (player.gold - player.displayedGold) * goldLerpSpeed * deltaTime;
 
     if (player.running && player.isMoving && player.stamina > 0.0f) {
-        if (!debugInfo) player.stamina -= deltaTime * 20.0f; // drain rate
+        if (!debugInfo) player.stamina -= deltaTime * 10.0f; //20.0f drain rate
         if (player.stamina <= 0.0f) {
             player.stamina = 0.0f;
             player.canRun = false; // forced stop
@@ -741,48 +702,75 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
 
     //PLAYER MOVEMENT KEYBOARD INPUT
-    if (controlPlayer){
+    //if (controlPlayer){
         HandleKeyboardInput(camera);
 
-        if (player.state == PlayerState::Grappling) {
-            UpdatePlayerGrapple(player, deltaTime);
-            // skip normal movement update
-        } else if (player.state == PlayerState::Frozen){
-            if (player.freezeTimer > 0.0){
-                player.freezeTimer -= deltaTime;
-
-            }else{
-                player.state = PlayerState::Normal;
-                player.freezeTimer = 0.0f;
-                player.canFreeze = true;
-            }
-
+    if (player.state == PlayerState::Grappling) {
+        UpdatePlayerGrapple(player, deltaTime);
+        // skip normal movement update
+    } else if (player.state == PlayerState::Frozen){
+        if (player.freezeTimer > 0.0){
+            player.freezeTimer -= deltaTime;
 
         }else{
-            if (!player.onBoard) HandlePlayerMovement(deltaTime);
-        } 
+            player.state = PlayerState::Normal;
+            player.freezeTimer = 0.0f;
+            player.canFreeze = true;
+        }
+
+
+    }else{
+        if (!player.onBoard) HandlePlayerMovement(deltaTime);
     } 
+    //}
 
     // === Ground Check ===
-    //player.groundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
-    float feetY = player.position.y - player.height / 2.0f;
+    float feetY = (player.position.y - player.height * 0.5f);
     // === Ground Check (multi-sample) ===
-    float footOff = 30.0f; // tune: 50–80
+    float footOff = 20.0f; // try 10–40 depending on your tile size / player radius
 
-    Vector3 samples[5] = {
-        FootSample(player,  0,        0),
-        FootSample(player, +footOff,  0),
-        FootSample(player, -footOff,  0),
-        FootSample(player,  0,       +footOff),
-        FootSample(player,  0,       -footOff),
+    Vector3 samples[9] = {
+        FootSample(player,  0,        0),        // center
+
+        FootSample(player, +footOff,  0),        // E
+        FootSample(player, -footOff,  0),        // W
+        FootSample(player,  0,       +footOff),  // N
+        FootSample(player,  0,       -footOff),  // S
+
+        FootSample(player, +footOff, +footOff),  // NE
+        FootSample(player, -footOff, +footOff),  // NW
+        FootSample(player, +footOff, -footOff),  // SE
+        FootSample(player, -footOff, -footOff),  // SW
     };
 
-    // Start with something sensible
-    float bestGroundY = -99999.0f;
+    // ---- tuning knobs ----
+    const float SNAP_EPS     = 5.0f;    // feet can be this far above a surface and still "snap"
+    const float MAX_STEP_UP  = 150.0f;   // max allowed step up this frame (prevents wall-climb) -if we only climb halfway up the wall, we fall through the world. 
+
+    // For choosing ground:
+    float bestSupportingGroundY = -99999.0f;
+    int   supportCount = 0;
 
     // (Optional) if you want to know if ANY foot is over void/lava
     bool anyOverVoid = false;
     bool anyOverLava = false;
+
+    // We'll also compute a fallback center groundY (used if supportCount < 2)
+    player.centerGroundY = 0.0f;
+    if (!isDungeon)
+    {
+        player.centerGroundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
+    }
+    else
+    {
+        player.centerGroundY = floorHeight;
+
+        float cx = GetDungeonImageX(player.position.x, tileSize, dungeonWidth);
+        float cy = GetDungeonImageY(player.position.z, tileSize, dungeonHeight);
+
+        if (IsLava(cx, cy)) player.centerGroundY -= LAVA_DROP;
+        if (IsVoid(cx, cy)) player.centerGroundY -= VOID_DROP;
+    }
 
     for (Vector3 p : samples)
     {
@@ -794,17 +782,10 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         }
         else
         {
-            // In dungeons the "ground" is basically your floor height,
-            // but you likely ALSO want to evaluate which tile you're over
-            // (void/lava) per-foot, not just at player center.
             gy = floorHeight;
 
-            // If you have a function that checks the dungeon tile at world XZ:
-            // (you probably do, since you already have player.overVoid/overLava)
-            // Replace these with your own:
             float x = GetDungeonImageX(p.x, tileSize, dungeonWidth);
             float y = GetDungeonImageY(p.z, tileSize, dungeonHeight);
-
 
             bool overVoid = IsVoid(x, y);
             bool overLava = IsLava(x, y);
@@ -813,12 +794,37 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
             if (overVoid) { gy -= VOID_DROP; anyOverVoid = true; }
         }
 
-        if (gy > bestGroundY) bestGroundY = gy;
+        // Use a small step-up only if grounded; otherwise prevent ledge “magnet” mid-jump
+        const float MAX_STEP_UP_GROUNDED = 25.0f;  // your normal step
+        const float MAX_STEP_UP_AIR      = 0.0f;   // basically “don’t step up in air”
+
+        float maxStepUp = player.grounded ? MAX_STEP_UP_GROUNDED : MAX_STEP_UP_AIR;
+        float stepUp = gy - feetY;
+
+        bool supports =
+            (feetY <= gy + SNAP_EPS) &&   // feet are close enough to "land" on it
+            (stepUp <= maxStepUp);      // but not too far above feet (wall/platform side)
+
+        if (supports)
+        {
+            supportCount++;
+            if (gy > bestSupportingGroundY) bestSupportingGroundY = gy;
+        }
     }
 
-    player.groundY = bestGroundY;
+    // Choose groundY:
+    // - need at least 2 supporting probes to "stand" on that higher surface
+    // - otherwise fallback to center to prevent 1-probe hovering/climbing
+    if (supportCount >= 5) //more feet required to stay on platform. lower is more forgiving. 5/9 hit samples means your on a platform.
+    {
+        player.groundY = bestSupportingGroundY;
+    }
+    else
+    {
+        player.groundY = player.centerGroundY;
+    }
 
-    // If you want your existing logic to still work:
+    // Keep your existing dungeon flags working
     if (isDungeon)
     {
         player.overVoid = anyOverVoid;
@@ -826,27 +832,12 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     }
 
 
-    if (isDungeon)
-    {
-        //player.groundY = dungeonPlayerHeight;
-
-        // if (player.overLava)
-        //     player.groundY -= LAVA_DROP;
-
-        // if (player.overVoid)
-        //     player.groundY -= VOID_DROP;
-    }
-
-    
-
     // --- VOID FALL LATCH ---
-    // If we ever detect void under us, commit to falling until death (or until you explicitly clear it).
     if (isDungeon && player.overVoid)
     {
         player.isFallingIntoVoid = true;
     }
 
-    // If we're latched into a void fall, do NOT allow snapping back up just because XZ moved under a floor.
     if (isDungeon && player.isFallingIntoVoid)
     {
         player.grounded = false;
@@ -855,8 +846,6 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         if (player.position.y <= killY)
         {
             player.TakeDamage(9999);
-            // If your death handler respawns immediately, you can clear latch there instead.
-            // player.isFallingIntoVoid = false;
         }
 
         if (!player.overVoid)
@@ -864,22 +853,27 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
             float snapDelta = (player.groundY + player.height / 2.0f) - player.position.y;
             if (snapDelta >= 0.0f && snapDelta <= VOID_SNAP_REENABLE_Y)
             {
-                // close enough to a legit floor: allow normal snap next frame
                 player.isFallingIntoVoid = false;
             }
         }
 
-        // Important: skip the normal snap logic entirely this frame.
+        // skip normal snap
     }
     else
-    {   //GROUND CHECK
+    {
         const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
-        // Normal ground snapping logic (unchanged)
-        if (feetY <= player.groundY + 5.0f && falling)
+
+        // Optional extra safety: don't allow snapping UP more than MAX_STEP_UP
+        float targetY = player.groundY + player.height / 2.0f;
+        if (targetY > player.position.y + MAX_STEP_UP)
+        {
+            player.grounded = false;
+        }
+        else if (feetY <= player.groundY + 5.0f && falling)
         {
             player.grounded = true;
-            player.velocity.y = 0.0f; 
-            player.position.y = player.groundY + player.height / 2.0f;
+            player.velocity.y = 0.0f;
+            player.position.y = targetY;
         }
         else
         {
@@ -956,8 +950,46 @@ void DrawWeapons(const Player& player, Camera& camera) {
 }
 
 void DrawPlayer(const Player& player, Camera& camera) {
-    //DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
-    //DrawBoundingBox(player.GetBoundingBox(), RED);
+    if (CameraSystem::Get().GetMode() == CamMode::Free){
+        DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
+        DrawBoundingBox(player.GetBoundingBox(), RED);
+    }
+
+    if (player.debugShowFootSamples)
+    {
+        float footOff = 1.0f; // try 10–40 depending on your tile size / player radius
+
+        Vector3 samples[9] = {
+            FootSample(player,  0,        0),        // center
+
+            FootSample(player, +footOff,  0),        // E
+            FootSample(player, -footOff,  0),        // W
+            FootSample(player,  0,       +footOff),  // N
+            FootSample(player,  0,       -footOff),  // S
+
+            FootSample(player, +footOff, +footOff),  // NE
+            FootSample(player, -footOff, +footOff),  // NW
+            FootSample(player, +footOff, -footOff),  // SE
+            FootSample(player, -footOff, -footOff),  // SW
+        };
+
+        for (int i = 0; i < 9; ++i)
+        {
+            Vector3 p = samples[i];
+
+            float gy = isDungeon
+                ? player.centerGroundY
+                : GetHeightAtWorldPosition(p, heightmap, terrainScale);
+
+            Vector3 top = { p.x, p.y + 60.0f, p.z };
+            Vector3 hit = { p.x, gy,          p.z };
+
+            DrawLine3D(top, hit, (i == 0) ? ORANGE : LIME);
+            DrawSphere(hit, 3.0f, RED);        // ground hit point
+            DrawSphere(p,   3.0f, SKYBLUE);    // sample origin
+        }
+    }
+
     //DrawBoundingBox(player.meleeHitbox, WHITE);
     DrawWeapons(player, camera);
 

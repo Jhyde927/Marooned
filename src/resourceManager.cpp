@@ -72,13 +72,16 @@ Model& ResourceManager::LoadModel(const std::string& name, const std::string& pa
     return _models[name];
 }
 
-Model& ResourceManager::LoadModelFromMesh(const std::string& name, const Mesh& mesh) {
+Model& ResourceManager::AddModelFromMesh(const std::string& name, Mesh mesh)   // note: Mesh by value is fine
+{
     auto it = _models.find(name);
     if (it != _models.end()) return it->second;
-    Model m = ::LoadModelFromMesh(mesh);
-    _models.emplace(name, m);
-    return _models[name];
+
+    // Construct directly in the map (no intermediate copy)
+    auto [insertIt, inserted] = _models.emplace(name, ::LoadModelFromMesh(mesh));
+    return insertIt->second;
 }
+
 Model& ResourceManager::GetModel(const std::string& name) const {
     auto it = _models.find(name);
     if (it == _models.end()) throw std::runtime_error("Model not found: " + name);
@@ -287,7 +290,10 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("staffIcon",        "assets/sprites/staffIcon2.png");
     R.LoadTexture("shotgunReticle",   "assets/sprites/shotgunReticle.png");
     R.LoadTexture("dactylSheet",      "assets/sprites/dactylSheet.png");
+    R.LoadTexture("ceilingTexture",   "assets/textures/ceilingTilesTexture.png");
 
+    R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
+    R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
     // Models (registering with string keys)
     R.LoadModel("palmTree",               "assets/Models/bigPalmTree.glb");
     R.LoadModel("palm2",                  "assets/Models/smallPalmTree.glb");
@@ -313,14 +319,16 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("bolt",                   "assets/Models/bolt.glb");
     R.LoadModel("windowedWall",           "assets/Models/windowedWall.glb");
     R.LoadModel("windowWay",              "assets/Models/windowHoleSquare.glb");
+    R.LoadModel("swampTree",              "assets/Models/treeSwamp1.glb");
 
     //generated models
 
-    R.LoadModelFromMesh("squareBolt", GenMeshCube(2.0f, 2.0f, 20.0f));
+    R.AddModelFromMesh("squareBolt", GenMeshCube(2.0f, 2.0f, 20.0f));
 
-    R.LoadModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
-    R.LoadModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
-    R.LoadModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
+    R.AddModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
+    R.AddModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
+    R.AddModelFromMesh("ceilingPlane", GenMeshPlane(1.0f, 1.0f, 1, 1)); //we can scale it later. 
+    R.AddModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
     //R.LoadModelFromMesh("bottomPlane",GenMeshPlane(16000, 160000, 1, 1));
     
     //shaders
@@ -335,7 +343,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("lavaShader",     "assets/shaders/lava_world.vs",         "assets/shaders/lava_world.fs");
     R.LoadShader("treeShader",     "assets/shaders/treeShader.vs",         "assets/shaders/treeShader.fs");
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
-
+    R.LoadShader("ceilingShader",   "",                                    "assets/shaders/ceiling.fs");
 
 
 }
@@ -486,6 +494,13 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
     Shader& sh = R.GetShader("terrainShader");
 
+    Vector3 oceanColor = {0.22, 0.55, 0.88};
+    Vector3 swampColor = {0.32, 0.45, 0.30};//{0.32, 0.45, 0.35};
+    Vector3 waterColor = (gCurrentLevelIndex == 23) ? swampColor : oceanColor;
+
+    int waterColorLoc = GetShaderLocation(sh, "u_waterColor");
+    SetShaderValue(sh, waterColorLoc, &waterColor, SHADER_UNIFORM_VEC3);
+
     sh.locs[SHADER_LOC_MAP_ALBEDO]    = GetShaderLocation(sh, "texGrass");
     sh.locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(sh, "texSand");
     sh.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(sh, "textureOcclusion");
@@ -493,8 +508,13 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     Texture2D grass = R.GetTexture("grassTexture");
     Texture2D sand  = R.GetTexture("sandTexture");
 
+    //ternary opterator
+    grass = (gCurrentLevelIndex == 23) ? R.GetTexture("swampGrass") : R.GetTexture("grassTexture");
+    sand = (gCurrentLevelIndex == 23) ?  R.GetTexture("swampMud") : R.GetTexture("sandTexture");
+
     GenTextureMipmaps(&grass);
     GenTextureMipmaps(&sand);
+
     SetTextureFilter(grass, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(sand,  TEXTURE_FILTER_TRILINEAR);
 
@@ -547,7 +567,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     // --- Fog and sky
     Vector3 skyTop  = {0.55f, 0.75f, 1.00f};
     Vector3 skyHorz = {0.60f, 0.80f, 0.95f};
-    float fogStart  = 100.0f;
+    float fogStart  = 0.0f;
     float fogEnd    = 18000.0f;
     float seaLevel  = 400.0f;
     float falloff   = 0.002f;
@@ -566,6 +586,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     Model& smallTreeModel = R.GetModel("palm2");
     Model& bushModel = R.GetModel("bush");
     Model& doorwayModel = R.GetModel("doorWayGray");
+    Model& swampTree = R.GetModel("swampTree");
 
     // Hook ALBEDO to our sampler name
     treeShader.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(treeShader, "textureDiffuse");
@@ -609,6 +630,13 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
         treeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
         smallTreeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     }
+
+    for (int i = 0; i < swampTree.materialCount; ++i) {
+        swampTree.materials[i].shader = treeShader;
+        swampTree.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    }
+
+
 
 
 
@@ -683,14 +711,32 @@ void ResourceManager::SetLavaShaderValues(){
 void ResourceManager::SetLightingShaderValues() {
 
     Shader& lightingShader = R.GetShader("lightingShader");
+    Shader& ceilingShader = R.GetShader("ceilingShader");
 
     Model& floorModel    = R.GetModel("floorTileGray");
     Model& wallModel     = R.GetModel("wallSegment");
-    Model& windowModel     = R.GetModel("windowWay");
+    Model& windowModel   = R.GetModel("windowWay");
     Model& doorwayModel  = R.GetModel("doorWayGray");
     Model& launcherModel = R.GetModel("stonePillar");
     Model& barrelModel   = R.GetModel("barrelModel");
     Model& brokeModel    = R.GetModel("brokeBarrel");
+    Model& ceilingPlane  = R.GetModel("ceilingPlane");
+
+    // Mesh m = GenMeshPlane(1, 1, 1, 1);
+    // Model ceilingPlane = LoadModelFromMesh(m);
+
+
+    // Albedo/diffuse (this is what raylib binds as texture0)
+    ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("ceilingTexture");
+    ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].color   = WHITE;
+    //ceilingPlane.materials[0].shader = ceilingShader;
+
+    // If you want true tiling without seams:
+    SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture, TEXTURE_WRAP_REPEAT);
+
+    int tilesLoc = GetShaderLocation(ceilingShader, "tiles");
+    Vector2 tiles = { (float)dungeonWidth, (float)dungeonHeight };
+    SetShaderValue(ceilingShader, tilesLoc, &tiles, SHADER_UNIFORM_VEC2);
 
     // assign shader to all dungeon materials
     for (int i = 0; i < wallModel.materialCount; i++)      wallModel.materials[i].shader   = lightingShader;
@@ -700,6 +746,11 @@ void ResourceManager::SetLightingShaderValues() {
     for (int i = 0; i < launcherModel.materialCount; ++i) launcherModel.materials[i].shader = lightingShader;
     for (int i = 0; i < barrelModel.materialCount; ++i)   barrelModel.materials[i].shader = lightingShader;
     for (int i = 0; i < brokeModel.materialCount; ++i)    brokeModel.materials[i].shader  = lightingShader;
+
+
+    for (int i = 1; i < ceilingPlane.materialCount; ++i)    ceilingPlane.materials[i].shader  = lightingShader;
+
+    //ceilingPlane.materials[0].shader = ceilingShader;
 
     // IMPORTANT: map EMISSION -> texture4 sampler in shader
     lightingShader.locs[SHADER_LOC_MAP_EMISSION] =
@@ -718,6 +769,7 @@ void ResourceManager::SetLightingShaderValues() {
     setLightmap(launcherModel);
     setLightmap(barrelModel);
     setLightmap(brokeModel);
+    setLightmap(ceilingPlane);
 
     Shader use = floorModel.materials[0].shader;
 
@@ -754,7 +806,10 @@ void ResourceManager::UpdateShaders(Camera& camera){
     float t = GetTime();
     int dungeonFlag = isDungeon ? 1 : 0;
     int isDungeonLoc = GetShaderLocation(skyShader, "isDungeon");
+    int isSwampLoc = GetShaderLocation(skyShader, "isSwamp");
+
     int camLoc = GetShaderLocation(waterShader, "cameraPos");
+    int colorLoc = GetShaderLocation(waterShader, "u_waterColor");
     int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
     int fogStartLoc = GetShaderLocation(treeShader, "u_FogStart");
     int tFogStartLoc = GetShaderLocation(terrainShader, "u_FogStart");
@@ -763,6 +818,15 @@ void ResourceManager::UpdateShaders(Camera& camera){
     float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
     SetShaderValue(treeShader, fogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
     SetShaderValue(terrainShader, tFogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
+
+    //level 23 is a swamp level. Hard code colors for swamp
+    int isSwamp = (gCurrentLevelIndex == 23) ? 1 : 0;
+    SetShaderValue(skyShader, isSwampLoc, &isSwamp, SHADER_UNIFORM_INT);
+    Vector3 swampColor = {0.32, 0.45, 0.30};
+    Vector3 oceanColor = {0.22, 0.55, 0.88};
+    Vector3 waterColor = (isSwamp == 1) ? swampColor : oceanColor;
+    SetShaderValue(waterShader, colorLoc, &waterColor, SHADER_UNIFORM_VEC3);
+    
 
     //water shader needs cameraPos for reasons. 
     SetShaderValue(waterShader, camLoc, &camPos, SHADER_UNIFORM_VEC3);

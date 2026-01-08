@@ -24,6 +24,8 @@ struct CameraRig {
     float nearClip = 60.0f;      // matches your BeginCustom3D
     float farClip = 50000.f;
     Vector3 velocity{0,0,0};    // free-cam movement
+    Vector3 smoothedPos = { 0,0,0 };
+    bool    hasSmoothedInit = false;
 };
 
 struct CinematicDesc {
@@ -56,6 +58,7 @@ public:
     void AttachToPlayer(const Vector3& pos, const Vector3& forward);
     void SetMode(CamMode m);
     void SnapAllToPlayer();
+
     CamMode GetMode() const;
 
     void SetFOV(float fov);

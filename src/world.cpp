@@ -62,7 +62,7 @@ float fadeSpeed = 1.0f; // units per second
 float tileSize = 200;
 bool switchFromMenu = false;
 int selectedOption = 0;
-float floorHeight = 100;
+float floorHeight = 100; //100
 float wallHeight = 270;
 float dungeonEnemyHeight = 165;
 float ElapsedTime = 0.0f;
@@ -165,6 +165,8 @@ void InitLevel(LevelData& level, Camera& camera) {
     //camera.position = player.position; //start as player, not freecam.
     levelIndex = level.levelIndex; //update current level index to new level. 
     gCurrentLevelIndex = levelIndex; //save current level globally so we can tell if we are changing levels or resuming. 
+
+
     if (level.heightmapPath.empty() && level.dungeonPath.empty()) {
         TraceLog(LOG_INFO, "Skipping placeholder level index %d", levelIndex);
         level = levels[2];
@@ -201,8 +203,8 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
 
-    if (levelIndex == 1 || levelIndex == 22){
-       generateDactyls(level.raptorCount, level.raptorSpawnCenter, 6000.0f);     
+    if (levelIndex == 1 || levelIndex == 23){
+       generateDactyls(5, level.raptorSpawnCenter, 6000.0f);     
     }
 
 
@@ -223,10 +225,6 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index, 
-
-        // GenerateWindows(wallHeight);       // reads markers + infers rotations (tile space)
-        // BindWindowsToRuns(wallHeight);          // finds nearest run (run space)
-        // ApplyWindowsToRuns(wallHeight);    // snaps model + moves collider out of wallRunColliders
 
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
@@ -272,11 +270,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     Vector3 resolvedSpawn = ResolveSpawnPoint(level, isDungeon, first, floorHeight);
     InitPlayer(player, resolvedSpawn); //start at green pixel if there is one. otherwise level.startPos or first startPos
     InitWeaponBar();
-   
 
-    //start with blunderbus and sword in that order
-
-    //player.collectedWeapons = {WeaponType::Sword, WeaponType::Crossbow}; 
     hasCrossbow = true;
     player.previousWeapon = WeaponType::Sword;
     player.activeWeapon = WeaponType::Crossbow;
@@ -382,10 +376,6 @@ void InitOverworldWeapons(){
 
 
 void InitDungeonLights(){
-
-    //InitDungeonLightingBounds();
-    Texture2D dummyTex = R.GetTexture("blank"); 
-    DrawTexture(dummyTex, 0, 0, WHITE);
     
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
     BuildStaticLightmapOnce(dungeonLights);
@@ -424,6 +414,16 @@ void DrawEnemyShadows() {
     }
 
     rlEnableDepthMask();
+}
+
+void MovePlayerToFreeCam(){
+    //Press P to teleport player entitiy to free cam position, and enter player mode. 
+    if (CameraSystem::Get().GetMode() == CamMode::Free){
+        player.position = CameraSystem::Get().Active().position;
+        CameraSystem::Get().SetMode(CamMode::Player);
+        CameraSystem::Get().SnapAllToPlayer();
+    }
+
 }
 
 
@@ -724,7 +724,7 @@ void UpdateBullets(Camera& camera, float dt) {
 void EraseBullets() {
     activeBullets.erase(
         std::remove_if(activeBullets.begin(), activeBullets.end(),
-            [](const Bullet& b) { return b.IsDone(); }),
+            [](Bullet& b) { return b.IsDone();}),
         activeBullets.end()
     );
 }
@@ -780,12 +780,12 @@ void PlayerSwipeDecal(Camera& camera){
     Vector3 right = Vector3Normalize(Vector3CrossProduct(fwd, up));
     // Safety: if looking straight up/down, cross can be tiny — fall back to +X
     if (Vector3Length(right) < 1e-4f) right = {1.0f, 0.0f, 0.0f};
-    Vector3 basePos   = Vector3Add(camera.position, Vector3Scale(fwd, 130.0f));  // in front
-    Vector3 offsetPos = Vector3Add(basePos,        Vector3Scale(right, 0.0f)); // to the right
-    offsetPos.y -= 50;
+    Vector3 basePos   = Vector3Add(camera.position, Vector3Scale(fwd, 125.0f));  // in front
+    Vector3 offsetPos = Vector3Add(basePos,        Vector3Scale(right, 25.0f)); // to the right
+    offsetPos.y -= 25;
     Decal decal = {offsetPos, DecalType::MeleeSwipe, R.GetTexture("playerSlashSheet"), 7, 0.35f, 0.05f, 100.0f};
 
-    Vector3 vel = Vector3Add(Vector3Scale(fwd, 0.0f), Vector3Scale(right, 0.0f)); //melee swipe decals move forward 
+    Vector3 vel = Vector3Add(Vector3Scale(fwd, Vector3Length(player.velocity)), Vector3Scale(right, 0.0f)); //melee swipe decals move forward 
     decal.velocity = vel;
     
     decals.emplace_back(decal);
@@ -848,7 +848,7 @@ Vector3 ResolveSpawnPoint(const LevelData& level, bool isDungeon, bool first, fl
     }
 
     if (isDungeon) {
-        Vector3 pixelSpawn = FindSpawnPoint(dungeonPixels, dungeonWidth, dungeonHeight, tileSize, floorHeight);
+        Vector3 pixelSpawn = FindSpawnPoint(dungeonPixels, dungeonWidth, dungeonHeight, tileSize, floorHeight + player.height/2);
         if (pixelSpawn.x != 0 || pixelSpawn.z != 0) {
             resolvedSpawn = pixelSpawn; // green pixel overrides everything
         }
@@ -901,7 +901,8 @@ void DrawReticle(WeaponType& weaponType){
         const float xBias      = 0.01f;                // your 0.51f -> +1% width bias
         const float yOffsetPct = 0.10f;                // 10% down
         Color tint = { 255, 0, 0, 50 };                // semi-transparent red
-
+        Color islandTint = {255, 0, 0, 75};           //brighter reticle outside. 
+        Color minTint = {255, 0, 0, 150};
         // ---- Position (screen space) ----
         float x = GetScreenWidth()  * (0.5f + xBias);
         float y = GetScreenHeight() * 0.5f + GetScreenHeight() * yOffsetPct;
@@ -913,7 +914,9 @@ void DrawReticle(WeaponType& weaponType){
         Rectangle dst = { x, y, tex.width * scale, tex.height * scale };
         Vector2 origin = { dst.width * 0.5f, dst.height * 0.5f };
 
-        DrawTexturePro(tex, src, dst, origin, 0.0f, tint);
+        Color finalTint = (isDungeon) ? tint : islandTint;
+        if (scale == minScale) finalTint = minTint;
+        DrawTexturePro(tex, src, dst, origin, 0.0f, finalTint);
 
     }else if (weaponType == WeaponType::Crossbow){
         float yOffset = 100.0f;

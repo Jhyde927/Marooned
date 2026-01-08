@@ -49,8 +49,6 @@ void CameraSystem::SnapAllToPlayer() {
 
 }
 
-
-
 void CameraSystem::AttachToPlayer(const Vector3& pos, const Vector3& forward) {
     // Simple follow; you can add head-bob/weapon sway offsets here
     playerRig.cam.position = pos;
@@ -103,7 +101,9 @@ inline float SmoothStepExp(float current, float target, float speed, float dt) {
 }
 
 
-void CameraSystem::UpdatePlayerCam(float dt) {
+
+void CameraSystem::UpdatePlayerCam(float dt)
+{
     Vector3 basePos = pv.onBoard
         ? Vector3Add(pv.boatPos, Vector3{0, 200.0f, 0})
         : pv.position;
@@ -119,20 +119,38 @@ void CameraSystem::UpdatePlayerCam(float dt) {
         cosf(pitchRad) * cosf(yawRad)
     };
 
-    playerRig.cam.position = basePos;
-    playerRig.cam.target   = Vector3Add(basePos, forward);
+    // --- Smooth camera position (NOT forward/target direction) ---
+    if (!playerRig.hasSmoothedInit)
+    {
+        playerRig.smoothedPos = basePos;      // snap on first frame / after teleport
+        playerRig.hasSmoothedInit = true;
+    }
+
+    // Tune: higher = tighter camera, lower = smoother float
+    const float followSpeedXZ = 22.0f;
+    const float followSpeedY  = 10.0f;
+
+    float aXZ = 1.0f - expf(-followSpeedXZ * dt);
+    float aY  = 1.0f - expf(-followSpeedY  * dt);
+
+    playerRig.smoothedPos.x = Lerp(playerRig.smoothedPos.x, basePos.x, aXZ);
+    playerRig.smoothedPos.z = Lerp(playerRig.smoothedPos.z, basePos.z, aXZ);
+    playerRig.smoothedPos.y = Lerp(playerRig.smoothedPos.y, basePos.y, aY);
+
+    // Use smoothed position, but immediate forward direction
+    playerRig.cam.position = playerRig.smoothedPos;
+    playerRig.cam.target   = Vector3Add(playerRig.smoothedPos, forward);
 
     // keep the angles cached so other rigs can copy
     playerRig.yaw   = pv.yawDeg;
     playerRig.pitch = pv.pitchDeg;
 
     if (debugInfo){
-        SetFarClip(isDungeon ? 50000.0f : 50000.0f);
+        SetFarClip(isDungeon ? 100000.0f : 100000.0f);
     }else{
-        SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+        SetFarClip(isDungeon ? 50000.0f : 100000.0f);
     }
 }
-
 
 void CameraSystem::UpdateFreeCam(float dt) {
     const float speed = (IsKeyDown(KEY_LEFT_SHIFT) ? 1500.f : 900.f);
@@ -171,9 +189,9 @@ void CameraSystem::UpdateFreeCam(float dt) {
     freeRig.cam.fovy   = freeRig.fov;
 
     if (debugInfo){
-        SetFarClip(isDungeon ? 50000.0f : 50000.0f);
+        SetFarClip(isDungeon ? 100000.0f : 100000.0f);
     }else{
-        SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+        SetFarClip(isDungeon ? 50000.0f : 100000.0f);
     }
 }
 

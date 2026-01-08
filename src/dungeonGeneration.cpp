@@ -38,9 +38,6 @@ std::vector<WallRun> wallRunColliders;
 std::vector<InvisibleWall> invisibleWalls;
 std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
-
-std::vector<WindowWall> windowWalls;
-std::vector<WallInstance>   windowWallInstances;
 std::vector<WindowCollider> windowColliders;
 
 std::vector<LightSource> bulletLights; //fireball/iceball
@@ -266,6 +263,46 @@ BoundingBox MakeWallBoundingBox(const Vector3& start, const Vector3& end,
 }
 
 
+bool TileNearSolid(int tx, int tz)
+{
+    // Check 8-neighborhood around this tile
+    for (int dz = -1; dz <= 1; ++dz)
+    {
+        for (int dx = -1; dx <= 1; ++dx)
+        {
+            if (dx == 0 && dz == 0) continue;
+
+            int nx = tx + dx;
+            int nz = tz + dz;
+
+            // Out of bounds counts as solid (prevents edge leaks)
+            if (nx < 0 || nz < 0 || nx >= dungeonWidth || nz >= dungeonHeight){
+                return true;
+            }
+
+
+            Color c = dungeonPixels[nz * dungeonWidth + nx];
+
+            // Treat any wall / closed door / opaque tile as solid
+            if (EqualsRGB(c, ColorOf(Code::Wall))){
+                return true;
+            }
+
+
+            // If you encode doors separately:
+            if (EqualsRGB(c, ColorOf(Code::Doorway)))
+            {
+                int doorIndex = GetDoorIndexAtTile(nx, nz);
+                if (doorIndex >= 0 && !doors[doorIndex].isOpen)
+                    return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
 
 void LoadDungeonLayout(const std::string& imagePath) {
     if (dungeonPixels) {
@@ -303,6 +340,7 @@ bool IsLava(int gx, int gy) {
 bool IsVoid(int gx, int gy) {
     return voidMask[Idx(gx,gy)] != 0;
 }
+
 
 void GenerateCeilingTiles(float ceilingOffsetY) {
     ceilingTiles.clear();
@@ -403,6 +441,15 @@ void BindSecretWallsToRuns()
 
         sw.wallRunIndex = bestIdx;
     }
+}
+
+int GetDoorIndexAtTile(int nx, int nz){
+    for (int i = 0; i < (int)doors.size(); i++){
+        if (doors[i].tileX == nx && doors[i].tileY == nz){
+            return i;
+        }
+    }
+    return -1;
 }
 
 
@@ -739,7 +786,7 @@ BoundingBox MakeAABBFromSkirt(const WallInstance& s, int dir)
     // sizes
     const float halfLen    = EDGE_LEN * 0.5f;
     const float halfCollTh = SKIRT_COLL_THICKNESS * 0.5f;
-    const float halfY      = (s.scale.y * WALL_MODEL_H) * 0.4f;
+    const float halfY      = (s.scale.y * WALL_MODEL_H) * 0.6f;
 
     // center (push fully into pit so it never straddles the rim)
     Vector3 outward = (dir==0)? Vector3{-1,0,0}
@@ -1072,7 +1119,7 @@ void GenerateBarrels(float baseY) {
                 };
                 box.max = {
                     pos.x + halfSize,
-                    pos.y + 100.0f,
+                    pos.y + 250.0f,
                     pos.z + halfSize
                 };
                 //Decide what the barrel will drop. 
@@ -1510,9 +1557,13 @@ void GenerateLightSources(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
             
             // Check for light yellow 
-            if (current.r == 255 && current.g == 255 && current.b == 100) {
+            if (EqualsRGB(current,ColorOf(Code::InvisibleLight))) {
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
+
+                if (levelIndex == 21){ //blue lights on ice level
+                    L.colorTint = Vector3{0.0, 0.0, 1.0};
+                }
                 dungeonLights.push_back(L);
             }
 
@@ -1527,7 +1578,7 @@ void GenerateLightSources(float baseY) {
             if (EqualsRGB(current,ColorOf(Code::LavaGlow))){
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
-                L.colorTint = Vector3 {255, 0, 0};
+                L.colorTint = Vector3 {1, 0, 0}; // 0..1
                 dungeonLights.push_back(L);
             }
 
@@ -1640,7 +1691,7 @@ void ApplyEnemyLavaDPS(){
 
 void UpdateLauncherTraps(float dt){
     const float SPEED    = 900.0f;
-    const float LIFE     = 60.0f;
+    const float LIFE     = 5.0f;
     const float AHEAD    = 1500.0f;
 
     for (LauncherTrap& L : launchers){
@@ -1759,10 +1810,10 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
     }
 
-    for (const WallInstance& window : windowWallInstances) {
-        if (!IsInViewCone(vp, window.position) && !debugInfo) continue;
-        DrawModelEx(R.GetModel("windowedWall"), window.position, Vector3{0, 1, 0}, window.rotationY, Vector3{700, 700, 700}, window.tint);
-    }
+    // for (const WallInstance& window : windowWallInstances) {
+    //     if (!IsInViewCone(vp, window.position) && !debugInfo) continue;
+    //     DrawModelEx(R.GetModel("windowedWall"), window.position, Vector3{0, 1, 0}, window.rotationY, Vector3{700, 700, 700}, window.tint);
+    // }
 
 
     //Doorways
@@ -1797,14 +1848,16 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     }
 
     //Ceilings
-    rlEnableBackfaceCulling();
+    //rlEnableBackfaceCulling();
+    //float scale = dungeonWidth * tileSize;
+    //if (drawCeiling) DrawModelEx(R.GetModel("ceilingPlane"), Vector3 {scale/2, ceilingHeight, scale/2}, {0,1,0}, 0.0f, Vector3{scale, scale, scale}, WHITE); 
     for (CeilingTile& tile : ceilingTiles){
         if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
 
         if (!drawCeiling) continue;
         DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, baseScale, tile.tint);
     }
-    rlDisableBackfaceCulling();
+    //rlDisableBackfaceCulling();
 
 }
 
@@ -2027,6 +2080,9 @@ void ClearDungeon() {
     launchers.clear();
     lavaTiles.clear();
     grapplePoints.clear();
+    secretWalls.clear();
+    invisibleWalls.clear(); //there aren't any invisible walls yet.
+    windowColliders.clear(); 
 
     for (ChestInstance& chest : chestInstances) {
         UnloadModelAnimations(chest.animations, chest.animCount);

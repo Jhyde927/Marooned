@@ -60,12 +60,10 @@ void Crossbow::Fire(Camera& camera)
     swappedModelMidDip = false;
 
     Vector2 ret = { GetScreenWidth()*0.5f, GetScreenHeight()*0.5f + 50.0f };
-    Ray r = GetMouseRay(ret, camera); // works for arbitrary screen point
+    Ray r = GetMouseRay(ret, camera);
 
-    Vector3 aimPoint = Vector3Add(r.position, Vector3Scale(r.direction, 5000.0f)); // or raycast hit
-    Vector3 boltDir  = Vector3Normalize(Vector3Subtract(aimPoint, muzzlePos));
-
-    FireCrossbow(muzzlePos, boltDir, 3000.0f, 5.0f, false);
+    Vector3 boltDir = Vector3Normalize(r.direction);
+    FireCrossbow(muzzlePos, boltDir, 4000.0f, 5.0f, false);
 
     SoundManager::GetInstance().Play("crossbowFire");
 
@@ -469,6 +467,7 @@ void MeleeWeapon::EndBlock() {
 void MeleeWeapon::StartSwing(Camera& camera) {
     if (timeSinceLastSwing >= cooldown && !blocking) {
         PlaySwipe();
+        PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
         player.attackId++; //for unique id each attack, so eggs are only damaged once. 
         swinging = true;
         swingTimer = 0.0f;

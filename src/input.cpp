@@ -47,8 +47,13 @@ void debugControls(Camera& camera, float deltaTime){
             RemoveAllVegetation();
         }
 
+        if (IsKeyPressed(KEY_P)){
+            //teleport player to free cam pos
+            MovePlayerToFreeCam();
+        }
+
         if (IsKeyPressed(KEY_APOSTROPHE)){ //hide ceiling for better screenshots. 
-            drawCeiling = false;
+            drawCeiling = false; //maybe just don't draw ceiling ever in free cam. 
         }
         //control player with arrow keys while in free cam. 
         Vector3 input = {0};
@@ -84,10 +89,11 @@ void debugControls(Camera& camera, float deltaTime){
     //give all weapons
     if (IsKeyPressed(KEY_SEMICOLON) && debugInfo) {
         if (player.collectedWeapons.size() <= 1) {
-            player.collectedWeapons.push_back(WeaponType::Crossbow);
-            player.collectedWeapons.push_back(WeaponType::Blunderbuss);
-            player.collectedWeapons.push_back(WeaponType::MagicStaff);
-            hasBlunderbuss = true;
+            // player.collectedWeapons.push_back(WeaponType::Crossbow);
+            // player.collectedWeapons.push_back(WeaponType::Blunderbuss);
+            // player.collectedWeapons.push_back(WeaponType::MagicStaff); //we no longer use collectedWeapons vector, but we still have it becuase we might need it maybe. 
+
+            hasBlunderbuss = true; //just a bool for each weapon simplified things. 
             hasCrossbow = true;
             hasHarpoon = true;
             hasStaff = true;

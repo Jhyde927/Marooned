@@ -49,7 +49,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
     // --- 3D scene to sceneTexture ---
     BeginTextureMode(R.GetRenderTexture("sceneTexture"));
         ClearBackground(SKYBLUE);
-        float farClip = isDungeon ? 16000.0f : 30000.0f;
+        float farClip = isDungeon ? 50000.0f : 100000.0f;
         float nearclip = 30.0f;
         CameraSystem::Get().BeginCustom3D(camera, nearclip, farClip);
 
@@ -134,7 +134,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
     // --- 3D scene to sceneTexture ---
     BeginTextureMode(R.GetRenderTexture("sceneTexture"));
         ClearBackground(SKYBLUE);
-        float farClip = isDungeon ? 10000.0f : 16000.0f;
+        float farClip = isDungeon ? 50000.0f : 100000.0f;
         float nearclip = 30.0f;
         CameraSystem::Get().BeginCustom3D(camera, nearclip, farClip);
 
@@ -155,7 +155,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
  
             rlEnableDepthTest();
             rlDisableDepthMask();         // don’t write depth for transparent water
-            if (!debugInfo) DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE);
+            if (!debugInfo) DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE); // Don't draw water model, shader colors the water
             rlEnableDepthMask();
             
             DrawBoat(player_boat);
@@ -273,7 +273,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             if (debugInfo) { //Press ~ for debug mode. 
                 DrawTimer(ElapsedTime);
 
-                DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 30, 20, WHITE);
+                DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 15, 20, WHITE);
 
 
                 //show FPS over top of lightmap

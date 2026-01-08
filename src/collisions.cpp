@@ -9,6 +9,7 @@
 #include "spiderEgg.h"
 #include "collisions.h"
 #include "miniMap.h"
+#include "lighting.h"
 
 
 
@@ -333,7 +334,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
         if (CheckCollisionBoxes(enemy->GetBoundingBox(), player.meleeHitbox) && enemy->lastAttackid != player.attackId){
             enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
             enemy->TakeDamage(50);
-            PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
+            //PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
             
             if (enemy->type != CharacterType::Skeleton && enemy->type != CharacterType::Ghost){ //skeles and ghosts dont bleed.  
                 if (enemy->currentHealth <= 0){
@@ -513,11 +514,6 @@ bool TryBulletRicochet(Bullet& b, Vector3 n, float damp, float minSpeed, float h
     return true;
 }
 
-
-
-
-
-
 void CheckBulletHits(Camera& camera) {
     
     for (Bullet& b : activeBullets) {
@@ -646,7 +642,7 @@ void CheckBulletHits(Camera& camera) {
 
 
         for (SpiderEgg& egg : eggs){ //should you be able to harpoon eggs?
-            if (CheckCollisionBoxSphere(egg.collider, b.position, b.radius)){
+            if (CheckCollisionBoxSphere(egg.collider, b.position, b.radius) && egg.state != SpiderEggState::Destroyed){
                 if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
                     DamageSpiderEgg(egg, 100, player.position);
                     b.Explode(camera);
@@ -695,7 +691,7 @@ void CheckBulletHits(Camera& camera) {
         for (Collectable& c : collectables)
 {
             // Optional: don't harpoon the harpoon pickup itself
-            if (c.type == CollectableType::Harpoon) continue;
+            //if (c.type == CollectableType::Harpoon) continue;
 
             // Prevent repeated hits by the same bullet id
             if (c.lastHarpoonBulletId == b.id) continue;
@@ -1092,6 +1088,12 @@ void HandleDoorInteraction(Camera& camera) {
             if (tileX >= 0 && tileY >= 0 && tileX < (int)walkable.size() && tileY < (int)walkable[0].size()) {
                 walkable[tileX][tileY] = doors[pendingDoorIndex].isOpen;
                 miniMap.RevealAroundPlayer(player.position);
+
+                //Failed attempt at rebaking lights on door open. Runs too slow and causes problems with orange inner light. 
+                // auto affected = GetStaticLightIndices(doors[pendingDoorIndex].position);
+                // OnDoorToggled_RebakeStaticLights(doors[pendingDoorIndex].position, affected);
+
+                
             }
 
             // Reset

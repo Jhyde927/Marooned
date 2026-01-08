@@ -412,6 +412,7 @@ void MiniMap::DrawDoors(const std::vector<Door>& doors,
     Color nextDoorColor   = { 255, 180,   0, 128 }; // orange (progress)
     Color portalColor     = { 220,   0, 220, 128 }; // magenta portals
     Color eventLockedColor= {   0, 255, 128, 128 }; // spring green/event-locked
+    Color silverKeyColor = {   0, 128, 255, 128 }; // skyblue - silver key doors.
 
     for (const Door& door : doors)
     {
@@ -430,18 +431,28 @@ void MiniMap::DrawDoors(const std::vector<Door>& doors,
 
         // Pick color based on door type
         Color c = normalDoorColor;
-        if (door.isOpen)
+        if (door.isOpen){
             c = openDoorColor;
-        else if (door.isLocked)
+        }
+        else if (door.requiredKey == KeyType::Gold){
             c = lockedDoorColor;
-        else if (door.doorType == DoorType::ExitToPrevious)
+        }
+        else if (door.requiredKey == KeyType::Silver){
+            c = silverKeyColor;
+        }
+        else if (door.doorType == DoorType::ExitToPrevious){
             c = exitDoorColor;
-        else if (door.isPortal)
+        }
+        else if (door.isPortal){
             c = portalColor;
-        else if (door.eventLocked)
+        }
+        else if (door.eventLocked){
             c = eventLockedColor;
-        else if (door.doorType == DoorType::GoToNext)
+        }
+        else if (door.doorType == DoorType::GoToNext){
             c = nextDoorColor;
+        }
+
 
         // Center of door tile
         float u = (tileX + 0.5f) / (float)dungeonWidth;

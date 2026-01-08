@@ -140,6 +140,7 @@ void StartFadeInFromBlack();
 void OpenEventLockedDoors();
 void InitOverworldWeapons();
 void InitMenuLevel(LevelData& level);
+void MovePlayerToFreeCam();
 
 void EnterMenu();
 

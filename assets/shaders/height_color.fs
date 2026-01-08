@@ -26,6 +26,8 @@ uniform float u_FogEnd;           // e.g. 18000.0
 uniform float u_SeaLevel;         // e.g. 60.0
 uniform float u_FogHeightFalloff; // e.g. 0.002
 
+uniform vec3  u_waterColor; //change water color based on level
+
 void main()
 {
     float height = fragPosition.y;
@@ -41,12 +43,16 @@ void main()
     vec3 grassTex = texture(texGrass, uvGrass).rgb;
     vec3 sandTex  = texture(texSand,  uvSand ).rgb;
 
+    // swamp textures
+    vec3 swampTex = texture(texGrass, uvGrass).rgb;
+    vec3 rootsTex = texture(texGrass, uvGrass).rgb;
+
     //solid colors
     // vec3 grassTex = vec3(0.25, 0.55, 0.20);   // deep lush green
     // vec3 sandTex = vec3(0.9, 0.9, 0.0); // bright yellow
 
     // ---- Height-based blend: water -> sand -> grass
-    vec3 waterColor = vec3(0.10, 0.60, 1.00);
+    vec3 waterColor = u_waterColor;//vec3(0.10, 0.60, 1.00); 
 
     float tWaterSand = smoothstep(30.0, 80.0, height);
     vec3 baseWS = mix(waterColor, sandTex, tWaterSand);

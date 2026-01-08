@@ -35,6 +35,7 @@ enum class Code {
     LauncherTrapVermillion, // Vermillion (255,66,52)
     IceLauncher,             // ice blue (173, 216, 230)
     DirectionYellowish,     // Yellowish (200,200,0)
+    TimingMediumYellow4,    // (200, 175, 0)
     TimingMediumYellow1,    // (200,50,0)
     TimingMediumYellow2,    // (200,100,0)
     TimingMediumYellow3,     // (200,150,0)
@@ -85,9 +86,11 @@ constexpr Color ColorOf(Code c) {
         case Code::GhostVeryLightGray:     return Make(200, 200, 200);
         case Code::LauncherTrapVermillion: return Make(255, 66, 52);
         case Code::DirectionYellowish:     return Make(200, 200, 0);
+   
         case Code::TimingMediumYellow1:    return Make(200, 50, 0);
         case Code::TimingMediumYellow2:    return Make(200, 100, 0);
         case Code::TimingMediumYellow3:    return Make(200, 150, 0);
+        case Code::TimingMediumYellow4:    return Make(200, 175, 0);
         case Code::EventLocked:            return Make(0, 255, 128);
         case Code::SlimeGreen:             return Make(128, 255, 0); //spider egg
         case Code::Blunderbuss:            return Make(204, 204, 255);

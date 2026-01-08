@@ -409,7 +409,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon19", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map23.png",
+        "assets/maps/map26.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -441,7 +441,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon21", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map25.png",
+        "assets/maps/map25.png", //ice level
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -465,6 +465,23 @@ std::vector<LevelData> levels = {
         false,
         {entranceToDungeon11},
         22, 
+        1,
+        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
+        false, //ceiling
+   
+    },
+
+        {
+        "Swamp", 
+        "assets/heightmaps/Noise4.png",
+        "",
+        {5475.0f, 300.0f, -5665.0f},
+        0.0f,
+        {0.0f, 0, 0.0f},
+        5,//raptor count
+        false,
+        {entranceToDungeon11},
+        23, 
         1,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling

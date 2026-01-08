@@ -310,23 +310,47 @@ void DrawTimer(float ElapsedTime){
     char buffer[16];
     sprintf(buffer, "Time: %02d:%02d", minutes, seconds);
 
-    DrawText(buffer, GetScreenWidth()-150, 30, 20, WHITE); 
+    DrawText(buffer, GetScreenWidth()-150, 15, 20, WHITE); 
 }
 
-void InitWeaponBar(){
 
-    gWeaponBar.position = { 380, (float)GetScreenHeight() - 80 };
+static void LayoutWeaponBar()
+{
+    // keep your original X
+    gWeaponBar.position = { 380.0f, (float)GetScreenHeight() - 80.0f };
+}
+
+void InitWeaponBar()
+{
     gWeaponBar.slotSize = 64;
     gWeaponBar.spacing  = 8;
 
     gWeaponBar.slots = {{
-        { WeaponType::Sword,       "swordIcon",       nullptr },          // always
+        { WeaponType::Sword,       "swordIcon",       nullptr },
         { WeaponType::Crossbow,    "crossbowIcon",    &hasCrossbow },
         { WeaponType::Blunderbuss, "blunderbussIcon", &hasBlunderbuss },
         { WeaponType::MagicStaff,  "staffIcon",       &hasStaff }
     }};
 
+    LayoutWeaponBar(); // do initial placement using current screen size
 }
+
+void UpdateWeaponBarLayoutOnResize()
+{
+    static int lastW = GetScreenWidth();
+    static int lastH = GetScreenHeight();
+
+    int w = GetScreenWidth();
+    int h = GetScreenHeight();
+
+    if (w != lastW || h != lastH)
+    {
+        LayoutWeaponBar();
+        lastW = w;
+        lastH = h;
+    }
+}
+
 
 void WeaponBar::Draw(WeaponType activeWeapon) const
 {

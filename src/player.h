@@ -37,7 +37,7 @@ struct Player {
     bool hasSilverKey = false;
     const float ACCEL_GROUND   = 8000.0f;   // how fast we reach target speed
     const float DECEL_GROUND   = 7000.0f;   // how fast we slow to zero
-    const float ACCEL_AIR      = 1500.0f;    // small air control
+    const float ACCEL_AIR      = 1250.0f;    // small air control
     const float FRICTION_AIR   = 0.01f;    // bleed a bit of air speed
     const float GRAVITY        = 850.0f;
 
@@ -95,7 +95,9 @@ struct Player {
     bool blocking = false;
     bool isFallingIntoVoid = false;
     bool godMode = false;
-    
+
+    float centerGroundY = 0.0f;
+
     float spreadMinDeg   = 1.5f;
     float spreadMaxDeg   = 6.0f;
     float crosshairBloom = 0.0;
@@ -103,6 +105,8 @@ struct Player {
     Vector3 crossbowMuzzlePos;
 
     float lastSafeGroundY   = 100.0f; 
+
+    bool debugShowFootSamples = true;
 
 
     bool canRun = true;

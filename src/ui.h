@@ -78,3 +78,4 @@ void UpdateHintManager(float deltaTime);
 void DrawHints();
 void TutorialSetup();
 void InitWeaponBar();
+void UpdateWeaponBarLayoutOnResize();

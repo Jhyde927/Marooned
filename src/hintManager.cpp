@@ -11,7 +11,7 @@ HintManager::HintManager()
 : currentIndex(-1), //stays at -1 in dungeons. use setMessage()
   hasOverride(false),
   harpoonPickup(false),
-  anchor{0.5f, 0.85f},
+  anchor{0.5f, 0.85f},  //.85
   maxWidthFrac(0.70f),
   paddingPx(12.0f),
   fontScale(0.025f), // ~3% of screen height
@@ -189,7 +189,7 @@ void HintManager::Draw() const {
     const float boxW = textSize.x + paddingPx * 2.0f;
     const float boxH = textSize.y + paddingPx * 2.0f;
     const float x = cx - boxW * 0.5f;
-    const float y = cy - boxH * 0.5f;
+    const float y = cy - boxH * 3.0f;
 
     // Background
     Color bg = bgColor; bg.a = (unsigned char)(bg.a * alpha);

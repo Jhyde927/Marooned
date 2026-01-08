@@ -4,8 +4,16 @@
 
 #include "raylib.h"
 #include <vector>
+#include <stdint.h>
 
-
+enum class TreeType : uint8_t
+{
+    Big,
+    Medium,
+    Swamp,
+    Dead,
+    COUNT
+};
 
 
 struct TreeInstance {
@@ -21,6 +29,7 @@ struct TreeInstance {
     // Collision info (simple cylinder)
     float colliderRadius = 80.0f;   // trunk radius
     float colliderHeight = 300.0f;  // height of trunk to base of leaves
+    TreeType type;
 
 };
 
@@ -39,7 +48,6 @@ struct BushInstance {
 extern std::vector<TreeInstance> trees;
 extern std::vector<BushInstance> bushes;
 extern std::vector<const TreeInstance*> sortedTrees;
-
 
 
 void generateVegetation();
@@ -61,3 +69,24 @@ std::vector<BushInstance> GenerateBushes(Image& heightmap, unsigned char* pixels
 std::vector<BushInstance> FilterBushsAboveHeightThreshold(const std::vector<BushInstance>& inputTrees, Image& heightmap,
                                                           unsigned char* pixels, Vector3 terrainScale,
                                                           float treeHeightThreshold);
+template<typename T, typename GetPosFn>
+std::vector<T> FilterInstancesOnLand(
+    const std::vector<T>& input,
+    GetPosFn&& getPos, 
+    const Image& heightmap,
+    const unsigned char* pixels,
+    const Vector3& terrainScale,
+    float seaLevelWorldY,
+    float shoreMarginWorldY,
+    float trunkRadiusWorld
+);
+
+// std::vector<TreeInstance> FilterTreesOnLand(
+//     const std::vector<TreeInstance>& input,
+//     const Image& heightmap,
+//     const unsigned char* pixels,   // 1 byte per pixel height
+//     const Vector3& terrainScale,
+//     float seaLevelWorldY,          // your water plane height in world units
+//     float shoreMarginWorldY,       // how far above sea level a tree must be (e.g. 40..150)
+//     float trunkRadiusWorld         // sampling radius around trunk (e.g. 80..200)
+// );

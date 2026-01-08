@@ -17,7 +17,8 @@ public:
     Texture2D&  GetTexture(const std::string& name);     
     // Model
     Model&      LoadModel(const std::string& name, const std::string& path);
-    Model&      LoadModelFromMesh(const std::string& name, const Mesh& mesh);
+    //Model&      LoadModelFromMesh(const std::string& name, const Mesh& mesh);
+    Model&      AddModelFromMesh(const std::string& name, Mesh mesh); 
     Model&      GetModel(const std::string& name) const;
 
     // Shader

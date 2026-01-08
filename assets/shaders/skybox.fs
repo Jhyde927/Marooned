@@ -4,7 +4,7 @@ out vec4 finalColor;
 
 uniform float time;       // seconds
 uniform int   isDungeon;  // 0 = overworld/day; 1 = dungeon (starfield)
-
+uniform int   isSwamp;
 // --------- small helpers ----------
 float hash31(vec3 p) {
     return fract(sin(dot(p, vec3(127.1,311.7,74.7))) * 43758.5453123);
@@ -334,364 +334,59 @@ void main() {
         finalColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
         return;
     }
+    //swamp colors
+    vec3 swampSkyHorizon = vec3(0.42, 0.56, 0.44); //.44
+    vec3 swampSkyZenith = vec3(0.48, 0.62, 0.56);  //.56
 
+    vec3 oceanSkyHorizon = vec3(0.0, 0.60, 1.00);
+    vec3 oceanSkyZenith = vec3(0.0, 0.10, 1.00);
     // --- DAY: blue sky + soft clouds ---
     float h = clamp(dir.y*0.5 + 0.5, 0.0, 1.0);
-    vec3 top = vec3(0.0, 0.10, 1.00);
-    vec3 hor = vec3(0.0, 0.60, 1.00);
+    vec3 top = (isSwamp == 1) ? swampSkyZenith : oceanSkyZenith;
+    vec3 hor = (isSwamp == 1) ? swampSkyHorizon : oceanSkyHorizon;
+
     vec3 sky = mix(hor, top, pow(h, 1.2));
 
+    // moving clouds via fbm
     float cloud = fbm3f(dir * 3.0 + vec3(0.0, time*0.01, 0.0));
     float mask = smoothstep(0.55, 0.70, cloud);
     vec3 clouds = vec3(1.0);
 
+    // base day color
     vec3 col = mix(sky, clouds, mask * 0.8);
+
+    // ======================
+    // SUN: yellow orb at zenith with fuzzy edge + soft glow
+    // ======================
+    vec3 sunDir = vec3(0.0, 1.0, 0.0);   // straight overhead
+
+    float cosS   = clamp(dot(dir, sunDir), -1.0, 1.0);
+    float thetaS = acos(cosS);
+
+    // disk + soft edge
+    float sunRadius = radians(2.0);      // size of the sun disk (try 1.0–3.0)
+    float sunSoft   = radians(1.2);      // edge fuzz (bigger = fuzzier)
+    float sunMask   = smoothstep(sunRadius + sunSoft,
+                                sunRadius - sunSoft * 0.25,
+                                thetaS);
+
+    // sharpen slightly so it reads as a disk, but still soft
+    // Warm sun color (keep <= 1.0 to preserve hue)
+    vec3 sunCol  = vec3(1.0, 0.92, 0.25);  // yellow-orange, not pure yellow
+    vec3 haloCol = vec3(1.0, 0.75, 0.20);
+
+    // Disk mask (what you already compute)
+    float sunDisk = sunMask;
+
+    // Halo mask (wide, soft)
+    float halo = exp(-thetaS * 10.0);
+    halo = clamp(halo - sunDisk, 0.0, 1.0); // halo only outside the disk
+
+    // First: tint the halo by mixing (not adding)
+    col = mix(col, haloCol, halo * 0.35);
+
+    // Then: place the disk by mixing (stronger, preserves color)
+    col = mix(col, sunCol, sunDisk);
+
     finalColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
 }
-
-
-// #version 330 core
-// in vec3 vDir;
-// out vec4 finalColor;
-
-// uniform float time;       // seconds
-// uniform int   isDungeon;  // 0 = overworld/day; 1 = dungeon (starfield)
-
-// // --------- small helpers ----------
-// float hash31(vec3 p) {
-//     return fract(sin(dot(p, vec3(127.1,311.7,74.7))) * 43758.5453123);
-// }
-
-// // NOTE: renamed to avoid colliding with GLSL builtins
-// float valueNoise3f(vec3 p) {
-//     vec3 i = floor(p);
-//     vec3 f = fract(p);
-//     f = f*f*(3.0 - 2.0*f);
-
-//     float n000 = hash31(i + vec3(0,0,0));
-//     float n100 = hash31(i + vec3(1,0,0));
-//     float n010 = hash31(i + vec3(0,1,0));
-//     float n110 = hash31(i + vec3(1,1,0));
-//     float n001 = hash31(i + vec3(0,0,1));
-//     float n101 = hash31(i + vec3(1,0,1));
-//     float n011 = hash31(i + vec3(0,1,1));
-//     float n111 = hash31(i + vec3(1,1,1));
-
-//     float nx00 = mix(n000, n100, f.x);
-//     float nx10 = mix(n010, n110, f.x);
-//     float nx01 = mix(n001, n101, f.x);
-//     float nx11 = mix(n011, n111, f.x);
-//     float nxy0 = mix(nx00, nx10, f.y);
-//     float nxy1 = mix(nx01, nx11, f.y);
-//     return mix(nxy0, nxy1, f.z);
-// }
-
-// // cheap fractal brownian motion (using valueNoise3f)
-// float fbm3f(vec3 p) {
-//     float amp = 0.5;
-//     float sum = 0.0;
-//     for (int i = 0; i < 4; ++i) {
-//         sum += amp * valueNoise3f(p);
-//         p *= 2.0;
-//         amp *= 0.5;
-//     }
-//     return sum;
-// }
-
-// // 2D rotation helper (for ring angle)
-// vec2 rot2(vec2 p, float a) {
-//     float c = cos(a), s = sin(a);
-//     return vec2(c*p.x - s*p.y, s*p.x + c*p.y);
-// }
-
-// // -----------------------------------
-
-// void main() {
-//     vec3 dir = normalize(vDir);
-
-//     if (isDungeon == 1) {
-//         // --- NIGHT: minimal starfield ---
-//         vec3 night = vec3(0.001, 0.002, 0.004);
-
-//         // ============================
-//         // SMALL STARS with tiny radius
-//         // ============================
-//         float smallScale = 350.0;          // controls density / size on dome
-//         vec3  gridPos    = dir * smallScale;
-
-//         vec3  baseCell   = floor(gridPos);
-//         vec3  cellCenter = baseCell + vec3(0.5);
-
-//         float rSmall     = hash31(baseCell);
-//         float hasStar    = step(0.998, rSmall);  // density
-
-//         float d          = length(gridPos - cellCenter);
-//         float radius     = 0.8;
-//         float falloff    = smoothstep(radius, 0.0, d);
-
-//         float brightSmall = mix(0.4, 1.0,
-//                                 hash31(baseCell + vec3(17.3, 9.1, 3.7)));
-
-//         float starsSmall = hasStar * falloff * brightSmall;
-
-//         // ======================
-//         // BIG STARS (as before)
-//         // ======================
-//         float bigScale = 250.0;
-//         vec3  cellBig  = floor(dir * bigScale);
-//         float rBig     = hash31(cellBig + vec3(91.7, 23.5, 11.2));
-
-//         float maskBig   = step(0.999, rBig); // rare
-//         float brightBig = 1.5 + hash31(cellBig + vec3(5.0, 8.0, 13.0));
-//         float starsBig  = maskBig * brightBig;
-
-//         // Base sky color + stars
-//         vec3 col = night + vec3(1.0) * (starsSmall + starsBig);
-
-//         // ======================
-//         // MOON: soft crater-like surface
-//         // ======================
-
-//         vec3 moonDir = normalize(vec3(-0.3, 0.4, 0.7));
-
-//         float cosTheta = clamp(dot(dir, moonDir), -1.0, 1.0);
-//         float theta    = acos(cosTheta);
-
-//         float moonRadius = radians(4.0);
-//         float edgeSoft   = radians(0.95);
-
-//         float moonMask = smoothstep(moonRadius + edgeSoft,
-//                                     moonRadius - edgeSoft * 0.3,
-//                                     theta);
-//         moonMask = pow(moonMask, 0.6);
-
-//         if (moonMask > 0.0) {
-//             vec3 tmpUp = vec3(0.0, 1.0, 0.0);
-//             if (abs(dot(tmpUp, moonDir)) > 0.9) {
-//                 tmpUp = vec3(1.0, 0.0, 0.0);
-//             }
-
-//             vec3 moonRight = normalize(cross(tmpUp, moonDir));
-//             vec3 moonUp    = normalize(cross(moonDir, moonRight));
-
-//             vec2 uv = vec2(dot(dir, moonRight), dot(dir, moonUp));
-
-//             vec2 pBig  = uv * 20.0;
-//             vec2 pFine = uv * 120.0;
-
-//             float nBig  = fbm3f(vec3(pBig,  0.0));
-//             float nFine = fbm3f(vec3(pFine + 19.7, 0.0));
-
-//             float ridgeBig = 1.0 - abs(2.0 * nBig - 1.0);
-//             float combined = ridgeBig + 0.15 * nFine;
-
-//             float detail = smoothstep(0.55, 0.9, combined);
-//             float surfaceShade = mix(0.5, 1.0, detail);
-
-//             float rLocal = length(uv);
-//             float limb   = smoothstep(0.0, 0.99, rLocal);
-//             float rimBoost = mix(1.0, 2.12, limb);
-
-//             vec3 moonBase  = vec3(0.9, 0.9, 0.95);
-//             vec3 moonColor = moonBase * surfaceShade * rimBoost;
-
-//             col = mix(col, moonColor, moonMask);
-//         }
-
-//         // ======================
-//         // PLANET + RING (below the moon)
-//         // ======================
-
-//         vec3 planetDir = normalize(vec3(0.45, 0.60, 0.87)); // pick a nice spot
-//         float planetRadius = radians(0.75); 
-//         float edgeSoftP    = radians(0.25);
-
-//         float cosP   = clamp(dot(dir, planetDir), -1.0, 1.0);
-//         float thetaP = acos(cosP);
-
-//         float planetMask = smoothstep(planetRadius + edgeSoftP,
-//                                       planetRadius - edgeSoftP * 0.25,
-//                                       thetaP);
-//         planetMask = pow(planetMask, 1.4);
-
-//         // Build planet-local basis (for ring + texture-ish shading)
-//         vec3 tmpUpP = vec3(0.0, 1.0, 0.0);
-//         if (abs(dot(tmpUpP, planetDir)) > 0.9) tmpUpP = vec3(1.0, 0.0, 0.0);
-
-//         vec3 pRight = normalize(cross(tmpUpP, planetDir));
-//         vec3 pUp    = normalize(cross(planetDir, pRight));
-
-//         vec2 puv = vec2(dot(dir, pRight), dot(dir, pUp));
-
-//         float pR = length(puv); // distance from planet center in planet-uv space
-//         float behindFade = smoothstep(planetRadius*0.85, planetRadius*1.00, pR);
-//         // behindFade = 0 in center, 1 near/outside limb
-
-//         // ----- Planet color / subtle banding -----
-//         // simple terminator-ish lighting
-//         vec3 lightDir = normalize(vec3(-0.2, 0.5, 0.84));
-//         float ndl = clamp(dot(planetDir, lightDir), 0.0, 1.0); // constant-ish for a skybox, but helps
-//         float baseLit = 0.55 + 0.45 * ndl;
-
-//         // add faint latitudinal bands using noise in planet uv
-//         float bands = fbm3f(vec3(puv * 18.0 + vec2(time*0.01, 0.0), 0.0));
-//         bands = smoothstep(0.35, 0.75, bands); // clamp into band-ish regions
-//         float bandShade = mix(0.85, 1.05, bands);
-
-//         //PLANET COLOR
-//         vec3 planetBase = vec3(0.2, 0.5, 1.0);//blue //vec3(1.10, 0.55, 0.18);   // orange
-//         vec3 planetCol  = planetBase * baseLit * bandShade;
-
-//         // ----- Ring band -----
-//         // rotate ring a bit so it isn't perfectly horizontal
-//         vec2 ruv = rot2(puv, radians(-20.0));
-
-//         // tilt: squash Y for an ellipse (bigger tilt => more squashed)
-//         float tilt = 0.35; //0.65
-//         vec2 e = vec2(ruv.x, ruv.y * (1.0 + tilt));
-
-//         float r = length(e);
-
-//         float ringR = planetRadius * 2.0;    // ring center radius
-//         float ringW = planetRadius * 1.25;    // ring thickness
-
-//         // soft band edges
-//         float ringMask = smoothstep(ringR + ringW*0.50, ringR + ringW*0.35, r) *
-//                          smoothstep(ringR - ringW*0.50, ringR - ringW*0.35, r);
-
-//         // ring texture: a little radial variation
-//         float ringTex = fbm3f(vec3(e * 80.0 + vec2(12.3, 4.7), 0.0));
-//         ringTex = mix(0.7, 1.2, ringTex);
-
-
-//         //RING COLOR
-//         vec3 ringBase =  vec3(0.025, 0.05, 0.175);//vec3(0.2, 0.02, 0.2); //vec3(0.1, 0.08, 0.05);
-
-//         // "line through it" vibe: boost brightness along centerline of ring thickness
-//         float centerLine = smoothstep(ringW*0.22, 0.0, abs(r - ringR));
-//         float ringBright = mix(1.0, 1.35, centerLine);
-
-//         vec3 ringCol = ringBase * ringTex * ringBright;
-
-//         // simple occlusion:
-//         // - front ring (outside planet disk) is strong
-//         // - a tiny hint of back ring (behind planet) can help it read
-//         float ringFront = ringMask * (1.0 - planetMask);
-//         //float ringBack  = ringMask * planetMask * 0.12; //0.12
-//         float ringBack = ringMask * planetMask * behindFade * 0.08;
-
-//         // composite planet then ring
-//         col = mix(col, planetCol, planetMask);
-//         col += ringCol * (ringFront + ringBack);
-
-//         // ======================
-//         // SPIRAL GALAXY (opposite side, same height as planet)
-//         // ======================
-
-//         // Put galaxy opposite the planet horizontally but keep same "height" (same Y)
-//         vec3 galaxyDir = normalize(vec3(-planetDir.x, planetDir.y, -planetDir.z));
-
-//         // Galaxy disk size & edge softness
-//         float galaxyRadius = radians(2.5);   // apparent size on sky
-//         float galaxyEdge   = radians(1.2);
-
-//         // Galaxy mask (like planet/moon)
-//         float cosG   = clamp(dot(dir, galaxyDir), -1.0, 1.0);
-//         float thetaG = acos(cosG);
-
-//         float galaxyMask = smoothstep(galaxyRadius + galaxyEdge,
-//                                     galaxyRadius - galaxyEdge * 0.35,
-//                                     thetaG);
-//         galaxyMask = pow(galaxyMask, 0.9); // edge crispness
-
-//         if (galaxyMask > 0.001) {
-//             // Basis around galaxyDir -> uv
-//             vec3 tmpUpG = vec3(0.0, 1.0, 0.0);
-//             if (abs(dot(tmpUpG, galaxyDir)) > 0.9) tmpUpG = vec3(1.0, 0.0, 0.0);
-
-//             vec3 gRight = normalize(cross(tmpUpG, galaxyDir));
-//             vec3 gUp    = normalize(cross(galaxyDir, gRight));
-
-//             vec2 uv = vec2(dot(dir, gRight), dot(dir, gUp));
-
-//             // Polar coords
-//             float r = length(uv);
-//             float a = atan(uv.y, uv.x);          // -pi..pi
-
-//             // Normalize r so "1.0" roughly corresponds to galaxyRadius-ish in uv space.
-//             // This isn't physically exact, but it tunes nicely.
-//             float rn = r / (galaxyRadius);       // ~0 at center, ~1 near edge
-//             rn = max(rn, 1e-4);
-
-//             // --- Core glow (bright center) ---
-//             float core = exp(-rn * 6.0);         // smaller number = bigger core
-//             core = pow(core, 1.2);
-
-//             // --- Log spiral arms ---  
-//             // arms: how many main arms
-//             // twist: how tightly they wind (bigger = more twist)
-//             // armWidth: thickness of arms
-//             float arms     = 3.0;
-//             float twist    = 3.0;                // 2.0-6.0
-//             float armWidth = 0.35;               // smaller = thinner arms
-
-//             // log spiral phase: angle minus twist*log(radius)
-//             float phase = a - twist * log(rn);
-
-//             // Repeat phase for multiple arms
-//             float armSignal = cos(arms * phase);
-
-//             // Convert armSignal to a soft stripe mask (1 on arms, 0 between)
-//             // (armSignal near 1.0 = arm center)
-//             float armMask = smoothstep(1.0 - armWidth, 1.0, armSignal);
-
-//             // Fade arms toward the edge, keep some near middle
-//             float armFalloff = exp(-rn * 2.2);
-//             armMask *= armFalloff;
-
-//             // Add some “dust lanes” by subtracting noisy filaments
-//             float dust = fbm3f(vec3(uv * 140.0 + vec2(17.0, 9.0), 0.0));
-//             dust = smoothstep(0.45, 0.85, dust);
-//             float dustCut = mix(1.0, 0.55, dust);   // darker lanes
-
-//             // Star clumps (small bright speckles)
-//             float clump = fbm3f(vec3(uv * 260.0 + vec2(33.0, 71.0), 0.0));
-//             clump = smoothstep(0.78, 0.95, clump);
-
-//             // Color: bluish arms + warm core
-//             vec3 coreCol = vec3(1.05, 0.95, 0.85);
-//             vec3 armCol  = vec3(0.65, 0.80, 1.10);
-
-//             vec3 galaxyCol =
-//                 coreCol * (core * 1.4) +
-//                 armCol  * (armMask * 1.1) * dustCut +
-//                 vec3(1.0) * (clump * armMask * 0.8);
-
-//             // Overall dim so it sits in the sky nicely
-//             galaxyCol *= 0.6;
-
-//             // Composite
-//             col += galaxyCol * galaxyMask;
-//         }
-
-
-//         // Gamma
-//         finalColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
-//         return;
-//     }
-
-//     // --- DAY: blue sky + soft clouds ---
-//     float h = clamp(dir.y*0.5 + 0.5, 0.0, 1.0);
-//     vec3 top = vec3(0.0, 0.10, 1.00); // zenith blue
-//     vec3 hor = vec3(0.0, 0.60, 1.00); // near horizon
-//     vec3 sky = mix(hor, top, pow(h, 1.2));
-
-//     // moving clouds via fbm
-//     float cloud = fbm3f(dir * 3.0 + vec3(0.0, time*0.01, 0.0));
-//     float mask = smoothstep(0.55, 0.70, cloud);
-//     vec3 clouds = vec3(1.0);
-
-//     vec3 col = mix(sky, clouds, mask * 0.8);
-//     finalColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
-// }
-

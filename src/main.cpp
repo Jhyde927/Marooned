@@ -108,7 +108,7 @@ int main() {
 
             player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; 
             //update context
-
+            UpdateWeaponBarLayoutOnResize();
             debugControls(camera, deltaTime); 
             R.UpdateShaders(camera);
             miniMap.Update(deltaTime, player.position);

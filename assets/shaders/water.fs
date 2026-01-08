@@ -14,6 +14,8 @@ uniform float u_PatchHalfSize;   // half size of patch in world units (e.g., 300
 uniform float u_FadeStart;       // start of horizon fade (e.g., 2500)
 uniform float u_FadeEnd;         // end of horizon fade (e.g., 4500)
 
+uniform vec3  u_waterColor;
+
 void main()
 {
     // --- Ripple / wave brightness (your original) ---
@@ -28,7 +30,9 @@ void main()
     vec3 shallowColor = vec3(0.25, 0.6, 0.77);
     vec3 deepColor    = vec3(0.1, 0.35, 0.68);
 
-    vec3 waterColor = mix(shallowColor, deepColor, depthFactor) * brightness;
+    vec3 mixedColor = mix(shallowColor, deepColor, depthFactor) * brightness;
+
+    vec3 waterColor = u_waterColor;//mix(shallowColor, deepColor, depthFactor) * brightness;
 
     // --- ✦ Edge Fade: radial based on patch center ---
     float radialDist = length(fragPosition.xz - u_WaterCenterXZ);

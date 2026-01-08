@@ -190,14 +190,16 @@ bool IsDirPixel(Color c) {
 
 bool IsTimingPixel(Color c) {
     if (c.r != 200 || c.b != 0) return false;
-    return (c.g == 50 || c.g == 100 || c.g == 150);
+    return (c. g = 175 || c.g == 50 || c.g == 100 || c.g == 150);
 }
 
 float TimingFromPixel(Color c) {
     switch (c.g) {
+
         case 50:  return 2.0f; // dark orange
         case 100: return 4.0f; // medium orange
         case 150: return 6.0f; // bright orange
+        case 175: return 10.0f; //brighter orange
         default:  return 5.0f; // safe default if miscolored
     }
 }

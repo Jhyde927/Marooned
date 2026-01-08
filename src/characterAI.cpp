@@ -770,6 +770,22 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
             break;
         }
 
+
+        case CharacterState::Freeze:
+        {
+
+            //do nothing
+            if (currentHealth <= 0 && !isDead){
+                ChangeState(CharacterState::Death); //check for death to freeze
+                break;
+            }
+
+            if (stateTimer > 5.0f && !isDead){
+                ChangeState(CharacterState::Idle);
+                break;
+            }
+        } break;
+
         case CharacterState::Stagger:
         {
             //do nothing

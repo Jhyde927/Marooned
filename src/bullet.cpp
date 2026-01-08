@@ -203,7 +203,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     fireEmitter.Update(deltaTime);
     sparkEmitter.Update(deltaTime); 
     lifeTime -= deltaTime;
-    
+
     if (!alive){
         timeSinceImpact += deltaTime;
     } 
@@ -547,12 +547,19 @@ void Bullet::Draw(Camera& camera) const {
     }
 }
 
-bool Bullet::IsDone() const
+bool Bullet::IsDone() 
 {
-    if (alive) return false; //keep updating and drawing particles
 
-    if (type == BulletType::Fireball || type == BulletType::Iceball)
-        return age >= 2.0f;
+    if (alive) return false; //keep updating and drawing particles
+        
+    if (type == BulletType::Fireball || type == BulletType::Iceball){ //we may not be removing fireballs, I think lifetiem maybe set to 999 or something when explosion happens. 
+        if (lifeTime <= 0){//if not alive and lifetime <= 0, what if it is alive and lifetime is <= 0
+            return true;
+        }else{
+            return false;
+        }
+
+    }
 
     // regular bullets: keep a short impact window
     return timeSinceImpact >= 0.25f;
@@ -658,17 +665,22 @@ void Bullet::Explode(Camera& camera) {
             fireEmitter.EmitBurst(position, 200, ParticleType::IceBlast);
         }
 
+        //shoot a ray, from bullet position to in range enemies, if the ray hits a wall before it hits the enemy, don't deal damage. 
+        
         float minDamage = 10;
         float maxDamage = 200;
-        float explosionRadius = 500;
+        float explosionRadius = 400;
         //area damage
         if (type == BulletType::Fireball){
             for (Character* enemy : enemyPtrs){
                 float dist = Vector3Distance(position, enemy->position);
                 if (dist < explosionRadius) {
-                    float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
-                    enemy->TakeDamage(dmg);
-                    
+                    for (WallRun& wall : wallRunColliders){
+                        if (HasWorldLineOfSight(position, enemy->position, 0.01)){
+                            float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
+                            enemy->TakeDamage(dmg);                         
+                        }
+                    }
                 }
             }
             //damage player if too close, 

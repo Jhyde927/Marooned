@@ -116,7 +116,7 @@ struct Door {
     Vector3 scale = {100.0f, 200.0f, 1.0f}; // width, height, unused
     Color tint = WHITE;
     float debugDoorOpenAngleDeg = 0.0f;
-    int tileX;
+    int tileX; 
     int tileY;
     DoorType doorType = DoorType::Normal;
     bool eventLocked = false;
@@ -277,9 +277,6 @@ extern std::vector<Door> doors;
 extern std::vector<SecretWall> secretWalls;
 extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
-
-extern std::vector<WindowWall> windowWalls;
-extern std::vector<WallInstance>   windowWallInstances;
 extern std::vector<WindowCollider> windowColliders;
 
 
@@ -357,6 +354,8 @@ Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
 bool IsLava(int gx, int gy);
 bool IsVoid(int gx, int gy);
+int GetDoorIndexAtTile(int nx, int nz);
+bool TileNearSolid(int tx, int tz);
 void ClearDungeon();
 
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);
