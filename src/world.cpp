@@ -244,6 +244,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         //generate enemies.
         GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
         GeneratePiratesFromImage(dungeonEnemyHeight);
+        GenerateWizardsFromImage(dungeonEnemyHeight);
         GenerateSpiderFromImage(dungeonEnemyHeight);
         GenerateGhostsFromImage(dungeonEnemyHeight);
         GenerateGiantSpiderFromImage(dungeonEnemyHeight);

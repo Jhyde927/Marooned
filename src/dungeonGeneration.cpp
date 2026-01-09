@@ -1524,6 +1524,40 @@ void GeneratePiratesFromImage(float baseY) {
 
 }
 
+void GenerateWizardsFromImage(float baseY) {
+
+
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            // Look for magenta pixels (148, 0, 211) → wizard spawn
+            if (EqualsRGB(current, ColorOf(Code::Wizard))) {
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+                Character wizard(
+                    spawnPos,
+                    R.GetTexture("wizardSheet"), 
+                    400, 400,         // frame width, height 
+                    1,                // max frames, set when setting animations
+                    0.25f, 0.35f,       // speed, scale 
+                    0,                // initial animation frame
+                    CharacterType::Wizard
+                );
+                
+
+                wizard.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
+                wizard.currentHealth = 400;
+                wizard.id = gEnemyCounter++;
+                enemies.push_back(wizard);
+                enemyPtrs.push_back(&enemies.back()); 
+
+            }
+        }
+    }
+
+}
+
 void GenerateLightSources(float baseY) {
     dungeonLights.clear();
 
@@ -1849,14 +1883,14 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
     //Ceilings
     //rlEnableBackfaceCulling();
-    //float scale = dungeonWidth * tileSize;
-    //if (drawCeiling) DrawModelEx(R.GetModel("ceilingPlane"), Vector3 {scale/2, ceilingHeight, scale/2}, {0,1,0}, 0.0f, Vector3{scale, scale, scale}, WHITE); 
-    for (CeilingTile& tile : ceilingTiles){
-        if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
+    float scale = dungeonWidth * tileSize;
+    if (drawCeiling && isDungeon) DrawModelEx(R.GetModel("ceilingPlane"), Vector3 {scale/2, ceilingHeight, scale/2}, {0,1,0}, 0.0f, Vector3{scale, scale, scale}, WHITE); 
+    // for (CeilingTile& tile : ceilingTiles){
+    //     if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
 
-        if (!drawCeiling) continue;
-        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, baseScale, tile.tint);
-    }
+    //     if (!drawCeiling) continue;
+    //     DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, baseScale, tile.tint);
+    // }
     //rlDisableBackfaceCulling();
 
 }
@@ -2083,6 +2117,7 @@ void ClearDungeon() {
     secretWalls.clear();
     invisibleWalls.clear(); //there aren't any invisible walls yet.
     windowColliders.clear(); 
+
 
     for (ChestInstance& chest : chestInstances) {
         UnloadModelAnimations(chest.animations, chest.animCount);

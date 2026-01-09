@@ -17,7 +17,6 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             break;
 
         case CharacterType::Pterodactyl:
-            //UpdateRaptorAI(deltaTime, player);
             UpdateDactylAI(deltaTime, player);
             break;
 
@@ -30,8 +29,11 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             break;
 
         case CharacterType::Pirate:
-            UpdatePirateAI(deltaTime, player);
-            
+            UpdatePirateAI(deltaTime, player);        
+            break;
+
+        case CharacterType::Wizard:
+            UpdateWizardAI(deltaTime, player);
             break;
 
         case CharacterType::Spider:
@@ -1255,6 +1257,369 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
 }
 
+void Character::UpdateWizardAI(float deltaTime, Player& player) {
+    if (isLoadingLevel) return;
+    constexpr float WIZARD_ATTACK_ENTER = 1600.0f; // start attacking when closer than this
+    constexpr float WIZARD_ATTACK_EXIT  = 2500.0f; // stop attacking when farther than this
+    // (EXIT must be > ENTER)
+
+    stateTimer += deltaTime; //state timer should be outside of states, change this for pirates as well. 
+    float distance = Vector3Distance(position, player.position);
+
+    Vector2 start = WorldToImageCoords(position);
+    //Vector2 goal = WorldToImageCoords(player.position);
+
+    UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
+    UpdateLeavingFlag(player.position, player.previousPosition);
+ 
+    switch (state){
+        case CharacterState::Idle: {
+
+
+            Vector2 start = WorldToImageCoords(position);
+
+            if (distance < 250 && canSee){
+                ChangeState(CharacterState::MeleeAttack);
+                break;
+            }
+
+            // Transition to chase if player detected
+            if (distance < 4000.0f && stateTimer > 1.0f && (playerVisible)) {
+                AlertNearbySkeletons(position, 3000.0f);
+                ChangeState(CharacterState::Chase);
+                SetPath(start);
+
+            }
+            // Wander if idle too long
+            else if (stateTimer > 10.0f) {
+
+                
+                if (TrySetRandomPatrolPath(start, this, currentWorldPath)) {
+
+                    ChangeState(CharacterState::Patrol);
+                    
+                }
+            }
+
+            break;
+        }
+
+        case CharacterState::Chase: {
+
+            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+
+            UpdateMovementAnim();
+            if (distance < 250 && canSee){
+                ChangeState(CharacterState::MeleeAttack);
+                break;
+            }
+
+            // 1) Try to attack when close AND we have instant LOS
+            if (distance < WIZARD_ATTACK_ENTER && canSee) {
+                ChangeState(CharacterState::Attack);
+                break;
+            }
+
+            // 2) Leash out if too far
+            if (distance > 4000.0f) {
+                ChangeState(CharacterState::Idle);
+                playerVisible = false;         // drop memory when giving up
+                currentWorldPath.clear();
+                break;
+            }
+
+            // 3) Plan path toward current target when cooldown allows
+            if (pathCooldownTimer <= 0.0f) {
+                if (canSee) {
+                    SetPath(start);
+                    //SetPathTo(player.position);
+                    pathCooldownTimer = 0.4f;
+                } else if (playerVisible) {       // still within memory window
+                    SetPathTo(lastKnownPlayerPos);
+                    
+                    pathCooldownTimer = 0.4f;
+                }
+            }
+
+
+            // 4) Advance along path (with repulsion)
+            if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
+                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
+                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
+
+                // Reached the end but still no LOS? stop chasing
+                if (currentWorldPath.empty() && !canSee) {
+                    playerVisible = false;          // memory expires now that we arrived
+                    ChangeState(CharacterState::Idle);
+                }
+            }
+        } break;
+
+        case CharacterState::Attack: { //wizard attacks with fireball
+            
+            Vector2 myTile = WorldToImageCoords(position);
+            Character* occupier = GetTileOccupier(myTile.x, myTile.y, enemyPtrs, this);
+            //pirates won't occupy the same tile while shooting. 
+            if (occupier && occupier != this) {
+                // Only the one with the "greater" pointer backs off
+                if (this > occupier) {
+                    ChangeState(CharacterState::Reposition);
+                    break;
+                } else {
+                    // Let the other one reposition — wait
+                    break;
+                }
+            }
+
+            // Hysteresis: only leave attack if we're clearly out of range or lost LOS
+            if (distance > WIZARD_ATTACK_ENTER || !canSee) {
+                ChangeState(CharacterState::Chase);
+                break;
+            }
+
+            attackCooldown -= deltaTime;
+            if (distance < 1600 && distance > 300){
+                
+                if (canSee && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Wizard) {
+
+                    FireFireball(position, player.position, 1350.0f, 2.0f, true, true);
+                    hasFired = true;
+                    attackCooldown = 5.0f;
+                    SoundManager::GetInstance().PlaySoundAtPosition("flame1", position, player.position, 1.0, 2000);
+                }
+
+            }else if (distance < 280){
+                ChangeState(CharacterState::MeleeAttack);
+                break;
+            }
+
+            // Wait for next attack opportunity
+            if (hasFired && stateTimer > 1.5f) {
+                hasFired = false;
+                attackCooldown = 3.5f;
+                currentFrame = 0;
+                stateTimer = 0;
+
+                if (TrySetRandomPatrolPath(start, this, currentWorldPath) && canSee) { //shoot then move to a random tile and shoot again.
+                    ChangeState(CharacterState::Patrol);
+                }else{
+                    ChangeState(CharacterState::Attack);
+                }
+               
+            }
+
+            break;
+        }
+
+        case CharacterState::MeleeAttack: {
+            stateTimer += deltaTime;
+            float horizDist = DistXZ(position, player.position);
+
+            // Wait until animation is done to apply damage
+            if (canMelee && currentFrame == 2 && horizDist < 280.0f) { // only apply damage on frame 2. Consider enemy attack ID
+                canMelee = false;
+
+                if (distance < 300.0f) {
+                    if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
+                        // Blocked!
+
+                        Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                        Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                        decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
+                        SoundManager::GetInstance().Play(rand()%2 ? "swordBlock" : "swordBlock2");
+
+                    } else {
+                        // Direct hit
+                        player.TakeDamage(10);
+                                               
+                        SoundManager::GetInstance().Play("slice");
+
+                        Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                        Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                        decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("slashSheetLeft"), 5, 0.5f, 0.1f, 50.0f);
+                    }
+                }
+            }
+
+            // Exit state after full animation plays
+            if (stateTimer >= 0.6f) {
+                if (distance > 280.0f) {
+                    Vector2 start = WorldToImageCoords(position);
+                    if (TrySetRandomPatrolPath(start, this, currentWorldPath)){
+                        ChangeState(CharacterState::Patrol);
+                    }else{
+                        ChangeState(CharacterState::Idle);
+
+                    }
+
+                } else {
+                    ChangeState(CharacterState::MeleeAttack);
+                }
+                canMelee = true;
+                stateTimer = 0.0f;
+            }
+
+            break;
+        }
+
+
+        case CharacterState::Reposition: {
+            //skeletons and pirates and spiders, when close, surround the player. Instead of all standing on the same tile. 
+            stateTimer += deltaTime;
+
+            Vector2 playerTile = WorldToImageCoords(player.position);
+            Vector3 target = position; // fallback
+
+            bool foundSpot = FindRepositionTarget(player, position, target);
+
+
+            if (foundSpot) {
+                foundSpot = false;
+                Vector3 dir = Vector3Normalize(Vector3Subtract(target, position));
+                Vector3 move = Vector3Scale(dir, skeleSpeed * deltaTime);
+                position = Vector3Add(position, move);
+
+                rotationY = RAD2DEG * atan2f(dir.x, dir.z);
+
+                float dist = Vector3Distance(position, target);
+
+                if (dist < 300.0f && stateTimer > 2.0f) {
+                    ChangeState(CharacterState::MeleeAttack);
+                } else if (dist > 350.0f && stateTimer > 2.0f) {
+                    ChangeState(CharacterState::Chase);
+                }
+            }
+
+            break;
+        }
+
+        case CharacterState::Patrol: { //Pirate Patrol after every shot. 
+            stateTimer += deltaTime;
+
+            UpdateMovementAnim();
+            // Advance along path (with repulsion)
+            if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
+                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
+                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
+
+                // Reached the end but still no LOS? stop chasing
+                if (currentWorldPath.empty() && !canSee) {
+                    playerVisible = false;          // memory expires now that we arrived
+                    ChangeState(CharacterState::Idle);
+                }
+            }
+            
+            else {
+                ChangeState(CharacterState::Idle);
+            }
+
+            break;
+        }
+
+        case CharacterState::Harpooned: {
+            stateTimer += deltaTime;
+
+            if (currentHealth <= 0) {
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            // Keep updating target so if player backpedals, it still pulls toward you
+            Vector3 target = player.position;
+
+            // Pull direction XZ only // try it on raptors on a hill. 
+            Vector3 toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+
+            float dist = Vector3Length(toTarget);
+
+            // Stop distance so you don't overlap the player
+            const float stopDist = harpoonMinDist;
+
+            if (dist > stopDist && dist > 1.0f)
+            {
+                Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+
+                // Pull speed (world units / sec). Tune this.
+                const float pullSpeed = 3000.0f;
+
+                float step = pullSpeed * deltaTime;
+
+                // Don't overshoot past stop distance
+                float desiredMove = fminf(step, dist - stopDist);
+
+                position = Vector3Add(position, Vector3Scale(dir, desiredMove));
+
+            }
+
+            // after position update
+            toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+            dist = Vector3Length(toTarget);
+            
+            // End condition: time AND close enough
+            bool timeDone = (stateTimer >= harpoonDuration);
+            bool closeEnough = (dist <= stopDist + 5.0f);
+
+            if (timeDone && closeEnough)
+            {
+                currentWorldPath.clear();
+                ChangeState(CharacterState::Stagger);
+                break;
+            }
+
+            break;
+        }
+
+
+        case CharacterState::Freeze: {
+            stateTimer += deltaTime;
+            //do nothing
+            if (currentHealth <= 0 && !isDead){
+                ChangeState(CharacterState::Death); //check for death to freeze, freeze damage doesn't call takeDamage
+                break;
+            }
+
+            if (stateTimer > 5.0f && !isDead){
+                ChangeState(CharacterState::Idle);
+                break;
+            }
+            
+            break;
+        }
+
+
+        case CharacterState::Stagger: {
+            stateTimer += deltaTime;
+            //do nothing
+           
+            if (stateTimer > 0.9f) {
+                canBleed = true;
+                if (distance > 300){
+                    ChangeState(CharacterState::Chase);
+                }else{
+                    ChangeState(CharacterState::MeleeAttack);
+                }
+                
+                
+            }
+            break;
+        }
+
+        case CharacterState::Death: {
+            if (!isDead) {
+                isDead = true;
+                deathTimer = 0.0f;         // Start counting
+            }
+
+            deathTimer += deltaTime;
+            break;
+        }
+
+    }
+}
 
 void Character::UpdatePirateAI(float deltaTime, Player& player) {
     if (isLoadingLevel) return;
@@ -1273,7 +1638,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
  
     switch (state){
         case CharacterState::Idle: {
-            stateTimer += deltaTime;
+            stateTimer += deltaTime; //state timer should be above this. It should always be counting. 
 
             Vector2 start = WorldToImageCoords(position);
 

@@ -291,6 +291,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("shotgunReticle",   "assets/sprites/shotgunReticle.png");
     R.LoadTexture("dactylSheet",      "assets/sprites/dactylSheet.png");
     R.LoadTexture("ceilingTexture",   "assets/textures/ceilingTilesTexture.png");
+    R.LoadTexture("wizardSheet",      "assets/sprites/wizardSheet.png");
 
     R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
     R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
@@ -343,7 +344,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("lavaShader",     "assets/shaders/lava_world.vs",         "assets/shaders/lava_world.fs");
     R.LoadShader("treeShader",     "assets/shaders/treeShader.vs",         "assets/shaders/treeShader.fs");
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
-    R.LoadShader("ceilingShader",   "",                                    "assets/shaders/ceiling.fs");
+    R.LoadShader("ceilingShader",  "assets/shaders/ceiling.vs",            "assets/shaders/ceiling.fs");
 
 
 }
@@ -713,6 +714,13 @@ void ResourceManager::SetLightingShaderValues() {
     Shader& lightingShader = R.GetShader("lightingShader");
     Shader& ceilingShader = R.GetShader("ceilingShader");
 
+    ceilingShader.locs[SHADER_LOC_MATRIX_MVP]   = GetShaderLocation(ceilingShader, "mvp");
+    ceilingShader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(ceilingShader, "matModel");
+    ceilingShader.locs[SHADER_LOC_COLOR_DIFFUSE]= GetShaderLocation(ceilingShader, "colDiffuse");
+    ceilingShader.locs[SHADER_LOC_MAP_DIFFUSE]  = GetShaderLocation(ceilingShader, "texture0");
+    ceilingShader.locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(ceilingShader, "texture4"); // because you use texture4
+
+
     Model& floorModel    = R.GetModel("floorTileGray");
     Model& wallModel     = R.GetModel("wallSegment");
     Model& windowModel   = R.GetModel("windowWay");
@@ -722,21 +730,25 @@ void ResourceManager::SetLightingShaderValues() {
     Model& brokeModel    = R.GetModel("brokeBarrel");
     Model& ceilingPlane  = R.GetModel("ceilingPlane");
 
-    // Mesh m = GenMeshPlane(1, 1, 1, 1);
-    // Model ceilingPlane = LoadModelFromMesh(m);
+    ceilingPlane.materials[0].shader = ceilingShader;
 
-
-    // Albedo/diffuse (this is what raylib binds as texture0)
+    // 2) Bind ceiling tiles to diffuse
     ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("ceilingTexture");
     ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].color   = WHITE;
-    //ceilingPlane.materials[0].shader = ceilingShader;
+    SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture, TEXTURE_WRAP_REPEAT);
+
+    // 3) Bind lightmap to emission slot (texture4 in your shader)
+    ceilingPlane.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+
+    // 4) Set u_TilingXZ (THIS is why it looked uniform)
+    int tilLoc = GetShaderLocation(ceilingShader, "u_TilingXZ");
+    Vector2 til = { (float)dungeonWidth, (float)dungeonHeight };
+    SetShaderValue(ceilingShader, tilLoc, &til, SHADER_UNIFORM_VEC2);
+
 
     // If you want true tiling without seams:
     SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture, TEXTURE_WRAP_REPEAT);
 
-    int tilesLoc = GetShaderLocation(ceilingShader, "tiles");
-    Vector2 tiles = { (float)dungeonWidth, (float)dungeonHeight };
-    SetShaderValue(ceilingShader, tilesLoc, &tiles, SHADER_UNIFORM_VEC2);
 
     // assign shader to all dungeon materials
     for (int i = 0; i < wallModel.materialCount; i++)      wallModel.materials[i].shader   = lightingShader;
@@ -748,13 +760,17 @@ void ResourceManager::SetLightingShaderValues() {
     for (int i = 0; i < brokeModel.materialCount; ++i)    brokeModel.materials[i].shader  = lightingShader;
 
 
-    for (int i = 1; i < ceilingPlane.materialCount; ++i)    ceilingPlane.materials[i].shader  = lightingShader;
+    //for (int i = 1; i < ceilingPlane.materialCount; ++i)    ceilingPlane.materials[i].shader  = lightingShader;
 
-    //ceilingPlane.materials[0].shader = ceilingShader;
+    ceilingPlane.materials[0].shader = ceilingShader;
 
     // IMPORTANT: map EMISSION -> texture4 sampler in shader
     lightingShader.locs[SHADER_LOC_MAP_EMISSION] =
         GetShaderLocation(lightingShader, "texture4");
+
+
+    ceilingShader.locs[SHADER_LOC_MAP_EMISSION] =
+        GetShaderLocation(ceilingShader, "texture4"); 
 
     // bind the lightmap to EMISSION slot for every model
     auto setLightmap = [&](Model& m){
@@ -769,13 +785,20 @@ void ResourceManager::SetLightingShaderValues() {
     setLightmap(launcherModel);
     setLightmap(barrelModel);
     setLightmap(brokeModel);
-    setLightmap(ceilingPlane);
+    //setLightmap(ceilingPlane);
 
-    Shader use = floorModel.materials[0].shader;
+    Shader& use = floorModel.materials[0].shader;
+    Shader& useCeiling = ceilingPlane.materials[0].shader;
 
     int locGrid   = GetShaderLocation(use, "gridBounds");
     int locDynStr = GetShaderLocation(use, "dynStrength");
     int locAmb    = GetShaderLocation(use, "ambientBoost");
+
+      //CeilingShader locations
+    int locGridCeiling   = GetShaderLocation(useCeiling, "gridBounds");
+    int locDynStrCeiling = GetShaderLocation(useCeiling, "dynStrength");
+    int locAmbCeiling   = GetShaderLocation(useCeiling, "ambientBoost");
+    int locTilingCeiling = GetShaderLocation(useCeiling, "u_TilingXZ");
 
     float grid[4] = {
         gDynamic.minX, gDynamic.minZ,
@@ -783,12 +806,22 @@ void ResourceManager::SetLightingShaderValues() {
         gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f
     };
 
+
+    // 1 tile per dungeon cell (recommended)
+    Vector2 tilingXZ = { (float)dungeonWidth*0.5f, (float)dungeonHeight *0.5f };
+
     if (locGrid >= 0) SetShaderValue(use, locGrid, grid, SHADER_UNIFORM_VEC4);
 
     float dynStrength  = lightConfig.dynStrength;
     float ambientBoost = lightConfig.ambient;
     if (locDynStr >= 0) SetShaderValue(use, locDynStr, &dynStrength,  SHADER_UNIFORM_FLOAT);
     if (locAmb    >= 0) SetShaderValue(use, locAmb,    &ambientBoost, SHADER_UNIFORM_FLOAT);
+
+    // set uniforms celing
+    if (locGridCeiling >= 0)   SetShaderValue(useCeiling, locGridCeiling, grid, SHADER_UNIFORM_VEC4);
+    if (locDynStrCeiling >= 0) SetShaderValue(useCeiling, locDynStrCeiling, &dynStrength,  SHADER_UNIFORM_FLOAT);
+    if (locAmbCeiling >= 0)    SetShaderValue(useCeiling, locAmbCeiling,    &ambientBoost, SHADER_UNIFORM_FLOAT);
+    if (locTilingCeiling >= 0) SetShaderValue(useCeiling, locTilingCeiling, &tilingXZ,     SHADER_UNIFORM_VEC2);
 }
 
 void ResourceManager::UpdateShaders(Camera& camera){

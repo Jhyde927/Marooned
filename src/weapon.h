@@ -96,7 +96,7 @@ struct Weapon {
     Vector3 scale = { 1.0f, 1.0f, 1.0f };
     Vector3 muzzlePos;
     float flashSize = 120.0f;
-    float forwardOffset = 80.0f;
+    float forwardOffset = 80.0f; //80
     float sideOffset = 30.0f;
     float verticalOffset = -30.0f;
 

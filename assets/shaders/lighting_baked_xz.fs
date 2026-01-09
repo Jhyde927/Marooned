@@ -59,6 +59,14 @@ void main()
 
     vec3 lightTint = mix(vec3(1.0), torchColor, tintAmount);
 
+
+    vec3 lit = base * (L * lightTint);
+
+
+    finalColor = vec4(lit, alpha);
+}
+
+
     ////CONTROL WALL COLOR - desaturate then color. if normal = wall
     // compute luminance to get a gray version of the texture
     // float luma = dot(base, vec3(0.299, 0.587, 0.114));
@@ -77,8 +85,3 @@ void main()
 
     // vec3 lit = baseWallTweaked * (L * lightTint);
     // Apply tint to light before modulating albedo
-    vec3 lit = base * (L * lightTint);
-
-
-    finalColor = vec4(lit, alpha);
-}

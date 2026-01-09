@@ -139,3 +139,4 @@ void InitMagicStaff(MagicStaff& magicStaff);
 void InitCrossbow();
 void HandleJumpButton(float timeNow);
 void OnGroundCheck(bool groundedNow, float timeNow);
+void DrawWeapons(const Player& player, Camera& camera);

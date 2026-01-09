@@ -676,6 +676,22 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 default:                     return     {0, 7, 0.2f, true};
             }
 
+        case CharacterType::Wizard:
+          
+            switch (state) {
+                case CharacterState::Chase:
+                case CharacterState::Reposition:
+                case CharacterState::Patrol:
+                    return AnimDesc{1, 4, 0.2f, true}; // walk
+
+                case CharacterState::Freeze: return     {0, 1, 1.0f, true};
+                case CharacterState::Idle:   return     {0, 1, 1.0f, true};
+                case CharacterState::Attack: return     {2, 4, 0.2f, false}; // ranged attack = attack
+                case CharacterState::MeleeAttack: return{6, 5, 0.12f, false};
+                case CharacterState::Stagger: return    {4, 1, 1.0f, false};
+                case CharacterState::Death:  return     {4, 3, 0.25f, false };
+                default:                     return     {0, 7, 0.2f, true};
+            }
         
         default:
             return {0, 1, 1.0f, true};

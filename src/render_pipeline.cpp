@@ -182,8 +182,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         }
 
         DrawPlayer(player, camera);
-        // Vector3 offsetPos = {player.position.x-20, player.position.y -30.0f, player.position.z};
-        // DrawModel(R.GetModel("crossbowModel"), offsetPos, 1, WHITE);
+        //DrawWeapons(player, camera);  
+
         DrawEnemyShadows();
         DrawBullets(camera);
         DrawCollectableWeapons(player, dt);
@@ -198,6 +198,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
         EndBlendMode();
         EndMode3D();
+
         rlDisableDepthTest();
     EndTextureMode();
 
@@ -231,7 +232,14 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
 
             DrawTexturePro(postRT.texture, src, dst, {0,0}, 0.0f, WHITE);
-            //DrawTexturePro(postRT.texture, src, dst, {0,0}, 0.0f, WHITE);
+
+
+            rlDisableDepthTest();
+            BeginMode3D(camera);
+                DrawWeapons(player, camera);
+            EndMode3D();
+            //rlEnableDepthTest(); //Leave depth test off. If left on it messes with minimap
+
         EndShaderMode();
 
         
@@ -274,8 +282,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 DrawTimer(ElapsedTime);
 
                 DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 15, 20, WHITE);
-
-
                 //show FPS over top of lightmap
                 DrawText(TextFormat("%d FPS", GetFPS()), 350, 10, 20, WHITE);
 

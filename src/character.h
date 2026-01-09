@@ -14,6 +14,7 @@ enum class CharacterType {
     Trex,
     GiantSpider,
     Pterodactyl,
+    Wizard,
    
 };
 
@@ -162,6 +163,7 @@ public:
     void UpdateSkeletonAI(float deltaTime, Player& player);
     void UpdateGiantSpiderAI(float deltaTime, Player& player);
     void UpdatePirateAI(float deltaTime, Player& player);
+    void UpdateWizardAI(float deltaTime, Player& player);
     void UpdatePlayerVisibility(const Vector3& playerPos, float dt, float epsilon);
     bool FindRepositionTarget(const Player& player, const Vector3& selfPos, Vector3& outTarget);
     void AlertNearbySkeletons(Vector3 alertOrigin, float radius);

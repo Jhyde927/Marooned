@@ -52,6 +52,7 @@ enum class Code {
     WindowedWall,             // (83, 104, 120) Payne's Gray
     InvisibleLight,           // (255, 255, 100) lighter yellow
     LavaGlow,                 // (178, 34, 34) fire brick
+    Wizard,                   // (148, 0, 211) DarkViolet
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -105,6 +106,7 @@ constexpr Color ColorOf(Code c) {
         case Code::WindowedWall:           return Make(83, 104, 120);
         case Code::IceLauncher:            return Make(173, 216, 230);
         case Code::LavaGlow:               return Make(178, 34, 34);
+        case Code::Wizard:                 return Make(148, 0, 211);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

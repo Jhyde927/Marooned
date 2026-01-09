@@ -345,6 +345,7 @@ Vector3 FindSpawnPoint(Color* pixels, int width, int height, float tileSize, flo
 
 void GenerateSkeletonsFromImage(float baseY);
 void GeneratePiratesFromImage(float baseY);
+void GenerateWizardsFromImage(float baseY);
 void GenerateSpiderFromImage(float baseY);
 void GenerateGhostsFromImage(float baseY);
 void GenerateGiantSpiderFromImage(float baseY);

@@ -523,7 +523,7 @@ void CheckBulletHits(Camera& camera) {
 
         // 🔹 1. Hit player
         if (CheckCollisionBoxSphere(player.GetBoundingBox(), b.GetPosition(), b.GetRadius())) { //use CollisionBoxSphere and use bullet radius
-            if (b.type == BulletType::Fireball){
+            if (b.type == BulletType::Fireball){ //this means wizards are immune to other wizard fireballs. or launchers
                 b.Explode(camera);
                 //damage delt elseware
                 continue;
@@ -616,12 +616,16 @@ void CheckBulletHits(Camera& camera) {
                 }
                 
                 else if (b.type == BulletType::Fireball){ //dont check if b.isEnemy, all fireballs hit enemies. 
-                    enemy->TakeDamage(25);
-                    
-                    b.pendingExplosion = true;
-                    b.explosionTimer = 0.04f; // short delay //so it blows up inside the enemy not on the top of their head. 
-                    // Don't call b.Explode() yet //called in updateFireball
-                    break;
+                    if (enemy->type != CharacterType::Wizard){ //wizards are immune to fire balls. That's a rule I just made. 
+                        enemy->TakeDamage(25);
+                        b.pendingExplosion = true;
+                        b.explosionTimer = 0.04f; // short delay //so it blows up inside the enemy not on the top of their head. 
+                        // Don't call b.Explode() yet //called in updateFireball
+                        break;
+                        
+                    }
+
+
 
                 }else if (b.type == BulletType::Iceball){
  

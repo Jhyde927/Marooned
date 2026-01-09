@@ -413,7 +413,10 @@ void Weapon::Draw(const Camera& camera) {
     // === Muzzle position and drawing ===
     muzzlePos = Vector3Add(gunPos, Vector3Scale(camForward, 40.0f));
     Color tint = WeaponTintFromDarkness(weaponDarkness);
+
+
     DrawModelEx(model, gunPos, axis, angleDeg, scale, tint);
+
 }
 
 void MeleeWeapon::Draw(const Camera& camera) {

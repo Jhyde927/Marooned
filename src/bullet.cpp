@@ -678,7 +678,8 @@ void Bullet::Explode(Camera& camera) {
                     for (WallRun& wall : wallRunColliders){
                         if (HasWorldLineOfSight(position, enemy->position, 0.01)){
                             float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
-                            enemy->TakeDamage(dmg);                         
+                            if (enemy->type != CharacterType::Wizard) enemy->TakeDamage(dmg);  
+                            //wizards are immune to fireballs.                        
                         }
                     }
                 }
