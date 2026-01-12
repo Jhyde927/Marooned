@@ -70,7 +70,7 @@ void DrawMagicIcon(){
     }
 
     int targetSize = 64;
-    int marginX = 314; // distance from right screen edge
+    int marginX = 378; // distance from right screen edge
     int marginY = GetScreenHeight() - targetSize - 16;
     // Source rect: crop entire original texture
     Rectangle src = { 0.0f, 0.0f, (float)currentTexture.width, (float)currentTexture.height };
@@ -317,7 +317,7 @@ void DrawTimer(float ElapsedTime){
 static void LayoutWeaponBar()
 {
     // keep your original X
-    gWeaponBar.position = { 380.0f, (float)GetScreenHeight() - 80.0f };
+    gWeaponBar.position = { 444.0f, (float)GetScreenHeight() - 80.0f };
 }
 
 void InitWeaponBar()
@@ -387,4 +387,21 @@ void WeaponBar::Draw(WeaponType activeWeapon) const
 
         DrawTextureEx(tex, p, 0.0f, scale, WHITE);
     }
+}
+
+void DrawUI(){
+    //draw player hud and UI elements
+    DrawHUDBars(player);
+    gWeaponBar.Draw(player.activeWeapon);
+    if (player.activeWeapon == WeaponType::MagicStaff) DrawMagicIcon();
+    auto& pieces = R.GetFont("Pieces"); 
+    std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);
+    DrawTextEx(pieces, goldText.c_str(), { 22.0f, 100.f }, 30.0f, 1.0f, GOLD);
+    player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, 
+        player.hasGoldKey, player.hasSilverKey, player.hasSkeletonKey); //this is pretty dumb
+    DrawHints();
+
+    float yOffset = 100.0f;
+    if (player.activeWeapon == WeaponType::Blunderbuss) yOffset = GetScreenHeight() * 0.075f;
+    DrawReticle(player.activeWeapon);
 }

@@ -445,7 +445,7 @@ void DrawTrees(const std::vector<TreeInstance>& trees, Camera& camera){
 
         Model& treeModel = tree->useAltModel ? R.GetModel("palmTree") : R.GetModel("palm2");
         Model& swampTree = R.GetModel("swampTree");
-        float scale = tree->useAltModel ? 40.0f : 20.0f;
+        float scale = tree->useAltModel ? 80.0f : 150.0f;
         if (dist < cullDist){
 
             if (gCurrentLevelIndex == 23){

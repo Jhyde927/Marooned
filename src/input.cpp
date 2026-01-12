@@ -22,9 +22,15 @@ void debugControls(Camera& camera, float deltaTime){
 
     if (debugInfo){
 
+        if (IsKeyDown(KEY_M)){
+            //M for murder
+            player.TakeDamage(9999);
+        }
+
         if (IsKeyDown(KEY_K)){
             player.hasGoldKey = true;
             player.hasSilverKey = true;
+            player.hasSkeletonKey = true;
         }
 
         if (IsKeyPressed(KEY_L)) {
@@ -33,12 +39,12 @@ void debugControls(Camera& camera, float deltaTime){
             DebugPrintVector(player.position);
 
             //Reloading lights live, now works, still flashes dark for one frame though, so we can't really recalculate for door openings. 
-            isLoadingLevel = true;
-            InitDynamicLightmap(dungeonWidth * 4);
+            // isLoadingLevel = true;
+            // InitDynamicLightmap(dungeonWidth * 4);
            
-            BuildStaticLightmapOnce(dungeonLights);
-            R.SetLightingShaderValues();
-            isLoadingLevel = false;
+            // BuildStaticLightmapOnce(dungeonLights);
+            // R.SetLightingShaderValues();
+            // isLoadingLevel = false;
 
         
         }
@@ -53,7 +59,7 @@ void debugControls(Camera& camera, float deltaTime){
         }
 
         if (IsKeyPressed(KEY_APOSTROPHE)){ //hide ceiling for better screenshots. 
-            drawCeiling = false; //maybe just don't draw ceiling ever in free cam. 
+            drawCeiling = !drawCeiling; //maybe just don't draw ceiling ever in free cam. 
         }
         //control player with arrow keys while in free cam. 
         Vector3 input = {0};

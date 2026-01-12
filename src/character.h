@@ -15,6 +15,7 @@ enum class CharacterType {
     GiantSpider,
     Pterodactyl,
     Wizard,
+    Bat,
    
 };
 
@@ -137,6 +138,13 @@ public:
     float desiredAlt    = 0.0f;   // target altitude above ground
     bool  inAir         = false;  // optional latch: are we airborne?
     float patrolAlt     = 1200.0f;
+
+    //Bat bob
+    float bobPhase = 0.0f;        // radians
+    float bobSpeed = 2.5f;        // radians per second
+    float bobAmplitude = 18.0f;   // world units
+    float hoverHeight = 200.0f;   // base offset above ground
+
 
 
 

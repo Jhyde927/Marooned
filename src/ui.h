@@ -79,3 +79,4 @@ void DrawHints();
 void TutorialSetup();
 void InitWeaponBar();
 void UpdateWeaponBarLayoutOnResize();
+void DrawUI();

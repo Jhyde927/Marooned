@@ -5,6 +5,7 @@
 enum class LOSMode { Lighting, AI };
 
 extern std::vector<std::vector<bool>> walkable;
+extern std::vector<std::vector<bool>> walkableBat;
 class Character;
 void ConvertImageToWalkableGrid(const Image& dungeonMap);
 Vector2 WorldToImageCoords(Vector3 worldPos);
@@ -31,8 +32,9 @@ bool TrySetRetreatPath(const Vector2& startTile, const Vector2& playerTile, Char
 
 std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath, const Image& dungeonMap);
 std::vector<Vector3> SmoothWorldPath(const std::vector<Vector3>& worldPath);
-std::vector<Vector2> FindPath(Vector2 start, Vector2 goal);
+std::vector<Vector2> FindPath( std::vector<std::vector<bool>>& grid, Vector2 start, Vector2 goal);
 
+std::vector<Vector2> FindPath(Vector2 start, Vector2 goal);
 //raptor steering
 Vector3 ArriveXZ(const Vector3& pos, const Vector3& target, float maxSpeed, float slowRadius);
 Vector3 SeekXZ(const Vector3& pos, const Vector3& target, float maxSpeed);

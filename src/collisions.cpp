@@ -708,7 +708,8 @@ void CheckBulletHits(Camera& camera) {
                     c.lastHarpoonBulletId = b.id;
 
                     // Optional: stick the harpoon bullet to the collectable for rope visuals
-                    b.stuck = true;
+                    b.lifeTime = 0.0f;
+                    b.stuck = false;
                     b.stuckEnemyId = -1; // means "not enemy"
                     b.stuckOffset = Vector3Subtract(b.position, c.position);
                     b.velocity = {0,0,0};
@@ -1036,14 +1037,10 @@ void HandleDoorInteraction(Camera& camera) {
                     bool hasKey = false;
                     if (doors[i].requiredKey == KeyType::Gold)   hasKey = player.hasGoldKey;
                     if (doors[i].requiredKey == KeyType::Silver) hasKey = player.hasSilverKey;
+                    if (player.hasSkeletonKey) hasKey = true; //skeleton key opens all key locked doors
 
                     if (hasKey) {
                         doors[i].isLocked = false;
-
-                       
-                        // if (doors[i].requiredKey == KeyType::Gold)   player.hasGoldKey = false;
-                        // if (doors[i].requiredKey == KeyType::Silver) player.hasSilverKey = false;
-
                         SoundManager::GetInstance().Play("unlock");
                     } else {
                         SoundManager::GetInstance().Play("lockedDoor");

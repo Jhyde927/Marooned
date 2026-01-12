@@ -35,6 +35,7 @@ struct Player {
     PlayerState state = PlayerState::Normal;
     bool hasGoldKey   = false;
     bool hasSilverKey = false;
+    bool hasSkeletonKey = false;
     const float ACCEL_GROUND   = 8000.0f;   // how fast we reach target speed
     const float DECEL_GROUND   = 7000.0f;   // how fast we slow to zero
     const float ACCEL_AIR      = 1250.0f;    // small air control

@@ -28,6 +28,10 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             UpdateSkeletonAI(deltaTime, player);
             break;
 
+        case CharacterType::Bat:
+            UpdateSkeletonAI(deltaTime, player);
+            break;
+            
         case CharacterType::Pirate:
             UpdatePirateAI(deltaTime, player);        
             break;
@@ -1382,7 +1386,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                 
                 if (canSee && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Wizard) {
 
-                    FireFireball(position, player.position, 1350.0f, 2.0f, true, true);
+                    FireFireball(position, player.position, 1350.0f, 2.0f, true, true, true);
                     hasFired = true;
                     attackCooldown = 5.0f;
                     SoundManager::GetInstance().PlaySoundAtPosition("flame1", position, player.position, 1.0, 2000);
@@ -2232,7 +2236,12 @@ void Character::SetPath(Vector2 start)
 {
     // 1) Find tile path (same as before)
     Vector2 goal = WorldToImageCoords(player.position);
+
     std::vector<Vector2> tilePath = FindPath(start, goal);
+    if (type == CharacterType::Bat){
+        tilePath.clear();
+        tilePath = FindPath(walkableBat, start, goal);
+    } 
     std::vector<Vector2> smoothTiles = SmoothTilePath(tilePath, dungeonImg);
     // 2) Convert tile centers to world points (y based on type)
     std::vector<Vector3> worldPath;
@@ -2289,7 +2298,7 @@ bool Character::MoveAlongPath(std::vector<Vector3>& path,
     }
 
     // Snap feet to path height (keep your existing behavior)
-    pos.y = target.y;
+    if (type != CharacterType::Bat) pos.y = target.y;
 
     return false;
 }

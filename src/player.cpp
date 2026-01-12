@@ -13,6 +13,7 @@
 #include "camera_system.h"
 #include "array"
 #include "utilities.h"
+#include "pathfinding.h"
 
 Weapon weapon;
 MeleeWeapon meleeWeapon;
@@ -26,7 +27,8 @@ void InitPlayer(Player& player, Vector3 startPosition) {
 
     player.position = startPosition;
     player.startPosition = startPosition;
-    
+    std:: cout << "player position: \n";
+    DebugPrintVector(player.position);
     player.rotation.y = levels[levelIndex].startingRotationY;
     if (levelIndex == 0 && unlockEntrances) player.rotation.y = 90.0f; //face opposite direction when leaving dungeon. 
     player.velocity = {0, 0, 0};
@@ -596,9 +598,29 @@ void TryQueuedJump(){
     }
 }
 
-constexpr float LAVA_DROP      = 150.0f;
-constexpr float VOID_DROP      = 6000.0f;  // how far you "fall"
-constexpr float VOID_KILL_PAD  = 5600.0f;    // extra depth below that
+void TriggerMonsterDoors(){
+    for (Door& door : doors){
+        float distanceTo = Vector3Distance(player.position, door.position);
+        if (distanceTo > 2000.0f) continue; //only check for close doors
+
+        if (door.doorType == DoorType::Monster && !door.monsterTriggered){
+            //LineOfSightRaycast(WorldToImageCoords(door.position), WorldToImageCoords(player.position), dungeonImg, 5, 0.001)
+            if (HasWorldLineOfSight(door.position, player.position, 0.1, LOSMode::Lighting)){
+                door.monsterTriggered = true;
+                door.monsterTimer = 5.0f;
+                break;
+            }
+
+        }
+
+    }
+}
+
+
+//move this someplace
+constexpr float LAVA_DROP      = 250.0f;
+constexpr float VOID_DROP      = 12000.0f;  // how far you "fall"
+constexpr float VOID_KILL_PAD  = 10000.0f;    // extra depth below that
 constexpr float VOID_SNAP_REENABLE_Y = 200.0f;  // how close to a floor you must be before snapping is allowed again, 1 tileSize
 
 constexpr float VOID_COMMIT_FALL = 200.0f;      // how far below the "expected floor" before we commit to void fall
@@ -609,6 +631,7 @@ constexpr float VOID_SNAP_MAX_UP = 200.0f;      // max upward snap allowed (prev
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     HandleMouseLook(deltaTime);
+    TriggerMonsterDoors();
     weapon.Update(deltaTime);
     weapon.isMoving = player.isMoving;
     meleeWeapon.isMoving = player.isMoving;
@@ -673,17 +696,27 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     //start the dying process. 
     if (player.dying) {
+
         player.deathTimer += deltaTime;
-        //player.velocity = {0.0f, 0.0f, 0.0f}; //stop moving when dying. should hide the gun as well. 
+
         //player.canMove = false;
         vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe. 
         vignetteFade = 0.0f;
 
-        gFadePhase = FadePhase::FadingOut; //dont fadeout to level, just fade out. updateFade handles the rest.
-        //fading out stops all updates 
+        if (!player.overVoid && !player.overLava){ //dont animate death cam if you fall into a pit. it would warp you back up. same for lava
+            CameraSystem::Get().SnapAllToPlayer();
+            CameraSystem::Get().StartDeathCam(100.0f, GetHeightAtWorldPosition(player.position, heightmap, terrainScale));
+        }
 
+        //fall to the ground dead first, then fade out.
+        if (player.deathTimer > 2.0f){
+            gFadePhase = FadePhase::FadingOut; //dont fadeout to level, just fade out. updateFade handles the rest.
+            //fading out stops all updates 
 
-        if (player.deathTimer > 1.5f) { 
+        }
+
+        if (player.deathTimer > 4.0f) { 
+            
             player.dying = false;
             player.dead = true;
         }
@@ -696,6 +729,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         player.currentHealth = player.maxHealth;
         player.dead = false;
         player.canMove = true;
+        CameraSystem::Get().SetMode(CamMode::Player);
 
     }
 
@@ -842,10 +876,17 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     {
         player.grounded = false;
 
-        float killY = (dungeonPlayerHeight - VOID_DROP) + VOID_KILL_PAD;
+        float killY = -1000.0f;
         if (player.position.y <= killY)
         {
-            player.TakeDamage(9999);
+            //player.currentHealth = 0;
+            if (!player.dying){
+                player.dying = true;
+                player.deathTimer = 2.0f;
+                player.TakeDamage(9999);
+
+            }
+
         }
 
         if (!player.overVoid)
@@ -904,8 +945,10 @@ void Player::TakeDamage(int amount){
         vignetteMode = 1;
         vignetteIntensity = 1.0f;
         vignetteFade = 0.0f;
-    } else {
+    }else{
         vignetteMode = 0;
+        vignetteIntensity = 1.0f;
+        vignetteFade = 0.0f;
     }
 
     if (rand() % 2 == 0){

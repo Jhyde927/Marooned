@@ -292,6 +292,10 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("dactylSheet",      "assets/sprites/dactylSheet.png");
     R.LoadTexture("ceilingTexture",   "assets/textures/ceilingTilesTexture.png");
     R.LoadTexture("wizardSheet",      "assets/sprites/wizardSheet.png");
+    R.LoadTexture("skeletonKey",      "assets/sprites/skeletonKey.png");
+    R.LoadTexture("batSheet",         "assets/sprites/batSheet.png");
+
+
 
     R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
     R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
@@ -320,7 +324,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("bolt",                   "assets/Models/bolt.glb");
     R.LoadModel("windowedWall",           "assets/Models/windowedWall.glb");
     R.LoadModel("windowWay",              "assets/Models/windowHoleSquare.glb");
-    R.LoadModel("swampTree",              "assets/Models/treeSwamp1.glb");
+    R.LoadModel("swampTree",              "assets/Models/palm1.glb");
 
     //generated models
 

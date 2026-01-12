@@ -121,10 +121,9 @@ int main() {
             UpdateBoat(player_boat, deltaTime);
             UpdateCollectables(deltaTime); 
             UpdateLauncherTraps(deltaTime);
-
+            UpdateMonsterDoors(deltaTime);
             UpdateDungeonChests();
             UpdateSpiderEggs(deltaTime, player.position);
-            //ApplyLavaDPS(player, deltaTime, 1);
             UpdateDungeonTileFlags(player, deltaTime);
             ApplyEnemyLavaDPS();
             UpdateHintManager(deltaTime);

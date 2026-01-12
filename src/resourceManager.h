@@ -65,6 +65,7 @@ private:
     ResourceManager(const ResourceManager&) = delete;
     ResourceManager& operator=(const ResourceManager&) = delete;
     void UnloadRenderTextures();
+    
     template<typename T, typename UnloadFn>
     void UnloadContainer(std::unordered_map<std::string, T>& container, UnloadFn unloadFn) {
         for (auto& kv : container) unloadFn(kv.second);

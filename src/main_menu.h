@@ -14,6 +14,8 @@ namespace MainMenu
         int selectedOption = 0;
         bool showControls = false;
         bool showPreview = false;
+        bool showOptions = false;
+        bool showMenu = true;
         float pressFlash[4] = { 0,0,0,0 }; // seconds remaining for “push” effect
     };
 

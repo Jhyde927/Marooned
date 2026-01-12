@@ -305,6 +305,30 @@ void Character::Update(float deltaTime, Player& player ) {
     //Run AI state machine depending on characterType
     UpdateAI(deltaTime,player);
 
+    if (type == CharacterType::Bat && deathTimer <= 0.0f){
+        // Advance phase
+        bobPhase += bobSpeed * deltaTime;
+
+        // Keep it bounded (optional but tidy)
+        if (bobPhase > 2.0f * PI)
+            bobPhase -= 2.0f * PI;
+
+        // Compute bob offset
+        float bobOffset = sinf(bobPhase) * bobAmplitude;
+
+        // Final vertical position
+        if (isDead){
+            position.y -= 100 * deltaTime;
+        }else{
+            position.y = groundY + hoverHeight + bobOffset;
+        }
+
+        
+
+
+
+    }
+
     // Advance animation frame
     if (animationTimer >= animationSpeed) {
         animationTimer = 0;
@@ -623,6 +647,23 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Attack: return {2, 4, 0.2f, false};  // 4 * 0.2 = 0.8s
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
                 case CharacterState::Death:  return {4, 3, 0.5f, false};
+                
+                default:                     return {0, 1, 1.0f, true};
+            }
+
+
+        case CharacterType::Bat:
+            switch (state) {
+                case CharacterState::Chase:
+                case CharacterState::Patrol:
+                case CharacterState::Reposition:
+                    return AnimDesc{1, 4, 0.2f, true}; // walk
+
+                case CharacterState::Freeze: return {0, 1, 1.0f, true};
+                case CharacterState::Idle:   return {0, 5, 0.2f, true};
+                case CharacterState::Attack: return {2, 5, 0.2f, false};  // 4 * 0.2 = 0.8s
+                case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
+                case CharacterState::Death:  return {4, 5, 0.2f, false};
                 
                 default:                     return {0, 1, 1.0f, true};
             }

@@ -78,6 +78,7 @@ float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
 int gEnemyCounter = 0;
+float lavaOffsetY = 250.0f;
 
 int gCurrentLevelIndex = -1;
 
@@ -246,6 +247,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GeneratePiratesFromImage(dungeonEnemyHeight);
         GenerateWizardsFromImage(dungeonEnemyHeight);
         GenerateSpiderFromImage(dungeonEnemyHeight);
+        GenerateBatsFromImage(dungeonEnemyHeight);
         GenerateGhostsFromImage(dungeonEnemyHeight);
         GenerateGiantSpiderFromImage(dungeonEnemyHeight);
         GenerateSpiderEggFromImage(dungeonEnemyHeight);
@@ -279,6 +281,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     StartFadeInFromBlack();
     levelLoaded = true;
+
 
 }
 
@@ -400,6 +403,8 @@ void DrawEnemyShadows() {
     SetShaderValue(shadowSh, locStrength, &enemyStrength, SHADER_UNIFORM_FLOAT);
 
     for (Character& enemy : enemies) {
+        if (enemy.type == CharacterType::Bat) continue; //dont draw shadows for bats
+
         // Ideally, raycast to ground to get exact Y; add tiny epsilon to avoid z-fighting
         Vector3 groundPos;
         if (isDungeon) {
@@ -754,8 +759,12 @@ void UpdateCollectables(float deltaTime) {
             } else if (collectables[i].type == CollectableType::SilverKey){
                 player.hasSilverKey = true;
                 SoundManager::GetInstance().Play("key");
-            }
-            else if (collectables[i].type == CollectableType::Gold) {
+                
+            }else if (collectables[i].type == CollectableType::SkeletonKey){
+                player.hasSkeletonKey = true;
+                SoundManager::GetInstance().Play("key");
+
+            }else if (collectables[i].type == CollectableType::Gold) {
                 player.gold += collectables[i].value;
                 SoundManager::GetInstance().Play("key");
 

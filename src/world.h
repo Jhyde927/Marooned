@@ -85,6 +85,7 @@ extern bool hasIslandNav;
 extern int gEnemyCounter;
 extern int gCurrentLevelIndex; //for resuming game
 extern bool quitQued;
+extern float lavaOffsetY;
 //extern float muzzleFlashTimer;
 
 

@@ -7,35 +7,37 @@
 #include "world.h"
 #include "character.h"
 #include "utilities.h"
+#include "dungeonColors.h"
 
-
+using namespace dungeon;
 std::vector<std::vector<bool>> walkable; //grid of bools that mark walkabe/unwalkable tiles. 
+std::vector<std::vector<bool>> walkableBat; //bats can fly over lava tiles. We make a separate walkable grid just for bats, that includes lava tiles.
 
-std::vector<Vector2> FindPath(Vector2 start, Vector2 goal) {
-    const int width  = (int)walkable.size();         // X dimension (cols)
+std::vector<Vector2> FindPath(std::vector<std::vector<bool>>& grid, Vector2 start, Vector2 goal)
+{
+    const int width = (int)grid.size();      // X dimension (cols)
     if (width == 0) return {};
-    const int height = (int)walkable[0].size();      // Y dimension (rows)
+    const int height = (int)grid[0].size();  // Y dimension (rows)
 
     auto inBounds = [&](int x, int y){
         return x >= 0 && y >= 0 && x < width && y < height;
     };
     auto toIndex = [&](int x, int y){
-        return y * width + x; // stride by width because first index is X
+        return y * width + x;
     };
 
     const int sx = (int)start.x, sy = (int)start.y;
     const int gx = (int)goal.x,  gy = (int)goal.y;
 
     if (!inBounds(sx, sy) || !inBounds(gx, gy)) return {};
-
-    if (!walkable[sx][sy]) return {};
-    if (!walkable[gx][gy]) return {};
+    if (!grid[sx][sy]) return {};
+    if (!grid[gx][gy]) return {};
 
     std::queue<Vector2> frontier;
-    frontier.push({(float)sx, (float)sy});
+    frontier.push({ (float)sx, (float)sy });
 
     std::unordered_map<int, Vector2> cameFrom;
-    cameFrom[toIndex(sx, sy)] = {-1, -1};
+    cameFrom[toIndex(sx, sy)] = { -1, -1 };
 
     static const int dx[4] = { 1, -1,  0,  0 };
     static const int dy[4] = { 0,  0,  1, -1 };
@@ -52,7 +54,7 @@ std::vector<Vector2> FindPath(Vector2 start, Vector2 goal) {
             const int nx = cx + dx[i];
             const int ny = cy + dy[i];
             if (!inBounds(nx, ny)) continue;
-            if (!walkable[nx][ny]) continue; // NOTE: [x][y] on purpose
+            if (!grid[nx][ny]) continue;
 
             const int idx = toIndex(nx, ny);
             if (cameFrom.count(idx) == 0) {
@@ -62,10 +64,8 @@ std::vector<Vector2> FindPath(Vector2 start, Vector2 goal) {
         }
     }
 
-    //if goal never discovered, no path.
     if (!reached) return {};
 
-    // Reconstruct
     std::vector<Vector2> path;
     Vector2 cur = { (float)gx, (float)gy };
     while (!(cur.x == -1 && cur.y == -1)) {
@@ -73,38 +73,50 @@ std::vector<Vector2> FindPath(Vector2 start, Vector2 goal) {
         cur = cameFrom[toIndex((int)cur.x, (int)cur.y)];
     }
     std::reverse(path.begin(), path.end());
-
-    // Optional: stop one tile short
-    // if (path.size() > 1) path.pop_back();
-
     return path;
+}
+
+
+std::vector<Vector2> FindPath(Vector2 start, Vector2 goal)
+{
+
+    return FindPath(walkable, start, goal);
 }
 
 
 
 void ConvertImageToWalkableGrid(const Image& dungeonMap) {
+    //set initial walkable state of tiles.
     walkable.clear();
+    walkableBat.clear();
     walkable.resize(dungeonMap.width, std::vector<bool>(dungeonMap.height, false));
-
+    walkableBat.resize(dungeonMap.width, std::vector<bool>(dungeonMap.height, false));
     for (int x = 0; x < dungeonMap.width; ++x) {
         for (int y = 0; y < dungeonMap.height; ++y) {
             Color c = GetImageColor(dungeonMap, x, y);
 
             if (c.a == 0) {
                 walkable[x][y] = false;
+                walkableBat[x][y] = true;  //bats can cross void tiles
                 continue;
             }
 
-            bool black   = (c.r == 0 && c.g == 0 && c.b == 0);       // walls
-            bool blue    = (c.r == 0 && c.g == 0 && c.b == 255);     // barrels
-            bool yellow  = (c.r == 255 && c.g == 255 && c.b == 0);   // light pedestals
-            bool skyBlue = (c.r == 0 && c.g == 128 && c.b == 255);   // chests
-            bool purple  = (c.r == 128 && c.g == 0 && c.b == 128);   // closed doors
-            bool window   = (c.r == 83 && c.g == 104 && c.b == 120);  //closed window
-            bool aqua    = (c.r == 0 && c.g == 255 && c.b == 255);   // locked doors
-            bool lava     = (c.r == 200 && c.g == 0 && c.b == 0);    // lava pit
+            //bool voidTile = (c.a == 0);                              //voidtiles
+            bool black   = (EqualsRGB(c, ColorOf(Code::Wall)));      // walls
+            bool blue    = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
+            bool yellow  = (EqualsRGB(c, ColorOf(Code::Light)));  // light pedestals
+            bool skyBlue = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));  // chests
+            bool purple  = (EqualsRGB(c, ColorOf(Code::Doorway)));  // closed doors
+            bool window   = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
+            bool aqua    = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));  // locked doors
+            bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));    // lava pit
+            bool silver = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
+            bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey)));
+            //secret walls? 
 
-            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window);
+            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton);
+
+            walkableBat[x][y] = !(black || purple || aqua || window || silver);
         }
     }
 }
@@ -139,6 +151,8 @@ bool IsSeeThroughForLOS(int x, int y)
 
     // Everything else (walls, closed doors, barrels, etc) blocks LOS
     return false;
+
+    //voids?
 }
 
 bool IsWalkable(int x, int y, const Image& dungeonMap) {
@@ -152,20 +166,19 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
         return false;
 
     // Match walkability rules from ConvertImageToWalkableGrid
-    bool black    = (c.r == 0 && c.g == 0 && c.b == 0);       // walls
-    bool blue     = (c.r == 0 && c.g == 0 && c.b == 255);     // barrels
-    bool yellow   = (c.r == 255 && c.g == 255 && c.b == 0);   // light pedestals
-    bool skyBlue  = (c.r == 0 && c.g == 128 && c.b == 255);   // chests 
-    bool purple   = (c.r == 128 && c.g == 0 && c.b == 128);   // closed doors
-    bool window   = (c.r == 83 && c.g == 104 && c.b == 120);  //closed window
-    bool aqua     = (c.r == 0 && c.g == 255 && c.b == 255);   // locked doors
-    bool lava     = (c.r == 200 && c.g == 0 && c.b == 0);     // lava
+    bool black    = (EqualsRGB(c, ColorOf(Code::Wall)));;       // walls
+    bool blue     = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
+    bool yellow   = (EqualsRGB(c, ColorOf(Code::Light)));;   // light pedestals
+    bool skyBlue  = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));;   // chests 
+    bool purple   = (EqualsRGB(c, ColorOf(Code::Doorway)));   // closed doors
+    bool window   = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
+    bool aqua     = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
+    bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));     // lava
+    bool silver   = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
+    bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey)));
 
-    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window);
+    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton);
 }
-
-extern std::vector<std::vector<bool>> walkable;
-
 
 
 bool CanSeeDoorTile(int x0, int y0, int x1, int y1)
@@ -530,6 +543,8 @@ bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int m
         if (c.r == 255 && c.g == 255 && c.b == 0) return true; //light pedestal
         if (c.r == 128 && c.g == 0 && c.b == 128 && !IsDoorOpenAt(tileX, tileY)) return true; //closed door
         if (c.r == 0 && c.g == 255 && c.b == 255 && !IsDoorOpenAt(tileX, tileY)) return true; //locked closed door
+        if (EqualsRGB(c, ColorOf(Code::SilverDoor))) return true; //silver locked door
+        if (c.a == 0) return true; //void
         
         
 

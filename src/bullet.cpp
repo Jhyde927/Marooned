@@ -108,9 +108,20 @@ void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
     spinAngle += 90.0f * deltaTime; // 90 degrees per second
     if (spinAngle >= 360.0f) spinAngle -= 360.0f;
 
+
     // Collision with floor
     if (isDungeon) {
-        if (position.y <= floorHeight) {
+        float killY = floorHeight;
+        Vector2 tilePos = WorldToImageCoords(position);
+        if (IsLava(tilePos.x, tilePos.y)){
+            killY = floorHeight - lavaOffsetY;
+        }
+
+        if (IsVoid(tilePos.x, tilePos.y)){
+            killY = floorHeight - 10000.0f;
+        }
+
+        if (position.y < killY) {
             //Explode(camera);
             Explode(camera);
 
@@ -166,7 +177,7 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
 
             // If lava: let bullets sink *below* the normal floor before killing.
             // Otherwise: normal floor kill right at floorHeight.
-            killFloorY = tileIsLava ? (floorHeight - 150)    // 150
+            killFloorY = tileIsLava ? (floorHeight - lavaOffsetY)    // 150
                                     : (floorHeight+20);
         }
 
@@ -323,6 +334,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     }
     if (type == BulletType::Harpoon && !stuck && lifeTime <= 0.0f)
     {
+       std::cout << "retracting\n";
        retracting = true;
        retractTip = position;
        velocity = {0,0,0};
@@ -511,9 +523,9 @@ void Bullet::Draw(Camera& camera) const {
     if (exploded) return;
 
     if (type == BulletType::Fireball){
-         
+        Vector3 scale = wizard ? Vector3 {10.0, 10.0, 10.0} : Vector3 {20.0, 20.0, 20.0};
             //dont draw the ball or firetrail if it's exploded. 
-        DrawModelEx(R.GetModel("fireballModel"), position, { 0, 1, 0 }, spinAngle, { 20.0f, 20.0f, 20.0f }, WHITE);
+        DrawModelEx(R.GetModel("fireballModel"), position, { 0, 1, 0 }, spinAngle, scale, WHITE);
             
         
         
@@ -679,6 +691,8 @@ void Bullet::Explode(Camera& camera) {
                         if (HasWorldLineOfSight(position, enemy->position, 0.01)){
                             float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
                             if (enemy->type != CharacterType::Wizard) enemy->TakeDamage(dmg);  
+
+                            break;
                             //wizards are immune to fireballs.                        
                         }
                     }
@@ -715,9 +729,6 @@ void Bullet::Explode(Camera& camera) {
             }
 
         }
-
-        
-
 
     }
 
@@ -816,7 +827,7 @@ void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, boo
     activeBullets.emplace_back(b);
 }
 
-void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher) {
+void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher, bool wizard) {
     Vector3 direction = Vector3Normalize(Vector3Subtract(target, origin));
     Vector3 velocity = Vector3Scale(direction, speed);
 
@@ -829,6 +840,9 @@ void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, b
     b.light.detachOnDeath = true;
     b.light.lifeTime   = 0.15f; // short glow after death
     b.id = gBulletCounter++;
+    b.wizard = wizard;
+
+    
 
     SoundManager::GetInstance().PlaySoundAtPosition((rand() % 2 == 0 ? "flame1" : "flame2"), origin, player.position, 0.0f, 3000.0f);
 }

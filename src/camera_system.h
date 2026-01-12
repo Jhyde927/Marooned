@@ -3,7 +3,22 @@
 #include "rlgl.h"
 #include "raymath.h"
 
-enum class CamMode { Player, Free, Cinematic};
+enum class CamMode { Player, Free, Cinematic, Death};
+
+struct DeathCamState {
+    Vector3 startPos;
+    Vector3 startTarget;
+    Vector3 startForward;
+
+    Vector3 endPos;
+    Vector3 endTarget;
+
+    float t = 0.0f;
+    float duration = 0.8f; // tweakable
+
+    float endYawDeg = 35.0f;   // head turns right a bit (use -35 for left)
+};
+
 
 struct PlayerView {
     Vector3 position;
@@ -70,6 +85,8 @@ public:
     void StopCinematic();                             // call when leaving menu
     void SetCinematicFocus(const Vector3& p);         // optional runtime tweak
 
+    void StartDeathCam(float dungeonFloorY, float terrainFloorY);
+
     Camera3D& Active();
     const Camera3D& Active() const;
     void BeginCustom3D(const Camera3D& cam, float nearClip, float farClip);
@@ -85,6 +102,7 @@ private:
     void UpdatePlayerCam(float dt);
     void UpdateFreeCam(float dt);
     void UpdateCinematicCam(float dt);
+    void UpdateDeathCam(float dt);
     void ApplyShake(float dt);
 
     CamMode mode = CamMode::Player;

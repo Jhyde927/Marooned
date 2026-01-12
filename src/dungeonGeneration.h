@@ -9,7 +9,7 @@
 #include <cstdint>
 
 
-enum class KeyType { None, Gold, Silver };
+enum class KeyType { None, Gold, Silver, Skeleton };
 
 enum class FloorType {
     Normal,
@@ -20,6 +20,7 @@ enum class DoorType {
     Normal,
     ExitToPrevious,
     GoToNext,
+    Monster,
 };
 
 enum class LightType {
@@ -101,6 +102,8 @@ struct DoorwayInstance {
     bool eventLocked = false;
     KeyType requiredKey = KeyType::None;
     bool window = false;
+    bool monster = false;
+
 
 };
 
@@ -123,6 +126,8 @@ struct Door {
     KeyType requiredKey = KeyType::None;
     bool window = false;
     int linkedLevelIndex = -1; // -1 means no linked level
+    float monsterTimer = 0.0f;
+    bool monsterTriggered = false; // LOS seen at least once
 };
 
 
@@ -308,15 +313,13 @@ void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
-void GenerateWindows(float baseY);
-void BindWindowsToRuns(float baseY);
-void ApplyWindowsToRuns(float baseY);
+
 void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
-void ApplyLavaDPS(Player& player, float dt, float lavaDps);
+
 void UpdateDungeonTileFlags(Player& player, float dt);
 void ApplyEnemyLavaDPS();
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist);
@@ -332,7 +335,7 @@ void HandleDungeonTints();
 void UpdateBarrelTints(Vector3 playerPos);
 void UpdateChestTints(Vector3 playerPos);
 void UpdateDoorTints(Vector3 playerPos);
-
+void UpdateMonsterDoors(float deltaTime);
 void UpdateLauncherTraps(float deltaTime);
 bool IsDoorOpenAt(int x, int y);
 BoundingBox MakeDoorBoundingBox(Vector3 position, float rotationY, float halfWidth, float height, float depth); 
@@ -347,6 +350,7 @@ void GenerateSkeletonsFromImage(float baseY);
 void GeneratePiratesFromImage(float baseY);
 void GenerateWizardsFromImage(float baseY);
 void GenerateSpiderFromImage(float baseY);
+void GenerateBatsFromImage(float baseY);
 void GenerateGhostsFromImage(float baseY);
 void GenerateGiantSpiderFromImage(float baseY);
 void GenerateSpiderEggFromImage(float baseY);

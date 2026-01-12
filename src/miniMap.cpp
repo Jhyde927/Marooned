@@ -468,3 +468,18 @@ void MiniMap::DrawDoors(const std::vector<Door>& doors,
                       c);
     }
 }
+
+void MiniMap::DrawMiniMap(){
+    //draw mini map
+    float pad = 20.0f;
+    float size = miniMap.GetDrawSize();
+
+    int x = (int)(GetScreenWidth() - size - pad);
+    int y = (int)pad;
+
+    miniMap.Draw(x, y, player);
+    miniMap.DrawEnemies(enemyPtrs, x, y);
+    miniMap.DrawDoors(doors, x, y);
+    miniMap.RevealDoorsFromPlayer(player.position, doors);
+    
+}

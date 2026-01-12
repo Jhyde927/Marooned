@@ -236,7 +236,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
             rlDisableDepthTest();
             BeginMode3D(camera);
-                DrawWeapons(player, camera);
+                if (!player.dying) DrawWeapons(player, camera);
             EndMode3D();
             //rlEnableDepthTest(); //Leave depth test off. If left on it messes with minimap
 
@@ -248,45 +248,19 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                      GetScreenHeight()/2, 20, WHITE);
         } else {
             //health mana stam bars UI
-            if (controlPlayer){
-                DrawHUDBars(player);
-                gWeaponBar.Draw(player.activeWeapon);
-                if (player.activeWeapon == WeaponType::MagicStaff) DrawMagicIcon();
-                auto& pieces = R.GetFont("Pieces"); 
-                std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);
-                DrawTextEx(pieces, goldText.c_str(), { 22.0f, 100.f }, 30.0f, 1.0f, GOLD);
-                player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, player.hasGoldKey, player.hasSilverKey);
-                DrawHints();
-
-                float yOffset = 100.0f;
-                if (player.activeWeapon == WeaponType::Blunderbuss) yOffset = GetScreenHeight() * 0.075f;
-                DrawReticle(player.activeWeapon);
-
-            }
+            if (controlPlayer) DrawUI();
+            
             //draw mini map
-            if (isDungeon){
-                float pad = 20.0f;
-                float size = miniMap.GetDrawSize();
-
-                int x = (int)(GetScreenWidth() - size - pad);
-                int y = (int)pad;
-
-                miniMap.Draw(x, y, player);
-                miniMap.DrawEnemies(enemyPtrs, x, y);
-                miniMap.DrawDoors(doors, x, y);
-                miniMap.RevealDoorsFromPlayer(player.position, doors);
-            }
-
+            if (isDungeon) miniMap.DrawMiniMap();
 
             if (debugInfo) { //Press ~ for debug mode. 
                 DrawTimer(ElapsedTime);
-
                 DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 15, 20, WHITE);
                 //show FPS over top of lightmap
                 DrawText(TextFormat("%d FPS", GetFPS()), 350, 10, 20, WHITE);
 
             }
             
-        }
+        } 
     EndDrawing();
 }

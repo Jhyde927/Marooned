@@ -470,6 +470,7 @@ std::vector<LevelData> levels = {
         false,// ceiling
     },
 
+
         {
         "Noise", 
         "assets/heightmaps/NoiseTest.png",
@@ -480,7 +481,7 @@ std::vector<LevelData> levels = {
         15,//raptor count
         false,
         {entranceToDungeon11},
-        23, 
+        25, 
         1,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling
@@ -497,7 +498,7 @@ std::vector<LevelData> levels = {
         5,//raptor count
         false,
         {entranceToDungeon11},
-        24, 
+        23, 
         1,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling

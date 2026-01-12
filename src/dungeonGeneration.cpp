@@ -386,7 +386,7 @@ void GenerateFloorTiles(float baseY) {
             if (pixel.r == 200 && pixel.g == 0 && pixel.b == 0){
                 //generate lava tile instead, add to vector of lava tiles. 
                 FloorTile lavaTile;
-                Vector3 offset = {0, -150, 0};
+                Vector3 offset = {0, -lavaOffsetY, 0};
                 lavaTile.position = pos + offset;
                 lavaTile.tint = BLACK;
                 lavaTile.floorType = FloorType::Lava;
@@ -646,17 +646,19 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
         for (int x = 1; x < dungeonWidth - 1; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            bool isDoor = (current.r == 128 && current.g == 0 && current.b == 128);   // purple
-            bool isExit     = (current.r == 0 && current.g == 128 && current.b == 128);   // teal
-            bool nextLevel = (current.r == 255 && current.g == 128 && current.b == 0); //orange
-            bool lockedDoor = (current.r == 0 && current.g == 255 && current.b == 255); //CYAN
-            bool silverDoor = {current.r == 0 && current.g == 64 && current.b == 64}; //Dark Cyan
-            bool portal = (current.r == 200 && current.g == 0 && current.b == 200); //portal
+            bool isDoor = EqualsRGB(current, ColorOf(Code::Doorway));   // purple
+            bool isExit     = EqualsRGB(current, ColorOf(Code::ExitTeal));   // teal
+            bool nextLevel =  EqualsRGB(current, ColorOf(Code::NextLevelOrange)); //orange
+            bool lockedDoor = EqualsRGB(current, ColorOf(Code::LockedDoorAqua)); //CYAN
+            bool silverDoor = EqualsRGB(current, ColorOf(Code::SilverDoor)); //Dark Cyan
+            bool skeletonDoor = EqualsRGB(current, ColorOf(Code::SkeletonDoor)); //aged ivory
+            bool portal = EqualsRGB(current, ColorOf(Code::DoorPortal)); //portal
             bool window = EqualsRGB(current, ColorOf(Code::WindowedWall));
+            bool monsterDoor = EqualsRGB(current, ColorOf(Code::MonsterDoor));
+            bool eventLocked = EqualsRGB(current, ColorOf(Code::EventLocked)); //spring-green
 
-            bool eventLocked = (current.r == 0   && current.g == 255 && current.b == 128); //spring-green
-
-            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal && !eventLocked && !silverDoor && !window) continue;
+            if (!isDoor && !isExit && !nextLevel && !lockedDoor && !portal && !eventLocked && !silverDoor 
+                && !window && !monsterDoor && !skeletonDoor) continue;
 
             // Check surrounding walls to determine door orientation
             Color left = dungeonPixels[y * dungeonWidth + (x - 1)];
@@ -703,8 +705,17 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
                 archway.isLocked = true;
                 archway.requiredKey = KeyType::Silver; 
 
+            }else if (skeletonDoor) {
+                archway.isLocked = true;
+                archway.requiredKey = KeyType::Skeleton;
+
             } else if (eventLocked) {
                 archway.eventLocked = true; //unlock on giant spider death ect..
+
+            }else if (monsterDoor){
+                archway.isLocked = true;
+                archway.monster = true;
+
             } else { //purple
                 archway.linkedLevelIndex = -1; //regular door
             }
@@ -714,6 +725,26 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
     }
 
     GenerateDoorsFromArchways();
+}
+
+void UpdateMonsterDoors(float deltaTime){
+    //update monster door timer
+    for (Door& door : doors){
+
+        if (door.isOpen) continue;
+
+        if (door.monsterTriggered){
+            door.monsterTimer -= deltaTime;
+
+            if (door.monsterTimer <= 0.0f){
+                door.isOpen = true;
+                door.isLocked = false;
+                door.monsterTimer = 0.0f;
+            }
+        }
+
+
+    }
 }
 
 
@@ -754,8 +785,6 @@ void GenerateDoorsFromArchways() {
         door.tileY = dw.tileY;
         door.sideColliders = dw.sideColliders; //side colliders for when door is open
 
-        
-
 
         door.collider = MakeDoorBoundingBox(door.position, door.rotationY, halfWidth, height, depth); //covers the whole archway
 
@@ -764,6 +793,8 @@ void GenerateDoorsFromArchways() {
         } else if (dw.linkedLevelIndex == levels[levelIndex].nextLevel) {
             door.doorType = DoorType::GoToNext;
             
+        }else if (dw.monster){
+            door.doorType = DoorType::Monster;
         } else {
             door.doorType = DoorType::Normal;
 }
@@ -1304,8 +1335,46 @@ void GenerateKeys(float baseY) {
                 Collectable key = {CollectableType::SilverKey, pos, R.GetTexture("silverKey"), 100.0f};
                 collectables.push_back(key);
             }
+
+            if (EqualsRGB(current, ColorOf(Code::SkeletonKey))) { // Cool Silver for silver keys
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 80); // raised slightly off floor
+                Collectable key = {CollectableType::SkeletonKey, pos, R.GetTexture("skeletonKey"), 100.0f};
+                collectables.push_back(key);
+            }           
         }
     }
+}
+
+
+void GenerateBatsFromImage(float baseY) {
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            // Look for pure red pixels (255, 0, 0) → Skeleton spawn
+            if (EqualsRGB(current, ColorOf(Code::Bat))) {
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+                Character bat(
+                    spawnPos,
+                    R.GetTexture("batSheet"), 
+                    200, 200,         // frame width, height
+                    1,                // max frames
+                    0.5f, 0.333f,       // speed, scale 
+                    0,                // initial animation frame
+                    CharacterType::Bat
+                );
+                bat.maxHealth = 100;
+                bat.currentHealth = 100; //2 sword attacks
+                bat.id = gEnemyCounter++;
+                bat.bobPhase = Rand01() * 2.0f * PI;
+
+                enemies.push_back(bat);
+                enemyPtrs.push_back(&enemies.back()); 
+            }
+        }
+    }
+
 }
 
 
@@ -1735,7 +1804,7 @@ void UpdateLauncherTraps(float dt){
         Vector3 origin = { L.position.x, L.position.y + 100.0f, L.position.z };
         Vector3 target = Vector3Add(origin, Vector3Scale(L.direction, AHEAD));
         if (L.type == TrapType::fireball){
-            FireFireball(origin, target, SPEED, LIFE, /*enemy=*/true, /*launcher=*/true);
+            FireFireball(origin, target, SPEED, LIFE, /*enemy=*/true, /*launcher=*/true, false);
             L.cooldown = std::max(0.01f, L.fireIntervalSec);
 
         }else if (L.type == TrapType::iceball){
@@ -1884,7 +1953,9 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     //Ceilings
     //rlEnableBackfaceCulling();
     float scale = dungeonWidth * tileSize;
-    if (drawCeiling && isDungeon) DrawModelEx(R.GetModel("ceilingPlane"), Vector3 {scale/2, ceilingHeight, scale/2}, {0,1,0}, 0.0f, Vector3{scale, scale, scale}, WHITE); 
+    if (drawCeiling && isDungeon){
+        DrawModelEx(R.GetModel("ceilingPlane"), Vector3 {scale/2, ceilingHeight, scale/2}, {0,1,0}, 0.0f, Vector3{scale, scale, scale}, WHITE); 
+    } 
     // for (CeilingTile& tile : ceilingTiles){
     //     if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
 

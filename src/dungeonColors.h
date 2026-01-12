@@ -40,6 +40,7 @@ enum class Code {
     TimingMediumYellow2,    // (200,100,0)
     TimingMediumYellow3,     // (200,150,0)
     EventLocked,            // (0, 255, 128) spring green
+    MonsterDoor,            //(96, 0, 0) Oxblood
     SlimeGreen,             // (128, 255, 0) //spider egg
     Blunderbuss,             // (204, 204, 255) Periwinkle
     SecretDoor,              // (64, 0, 64) very dark purple
@@ -53,6 +54,10 @@ enum class Code {
     InvisibleLight,           // (255, 255, 100) lighter yellow
     LavaGlow,                 // (178, 34, 34) fire brick
     Wizard,                   // (148, 0, 211) DarkViolet
+    SkeletonKey,              // (192, 192, 192) Steel
+    SkeletonDoor,             // (230, 225, 200) Aged Ivory
+    Bat,                      // (75, 0, 130) Deep Purple
+
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -107,6 +112,10 @@ constexpr Color ColorOf(Code c) {
         case Code::IceLauncher:            return Make(173, 216, 230);
         case Code::LavaGlow:               return Make(178, 34, 34);
         case Code::Wizard:                 return Make(148, 0, 211);
+        case Code::MonsterDoor:            return Make(96, 0, 0);
+        case Code::SkeletonKey:            return Make(192, 192, 192);
+        case Code::SkeletonDoor:           return Make(230, 225, 200);
+        case Code::Bat:                    return Make(75, 0, 130);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

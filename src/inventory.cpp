@@ -9,6 +9,7 @@ std::vector<std::string> slotOrder = {
     "ManaPotion",
     "PlaceHolder",
     "PlaceHolder2",
+    "PlaceHolder3",
     
 };
 
@@ -44,7 +45,7 @@ int Inventory::GetItemCount(const std::string& itemId) const {
 }
 
 
-void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey) const {
+void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey, bool hasSkeletonKey) const {
     int spacing = slotSize + 10;
     auto &font = R.GetFont("Pieces");
 
@@ -99,6 +100,18 @@ void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>&
             keyIcon,
             Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
             Rectangle{(float)(x + 3 * spacing), (float)y, (float)slotSize, (float)slotSize},
+            Vector2{0,0},
+            0.0f,
+            WHITE
+        );
+    }
+
+    if (hasSkeletonKey) {
+        Texture2D keyIcon = ResourceManager::Get().GetTexture("skeletonKey"); 
+        DrawTexturePro(
+            keyIcon,
+            Rectangle{0,0,(float)keyIcon.width,(float)keyIcon.height},
+            Rectangle{(float)(x + 4 * spacing), (float)y, (float)slotSize, (float)slotSize},
             Vector2{0,0},
             0.0f,
             WHITE

@@ -6,6 +6,7 @@ enum class CollectableType {
     HealthPotion,
     GoldKey,
     SilverKey,
+    SkeletonKey,
     Gold,
     ManaPotion,
     Harpoon,

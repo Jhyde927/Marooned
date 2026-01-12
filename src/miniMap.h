@@ -25,7 +25,7 @@ public:
     void DrawEnemies(const std::vector<Character*>& enemies, int screenX, int screenY);
     void DrawPlayer(Player& player, float screenX, float screenY) const;
     void DrawDoors(const std::vector<Door>& doors, int screenX, int screenY) const;
-
+    void DrawMiniMap(); //call the draw functions
     // screenX/screenY = top-left position on screen where minimap is drawn
     void Draw(int screenX, int screenY, Player& player) const;
 
