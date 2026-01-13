@@ -201,6 +201,7 @@ void Character::eraseCharacters() {
 
 void Character::UpdateAltitude(float dt, float groundY, float desiredAltitude)
 {
+    //pterodactyl Altitude
     // desiredAltitude is “meters above ground”
     const float MAX_CLIMB_SPEED = 800.0f;   // units/sec
     const float MAX_CLIMB_ACCEL = 2000.0f;  // units/sec^2
@@ -317,15 +318,11 @@ void Character::Update(float deltaTime, Player& player ) {
         float bobOffset = sinf(bobPhase) * bobAmplitude;
 
         // Final vertical position
-        if (isDead){
-            position.y -= 100 * deltaTime;
-        }else{
-            position.y = groundY + hoverHeight + bobOffset;
-        }
 
-        
+        position.y = groundY + hoverHeight + bobOffset;
 
-
+    } else if (type == CharacterType::Bat && deathTimer > 0.0f){
+        position.y = Lerp(position.y, dungeonEnemyHeight, 5 * deltaTime);
 
     }
 

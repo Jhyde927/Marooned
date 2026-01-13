@@ -985,7 +985,7 @@ void GenerateSpiderWebs(float baseY)
         for (int x = 1; x < dungeonWidth - 1; x++) {
 
             Color current = dungeonPixels[y * dungeonWidth + x];
-            bool isWeb = (current.r == 128 && current.g == 128 && current.b == 128);  // light gray
+            bool isWeb = (EqualsRGB(current, ColorOf(Code::SpiderWebLightGray)));  // light gray
 
             if (!isWeb) continue;
 
@@ -1071,10 +1071,11 @@ void GenerateLaunchers(float baseY) {
             //if (!(current.r == 255 && current.g == 66 && current.b == 52)) continue; //if not vermillion try again. 
 
             TrapType trapType;
-            if (current.r == 255 && current.g == 66 && current.b == 52) {
+    
+            if (EqualsRGB(current, ColorOf(Code::LauncherTrapVermillion))) {
                 trapType = TrapType::fireball;
             }//(173, 216, 230)
-            else if (current.r == 173 && current.g == 216 && current.b == 230) {
+            else if (EqualsRGB(current, ColorOf(Code::IceLauncher))) {
                 trapType = TrapType::iceball;
             }
             else {
@@ -1137,7 +1138,7 @@ void GenerateBarrels(float baseY) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            if (current.r == 0 && current.g == 0 && current.b == 255) { // Blue = Barrel
+            if (EqualsRGB(current, ColorOf(Code::Barrel))) { // Blue = Barrel
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
                 // Define bounding box as 100x100x100 cube centered on pos, tileSize is 200 so half tile size centered. 
@@ -1191,7 +1192,7 @@ void GenerateChests(float baseY) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            if (current.r == 0 && current.g == 128 && current.b == 255) { // SkyBlue = chest
+            if (EqualsRGB(current, ColorOf(Code::ChestSkyBlue))) { // SkyBlue = chest
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
                 // Define bounding box as 100x100x100 cube centered on pos
@@ -1384,7 +1385,7 @@ void GenerateSpiderFromImage(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
             // Look for pure red pixels (255, 0, 0) → Skeleton spawn
-            if (current.r == 64 && current.g == 64 && current.b == 64) {
+            if (EqualsRGB(current, ColorOf(Code::SpiderDarkGray))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
                 Character spider(
@@ -1470,7 +1471,7 @@ void GenerateGhostsFromImage(float baseY) {
 
             if (current.a == 0) continue;
             
-            if (current.r == 200 && current.g == 200 && current.b == 200) { //very light gray = ghost. 
+            if (EqualsRGB(current, ColorOf(Code::GhostVeryLightGray))) { //very light gray = ghost. 
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
                 Character ghost(
@@ -1501,8 +1502,8 @@ void GenerateGiantSpiderFromImage(float baseY) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            // Look for pure red pixels (255, 0, 0) → Skeleton spawn
-            if (current.r == 96 && current.g == 96 && current.b == 96) {
+            // Look for pure red pixels (255, 0, 0) → Giant Spider
+            if (EqualsRGB(current, ColorOf(Code::GiantSpider))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
                 Character giantSpider(
@@ -1534,7 +1535,7 @@ void GenerateSkeletonsFromImage(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
             // Look for pure red pixels (255, 0, 0) → Skeleton spawn
-            if (current.r == 255 && current.g == 0 && current.b == 0) {
+            if (EqualsRGB(current, ColorOf(Code::Skeleton))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 
                 Character skeleton(
@@ -1567,7 +1568,7 @@ void GeneratePiratesFromImage(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
             // Look for magenta pixels (255, 0, 255) → Pirate spawn
-            if (current.r == 255 && current.g == 0 && current.b == 255) {
+            if (EqualsRGB(current, ColorOf(Code::PirateMagenta))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
                 Character pirate(
@@ -1635,7 +1636,7 @@ void GenerateLightSources(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
             
             // Check for yellow (pure R + G, no B)
-            if (current.r == 255 && current.g == 255 && current.b == 0) {
+            if (EqualsRGB(current, ColorOf(Code::Light))) {
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
                 dungeonLights.push_back(L);

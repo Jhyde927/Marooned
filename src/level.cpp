@@ -470,24 +470,6 @@ std::vector<LevelData> levels = {
         false,// ceiling
     },
 
-
-        {
-        "Noise", 
-        "assets/heightmaps/NoiseTest.png",
-        "",
-        {5475.0f, 300.0f, -5665.0f},
-        180.0f,
-        {0.0f, 0, 0.0f},
-        15,//raptor count
-        false,
-        {entranceToDungeon11},
-        25, 
-        1,
-        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
-        false, //ceiling
-   
-    },
-
         {
         "Swamp", 
         "assets/heightmaps/Noise4.png",
@@ -499,6 +481,23 @@ std::vector<LevelData> levels = {
         false,
         {entranceToDungeon11},
         23, 
+        1,
+        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
+        false, //ceiling
+   
+    },
+
+        {
+        "Noise", 
+        "assets/heightmaps/NoiseTest.png",
+        "",
+        {5475.0f, 300.0f, -5665.0f},
+        180.0f,
+        {0.0f, 0, 0.0f},
+        15,//raptor count
+        false,
+        {entranceToDungeon11},
+        24, 
         1,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling

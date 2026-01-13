@@ -301,6 +301,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
             PlayerSwipeDecal(camera); //swipe decal on hit. 
             barrel.destroyed = true;
             walkable[tileX][tileY] = true; //tile is now walkable for enemies
+            walkableBat[tileX][tileY] = true;
             SoundManager::GetInstance().Play("barrelBreak");
             if (barrel.containsPotion) {
                 Vector3 pos = {barrel.position.x, barrel.position.y + 100, barrel.position.z};
@@ -843,6 +844,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
                 tileY >= 0 && tileY < dungeonHeight)
             {
                 walkable[tileX][tileY] = true;
+                walkableBat[tileX][tileY] = true;
             }
 
             SoundManager::GetInstance().Play("barrelBreak");
@@ -1088,6 +1090,7 @@ void HandleDoorInteraction(Camera& camera) {
             int tileY = GetDungeonImageY(doors[pendingDoorIndex].position.z, tileSize, dungeonHeight);
             if (tileX >= 0 && tileY >= 0 && tileX < (int)walkable.size() && tileY < (int)walkable[0].size()) {
                 walkable[tileX][tileY] = doors[pendingDoorIndex].isOpen;
+                walkableBat[tileX][tileY] = doors[pendingDoorIndex].isOpen; //open doors for bats as well
                 miniMap.RevealAroundPlayer(player.position);
 
                 //Failed attempt at rebaking lights on door open. Runs too slow and causes problems with orange inner light. 

@@ -141,9 +141,9 @@ public:
 
     //Bat bob
     float bobPhase = 0.0f;        // radians
-    float bobSpeed = 2.5f;        // radians per second
+    float bobSpeed = 3.5f;        // radians per second
     float bobAmplitude = 18.0f;   // world units
-    float hoverHeight = 200.0f;   // base offset above ground
+    float hoverHeight = 225.0f;   // base offset above ground
 
 
 
@@ -169,6 +169,7 @@ public:
     void UpdateAltitude(float dt, float groundY, float desiredAltitude);
     void UpdateAI(float deltaTime, Player& player); 
     void UpdateSkeletonAI(float deltaTime, Player& player);
+    void UpdateBatAI(float deltaTime, Player& player);
     void UpdateGiantSpiderAI(float deltaTime, Player& player);
     void UpdatePirateAI(float deltaTime, Player& player);
     void UpdateWizardAI(float deltaTime, Player& player);

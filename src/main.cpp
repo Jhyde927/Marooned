@@ -15,6 +15,7 @@
 #include "rlgl.h"
 #include "spiderEgg.h"
 #include "miniMap.h"
+#include "shaderSetup.h"
 
 //As above, so below.
 
@@ -89,7 +90,14 @@ int main() {
         if (currentGameState == GameState::Menu) {
             
             CameraSystem::Get().Update(deltaTime); //update orbit
+
+
             R.UpdateShaders(camera);
+
+            //WIP
+            //ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, camera);
+
+
             drawCeiling = false; 
             UpdateMenu(camera, deltaTime);//lives in UI.cpp calls main_menu
 
@@ -110,7 +118,13 @@ int main() {
             //update context
             UpdateWeaponBarLayoutOnResize();
             debugControls(camera, deltaTime); 
+
+
             R.UpdateShaders(camera);
+            ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, camera);
+
+            ShaderSetup::UpdateLavaShaderPerFrame(ShaderSetup::gLava, ElapsedTime, isLoadingLevel);
+
             miniMap.Update(deltaTime, player.position);
             UpdateEnemies(deltaTime);
             UpdateBullets(camera, deltaTime);

@@ -29,7 +29,8 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             break;
 
         case CharacterType::Bat:
-            UpdateSkeletonAI(deltaTime, player);
+            UpdateBatAI(deltaTime, player);
+            //UpdateSkeletonAI(deltaTime, player);
             break;
             
         case CharacterType::Pirate:
@@ -393,6 +394,292 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
 }
 
+void Character::UpdateBatAI(float deltaTime, Player& player){
+
+    float distance = Vector3Distance(position, player.position);
+
+    Vector2 start = WorldToImageCoords(position);
+
+    UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
+
+    stateTimer += deltaTime;
+ 
+    switch (state){
+        case CharacterState::Idle: {
+
+            Vector2 start = WorldToImageCoords(position);
+
+            // Transition to chase if player detected
+            if (distance < 4000.0f && stateTimer > 1.0f && playerVisible) {
+                AlertNearbySkeletons(position, 3000.0f);
+                ChangeState(CharacterState::Chase);
+                currentWorldPath.clear();
+
+                SetPath(start);
+            }
+
+            // Wander if idle too long
+            else if (stateTimer > 10.0f) {
+                Vector2 randomTile = GetRandomReachableTile(start, this);
+
+                if (IsWalkable(randomTile.x, randomTile.y, dungeonImg)) {
+                    if (TrySetRandomPatrolPath(start, this, currentWorldPath)) {
+                        state = CharacterState::Patrol;
+                        SetAnimation(1, 4, 0.2f); // walk anim
+                        if (type == CharacterType::Ghost) SetAnimation(0, 7, 0.2, true);
+                    }
+                }
+            }
+
+            break;
+        }
+
+        
+        case CharacterState::Chase: {
+
+            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+
+            if (distance < 200.0f && canSee) {
+                ChangeState(CharacterState::Attack);
+
+            }
+            else if (distance > 4000.0f) {
+                ChangeState(CharacterState::Idle);
+
+            }
+            else {
+                const Vector2 curTile = WorldToImageCoords(player.position);
+                if (pathCooldownTimer <= 0.0f){
+                
+                    lastPlayerTile = curTile;
+                    pathCooldownTimer = 0.4f; // don’t spam BFS
+                    const Vector2 start = WorldToImageCoords(position);
+                    SetPath(start); 
+                
+                }
+                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
+                // Move along current path
+                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100, repel);
+            }
+        } break;
+
+        case CharacterState::Attack: {
+            //dont stand on the same tile as another skele when attacking
+            Vector2 myTile = WorldToImageCoords(position);
+            Character* occupier = GetTileOccupier(myTile.x, myTile.y, enemyPtrs, this);
+
+            if (stateTimer > 2.5){
+                if (TrySetRandomPatrolPath(start, this, currentWorldPath) && canSee) { //shoot then move to a random tile and shoot again.
+                    ChangeState(CharacterState::Patrol);
+                }else{
+                    ChangeState(CharacterState::Attack);
+                }
+            }
+
+            if (occupier && occupier != this) {
+                // Only the one with the "greater" pointer backs off
+                if (this > occupier) {
+                    ChangeState(CharacterState::Reposition);
+                    break;
+                } else {
+                    // Let the other one reposition — wait
+                    break;
+                }
+            }
+
+            if (distance > 210.0f) { 
+                ChangeState(CharacterState::Chase);
+
+            }
+
+            float horizDist = DistXZ(position, player.position); //this should probably be vec3 distance for bats
+
+            attackCooldown -= deltaTime;
+            if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible && horizDist < 200.0f) { // make sure you can see what your attacking. 
+                attackCooldown = 0.8f; // 0.2 * 4 frames on animation for skele attack. 
+
+                // Play attack sound
+                SoundManager::GetInstance().Play(rand() % 2 ? "swipe2" : "swipe3"); //sword swipes for bats for now
+
+                    // Blocked!
+                if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
+                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
+                    SoundManager::GetInstance().Play(rand() % 2 ? "swordBlock" : "swordBlock2");
+
+      
+                } else  {
+                    // Player takes damage
+                    player.TakeDamage(10);
+                    
+                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+                    //SoundManager::GetInstance().Play(rand() % 2 ? "spiderBite2" : "spiderBite1");
+                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("biteSheet"), 4, 0.4f, 0.1f, 50.0f);
+
+                }
+                
+            }
+            break;
+        }
+        case CharacterState::Reposition: {
+            //surround the player
+
+
+            Vector2 playerTile = WorldToImageCoords(player.position);
+            Vector3 target = position; // fallback
+
+            bool foundSpot = FindRepositionTarget(player, position, target);
+
+            if (foundSpot) {
+                Vector3 dir = Vector3Normalize(Vector3Subtract(target, position));
+                Vector3 move = Vector3Scale(dir, skeleSpeed * deltaTime);
+                position = Vector3Add(position, move);
+
+                rotationY = RAD2DEG * atan2f(dir.x, dir.z);
+                position.y = target.y;
+
+                float dist = Vector3Distance(position, target);
+
+                if (dist < 300.0f && stateTimer > 1.0f) {
+                    ChangeState(CharacterState::Attack);
+                } else if (dist > 350.0f && stateTimer > 1.0f) {
+                    ChangeState(CharacterState::Chase);
+                }
+            }
+
+            break;
+        }
+
+
+
+        case CharacterState::Patrol: {
+
+            //ignore player while patrolling
+
+            // if (distance < 4000.0f && playerVisible){
+            //     ChangeState(CharacterState::Chase);
+            //     AlertNearbySkeletons(position, 3000.0f);
+
+            // }
+
+            if (!currentWorldPath.empty()) { 
+                Vector3 targetPos = currentWorldPath[0];
+                Vector3 dir = Vector3Normalize(Vector3Subtract(targetPos, position));
+                Vector3 move = Vector3Scale(dir, 500 * deltaTime); // slower than chase
+                position = Vector3Add(position, move);
+                rotationY = RAD2DEG * atan2f(dir.x, dir.z);
+                position.y = targetPos.y;
+
+                if (Vector3Distance(position, targetPos) < 100.0f) {
+                    currentWorldPath.erase(currentWorldPath.begin());
+                }
+            }
+            else {
+                ChangeState(CharacterState::Idle);
+            }
+
+            break;
+        }
+
+        case CharacterState::Freeze: {
+
+            //do nothing
+            if (currentHealth <= 0 && !isDead){ //hopefully prevents invincible skeles. 
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            if (stateTimer > 5.0f && !isDead){
+                ChangeState(CharacterState::Idle);
+                break;
+            }
+            break;
+
+        }
+
+        case CharacterState::Harpooned: {
+            if (currentHealth <= 0) {
+                ChangeState(CharacterState::Death);
+                break;
+            }
+
+            // Keep updating target so if player backpedals, it still pulls toward you
+            Vector3 target = player.position;
+
+            // Pull direction XZ only // try it on raptors on a hill. 
+            Vector3 toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+
+            float dist = Vector3Length(toTarget);
+
+            // Stop distance so you don't overlap the player
+            const float stopDist = harpoonMinDist;
+
+            if (dist > stopDist && dist > 1.0f)
+            {
+                Vector3 dir = Vector3Scale(toTarget, 1.0f / dist);
+
+                // Pull speed (world units / sec). Tune this.
+                const float pullSpeed = 3000.0f;
+
+                float step = pullSpeed * deltaTime;
+
+                // Don't overshoot past stop distance
+                float desiredMove = fminf(step, dist - stopDist);
+
+                position = Vector3Add(position, Vector3Scale(dir, desiredMove));
+
+            }
+
+            // after position update
+            toTarget = Vector3Subtract(target, position);
+            toTarget.y = 0.0f;
+            dist = Vector3Length(toTarget);
+            
+            // End condition: time AND close enough
+            bool timeDone = (stateTimer >= harpoonDuration);
+            bool closeEnough = (dist <= stopDist + 5.0f);
+
+            if (timeDone && closeEnough)
+            {
+                currentWorldPath.clear();
+                ChangeState(CharacterState::Stagger);
+                break;
+            }
+
+            break;
+        }
+
+
+
+        case CharacterState::Stagger: {
+            //do nothing
+
+            if (stateTimer >= 1.0f) {
+                canBleed = true; //for spiders
+                ChangeState(CharacterState::Chase);
+                
+            }
+            break;
+        }
+
+        case CharacterState::Death:
+            if (!isDead) {
+                SetAnimation(4, 3, 0.5f, false); 
+                if (type == CharacterType::Ghost) SetAnimation(1, 7, 0.2); 
+                isDead = true;
+                deathTimer = 0.0f;         // Start counting
+            }
+
+            deathTimer += deltaTime;
+            break;
+        }
+}
+
 void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
     float distance = Vector3Distance(position, player.position);
 
@@ -482,7 +769,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
             }
 
-            float horizDist = DistXZ(position, player.position);
+            float horizDist = DistXZ(position, player.position); //this should probably be vec3 distance for bats
 
             attackCooldown -= deltaTime;
             if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible && horizDist < 200.0f) { // make sure you can see what your attacking. 
@@ -1869,13 +2156,8 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         case CharacterState::Patrol: { //Pirate Patrol after every shot. 
             stateTimer += deltaTime;
-            //ignore player while patroling to new tile. 
+            //ignore player while patroling to new tile. This means they finish patrolling before attacking you
 
-            // if (isLeaving && rowIndex != 5){ //we need to update isLeaving animation only if not already playing the correction anim. 
-            //     SetAnimation(5, 4, 0.25, true); //runaway
-            // }else if (!isLeaving && rowIndex != 1){
-            //     SetAnimation(1, 4, 0.2, true); //walk
-            // }
             UpdateMovementAnim();
             // Advance along path (with repulsion)
             if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
@@ -2297,7 +2579,7 @@ bool Character::MoveAlongPath(std::vector<Vector3>& path,
         yawDeg = RAD2DEG * atan2f(dir.x, dir.z);
     }
 
-    // Snap feet to path height (keep your existing behavior)
+    //Don't snap bats to target.y, they bob up and down in update
     if (type != CharacterType::Bat) pos.y = target.y;
 
     return false;

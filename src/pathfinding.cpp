@@ -101,7 +101,6 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
                 continue;
             }
 
-            //bool voidTile = (c.a == 0);                              //voidtiles
             bool black   = (EqualsRGB(c, ColorOf(Code::Wall)));      // walls
             bool blue    = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
             bool yellow  = (EqualsRGB(c, ColorOf(Code::Light)));  // light pedestals
@@ -111,13 +110,13 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool aqua    = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));  // locked doors
             bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));    // lava pit
             bool silver = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
-            bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey)));
+            bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey))); //skeleton doors
             //secret walls? 
 
             walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton);
 
-            walkableBat[x][y] = !(black || purple || aqua || window || silver);
-        }
+            walkableBat[x][y] = !(black || purple || aqua || window || silver || skeleton || blue || yellow); //bats cant fly over barrels for reasons
+        }   //bats can fly through windows? sure.
     }
 }
 

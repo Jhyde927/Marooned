@@ -38,7 +38,7 @@ struct Player {
     bool hasSkeletonKey = false;
     const float ACCEL_GROUND   = 8000.0f;   // how fast we reach target speed
     const float DECEL_GROUND   = 7000.0f;   // how fast we slow to zero
-    const float ACCEL_AIR      = 1250.0f;    // small air control
+    const float ACCEL_AIR      = 1150.0f;    // small air control
     const float FRICTION_AIR   = 0.01f;    // bleed a bit of air speed
     const float GRAVITY        = 850.0f;
 
@@ -60,7 +60,7 @@ struct Player {
     float displayedGold = 0.0f;
 
     bool running = false;
-    float runSpeed = 700.0f; // faster than walk speed
+    float runSpeed = 850.0f; // faster than walk speed
     float walkSpeed = 500.0f; // regular speed
     float startingRotationY = 0.0f; // in degrees
     float lightIntensity = 0.5f;

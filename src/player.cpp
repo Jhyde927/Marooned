@@ -197,7 +197,7 @@ void HandlePlayerMovement(float deltaTime){
     // --- gravity
     if (player.state != PlayerState::Grappling){
 
-        float g = player.GRAVITY;               // e.g. 2400 (your units)
+        float g = falling ? player.GRAVITY * 2 : player.GRAVITY;               // e.g. 2400 (your units)
         //if (falling) g = player.GRAVITY*2.5;     // e.g. 2.2f
 
         player.velocity.y -= g * dt;

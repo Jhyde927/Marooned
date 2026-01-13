@@ -2,6 +2,7 @@
 #pragma once
 
 #include "raylib.h"
+#include "shaderSetup.h"
 
 struct WindowedRestore
 {
@@ -34,6 +35,7 @@ static void ToggleBorderlessFullscreenClean()
         gWindowed.h = GetScreenHeight();
         gWindowed.monitor = GetCurrentMonitor();
         gWindowed.hasSaved = true;
+        ShaderSetup::SetBloomResolution(ShaderSetup::gBloom, GetScreenWidth(), GetScreenHeight()); //reset resolution for bloom shader
 
         // Enter borderless fullscreen (raylib sizes window to the current monitor)
         ToggleBorderlessWindowed();

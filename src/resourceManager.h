@@ -47,11 +47,11 @@ public:
     void LoadAllResources();
     void UpdateShaders(Camera& camera);
     void SetBloomShaderValues();
-    void SetLavaShaderValues();
+    // void SetLavaShaderValues();
     void SetLightingShaderValues();
     void SetTerrainShaderValues();
-    void SetPortalShaderValues();
-    void SetWaterShaderValues(Camera& camera);
+    // void SetPortalShaderValues();
+    // void SetWaterShaderValues(Camera& camera);
     void SetShaderValues();
     // void EnsureScreenSizedRTs();
 

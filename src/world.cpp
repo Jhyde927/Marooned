@@ -18,6 +18,7 @@
 #include "spiderEgg.h"
 #include "miniMap.h"
 #include "heightmapPathfinding.h"
+#include "shaderSetup.h"
 
 
 
@@ -148,6 +149,20 @@ void InitMenuLevel(LevelData& level){
     CameraSystem::Get().StartCinematic(cd);
 }
 
+void InitShaders(){
+
+    ShaderSetup::InitPortalShader(R.GetShader("portalShader"), ShaderSetup::gPortal);
+    ShaderSetup::InitWaterShader(R.GetShader("waterShader"), ShaderSetup::gWater, terrainScale);
+    ShaderSetup::InitLavaShader(R.GetShader("lavaShader"), ShaderSetup::gLava, R.GetModel("lavaTile"));
+    ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
+
+    ShaderSetup::SetBloomTonemap(ShaderSetup::gBloom, isDungeon, lightConfig.islandExposure, lightConfig.dungeonExposure);
+    ShaderSetup::SetBloomStrength(ShaderSetup::gBloom, 0.0f);
+    
+
+
+}
+
 
 void InitLevel(LevelData& level, Camera& camera) {
     //Make sure we end texture mode, was causing problems with terrain.
@@ -254,7 +269,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         if (levelIndex == 4) levels[0].startPosition = {-5484.34, 180, -5910.67}; //exit dungeon 3 to dungeon enterance 2 position.
 
-        R.SetLavaShaderValues();
+        //R.SetLavaShaderValues();
         
 
         //XZ dynamic lightmap + shader lighting with occlusion
@@ -265,9 +280,10 @@ void InitLevel(LevelData& level, Camera& camera) {
     }
 
     isLoadingLevel = false;
-    R.SetPortalShaderValues();
+    //R.SetPortalShaderValues();
+    InitShaders();
     R.SetShaderValues();
-    R.SetBloomShaderValues();
+    //R.SetBloomShaderValues();
     if (!isDungeon) R.SetTerrainShaderValues();
 
     Vector3 resolvedSpawn = ResolveSpawnPoint(level, isDungeon, first, floorHeight);
