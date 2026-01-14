@@ -142,7 +142,7 @@ void OpenEventLockedDoors();
 void InitOverworldWeapons();
 void InitMenuLevel(LevelData& level);
 void MovePlayerToFreeCam();
-
+void InitShaders();
 void EnterMenu();
 
 

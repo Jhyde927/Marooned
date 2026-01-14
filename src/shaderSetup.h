@@ -112,24 +112,49 @@ namespace ShaderSetup
         Vector2 resolution    = { 0, 0 };
     };
 
-    // Cache locations + apply initial values
+    struct TreeShader
+    {
+        Shader* shader = nullptr;
+
+        // Uniform locations (cached)
+        int loc_skyTop    = -1;
+        int loc_skyHorz   = -1;
+        int loc_fogStart  = -1;
+        int loc_fogEnd    = -1;
+        int loc_seaLevel  = -1;
+        int loc_falloff   = -1;
+        int loc_alphaCut  = -1;
+
+        // Params you want to store
+        Vector3 skyTop  = {0.55f, 0.75f, 1.00f};
+        Vector3 skyHorz = {0.60f, 0.80f, 0.95f};
+        float fogStart  = 0.0f;
+        float fogEnd    = 18000.0f;
+        float seaLevel  = 400.0f;
+        float falloff   = 0.002f;
+
+        float alphaCutoff = 0.30f;
+    };
+
+    //treeShader
+    void InitTreeShader(Shader& shader, TreeShader& out, std::initializer_list<Model*> modelsToBind);
+    void ApplyTreeFogParams(TreeShader& ts);
+    void SetTreeAlphaCutoff(TreeShader& ts, float cutoff);
+
+    //Bloom
     void InitBloomShader(Shader& shader, BloomShader& out);
-    // Apply values (call when bloomStrength/exposure/toneOp/resolution changes)
     void ApplyBloomParams(BloomShader& bs);
-    // Convenience: set resolution + apply (call on window resize)
     void SetBloomResolution(BloomShader& bs, int screenW, int screenH);
-    // Convenience: set tonemap based on your game state + apply
     void SetBloomTonemap(BloomShader& bs, bool isDungeon, float islandExposure, float dungeonExposure);
-    // Convenience: set bloom strength + apply
     void SetBloomStrength(BloomShader& bs, float strength);
 
     extern PortalShader gPortal;
     extern WaterShader  gWater;
     extern LavaShader gLava;
     extern BloomShader gBloom;
+    extern TreeShader gTree;
 
     void InitPortalShader(Shader& shader, PortalShader& out);
-
     void ApplyPortalDefaults(PortalShader& ps);
 
     void InitLavaShader(Shader& shader, LavaShader& out, Model& lavaTileModel);

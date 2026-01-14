@@ -127,6 +127,7 @@ void EnterMenu() {
 void InitMenuLevel(LevelData& level){
     ClearLevel();
     isDungeon = false;
+    InitShaders();
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls.
@@ -135,7 +136,8 @@ void InitMenuLevel(LevelData& level){
 
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     R.SetShaderValues();
-    R.SetBloomShaderValues();
+    //R.SetBloomShaderValues();
+    ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
     if (!isDungeon) R.SetTerrainShaderValues();
 
     CinematicDesc cd;
@@ -158,7 +160,22 @@ void InitShaders(){
 
     ShaderSetup::SetBloomTonemap(ShaderSetup::gBloom, isDungeon, lightConfig.islandExposure, lightConfig.dungeonExposure);
     ShaderSetup::SetBloomStrength(ShaderSetup::gBloom, 0.0f);
-    
+
+    Model& treeModel      = R.GetModel("palmTree");
+    Model& smallTreeModel = R.GetModel("palm2");
+    Model& bushModel      = R.GetModel("bush");
+    Model& doorwayModel   = R.GetModel("doorWayGray");
+    Model& swampTree      = R.GetModel("swampTree");
+
+    ShaderSetup::TreeShader gTree;
+    if (!isDungeon) ShaderSetup::InitTreeShader(R.GetShader("treeShader"), gTree, {
+        &treeModel,
+        &smallTreeModel,
+        &bushModel,
+        &doorwayModel,
+        &swampTree
+    });
+
 
 
 }
@@ -231,6 +248,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     InitOverworldWeapons();
     TutorialSetup();
 
+
     if (level.isDungeon){
         isDungeon = true;
         drawCeiling = level.hasCeiling;
@@ -281,8 +299,9 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     isLoadingLevel = false;
     //R.SetPortalShaderValues();
-    InitShaders();
+
     R.SetShaderValues();
+    InitShaders();
     //R.SetBloomShaderValues();
     if (!isDungeon) R.SetTerrainShaderValues();
 

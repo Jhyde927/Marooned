@@ -558,6 +558,8 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
 
 
+
+
     // --- Fog and sky
     Vector3 skyTop  = {0.55f, 0.75f, 1.00f};
     Vector3 skyHorz = {0.60f, 0.80f, 0.95f};
@@ -573,62 +575,59 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_SeaLevel"),         &seaLevel, SHADER_UNIFORM_FLOAT);
     SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_FogHeightFalloff"), &falloff,  SHADER_UNIFORM_FLOAT);
 
+
+
     // Load tree shader
-    Shader treeShader = R.GetShader("treeShader");
+    // Shader treeShader = R.GetShader("treeShader");
 
-    Model& treeModel = R.GetModel("palmTree");
-    Model& smallTreeModel = R.GetModel("palm2");
-    Model& bushModel = R.GetModel("bush");
-    Model& doorwayModel = R.GetModel("doorWayGray");
-    Model& swampTree = R.GetModel("swampTree");
+    // Model& treeModel = R.GetModel("palmTree");
+    // Model& smallTreeModel = R.GetModel("palm2");
+    // Model& bushModel = R.GetModel("bush");
+    // Model& doorwayModel = R.GetModel("doorWayGray");
+    // Model& swampTree = R.GetModel("swampTree");
 
-    // Hook ALBEDO to our sampler name
-    treeShader.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(treeShader, "textureDiffuse");
+    // // Hook ALBEDO to our sampler name
+    // treeShader.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(treeShader, "textureDiffuse");
 
-    // (optional) hook diffuse tint if you plan to use it; otherwise raylib will handle it
-    treeShader.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(treeShader, "colDiffuse");
+    // // (optional) hook diffuse tint if you plan to use it; otherwise raylib will handle it
+    // treeShader.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(treeShader, "colDiffuse");
 
-    // Set shared fog uniforms once (reuse the same values as terrain)
-    SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorTop"),      &skyTop,   SHADER_UNIFORM_VEC3);
-    SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorHorizon"),  &skyHorz,  SHADER_UNIFORM_VEC3);
-    SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogStart"),         &fogStart, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogEnd"),           &fogEnd,   SHADER_UNIFORM_FLOAT);
-    SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SeaLevel"),         &seaLevel, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogHeightFalloff"), &falloff,  SHADER_UNIFORM_FLOAT);
+    // // Set shared fog uniforms once (reuse the same values as terrain)
+    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorTop"),      &skyTop,   SHADER_UNIFORM_VEC3);
+    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorHorizon"),  &skyHorz,  SHADER_UNIFORM_VEC3);
+    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogStart"),         &fogStart, SHADER_UNIFORM_FLOAT);
+    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogEnd"),           &fogEnd,   SHADER_UNIFORM_FLOAT);
+    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SeaLevel"),         &seaLevel, SHADER_UNIFORM_FLOAT);
+    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogHeightFalloff"), &falloff,  SHADER_UNIFORM_FLOAT);
 
-
-
-
-    // Alpha cutoff (tweak per asset)
-    float alphaCut = 0.30f;
-    SetShaderValue(treeShader, GetShaderLocation(treeShader,"alphaCutoff"), &alphaCut, SHADER_UNIFORM_FLOAT);
+    // // Alpha cutoff (tweak per asset)
+    // float alphaCut = 0.30f;
+    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"alphaCutoff"), &alphaCut, SHADER_UNIFORM_FLOAT);
 
 
-    for (int i = 0; i < doorwayModel.materialCount; ++i) {
-        doorwayModel.materials[i].shader = treeShader;
-        doorwayModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    }
+    // for (int i = 0; i < doorwayModel.materialCount; ++i) {
+    //     doorwayModel.materials[i].shader = treeShader;
+    //     doorwayModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    // }
 
 
-    for (int i = 0; i < bushModel.materialCount; ++i) {
-        bushModel.materials[i].shader = treeShader;
-        bushModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    }
+    // for (int i = 0; i < bushModel.materialCount; ++i) {
+    //     bushModel.materials[i].shader = treeShader;
+    //     bushModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    // }
 
-    for (int i = 0; i < treeModel.materialCount; ++i) {
-        treeModel.materials[i].shader = treeShader;
-        smallTreeModel.materials[i].shader = treeShader; //smallTree matrials as well. 
+    // for (int i = 0; i < treeModel.materialCount; ++i) {
+    //     treeModel.materials[i].shader = treeShader;
+    //     smallTreeModel.materials[i].shader = treeShader; //smallTree matrials as well. 
         
-        
-        // IMPORTANT: keep map tint white so it doesn’t darken
-        treeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-        smallTreeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    }
+    //     treeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    //     smallTreeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    // }
 
-    for (int i = 0; i < swampTree.materialCount; ++i) {
-        swampTree.materials[i].shader = treeShader;
-        swampTree.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    }
+    // for (int i = 0; i < swampTree.materialCount; ++i) {
+    //     swampTree.materials[i].shader = treeShader;
+    //     swampTree.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    // }
 
 
 
@@ -636,24 +635,24 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
 }
 
-void ResourceManager::SetBloomShaderValues(){
-    //bloom post process. 
-    Shader& bloomShader = R.GetShader("bloomShader");
-    Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
+// void ResourceManager::SetBloomShaderValues(){
+//     //bloom post process. 
+//     Shader& bloomShader = R.GetShader("bloomShader");
+//     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
 
-    bloomStrengthValue = 0.0f; //No bloom
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
+//     bloomStrengthValue = 0.0f; //No bloom
+//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
 
-    //tonemap
-    float exposure = isDungeon ? lightConfig.dungeonExposure : lightConfig.islandExposure; // needed for both dungeons and outdoor level
-    int toneOp = isDungeon ? 1 : 0;
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uExposure"), &exposure, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uToneMapOperator"), &toneOp, SHADER_UNIFORM_INT);
+//     //tonemap
+//     float exposure = isDungeon ? lightConfig.dungeonExposure : lightConfig.islandExposure; // needed for both dungeons and outdoor level
+//     int toneOp = isDungeon ? 1 : 0;
+//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uExposure"), &exposure, SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uToneMapOperator"), &toneOp, SHADER_UNIFORM_INT);
 
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "resolution"), &screenResolution, SHADER_UNIFORM_VEC2);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
+//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "resolution"), &screenResolution, SHADER_UNIFORM_VEC2);
+//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
     
-}
+// }
 
 // void ResourceManager::SetLavaShaderValues(){
 //     Shader lavaShader = R.GetShader("lavaShader");

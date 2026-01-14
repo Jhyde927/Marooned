@@ -10,6 +10,8 @@ namespace ShaderSetup
     WaterShader  gWater;
     LavaShader   gLava;
     BloomShader  gBloom;
+    TreeShader   gtree;
+
     //Portal
     static void CachePortalLocations(PortalShader& ps)
     {
@@ -230,11 +232,79 @@ namespace ShaderSetup
         bs.exposure = isDungeon ? dungeonExposure : islandExposure;
         ApplyBloomParams(bs);
     }
-
     void SetBloomStrength(BloomShader& bs, float strength)
     {
         bs.bloomStrength = strength;
         ApplyBloomParams(bs);
+    }
+
+    //treeShader
+    static void BindShaderToModels(Shader& shader, std::initializer_list<Model*> models)
+    {
+        for (Model* m : models)
+        {
+            if (!m) continue;
+            for (int i = 0; i < m->materialCount; ++i)
+            {
+                m->materials[i].shader = shader;
+                m->materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE; // matches your code
+            }
+        }
+    }
+
+    static void CacheTreeLocations(TreeShader& ts)
+    {
+        assert(ts.shader && "TreeShader.shader must be set");
+        Shader& sh = *ts.shader;
+
+        ts.loc_skyTop   = GetShaderLocation(sh, "u_SkyColorTop");
+        ts.loc_skyHorz  = GetShaderLocation(sh, "u_SkyColorHorizon");
+        ts.loc_fogStart = GetShaderLocation(sh, "u_FogStart");
+        ts.loc_fogEnd   = GetShaderLocation(sh, "u_FogEnd");
+        ts.loc_seaLevel = GetShaderLocation(sh, "u_SeaLevel");
+        ts.loc_falloff  = GetShaderLocation(sh, "u_FogHeightFalloff");
+        ts.loc_alphaCut = GetShaderLocation(sh, "alphaCutoff");
+    }
+
+    void ApplyTreeFogParams(TreeShader& ts)
+    {
+        assert(ts.shader && "TreeShader not initialized");
+        Shader& sh = *ts.shader;
+
+        SetShaderValue(sh, ts.loc_skyTop,   &ts.skyTop,   SHADER_UNIFORM_VEC3);
+        SetShaderValue(sh, ts.loc_skyHorz,  &ts.skyHorz,  SHADER_UNIFORM_VEC3);
+        SetShaderValue(sh, ts.loc_fogStart, &ts.fogStart, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_fogEnd,   &ts.fogEnd,   SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_seaLevel, &ts.seaLevel, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_falloff,  &ts.falloff,  SHADER_UNIFORM_FLOAT);
+
+        SetShaderValue(sh, ts.loc_alphaCut, &ts.alphaCutoff, SHADER_UNIFORM_FLOAT);
+    }
+
+    void SetTreeAlphaCutoff(TreeShader& ts, float cutoff)
+    {
+        ts.alphaCutoff = cutoff;
+        ApplyTreeFogParams(ts); // includes alphaCut in same apply; simple for now
+    }
+
+    void InitTreeShader(Shader& shader,
+                        TreeShader& out,
+                        std::initializer_list<Model*> modelsToBind)
+    {
+        out.shader = &shader;
+
+        // Hook raylib standard locations once
+        // (These are used by raylib internally when drawing models with material maps.)
+        shader.locs[SHADER_LOC_MAP_ALBEDO]    = GetShaderLocation(shader, "textureDiffuse");
+        shader.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(shader, "colDiffuse");
+
+        CacheTreeLocations(out);
+
+        // Bind shader to all models that should use it
+        BindShaderToModels(shader, modelsToBind);
+
+        // Apply the shared fog + alpha params once
+        ApplyTreeFogParams(out);
     }
     
 

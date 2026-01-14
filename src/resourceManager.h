@@ -45,15 +45,16 @@ public:
     // Optional: cleanup helpers
     void UnloadAllFonts();
     void LoadAllResources();
+    void SetShaderValues();
     void UpdateShaders(Camera& camera);
-    void SetBloomShaderValues();
-    // void SetLavaShaderValues();
     void SetLightingShaderValues();
     void SetTerrainShaderValues();
+
+    //Moved to ShaderSetup
+    //void SetBloomShaderValues();
+    // void SetLavaShaderValues();
     // void SetPortalShaderValues();
     // void SetWaterShaderValues(Camera& camera);
-    void SetShaderValues();
-    // void EnsureScreenSizedRTs();
 
 
     // Clean-up
