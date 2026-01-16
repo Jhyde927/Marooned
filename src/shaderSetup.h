@@ -52,6 +52,8 @@ namespace ShaderSetup
         int loc_FadeStart     = -1;
         int loc_FadeEnd       = -1;
         int loc_cameraPos     = -1;
+        int loc_waterLevel    = -1;
+        int loc_waterColor    = -1;
 
         // Constants / tunables
         float patchHalf  = 8000.0f;   // u_PatchHalfSize
@@ -124,6 +126,7 @@ namespace ShaderSetup
         int loc_seaLevel  = -1;
         int loc_falloff   = -1;
         int loc_alphaCut  = -1;
+    
 
         // Params you want to store
         Vector3 skyTop  = {0.55f, 0.75f, 1.00f};
@@ -135,6 +138,37 @@ namespace ShaderSetup
 
         float alphaCutoff = 0.30f;
     };
+
+    struct SkyShader
+    {
+        Shader* shader = nullptr;
+
+        // Cached locations
+        int loc_time      = -1;
+        int loc_isSwamp   = -1;
+        int loc_isDungeon = -1;
+
+        // Stored params
+        int   isSwamp = 0;   // 0/1
+        int   isDungeon = 0;
+
+        float timeSec   = 0.0f;
+    };
+
+
+
+
+    extern PortalShader gPortal;
+    extern WaterShader  gWater;
+    extern LavaShader gLava;
+    extern BloomShader gBloom;
+    extern TreeShader gTree;
+    extern SkyShader gSky;
+
+    //sky shader
+    void InitSkyShader(Shader& shader, SkyShader& out, Model& skyModel, bool isDungeon);
+    void UpdateSkyShaderPerFrame(SkyShader& ss, float timeSeconds);
+
 
     //treeShader
     void InitTreeShader(Shader& shader, TreeShader& out, std::initializer_list<Model*> modelsToBind);
@@ -148,23 +182,16 @@ namespace ShaderSetup
     void SetBloomTonemap(BloomShader& bs, bool isDungeon, float islandExposure, float dungeonExposure);
     void SetBloomStrength(BloomShader& bs, float strength);
 
-    extern PortalShader gPortal;
-    extern WaterShader  gWater;
-    extern LavaShader gLava;
-    extern BloomShader gBloom;
-    extern TreeShader gTree;
-
+    //Portal Shader
     void InitPortalShader(Shader& shader, PortalShader& out);
     void ApplyPortalDefaults(PortalShader& ps);
 
+    //Lava shader
     void InitLavaShader(Shader& shader, LavaShader& out, Model& lavaTileModel);
-
-    // Update per-frame: only sets uTime (and anything else you later decide is dynamic).
     void UpdateLavaShaderPerFrame(LavaShader& ls, float t, bool isLoadingLevel);
-
-    // Call once after water shader is loaded. Pass terrainScale so we can compute world bounds.
+    void UpdatePortalShader(PortalShader& ps, float t);
+    void UpdateTreeShader(TreeShader& ts, Camera& camera);
+    //WaterShader
     void InitWaterShader(Shader& shader, WaterShader& out, Vector3 terrainScale);
-
-    // Call every frame (or whenever camera moves) to update dynamic uniforms only.
-    void UpdateWaterShaderPerFrame(WaterShader& ws, const Camera& camera);
+    void UpdateWaterShaderPerFrame(WaterShader& ws, float elapsedTime, const Camera& camera);
 }

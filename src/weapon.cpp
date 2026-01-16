@@ -567,6 +567,7 @@ void MagicStaff::StartSwing(Camera& camera) {
 
 
 void MagicStaff::Update(float deltaTime) {
+    hitboxActive = false;
     if (player.activeWeapon != WeaponType::MagicStaff) return;
 
     if (!player.onBoard){
@@ -578,7 +579,7 @@ void MagicStaff::Update(float deltaTime) {
 
 
     // Melee swing timer
-    hitboxActive = false;
+
     if (swinging) {
         swingTimer += deltaTime;
         if (swingTimer >= hitWindowStart && swingTimer <= hitWindowEnd) {

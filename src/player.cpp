@@ -604,10 +604,9 @@ void TriggerMonsterDoors(){
         if (distanceTo > 2000.0f) continue; //only check for close doors
 
         if (door.doorType == DoorType::Monster && !door.monsterTriggered){
-            //LineOfSightRaycast(WorldToImageCoords(door.position), WorldToImageCoords(player.position), dungeonImg, 5, 0.001)
             if (HasWorldLineOfSight(door.position, player.position, 0.1, LOSMode::Lighting)){
                 door.monsterTriggered = true;
-                door.monsterTimer = 5.0f;
+                door.monsterTimer = 1.5f; //just enough time to see it, before it bursts open. 
                 break;
             }
 

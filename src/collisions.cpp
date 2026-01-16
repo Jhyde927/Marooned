@@ -290,7 +290,11 @@ void EnemyWallCollision(){
 
 
 void HandleMeleeHitboxCollision(Camera& camera) {
-    if (player.activeWeapon != WeaponType::Sword  && player.activeWeapon != WeaponType::MagicStaff) return;
+    //if (player.activeWeapon != WeaponType::Sword  && player.activeWeapon != WeaponType::MagicStaff) return;
+
+    bool swordActive = (player.activeWeapon == WeaponType::Sword && meleeWeapon.hitboxActive);
+    bool staffActive = (player.activeWeapon == WeaponType::MagicStaff && magicStaff.hitboxActive);
+    if (!swordActive && !staffActive) return;
     //we never check if meleeHitbox is active, this could result in telefragging anything on top of playerpos, enemy bounding boxes prevent this
     for (BarrelInstance& barrel : barrelInstances){
         if (barrel.destroyed) continue;
@@ -330,20 +334,23 @@ void HandleMeleeHitboxCollision(Camera& camera) {
 
     for (Character* enemy : enemyPtrs){ //iterate all enemyPtrs
         if (enemy->isDead) continue;
-        //if (enemy->hitTimer > 0.0f) continue; //unreliable, switch to using unique melee attack id. 
+
 
         if (CheckCollisionBoxes(enemy->GetBoundingBox(), player.meleeHitbox) && enemy->lastAttackid != player.attackId){
-            enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
-            enemy->TakeDamage(50);
-            //PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
-            
-            if (enemy->type != CharacterType::Skeleton && enemy->type != CharacterType::Ghost){ //skeles and ghosts dont bleed.  
-                if (enemy->currentHealth <= 0){
-                    meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordBloody");
-                } 
+            if (swordActive || staffActive){
+                enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
+                enemy->TakeDamage(50); //staff and sword both do 50. maybe staff should do less. 
+                
+                if (enemy->type != CharacterType::Skeleton && enemy->type != CharacterType::Ghost){ //skeles and ghosts dont bleed.  
+                    if (enemy->currentHealth <= 0){
+                        meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordBloody");
+                    } 
+                }
+
+                if (player.activeWeapon == WeaponType::Sword) SoundManager::GetInstance().Play("swordHit");
+                if (player.activeWeapon == WeaponType::MagicStaff) SoundManager::GetInstance().Play("staffHit");
             }
-            if (player.activeWeapon == WeaponType::Sword) SoundManager::GetInstance().Play("swordHit");
-            if (player.activeWeapon == WeaponType::MagicStaff) SoundManager::GetInstance().Play("staffHit");
+
         }
     }
 

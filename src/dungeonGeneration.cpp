@@ -1310,7 +1310,7 @@ void GeneratePotions(float baseY) {
                 collectables.push_back(p);
             }
 
-            if (EqualsRGB(current, ColorOf(Code::ManaPotion))) { // dark bluefor mana potions
+            if (EqualsRGB(current, ColorOf(Code::ManaPotion))) { // dark blue for mana potions
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 50); // raised slightly off floor
                 Collectable p = {CollectableType::ManaPotion, pos, R.GetTexture("manaPotion"), 40};
                 collectables.push_back(p);
@@ -1337,7 +1337,7 @@ void GenerateKeys(float baseY) {
                 collectables.push_back(key);
             }
 
-            if (EqualsRGB(current, ColorOf(Code::SkeletonKey))) { // Cool Silver for silver keys
+            if (EqualsRGB(current, ColorOf(Code::SkeletonKey))) { // aged ivory for bone key
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 80); // raised slightly off floor
                 Collectable key = {CollectableType::SkeletonKey, pos, R.GetTexture("skeletonKey"), 100.0f};
                 collectables.push_back(key);
@@ -1361,14 +1361,14 @@ void GenerateBatsFromImage(float baseY) {
                     R.GetTexture("batSheet"), 
                     200, 200,         // frame width, height
                     1,                // max frames
-                    0.5f, 0.333f,       // speed, scale 
+                    0.5f, 0.4f,       // speed, scale 
                     0,                // initial animation frame
                     CharacterType::Bat
                 );
-                bat.maxHealth = 100;
-                bat.currentHealth = 100; //2 sword attacks
+                bat.maxHealth = 75;
+                bat.currentHealth = 75; //1.5 sword attacks
                 bat.id = gEnemyCounter++;
-                bat.bobPhase = Rand01() * 2.0f * PI;
+                bat.bobPhase = Rand01() * 2.0f * PI; //random starting offset
 
                 enemies.push_back(bat);
                 enemyPtrs.push_back(&enemies.back()); 

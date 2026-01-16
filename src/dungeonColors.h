@@ -13,13 +13,13 @@ enum class Code {
     Void,               // Transparent
     Wall,               // Black (0,0,0)
     Floor,              // White (255,255,255) - informational
-    LavaTile,
+    LavaTile,           //(200, 0, 0)
     PlayerStart,        // Green (0,255,0)
     Barrel,             // Blue (0,0,255)
     Skeleton,           // Red (255,0,0)
     Light,              // Yellow (255,255,0)
     Doorway,            // Purple (128,0,128)
-    DoorPortal,            
+    DoorPortal,         // (200, 0, 200)  
     ExitTeal,           // Teal (0,128,128)
     NextLevelOrange,    // Orange (255,128,0)
     LockedDoorAqua,     // Aqua (0,255,255)
@@ -57,6 +57,8 @@ enum class Code {
     SkeletonKey,              // (192, 192, 192) Steel
     SkeletonDoor,             // (230, 225, 200) Aged Ivory
     Bat,                      // (75, 0, 130) Deep Purple
+    Spawner,                  // (102, 2, 60) Tyrian Purple
+    SpawnerID,                // (0, 102, 85) Payne's Green
 
 };
 
@@ -116,6 +118,8 @@ constexpr Color ColorOf(Code c) {
         case Code::SkeletonKey:            return Make(192, 192, 192);
         case Code::SkeletonDoor:           return Make(230, 225, 200);
         case Code::Bat:                    return Make(75, 0, 130);
+        case Code::Spawner:                return Make(102, 2, 60);
+        case Code::SpawnerID:              return Make(0, 102, 85);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

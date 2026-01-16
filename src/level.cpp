@@ -449,7 +449,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         21, 
-        1, //change to river. 
+        22, //change to river. 
         {}, 
         false,// ceiling
     },
@@ -457,7 +457,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon22", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map27.png", //wizards
+        "assets/maps/map27.png", //boss level
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -465,7 +465,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         22, 
-        1, //change to river. 
+        23, //change to river. 
         {}, 
         false,// ceiling
     },
@@ -481,27 +481,26 @@ std::vector<LevelData> levels = {
         false,
         {entranceToDungeon11},
         23, 
-        1,
+        24,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling
    
     },
 
         {
-        "Noise", 
-        "assets/heightmaps/NoiseTest.png",
-        "",
-        {5475.0f, 300.0f, -5665.0f},
-        180.0f,
-        {0.0f, 0, 0.0f},
-        15,//raptor count
-        false,
-        {entranceToDungeon11},
+        "Arena", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/arena.png", //arena
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
         24, 
-        1,
-        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
-        false, //ceiling
-   
+        0, //change to river. 
+        {}, 
+        false,// ceiling
     },
 
     

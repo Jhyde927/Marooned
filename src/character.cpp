@@ -321,10 +321,13 @@ void Character::Update(float deltaTime, Player& player ) {
 
         position.y = groundY + hoverHeight + bobOffset;
 
-    } else if (type == CharacterType::Bat && deathTimer > 0.0f){
-        position.y = Lerp(position.y, dungeonEnemyHeight, 5 * deltaTime);
-
     }
+
+    //Drop bat to the floor on death.
+    // } else if (type == CharacterType::Bat && deathTimer > 0.0f){
+    //     position.y = Lerp(position.y, dungeonEnemyHeight, 5 * deltaTime);
+
+    // }
 
     // Advance animation frame
     if (animationTimer >= animationSpeed) {
@@ -660,7 +663,7 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Idle:   return {0, 5, 0.2f, true};
                 case CharacterState::Attack: return {2, 5, 0.2f, false};  // 4 * 0.2 = 0.8s
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
-                case CharacterState::Death:  return {4, 5, 0.2f, false};
+                case CharacterState::Death:  return {4, 5, 0.15f, false};
                 
                 default:                     return {0, 1, 1.0f, true};
             }

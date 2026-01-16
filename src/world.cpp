@@ -166,18 +166,27 @@ void InitShaders(){
     Model& bushModel      = R.GetModel("bush");
     Model& doorwayModel   = R.GetModel("doorWayGray");
     Model& swampTree      = R.GetModel("swampTree");
+    Model& skyModel       = R.GetModel("skyModel");
 
-    ShaderSetup::TreeShader gTree;
-    if (!isDungeon) ShaderSetup::InitTreeShader(R.GetShader("treeShader"), gTree, {
+    
+    ShaderSetup::InitSkyShader(R.GetShader("skyShader"), ShaderSetup::gSky, skyModel, isDungeon);
+
+    
+    if (!isDungeon) ShaderSetup::InitTreeShader(R.GetShader("treeShader"), ShaderSetup::gTree, {
         &treeModel,
         &smallTreeModel,
         &bushModel,
         &doorwayModel,
         &swampTree
     });
+}
 
-
-
+void UpdateShadersPerFrame(float deltaTime,float ElapsedTime, Camera& camera){
+    ShaderSetup::UpdateLavaShaderPerFrame(ShaderSetup::gLava, ElapsedTime, isLoadingLevel);
+    ShaderSetup::UpdatePortalShader(ShaderSetup::gPortal, ElapsedTime);
+    ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, ElapsedTime, camera);
+    ShaderSetup::UpdateTreeShader(ShaderSetup::gTree, camera);
+    ShaderSetup::UpdateSkyShaderPerFrame(ShaderSetup::gSky, ElapsedTime);
 }
 
 
@@ -466,6 +475,7 @@ void MovePlayerToFreeCam(){
     }
 
 }
+
 
 
 void HandleWaves(Camera& camera){

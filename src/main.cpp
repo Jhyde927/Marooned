@@ -91,8 +91,9 @@ int main() {
             
             CameraSystem::Get().Update(deltaTime); //update orbit
 
-
+            //ATTENTION THIS IS THE MENU
             R.UpdateShaders(camera);
+            UpdateShadersPerFrame(deltaTime, ElapsedTime, camera);
 
             //WIP
             //ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, camera);
@@ -119,11 +120,8 @@ int main() {
             UpdateWeaponBarLayoutOnResize();
             debugControls(camera, deltaTime); 
 
-
             R.UpdateShaders(camera);
-            ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, camera);
-
-            ShaderSetup::UpdateLavaShaderPerFrame(ShaderSetup::gLava, ElapsedTime, isLoadingLevel);
+            UpdateShadersPerFrame(deltaTime, ElapsedTime, camera);
 
             miniMap.Update(deltaTime, player.position);
             UpdateEnemies(deltaTime);

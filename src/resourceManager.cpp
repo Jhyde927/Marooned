@@ -359,35 +359,16 @@ void ResourceManager::SetShaderValues(){
     // set shaders values
     Shader& fogShader = R.GetShader("fogShader");
     Shader& shadowShader = R.GetShader("shadowShader");
-    Shader& waterShader = R.GetShader("waterShader");
 
     //regular black vignette
     vignetteStrengthValue = isDungeon ? 0.8 : 0.25f; //less of vignette outdoors.
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "baseVignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
 
-    // Sky
-    //apply skyShader to sky model
-    Shader& sky = R.GetShader("skyShader");
-    R.GetModel("skyModel").materials[0].shader = sky;
-
-
-    // Cache uniform locations
-    int locTime      = GetShaderLocation(sky, "time");
-    int locIsDungeon = GetShaderLocation(sky, "isDungeon");
-
-    int isDung = isDungeon ? 1 : 0; 
-    SetShaderValue(sky, locIsDungeon, &isDung, SHADER_UNIFORM_INT);
-
-
-    // Shadow //Shadow decals beneath trees. Also shadows beneath enemies. 
+    // Shadow shadows beneath enemies. 
     Model& shadowQuad = R.GetModel("shadowQuad");
     shadowQuad.materials[0].shader = shadowShader;
     SetMaterialTexture(&shadowQuad.materials[0], MATERIAL_MAP_DIFFUSE, R.GetTexture("shadowTex"));
 
-    // Water
-    
-    SetShaderValue(waterShader, GetShaderLocation(waterShader, "waterLevel"), &waterHeightY, SHADER_UNIFORM_FLOAT);
-    R.GetModel("waterModel").materials[0].shader = waterShader;
 
     Model& boltModel = R.GetModel("bolt");
 
@@ -407,80 +388,6 @@ void ResourceManager::SetShaderValues(){
     }
 
 }
-
-// void ResourceManager::SetPortalShaderValues(){
-//     Shader portal = R.GetShader("portalShader");
-
-//     int loc_speed         = GetShaderLocation(portal, "u_speed");
-//     int loc_swirlStrength = GetShaderLocation(portal, "u_swirlStrength");
-//     int loc_swirlScale    = GetShaderLocation(portal, "u_swirlScale");
-//     int loc_colorA        = GetShaderLocation(portal, "u_colorA");
-//     int loc_colorB        = GetShaderLocation(portal, "u_colorB");
-//     int loc_edgeFeather   = GetShaderLocation(portal, "u_edgeFeather");
-//     int loc_rings         = GetShaderLocation(portal, "u_rings");
-//     int loc_glowBoost     = GetShaderLocation(portal, "u_glowBoost");
-
-//     float loc_speed_ptr[] {1.4f};
-//     float loc_swirlStrength_ptr[] {1.2f};
-//     float loc_swirlScale_ptr[] {12.0f};
-//     float loc_edgeFeather_ptr[] {0.08f};
-//     float loc_rings_ptr[] {0.7f};
-//     float loc_glowBoost_ptr[] {0.8f};
-
-//     // One-time defaults
-//     SetShaderValue(portal, loc_speed,         loc_speed_ptr, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(portal, loc_swirlStrength, loc_swirlStrength_ptr, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(portal, loc_swirlScale,    loc_swirlScale_ptr, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(portal, loc_edgeFeather,   loc_edgeFeather_ptr, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(portal, loc_rings,         loc_rings_ptr, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(portal, loc_glowBoost,     loc_glowBoost_ptr, SHADER_UNIFORM_FLOAT);
-
-//     // Colors 
-//     Vector3 cA = {0.0f, 0.25f, 1.0f};
-//     Vector3 cB = {0.5f, 0.2f, 1.0f};
-//     SetShaderValue(portal, loc_colorA, &cA, SHADER_UNIFORM_VEC3);
-//     SetShaderValue(portal, loc_colorB, &cB, SHADER_UNIFORM_VEC3);
-
-// }
-
-// void ResourceManager::SetWaterShaderValues(Camera& camera) {
-//     //runs every frame
-//     Shader water = R.GetShader("waterShader");
-
-//     Vector2 worldMinXZ  = { -terrainScale.x * 0.5f, -terrainScale.z * 0.5f };
-//     Vector2 worldSizeXZ = {  terrainScale.x,          terrainScale.z       };
-
-
-//     float halfSize   = 8000.0f;   
-//     float fadeStart  = 10000.0f;
-//     float fadeEnd    = 16000.0f;
-
-
-//     Vector2 worldMin = worldMinXZ;              // (minX, minZ)
-//     Vector2 worldMax = worldMin + worldSizeXZ;  // (maxX, maxZ)
-
-//     float patchHalf = 8000.0f;     // same as u_PatchHalfSize
-//     float feather   = 600.0f;      // ~the width of the edge fade band
-
-//     // Clamp the center so the patch edge + feather never crosses the world edge
-//     float minX = worldMin.x + (patchHalf - feather);
-//     float maxX = worldMax.x - (patchHalf - feather);
-//     float minZ = worldMin.y + (patchHalf - feather);
-//     float maxZ = worldMax.y - (patchHalf - feather);
-
-//     Vector2 centerXZ = {
-//         Clamp(camera.position.x, minX, maxX),
-//         Clamp(camera.position.z, minZ, maxZ)
-//     };
-
-//     SetShaderValue(water, GetShaderLocation(water, "u_WaterCenterXZ"), &centerXZ, SHADER_UNIFORM_VEC2);
-//     SetShaderValue(water, GetShaderLocation(water, "u_PatchHalfSize"), &halfSize, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(water, GetShaderLocation(water, "u_FadeStart"),     &fadeStart, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(water, GetShaderLocation(water, "u_FadeEnd"),       &fadeEnd,   SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(water, GetShaderLocation(water, "cameraPos"),       &camera.position, SHADER_UNIFORM_VEC3);
-
-// }
-
 
 void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     // Load textures (tileable, power-of-two helps mips)
@@ -575,131 +482,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_SeaLevel"),         &seaLevel, SHADER_UNIFORM_FLOAT);
     SetShaderValue(terrainShader, GetShaderLocation(terrainShader, "u_FogHeightFalloff"), &falloff,  SHADER_UNIFORM_FLOAT);
 
-
-
-    // Load tree shader
-    // Shader treeShader = R.GetShader("treeShader");
-
-    // Model& treeModel = R.GetModel("palmTree");
-    // Model& smallTreeModel = R.GetModel("palm2");
-    // Model& bushModel = R.GetModel("bush");
-    // Model& doorwayModel = R.GetModel("doorWayGray");
-    // Model& swampTree = R.GetModel("swampTree");
-
-    // // Hook ALBEDO to our sampler name
-    // treeShader.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(treeShader, "textureDiffuse");
-
-    // // (optional) hook diffuse tint if you plan to use it; otherwise raylib will handle it
-    // treeShader.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(treeShader, "colDiffuse");
-
-    // // Set shared fog uniforms once (reuse the same values as terrain)
-    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorTop"),      &skyTop,   SHADER_UNIFORM_VEC3);
-    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SkyColorHorizon"),  &skyHorz,  SHADER_UNIFORM_VEC3);
-    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogStart"),         &fogStart, SHADER_UNIFORM_FLOAT);
-    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogEnd"),           &fogEnd,   SHADER_UNIFORM_FLOAT);
-    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_SeaLevel"),         &seaLevel, SHADER_UNIFORM_FLOAT);
-    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"u_FogHeightFalloff"), &falloff,  SHADER_UNIFORM_FLOAT);
-
-    // // Alpha cutoff (tweak per asset)
-    // float alphaCut = 0.30f;
-    // SetShaderValue(treeShader, GetShaderLocation(treeShader,"alphaCutoff"), &alphaCut, SHADER_UNIFORM_FLOAT);
-
-
-    // for (int i = 0; i < doorwayModel.materialCount; ++i) {
-    //     doorwayModel.materials[i].shader = treeShader;
-    //     doorwayModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    // }
-
-
-    // for (int i = 0; i < bushModel.materialCount; ++i) {
-    //     bushModel.materials[i].shader = treeShader;
-    //     bushModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    // }
-
-    // for (int i = 0; i < treeModel.materialCount; ++i) {
-    //     treeModel.materials[i].shader = treeShader;
-    //     smallTreeModel.materials[i].shader = treeShader; //smallTree matrials as well. 
-        
-    //     treeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    //     smallTreeModel.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    // }
-
-    // for (int i = 0; i < swampTree.materialCount; ++i) {
-    //     swampTree.materials[i].shader = treeShader;
-    //     swampTree.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    // }
-
-
-
-
-
 }
-
-// void ResourceManager::SetBloomShaderValues(){
-//     //bloom post process. 
-//     Shader& bloomShader = R.GetShader("bloomShader");
-//     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
-
-//     bloomStrengthValue = 0.0f; //No bloom
-//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
-
-//     //tonemap
-//     float exposure = isDungeon ? lightConfig.dungeonExposure : lightConfig.islandExposure; // needed for both dungeons and outdoor level
-//     int toneOp = isDungeon ? 1 : 0;
-//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uExposure"), &exposure, SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "uToneMapOperator"), &toneOp, SHADER_UNIFORM_INT);
-
-//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "resolution"), &screenResolution, SHADER_UNIFORM_VEC2);
-//     SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "bloomStrength"), &bloomStrengthValue, SHADER_UNIFORM_FLOAT);
-    
-// }
-
-// void ResourceManager::SetLavaShaderValues(){
-//     Shader lavaShader = R.GetShader("lavaShader");
-//     Model& lavaTile = R.GetModel("lavaTile");
-
-//     for (int i=0; i < lavaTile.materialCount; i++){
-//         lavaTile.materials[i].shader = lavaShader;
-//     }
-
-//     // Hook locations once
-//     int locTime   = GetShaderLocation(lavaShader, "uTime");
-//     int locDir    = GetShaderLocation(lavaShader, "uScrollDir");
-//     int locSpeed  = GetShaderLocation(lavaShader, "uSpeed");
-//     int locOff    = GetShaderLocation(lavaShader, "uWorldOffset");
-//     int locScale  = GetShaderLocation(lavaShader, "uUVScale");
-//     int locFreq   = GetShaderLocation(lavaShader, "uDistortFreq");
-//     int locAmp    = GetShaderLocation(lavaShader, "uDistortAmp");
-//     int locEmis   = GetShaderLocation(lavaShader, "uEmissive");
-//     int locGain   = GetShaderLocation(lavaShader, "uEmissiveGain");
-
-//     // Parameters
-//     Vector2 scroll = { 0.07f, 0.0f };
-//     float speed = 0.5f, freq = 6.0f, amp = 0.02f;
-//     float gain = 0.1f;
-//     Vector3 emis = { 3.0f, 1.0f, 0.08f };
-
-//     // World-to-UV scale:
-//     //   If your tile is 'tileSize' world units and you want 1 repeat per *tile*,
-//     //   then uUVScale = 1.0f / tileSize.
-//     //   If you want 2 repeats per tile: 2.0f / tileSize, etc.
-//     float uvsPerWorldUnit = 0.5 / tileSize;
-
-//     // Dungeon/world origin 
-//     Vector2 worldOffset = {0,0};
-
-//     // Set static params once
-//     SetShaderValue(lavaShader, locDir,   &scroll,       SHADER_UNIFORM_VEC2);
-//     SetShaderValue(lavaShader, locSpeed, &speed,        SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(lavaShader, locFreq,  &freq,         SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(lavaShader, locAmp,   &amp,          SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(lavaShader, locEmis,  &emis,         SHADER_UNIFORM_VEC3);
-//     SetShaderValue(lavaShader, locGain,  &gain,         SHADER_UNIFORM_FLOAT);
-//     SetShaderValue(lavaShader, locOff,   &worldOffset,  SHADER_UNIFORM_VEC2);
-//     SetShaderValue(lavaShader, locScale, &uvsPerWorldUnit, SHADER_UNIFORM_FLOAT);
-// }
-
-
 
 void ResourceManager::SetLightingShaderValues() {
 
@@ -821,7 +604,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     //runs every frame, updates all shaders
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     Shader& waterShader = R.GetShader("waterShader");
-    Shader& skyShader = R.GetShader("skyShader");
+    //Shader& skyShader = R.GetShader("skyShader");
     Shader& terrainShader = R.GetShader("terrainShader");
     Shader& fogShader = R.GetShader("fogShader");
     Shader& treeShader = R.GetShader("treeShader");
@@ -830,39 +613,22 @@ void ResourceManager::UpdateShaders(Camera& camera){
 
     float t = GetTime();
     int dungeonFlag = isDungeon ? 1 : 0;
-    int isDungeonLoc = GetShaderLocation(skyShader, "isDungeon");
-    int isSwampLoc = GetShaderLocation(skyShader, "isSwamp");
 
-    int camLoc = GetShaderLocation(waterShader, "cameraPos");
-    int colorLoc = GetShaderLocation(waterShader, "u_waterColor");
-    int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
     int fogStartLoc = GetShaderLocation(treeShader, "u_FogStart");
+
+
+    int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
     int tFogStartLoc = GetShaderLocation(terrainShader, "u_FogStart");
     int vignettModeLoc = GetShaderLocation(fogShader, "vignetteMode");
 
+    //Move this to ShaderSetup
     float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
-    SetShaderValue(treeShader, fogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(terrainShader, tFogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
-
-    //level 23 is a swamp level. Hard code colors for swamp
-    int isSwamp = (gCurrentLevelIndex == 23) ? 1 : 0;
-    SetShaderValue(skyShader, isSwampLoc, &isSwamp, SHADER_UNIFORM_INT);
-    Vector3 swampColor = {0.32, 0.45, 0.30};
-    Vector3 oceanColor = {0.22, 0.55, 0.88};
-    Vector3 waterColor = (isSwamp == 1) ? swampColor : oceanColor;
-    SetShaderValue(waterShader, colorLoc, &waterColor, SHADER_UNIFORM_VEC3);
+    //SetShaderValue(R.GetShader("treeShader"), fogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
     
-
-    //water shader needs cameraPos for reasons. 
-    SetShaderValue(waterShader, camLoc, &camPos, SHADER_UNIFORM_VEC3);
-    SetShaderValue(waterShader, GetShaderLocation(waterShader, "time"), &t, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(terrainShader, tFogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
     
     //distance based desaturation on terrain needs camera pos
     SetShaderValue(terrainShader, camPosLoc, &camPos, SHADER_UNIFORM_VEC3);
-
-    //animate sky needs elapsed time
-    SetShaderValue(skyShader, GetShaderLocation(skyShader, "time"), &t, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(skyShader, isDungeonLoc, &dungeonFlag, SHADER_UNIFORM_INT);
 
     //red vignette intensity over time
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "vignetteIntensity"), &vignetteIntensity, SHADER_UNIFORM_FLOAT);
@@ -877,12 +643,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "isDungeon"), &isDungeonVal, SHADER_UNIFORM_INT);
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "dungeonDarkness"), &dungeonDarkness, SHADER_UNIFORM_FLOAT);
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "dungeonContrast"), &dungeonContrast, SHADER_UNIFORM_FLOAT);
-    // if (!isLoadingLevel){
-    //     Shader lavaShader = R.GetShader("lavaShader");
-    //     int locTime        = GetShaderLocation(lavaShader, "uTime");
-    //     SetShaderValue(R.GetShader("lavaShader"), locTime, &t, SHADER_UNIFORM_FLOAT);
 
-    // }
     //tree shadows
     // Once (cache locations)
     int locShadow      = GetShaderLocation(terrainShader, "u_ShadowMask");
@@ -900,15 +661,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
 
     //distance fog
     int locCam_Terrain = GetShaderLocation(terrainShader, "cameraPos");
-    int locCam_Trees   = GetShaderLocation(treeShader,   "cameraPos");
-
     SetShaderValue(terrainShader, locCam_Terrain, &camPos, SHADER_UNIFORM_VEC3);
-    SetShaderValue(treeShader,   locCam_Trees,   &camPos, SHADER_UNIFORM_VEC3);
-
-    int loc_time_p = GetShaderLocation(R.GetShader("portalShader"), "u_time");
-    //portal
-    SetShaderValue(R.GetShader("portalShader"), loc_time_p, &t, SHADER_UNIFORM_FLOAT);
-
 
 }
 

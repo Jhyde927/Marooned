@@ -10,7 +10,8 @@ namespace ShaderSetup
     WaterShader  gWater;
     LavaShader   gLava;
     BloomShader  gBloom;
-    TreeShader   gtree;
+    TreeShader   gTree;
+    SkyShader    gSky;
 
     //Portal
     static void CachePortalLocations(PortalShader& ps)
@@ -65,6 +66,9 @@ namespace ShaderSetup
         ws.loc_FadeStart     = GetShaderLocation(sh, "u_FadeStart");
         ws.loc_FadeEnd       = GetShaderLocation(sh, "u_FadeEnd");
         ws.loc_cameraPos     = GetShaderLocation(sh, "cameraPos");
+        //ws.loc_waterLevel    = GetShaderLocation(sh, "waterLevel");
+        ws.loc_waterColor    = GetShaderLocation(sh, "u_waterColor");
+
     }
 
     static void ApplyWaterConstants(WaterShader& ws)
@@ -76,11 +80,13 @@ namespace ShaderSetup
         SetShaderValue(sh, ws.loc_PatchHalfSize, &ws.patchHalf, SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ws.loc_FadeStart,     &ws.fadeStart, SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ws.loc_FadeEnd,       &ws.fadeEnd,   SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ws.loc_waterLevel,    &waterHeightY, SHADER_UNIFORM_FLOAT);
     }
 
     void InitWaterShader(Shader& shader, WaterShader& out, Vector3 terrainScale)
     {
         out.shader = &shader;
+        R.GetModel("waterModel").materials[0].shader = shader;
 
         // Precompute world bounds from terrainScale (centered at origin)
         out.worldMinXZ  = { -terrainScale.x * 0.5f, -terrainScale.z * 0.5f };
@@ -91,11 +97,11 @@ namespace ShaderSetup
         // Note: per-frame uniforms are set in UpdateWaterShaderPerFrame()
     }
 
-    void UpdateWaterShaderPerFrame(WaterShader& ws, const Camera& camera)
+    void UpdateWaterShaderPerFrame(WaterShader& ws, float elapsedTime, const Camera& camera)
     {
         assert(ws.shader && "WaterShader.shader must be initialized");
         Shader& sh = *ws.shader;
-
+        Vector3 camPos = camera.position;
         // Compute world bounds
         Vector2 worldMin = ws.worldMinXZ;
         Vector2 worldMax = { ws.worldMinXZ.x + ws.worldSizeXZ.x,
@@ -114,6 +120,15 @@ namespace ShaderSetup
 
         SetShaderValue(sh, ws.loc_WaterCenterXZ, &centerXZ,       SHADER_UNIFORM_VEC2);
         SetShaderValue(sh, ws.loc_cameraPos,     &camera.position, SHADER_UNIFORM_VEC3);
+
+        //water shader needs cameraPos for reasons. 
+        SetShaderValue(sh, ws.loc_cameraPos, &camPos, SHADER_UNIFORM_VEC3);
+        SetShaderValue(sh, GetShaderLocation(sh, "time"), &elapsedTime, SHADER_UNIFORM_FLOAT);
+        int isSwamp = (gCurrentLevelIndex == 23) ? 1 : 0;
+        Vector3 swampColor = {0.32, 0.45, 0.30};
+        Vector3 oceanColor = {0.22, 0.55, 0.88};
+        Vector3 waterColor = (isSwamp == 1) ? swampColor : oceanColor;
+        SetShaderValue(R.GetShader("waterShader"), ws.loc_waterColor, &waterColor, SHADER_UNIFORM_VEC3);
     }
 
     //LAVA
@@ -172,14 +187,6 @@ namespace ShaderSetup
         // Note: uTime is dynamic; we set it in UpdateLavaShaderPerFrame()
     }
 
-    void UpdateLavaShaderPerFrame(LavaShader& ls, float t, bool isLoadingLevel)
-    {
-        if (isLoadingLevel) return;
-        assert(ls.shader && "LavaShader must be initialized before updating");
-
-        Shader& sh = *ls.shader;
-        SetShaderValue(sh, ls.locTime, &t, SHADER_UNIFORM_FLOAT);
-    }
 
 
     //Bloom shader
@@ -270,10 +277,10 @@ namespace ShaderSetup
     {
         assert(ts.shader && "TreeShader not initialized");
         Shader& sh = *ts.shader;
-
+        float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
         SetShaderValue(sh, ts.loc_skyTop,   &ts.skyTop,   SHADER_UNIFORM_VEC3);
         SetShaderValue(sh, ts.loc_skyHorz,  &ts.skyHorz,  SHADER_UNIFORM_VEC3);
-        SetShaderValue(sh, ts.loc_fogStart, &ts.fogStart, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_fogStart, &fogStart, SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ts.loc_fogEnd,   &ts.fogEnd,   SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ts.loc_seaLevel, &ts.seaLevel, SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ts.loc_falloff,  &ts.falloff,  SHADER_UNIFORM_FLOAT);
@@ -286,6 +293,7 @@ namespace ShaderSetup
         ts.alphaCutoff = cutoff;
         ApplyTreeFogParams(ts); // includes alphaCut in same apply; simple for now
     }
+
 
     void InitTreeShader(Shader& shader,
                         TreeShader& out,
@@ -306,6 +314,84 @@ namespace ShaderSetup
         // Apply the shared fog + alpha params once
         ApplyTreeFogParams(out);
     }
-    
+
+
+
+    //Sky Shader
+    static void CacheSkyLocations(SkyShader& ss)
+    {
+        assert(ss.shader && "SkyShader.shader must be set");
+        Shader& sh = *ss.shader;
+        ss.loc_time      = GetShaderLocation(sh, "time");
+        ss.loc_isSwamp =   GetShaderLocation(sh, "isSwamp");
+        ss.loc_isDungeon = GetShaderLocation(sh, "isDungeon");
+    }
+
+    static void BindSkyShaderToModel(Model& skyModel, Shader& sh)
+    {
+        // Your code used materials[0]; keep that, but make it explicit.
+        if (skyModel.materialCount > 0)
+            skyModel.materials[0].shader = sh;
+    }
+
+
+    void InitSkyShader(Shader& shader, SkyShader& out, Model& skyModel, bool isDungeon)
+    {
+        out.shader = &shader;
+
+        BindSkyShaderToModel(skyModel, shader);
+        CacheSkyLocations(out);
+        //set isSwamp on init
+        int isSwamp = (gCurrentLevelIndex == 23) ? 1 : 0;
+        int Dungeon = isDungeon ? 1 : 0;
+        out.isSwamp = isSwamp ? 1 : 0;
+        out.isDungeon = Dungeon;
+        SetShaderValue(shader, out.loc_isSwamp, &out.isSwamp, SHADER_UNIFORM_INT);
+        SetShaderValue(shader, out.loc_isDungeon, &out.isDungeon, SHADER_UNIFORM_INT);
+
+        // (Time is updated per-frame, so no need to set here)
+    }
+
+
+    //UPDATE
+
+    void UpdateLavaShaderPerFrame(LavaShader& ls, float t, bool isLoadingLevel)
+    {
+        if (isLoadingLevel) return;
+        assert(ls.shader && "LavaShader must be initialized before updating");
+
+        Shader& sh = *ls.shader;
+        SetShaderValue(sh, ls.locTime, &t, SHADER_UNIFORM_FLOAT);
+    }
+
+    void UpdatePortalShader(PortalShader& ps, float t){
+        
+        int loc_time_p = GetShaderLocation(R.GetShader("portalShader"), "u_time");
+        //portal
+        SetShaderValue(R.GetShader("portalShader"), loc_time_p, &t, SHADER_UNIFORM_FLOAT);
+
+    }
+
+    void UpdateTreeShader(TreeShader& ts,  Camera& camera){
+        Vector3 camPos = camera.position;
+        float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
+        
+        int locCam_Trees   = GetShaderLocation(R.GetShader("treeShader"),   "cameraPos");
+        int fogLoc = GetShaderLocation(R.GetShader("treeShader"), "u_FogStart");
+        SetShaderValue(R.GetShader("treeShader"),   locCam_Trees,   &camPos, SHADER_UNIFORM_VEC3);
+        SetShaderValue(R.GetShader("treeShader"), fogLoc, &fogStart, SHADER_UNIFORM_FLOAT);
+        
+    }
+
+    void UpdateSkyShaderPerFrame(SkyShader& ss, float timeSeconds)
+    {
+        assert(ss.shader && "SkyShader must be initialized");
+        Shader& sh = *ss.shader;
+
+        ss.timeSec = timeSeconds;
+        SetShaderValue(sh, ss.loc_time, &ss.timeSec, SHADER_UNIFORM_FLOAT);
+
+
+    }
 
 }
