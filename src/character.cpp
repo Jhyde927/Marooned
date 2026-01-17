@@ -567,12 +567,12 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Chase:
                 case CharacterState::Patrol:
                 case CharacterState::Reposition:
-                    return AnimDesc {1, 4, 0.25, true}; //walk
+                    return AnimDesc {1, 4, 0.2, true}; //walk
 
                 case CharacterState::RunAway: return {1, 4, 0.25f, true};
                 case CharacterState::Freeze: return {0, 1, 1.0f, true};
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};
-                case CharacterState::Attack: return {2, 3, 1.0f, false};  // 4 * 0.2 = 0.8s
+                case CharacterState::Attack: return {2, 3, 0.25f, false};  // 4 * 0.2 = 0.8s
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
                 case CharacterState::Death:  return {4, 4, 0.25f, false};
                 

@@ -490,9 +490,9 @@ std::vector<LevelData> levels = {
         {
         "Arena", 
         "assets/heightmaps/blank.png",
-        "assets/maps/arena.png", //arena
+        "assets/maps/arena2.png", //arena
         {0.0f, 300.0f, 0.0f},
-        -90.0f,
+        90.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true
@@ -502,7 +502,5 @@ std::vector<LevelData> levels = {
         {}, 
         false,// ceiling
     },
-
-    
 };
 

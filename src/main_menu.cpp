@@ -505,7 +505,6 @@ namespace MainMenu
         {
             s.showPreview = false;
             s.showOptions = false;
-            s.showPreview = false;
             s.showMenu = true;
             return Action::None;
         }

@@ -11,6 +11,8 @@
 
 enum class KeyType { None, Gold, Silver, Skeleton };
 
+enum class LockType {None, Gold, Silver, Skeleton, Event};
+
 enum class FloorType {
     Normal,
     Lava,
@@ -70,6 +72,16 @@ struct LightSample {
     Vector3 color;   // 0..1
     float   range;
     float   intensity;
+};
+
+struct SwitchTile {
+    Vector3 position;
+    BoundingBox box;
+    bool triggered;
+    bool oneShot = true;
+    LockType lockType;
+
+
 };
 
 struct GrapplePoint {
@@ -283,6 +295,7 @@ extern std::vector<SecretWall> secretWalls;
 extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 extern std::vector<WindowCollider> windowColliders;
+extern std::vector<SwitchTile> switches;
 
 
 
@@ -313,6 +326,7 @@ void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
+void GenerateSwitches(float baseY);
 
 void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();

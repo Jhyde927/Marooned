@@ -39,6 +39,7 @@ std::vector<InvisibleWall> invisibleWalls;
 std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
 std::vector<WindowCollider> windowColliders;
+std::vector<SwitchTile> switches;
 
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
@@ -1185,6 +1186,133 @@ void GenerateBarrels(float baseY) {
     }
 }
 
+static int CountOrthogonalNeighborsWithColor(
+    const Color* pixels,
+    int w, int h,
+    int x, int y,
+    Color target)
+{
+    auto InBounds = [&](int ix, int iy) -> bool {
+        return (ix >= 0 && ix < w && iy >= 0 && iy < h);
+    };
+
+    int count = 0;
+
+    // N
+    if (InBounds(x, y - 1)) {
+        Color c = pixels[(y - 1) * w + x];
+        if (EqualsRGB(c, target)) count++;
+    }
+    // E
+    if (InBounds(x + 1, y)) {
+        Color c = pixels[y * w + (x + 1)];
+        if (EqualsRGB(c, target)) count++;
+    }
+    // S
+    if (InBounds(x, y + 1)) {
+        Color c = pixels[(y + 1) * w + x];
+        if (EqualsRGB(c, target)) count++;
+    }
+    // W
+    if (InBounds(x - 1, y)) {
+        Color c = pixels[y * w + (x - 1)];
+        if (EqualsRGB(c, target)) count++;
+    }
+
+    return count;
+}
+
+static LockType LockTypeFromSwitchNeighborCount(int n)
+{
+    if (n <= 0) return LockType::Gold;
+    if (n == 1) return LockType::Silver;
+    if (n == 2) return LockType::Skeleton;
+    return LockType::Event; // 3 or 4
+}
+
+
+
+void GenerateSwitches(float baseY)
+{
+    switches.clear();
+
+    const Color cSwitch   = ColorOf(Code::Switch);   // Ash Gray
+    const Color cSwitchID = ColorOf(Code::switchID); // Payne's Green (0,102,85)
+
+    for (int y = 0; y < dungeonHeight; y++)
+    {
+        for (int x = 0; x < dungeonWidth; x++)
+        {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            if (!EqualsRGB(current, cSwitch))
+                continue;
+
+            // --- decode lock type from adjacent SwitchID pixels ---
+            const int idCount = CountOrthogonalNeighborsWithColor(
+                dungeonPixels,
+                dungeonWidth, dungeonHeight,
+                x, y,
+                cSwitchID
+            );
+
+            SwitchTile st = {};
+            st.position  = GetDungeonWorldPos(x, y, tileSize, baseY);
+            st.triggered = false;
+            st.oneShot   = true;
+            st.lockType  = LockTypeFromSwitchNeighborCount(idCount);
+
+            // --- bounding box: 200x200x200 cube centered on pos (y from base to base+200) ---
+            const float halfSize = 100.0f;
+            st.box.min = { st.position.x - halfSize, st.position.y,         st.position.z - halfSize };
+            st.box.max = { st.position.x + halfSize, st.position.y + 200.0f, st.position.z + halfSize };
+
+            switches.push_back(st);
+        }
+    }
+}
+
+
+
+// void GenerateSwitches(float baseY) {
+//     switches.clear();
+
+//     for (int y = 0; y < dungeonHeight; y++) {
+//         for (int x = 0; x < dungeonWidth; x++) {
+//             Color current = dungeonPixels[y * dungeonWidth + x];
+
+//             if (EqualsRGB(current, ColorOf(Code::Switch))) { // Ash Gray switch tile
+//                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+//                 // Define bounding box as 200x200x200 cube centered on pos
+//                 float halfSize = 100.0f;
+//                 BoundingBox box;
+//                 box.min = {
+//                     pos.x - halfSize,
+//                     pos.y,
+//                     pos.z - halfSize
+//                 };
+//                 box.max = {
+//                     pos.x + halfSize,
+//                     pos.y + 200.0f,
+//                     pos.z + halfSize
+//                 };
+
+//                 SwitchTile st = {
+//                     pos, 
+//                     box,
+//                     false,
+//                     true
+//                 };
+
+//                 switches.push_back(st);
+
+
+//             }
+//         }
+//     }
+// }
+
 void GenerateChests(float baseY) {
     chestInstances.clear();
     int chestID = 0;
@@ -1644,7 +1772,7 @@ void GenerateLightSources(float baseY) {
                 // Create a 100x100x100 bounding box centered on pos
                 BoundingBox box;
                 box.min = Vector3Subtract(pos, Vector3{50.0f, 0.0f, 50.0f});
-                box.max = Vector3Add(pos, Vector3{50.0f, 100.0f, 50.0f});
+                box.max = Vector3Add(pos, Vector3{50.0f, 200.0f, 50.0f});
 
                 pillars.push_back({ pos, 1.0f, box });
 

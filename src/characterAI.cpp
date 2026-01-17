@@ -2726,7 +2726,9 @@ void Character::UpdateChase(float deltaTime)
     float distance = Vector3Distance(position, player.position);
 
     if (!canSee) { ChangeState(CharacterState::Idle); return; }
-    if (stateTimer > chaseDuration) { ChangeState(CharacterState::RunAway); return; }
+    
+
+    if (stateTimer > chaseDuration && type != CharacterType::Trex) { ChangeState(CharacterState::RunAway); return; }
     if (distance < ATTACK_ENTER) { ChangeState(CharacterState::Attack); return; }
     if (distance > VISION_ENTER) { ChangeState(CharacterState::Idle); return; }
 
@@ -2745,7 +2747,7 @@ void Character::UpdateChase(float deltaTime)
     }
 
     float MAX_SPEED = raptorSpeed;  // per-type speed 700
-    if (type == CharacterType::Raptor) MAX_SPEED = 1000.0f; // double fast raptors.
+    if (type == CharacterType::Raptor) MAX_SPEED = 1200.0f; // double fast raptors.
 
     const float SLOW_RADIUS = 400.0f;       // ease-in so we don’t overshoot
 

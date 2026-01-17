@@ -101,7 +101,7 @@ public:
     Vector3 lastKnownPlayerPos;
     bool hasLastKnownPlayerPos = false;
     bool canBleed = true;
-    float radius = 50;
+    float radius = 100;
     int maxHealth = 150;
     int currentHealth = maxHealth;
     float accumulateDamage = 0.0f;

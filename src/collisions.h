@@ -20,6 +20,7 @@ bool CheckBulletHitsTree(const TreeInstance& tree, const Vector3& bulletPos);
 void ResolveBoxSphereCollision(const BoundingBox& box, Vector3& position, float radius);
 void ResolvePlayerEnemyMutualCollision(Character* enemy, Player* player);
 bool ResolveBoxBoxCollisionXZ(const BoundingBox& enemyBox, const BoundingBox& wallBox, Vector3& enemyPos);
+void SwitchCollision();
 void WallCollision();
 void barrelCollision();
 void SpiderWebCollision();

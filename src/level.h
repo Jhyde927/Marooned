@@ -22,6 +22,10 @@ struct DungeonEntrance {
 
 };
 
+extern DungeonEntrance entranceToDungeon1;
+extern DungeonEntrance entranceToDungeon3;
+extern DungeonEntrance entranceToDungeon4;
+extern DungeonEntrance entranceToDungeon11;
 // Struct that holds all necessary data for a level
 struct LevelData {
     std::string name;                 // Display name
@@ -41,6 +45,7 @@ struct LevelData {
 
     std::vector<PropSpawn> overworldProps;   // authored list
     bool hasCeiling;
+    std::string id;
     
     
 };
@@ -81,10 +86,7 @@ struct PreviewInfo
     }
 };
 
-// Builds preview list from `levels`.
-// If preloadTextures is true, registers/loads textures into ResourceManager.
-// Returns a vector where each element corresponds to a level (either same order as `levels`,
-// or indexed by levelIndex—your choice in implementation).
+
 std::vector<PreviewInfo> BuildLevelPreviews(bool preloadTextures);
 
 // Helper that decides which preview a level should use (and what kind it is).

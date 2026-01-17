@@ -17,6 +17,7 @@
 #include "miniMap.h"
 #include "shaderSetup.h"
 
+
 //As above, so below.
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
@@ -49,7 +50,7 @@ int main() {
     CameraSystem::Get().SetFOV(fovy);
 
     MainMenu::gLevelPreviews = BuildLevelPreviews(true);
-    
+
     
     InitMenuLevel(levels[0]);
     //main game loop

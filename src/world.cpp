@@ -277,6 +277,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateLaunchers(floorHeight);
         GenerateSpiderWebs(floorHeight);
         GenerateChests(floorHeight);
+        GenerateSwitches(floorHeight);
         GeneratePotions(floorHeight);
         GenerateHarpoon(floorHeight);
         GenerateKeys(floorHeight);
@@ -489,12 +490,14 @@ void HandleWaves(Camera& camera){
 }
 
 void OpenEventLockedDoors(){
-    //opens the door to next level on spider boss room. we can reuse this to open 1 event locked door per dungeon. 
-    //maybe make an event system. save eventLocked doors to a vector? or a map with an id. an event id or something. 
+    SoundManager::GetInstance().Play("unlock"); //play unlock sound, non positionally so you can here the door unlock.
+
     for (size_t i = 0; i < doors.size(); i++){
         if (doors[i].eventLocked){
             doors[i].eventLocked = false;
             doors[i].isLocked = false;
+            doors[i].isOpen = true; //let the monsters out
+
             //unlock all evenlocked doors. temporary solution. 
         }
     }

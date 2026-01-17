@@ -57,8 +57,9 @@ enum class Code {
     SkeletonKey,              // (192, 192, 192) Steel
     SkeletonDoor,             // (230, 225, 200) Aged Ivory
     Bat,                      // (75, 0, 130) Deep Purple
-    Spawner,                  // (102, 2, 60) Tyrian Purple
-    SpawnerID,                // (0, 102, 85) Payne's Green
+
+    switchID,                // (0, 102, 85) Payne's Green
+    Switch,                   // (178, 190, 181) Ash Gray
 
 };
 
@@ -118,8 +119,9 @@ constexpr Color ColorOf(Code c) {
         case Code::SkeletonKey:            return Make(192, 192, 192);
         case Code::SkeletonDoor:           return Make(230, 225, 200);
         case Code::Bat:                    return Make(75, 0, 130);
-        case Code::Spawner:                return Make(102, 2, 60);
-        case Code::SpawnerID:              return Make(0, 102, 85);
+
+        case Code::switchID:               return Make(0, 102, 85);
+        case Code::Switch:                 return Make(178, 190, 181);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

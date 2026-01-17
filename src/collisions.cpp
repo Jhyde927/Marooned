@@ -135,6 +135,88 @@ void ResolvePlayerEnemyMutualCollision(Character* enemy, Player* player) {
     }
 }
 
+void AgroAllSkeletons(){
+    for (Character& e : enemies){
+        if (e.type == CharacterType::Skeleton){
+            e.playerVisible = true;
+            e.canSee = true;
+            e.ChangeState(CharacterState::Chase);
+        }
+    }
+
+}
+
+void AgroAllPirates(){
+    for (Character& e : enemies){
+        if (e.type == CharacterType::Pirate){
+            e.playerVisible = true;
+            e.canSee = true;
+            e.ChangeState(CharacterState::Chase);
+        }
+    }
+
+}
+
+void AgroAllGiantSpiders(){
+    for (Character& e : enemies){
+        if (e.type == CharacterType::GiantSpider){
+            e.playerVisible = true;
+            e.canSee = true;
+            e.ChangeState(CharacterState::Chase);
+        }
+    }
+
+}
+
+void SwitchCollision(){
+    for (SwitchTile& st : switches){
+        if (!st.triggered){
+            if (CheckCollisionBoxSphere(st.box, player.position, player.radius)){
+                st.triggered = true;
+
+                if (st.lockType == LockType::Gold){
+                    for (Door& door : doors){
+                        if (door.requiredKey == KeyType::Gold){
+                            door.isLocked = false;
+                            door.isOpen = true;
+                            walkable[door.tileX][door.tileY] = true;
+                            walkableBat[door.tileX][door.tileY] = true;
+                            AgroAllSkeletons();   
+                        }
+                    }
+                }else if (st.lockType == LockType::Silver){
+                    for (Door& door : doors){
+                        if (door.requiredKey == KeyType::Silver){
+                            door.isLocked = false;
+                            door.isOpen = true;
+                            walkable[door.tileX][door.tileY] = true;
+                            walkableBat[door.tileX][door.tileY] = true;
+                            AgroAllPirates();
+                            
+                        }
+                    }
+
+                }else if (st.lockType == LockType::Skeleton){
+                    for (Door& door : doors){
+                        if (door.requiredKey == KeyType::Skeleton){
+                            door.isLocked = false;
+                            door.isOpen = true;
+                            walkable[door.tileX][door.tileY] = true;
+                            walkableBat[door.tileX][door.tileY] = true;
+                            AgroAllGiantSpiders();
+  
+                            
+                        }
+                    }
+
+                }
+
+                OpenEventLockedDoors(); //any switch opens all even locked door for now. 
+            }
+        }
+    }
+}
+
 
 
 void launcherCollision(){
@@ -219,17 +301,17 @@ void WallCollision(){
     }
 
 
-    // for (const WallRun& run : wallRunColliders) { 
+    for (const WallRun& run : wallRunColliders) { 
 
-    //     // for (Character* enemy : enemyPtrs){ //all enemies
-    //     //     if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
-    //     //         ResolveBoxSphereCollision(run.bounds, enemy->position, enemy->radius);
-    //     //     }
-    //     // }
+        for (Character* enemy : enemyPtrs){ //all enemies
+            if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
+                ResolveBoxSphereCollision(run.bounds, enemy->position, enemy->radius);
+            }
+        }
 
 
 
-    //}
+    }
 }
 
 void pillarCollision() {
@@ -1129,6 +1211,7 @@ void UpdateCollisions(Camera& camera){
     launcherCollision();
     HandleMeleeHitboxCollision(camera);
     SpiderEggCollision();
+    SwitchCollision();
 }
 
 
