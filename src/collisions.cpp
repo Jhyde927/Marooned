@@ -1112,7 +1112,7 @@ void HandleDoorInteraction(Camera& camera) {
 
     float deltaTime = GetFrameTime();
 
-    if (!isWaiting && IsKeyPressed(KEY_E)) {
+    if (!isWaiting && IsKeyPressed(KEY_E) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)) {
         for (size_t i = 0; i < doors.size(); ++i) {
             float distanceTo = Vector3Distance(doors[i].position, player.position);
             if (distanceTo < 250) {

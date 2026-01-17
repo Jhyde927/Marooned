@@ -7,6 +7,7 @@
 extern Weapon weapon;
 extern MeleeWeapon meleeWeapon;
 extern MagicStaff magicStaff;
+extern Crossbow crossbow;
 
 enum class PlayerState { Normal, Grappling, Frozen};
 

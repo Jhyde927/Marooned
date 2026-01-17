@@ -129,7 +129,7 @@ void HintManager::UpdateTutorial(){
         Clear(); //clears message and override and sets current index to -1
     }
 
-    if (IsKeyPressed(KEY_E)){ //clears tutorial
+    if (IsKeyPressed(KEY_E) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)){ //clears tutorial
         Clear();
         
     }

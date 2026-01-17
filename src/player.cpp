@@ -113,37 +113,64 @@ void UpdatePlayerGrapple(Player& player, float dt)
     player.velocity = {0,0,0};
 }
 
-void Player::EquipNextWeapon() {
-    meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = 
-        R.GetTexture("swordClean");
-
-    if (collectedWeapons.empty()) {
-        activeWeapon = WeaponType::None;
-        currentWeaponIndex = -1;
-        return;
-    }
-
-    WeaponType previous = activeWeapon;
-
-    // cycle
-    currentWeaponIndex = (currentWeaponIndex + 1) % collectedWeapons.size();
-    activeWeapon = collectedWeapons[currentWeaponIndex];
-
-    // Weapon swap animations
-    if (previous == WeaponType::Sword) {
-        meleeWeapon.equipDip = 80.0f;   // start low
-    }
-
-    // If we PUT AWAY the blunderbuss → force it into a dipped state
-    if (previous == WeaponType::Blunderbuss) {
-        weapon.reloadDip       = 25.0f;  // dip off-screen
-    }
-
-    if (previous == WeaponType::MagicStaff) {
-        magicStaff.equipDip = 100.0f;
+bool HasWeapon(WeaponType w)
+{
+    switch (w)
+    {
+        case WeaponType::None:        return false;
+        case WeaponType::Sword:       return true;
+        case WeaponType::Crossbow:    return hasCrossbow;
+        case WeaponType::Blunderbuss: return hasBlunderbuss;
+        case WeaponType::MagicStaff:  return hasStaff;
+        default: return false;
     }
 }
 
+WeaponType NextOwnedWeapon(WeaponType current)
+{
+    const int count = (int)WeaponType::COUNT;
+    int start = (int)current;
+
+    for (int step = 1; step < count; ++step)
+    {
+        int idx = (start + step) % count;
+        WeaponType w = (WeaponType)idx;
+        if (HasWeapon(w)) return w;
+    }
+
+    return current; // only one owned (or none)
+}
+
+WeaponType PrevOwnedWeapon(WeaponType current)
+{
+    const int count = (int)WeaponType::COUNT;
+    int start = (int)current;
+
+    for (int step = 1; step < count; ++step)
+    {
+        int idx = (start - step + count) % count; // ✅ safe wrap
+        WeaponType w = (WeaponType)idx;
+        if (HasWeapon(w)) return w;
+    }
+
+    return current;
+}
+
+bool ShouldRun(const Vector2& wish, bool canRun)
+{
+    if (!canRun) return false;
+
+    // Keyboard sprint always wins
+    if (IsKeyDown(KEY_LEFT_SHIFT))
+        return true;
+
+    // Analog sprint: full stick push
+    const float RUN_THRESHOLD = 0.85f;
+
+    float wishLen = Vector2Length(wish);
+
+    return wishLen > RUN_THRESHOLD;
+}
 
 
 void HandlePlayerMovement(float deltaTime){
@@ -157,11 +184,27 @@ void HandlePlayerMovement(float deltaTime){
     if (IsKeyDown(KEY_A)) wish.x += 1;
     if (IsKeyDown(KEY_D)) wish.x -= 1;
 
+    // --- gamepad ---
+    if (IsGamepadAvailable(0))
+    {
+        float lx = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
+        float ly = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
+
+        const float DEADZONE = 0.2f;
+
+        if (fabsf(lx) > DEADZONE) wish.x -= lx;
+        if (fabsf(ly) > DEADZONE) wish.y += -ly;
+    }
+
+    // normalize so diagonals aren’t faster
+    if (Vector2Length(wish) > 1.0f)
+        wish = Vector2Normalize(wish);
+
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         wish = {0,0};
     }
 
-    player.running = IsKeyDown(KEY_LEFT_SHIFT) && player.canRun;
+    player.running = ShouldRun(wish, player.canRun);//IsKeyDown(KEY_LEFT_SHIFT) && player.canRun;
     const float maxSpeed = player.running ? player.runSpeed : player.walkSpeed;
 
     Vector3 desiredVel = {0,0,0};
@@ -214,10 +257,32 @@ void HandlePlayerMovement(float deltaTime){
 
 }
 
+void WeaponDip(){
+    // dip based on weapon we switched TO
+    switch (player.activeWeapon)
+    {
+        case WeaponType::Sword:
+            meleeWeapon.equipDip = 50;
+            break;
+
+        case WeaponType::Blunderbuss:
+            weapon.reloadDip = 40;
+            break;
+
+        case WeaponType::Crossbow:
+            crossbow.reloadDip = 40;
+            break;
+
+        case WeaponType::MagicStaff:
+            magicStaff.equipDip = 50;
+            break;
+    }
+}
+
 void HandleKeyboardInput(Camera& camera) {
 
     // Right mouse state //blocking
-    const bool rmb = IsMouseButtonDown(MOUSE_RIGHT_BUTTON);
+    const bool rmb = IsMouseButtonDown(MOUSE_RIGHT_BUTTON) || (IsGamepadAvailable(0) && GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_TRIGGER) > 0.1f);
 
     // Desired block state this frame
     const bool wantBlock = rmb && (player.activeWeapon == WeaponType::Sword);
@@ -244,6 +309,16 @@ void HandleKeyboardInput(Camera& camera) {
         crossbow.FireHarpoon(camera);
     }
 
+    if (IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1)){
+        player.activeWeapon = NextOwnedWeapon(player.activeWeapon);
+        WeaponDip();
+    }
+
+    if (IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1)){
+        player.activeWeapon = PrevOwnedWeapon(player.activeWeapon);
+        WeaponDip();
+    }
+
     if (IsKeyPressed(KEY_Q))
     {
         meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean"); //wipe off the blood on sword
@@ -251,29 +326,11 @@ void HandleKeyboardInput(Camera& camera) {
         WeaponType newWeapon = player.previousWeapon;
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = newWeapon;
+        WeaponDip();
 
-        // Apply equip / reload dip based on weapon we switched TO
-        switch (player.activeWeapon)
-        {
-            case WeaponType::Sword:
-                meleeWeapon.equipDip = 50;
-                break;
-
-            case WeaponType::Blunderbuss:
-                weapon.reloadDip = 40;
-                break;
-
-            case WeaponType::Crossbow:
-                crossbow.reloadDip = 40;
-                break;
-
-            case WeaponType::MagicStaff:
-                magicStaff.equipDip = 50;
-                break;
-        }
     }
 
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || (IsGamepadAvailable(0) && GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.1f)) {
         if (!player.isSwimming){ //dont fire gun in water
            if (player.activeWeapon == WeaponType::Blunderbuss){
                 weapon.Fire(camera); 
@@ -344,7 +401,7 @@ void HandleKeyboardInput(Camera& camera) {
         magicStaff.equipDip = 50;
     }
 
-    if (IsKeyPressed(KEY_F)){
+    if (IsKeyPressed(KEY_F) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT)){
         //use health potion
         if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
@@ -356,7 +413,7 @@ void HandleKeyboardInput(Camera& camera) {
         }
     }
 
-    if (IsKeyPressed(KEY_G) || IsKeyPressed(KEY_LEFT_ALT)){
+    if (IsKeyPressed(KEY_G) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP)){
         if (player.inventory.HasItem("ManaPotion")){
             if (player.currentMana < player.maxMana){
                 player.currentMana = player.maxMana;
@@ -366,7 +423,8 @@ void HandleKeyboardInput(Camera& camera) {
         }
     }
 
-    if (IsKeyPressed(KEY_T)){
+    //T or Up on the d pad to switch magic type
+    if (IsKeyPressed(KEY_T) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP)){
        if (magicStaff.magicType == MagicType::Fireball){
             magicStaff.magicType = MagicType::Iceball;
        }else{
@@ -581,7 +639,9 @@ void OnGroundCheck(bool groundedNow, float timeNow) {
 
 void HandleJumpButton(float timeNow){
     OnGroundCheck(player.grounded, timeNow);
-    if (IsKeyPressed(KEY_SPACE)) player.lastJumpPressedTime = timeNow;
+    if (IsKeyPressed(KEY_SPACE) || (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN))){
+        player.lastJumpPressedTime = timeNow;
+    } 
     
 }
 
@@ -615,6 +675,18 @@ void TriggerMonsterDoors(){
     }
 }
 
+void UpdateWeapons(float deltaTime){
+    weapon.Update(deltaTime);
+    meleeWeapon.Update(deltaTime);
+    magicStaff.Update(deltaTime);
+    crossbow.Update(deltaTime);
+    //weapon.isMoving = player.isMoving;
+    //meleeWeapon.isMoving = player.isMoving;
+    //magicStaff.isMoving = player.isMoving;
+    //crossbow.isMoving = player.isMoving;
+
+}
+
 
 //move this someplace
 constexpr float LAVA_DROP      = 250.0f;
@@ -628,17 +700,10 @@ constexpr float VOID_SNAP_MAX_UP = 200.0f;      // max upward snap allowed (prev
 
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
-
+    HandleGamepadLook(deltaTime);
     HandleMouseLook(deltaTime);
     TriggerMonsterDoors();
-    weapon.Update(deltaTime);
-    weapon.isMoving = player.isMoving;
-    meleeWeapon.isMoving = player.isMoving;
-    magicStaff.isMoving = player.isMoving;
-    crossbow.isMoving = player.isMoving;
-    meleeWeapon.Update(deltaTime);
-    magicStaff.Update(deltaTime);
-    crossbow.Update(deltaTime);
+    UpdateWeapons(deltaTime);
 
     UpdateMeleeHitbox(camera);
     UpdateFootsteps(deltaTime);
@@ -736,7 +801,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     //PLAYER MOVEMENT KEYBOARD INPUT
     //if (controlPlayer){
-        HandleKeyboardInput(camera);
+    HandleKeyboardInput(camera);
 
     if (player.state == PlayerState::Grappling) {
         UpdatePlayerGrapple(player, deltaTime);

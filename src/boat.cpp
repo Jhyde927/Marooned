@@ -29,6 +29,7 @@ void InitBoat(Boat& boat, Vector3 startPos) {
 void UpdateBoat(Boat& boat, float deltaTime) {
     if (!boat.playerOnBoard) return;
 
+
     // Turning
     if (controlPlayer) {
         if (IsKeyDown(KEY_D)) boat.rotationY -= boat.turnSpeed * deltaTime;
@@ -43,6 +44,8 @@ void UpdateBoat(Boat& boat, float deltaTime) {
             boat.speed *= 0.999f; // drag
         }
     }
+
+
 
     boat.speed = Clamp(boat.speed, -boat.maxSpeed, boat.maxSpeed);
 

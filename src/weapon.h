@@ -7,12 +7,13 @@ enum class CrossbowState {
     Rest
 };
 
-enum class WeaponType { 
-    Blunderbuss, 
-    Sword,
-    MagicStaff,
-    Crossbow,
+enum class WeaponType {
     None,
+    Sword,
+    Crossbow,
+    Blunderbuss, 
+    MagicStaff,
+    COUNT
 
 };
 

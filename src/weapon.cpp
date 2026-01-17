@@ -134,7 +134,7 @@ void Weapon::Fire(Camera& camera) {
 
 void Crossbow::Update(float dt)
 {
-
+    crossbow.isMoving = player.isMoving;
     harpoonTimer += dt;
 
     bool readyNow = (harpoonTimer >= harpoonCooldown);
@@ -205,7 +205,7 @@ void Crossbow::Update(float dt)
 
 void MeleeWeapon::Update(float deltaTime) {
     if (player.activeWeapon != WeaponType::Sword) return;
-
+    meleeWeapon.isMoving = player.isMoving;
     if (!player.onBoard){
         float amplitude = 1.0f;
         bobVertical = sinf(bobbingTime) * amplitude;
@@ -292,7 +292,7 @@ static float Approach(float v, float target, float delta)
 
 
 void Weapon::Update(float deltaTime) {
-
+    weapon.isMoving = player.isMoving;
     float targetBloom = 0.0f;
 
     if (!isMoving)               targetBloom = 0.0f;   // stopped
@@ -569,7 +569,7 @@ void MagicStaff::StartSwing(Camera& camera) {
 void MagicStaff::Update(float deltaTime) {
     hitboxActive = false;
     if (player.activeWeapon != WeaponType::MagicStaff) return;
-
+    magicStaff.isMoving = player.isMoving;
     if (!player.onBoard){
         float amplitude = 2.0f;
         bobVertical = sinf(bobbingTime) * amplitude;

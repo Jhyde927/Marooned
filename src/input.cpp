@@ -118,5 +118,36 @@ void HandleMouseLook(float deltaTime){
     
 }
 
+float Expo(float x)
+{
+    const float expo = 1.6f;
+    return copysignf(powf(fabsf(x), expo), x);
+}
+
+void HandleGamepadLook(float dt)
+{
+    if (!IsGamepadAvailable(0)) return;
+
+    float rx = GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_X);
+    float ry = GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_Y);
+
+    rx = Expo(rx);
+    ry = Expo(ry);
+
+    const float DEADZONE = 0.15f;
+    if (fabsf(rx) < DEADZONE) rx = 0.0f;
+    if (fabsf(ry) < DEADZONE) ry = 0.0f;
+
+    const float yawSpeed   = 100.0f; // horizontal
+    const float pitchSpeed = 75.0f;  // vertical (lower!)
+
+    player.rotation.y -= rx * yawSpeed   * dt;
+    player.rotation.x -= ry * pitchSpeed * dt;
+
+    player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
+}
+
+
+
 
 
