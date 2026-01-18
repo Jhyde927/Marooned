@@ -107,15 +107,16 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool skyBlue = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));  // chests
             bool purple  = (EqualsRGB(c, ColorOf(Code::Doorway)));  // closed doors
             bool window   = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
-            bool aqua    = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));  // locked doors
             bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));    // lava pit
+            bool aqua    = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));  // gold key locked doors
             bool silver = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
             bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey))); //skeleton doors
+            bool eventLocked = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked doors
             //secret walls? 
 
-            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton);
+            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || eventLocked);
 
-            walkableBat[x][y] = !(black || purple || aqua || window || silver || skeleton || blue || yellow); //bats cant fly over barrels for reasons
+            walkableBat[x][y] = !(black || purple || aqua || window || silver || skeleton || eventLocked || blue || yellow); //bats cant fly over barrels for reasons
         }   //bats can fly through windows? sure.
     }
 }
@@ -171,12 +172,13 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
     bool skyBlue  = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));;   // chests 
     bool purple   = (EqualsRGB(c, ColorOf(Code::Doorway)));   // closed doors
     bool window   = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
-    bool aqua     = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
     bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));     // lava
+    bool aqua     = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
     bool silver   = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
-    bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey)));
+    bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey))); //skeleton key door
+    bool event    = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked door
 
-    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton);
+    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || event);
 }
 
 

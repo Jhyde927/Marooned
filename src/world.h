@@ -16,6 +16,7 @@
 #include "miniMap.h"
 #include "heightmapPathfinding.h"
 #include "main_menu.h"
+#include "NPC.h"
 
 enum class GameState {
     Menu,
@@ -106,6 +107,8 @@ extern std::vector<CollectableWeapon> worldWeapons;
 
 extern std::vector<Character> enemies;  
 extern std::vector<Character*> enemyPtrs;
+extern std::vector<NPC> gNPCs;
+
 Character* FindEnemyById(int id);
 void ClearLevel();
 void InitLevel(LevelData& level, Camera& camera);
@@ -145,5 +148,6 @@ void MovePlayerToFreeCam();
 void InitShaders();
 void EnterMenu();
 void UpdateShadersPerFrame(float deltaTime, float ElapsedTime, Camera& camera);
+void InitNPCs();
 
 

@@ -39,7 +39,7 @@ static void EnsureRenderTargetsMatchWindow(RenderTexture2D& rt)
 
 
 void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
-
+    //Render level background for menu
     RenderTexture2D& sceneTexture = R.GetRenderTexture("sceneTexture");
     RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
 
@@ -47,7 +47,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
     EnsureRenderTargetsMatchWindow(postTexture);
 
     // --- 3D scene to sceneTexture ---
-    BeginTextureMode(R.GetRenderTexture("sceneTexture"));
+    BeginTextureMode(R.GetRenderTexture("sceneTexture")); //MENU FRAME
         ClearBackground(SKYBLUE);
         float farClip = isDungeon ? 50000.0f : 100000.0f;
         float nearclip = 30.0f;
@@ -126,6 +126,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 
 
 void RenderFrame(Camera3D& camera, Player& player, float dt) {
+    //Main Render frame
     RenderTexture2D& sceneTexture = R.GetRenderTexture("sceneTexture");
     RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
 

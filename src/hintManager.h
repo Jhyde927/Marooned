@@ -41,6 +41,11 @@ public:
     // Fade speeds (units: 1/sec). Higher = snappier.
     void SetFadeSpeeds(float fadeInPerSec, float fadeOutPerSec);
 
+    // Helpers
+    std::string WrapText(const std::string& text, Font font, float fontSize, float spacing, float maxWidth) const;
+    Vector2 MeasureMultiline(const std::string& text, Font font, float fontSize, float spacing) const;
+    void DrawMultilineText(const std::string& text, Font font, float fontSize, float spacing, Vector2 pos, Color tint, float alpha) const;
+
 private:
     // Data
     std::vector<std::string> hints;
@@ -63,8 +68,5 @@ private:
     // State
     float alpha;              // 0..1 current visibility
 
-    // Helpers
-    std::string WrapText(const std::string& text, Font font, float fontSize, float spacing, float maxWidth) const;
-    Vector2 MeasureMultiline(const std::string& text, Font font, float fontSize, float spacing) const;
-    void DrawMultilineText(const std::string& text, Font font, float fontSize, float spacing, Vector2 pos, Color tint, float alpha) const;
+
 };

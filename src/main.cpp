@@ -126,6 +126,12 @@ int main() {
 
             miniMap.Update(deltaTime, player.position);
             UpdateEnemies(deltaTime);
+
+            for (NPC& npc : gNPCs){
+                npc.Update(deltaTime);
+                
+            }
+
             UpdateBullets(camera, deltaTime);
             GatherFrameLights();
             EraseBullets();
@@ -140,7 +146,7 @@ int main() {
             UpdateDungeonTileFlags(player, deltaTime);
             ApplyEnemyLavaDPS();
             UpdateHintManager(deltaTime);
-            
+            UpdateInteractionNPC();
             //collisions
             UpdateCollisions(camera);
             HandleDoorInteraction(camera);

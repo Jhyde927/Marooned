@@ -10,6 +10,7 @@
 #include "rlgl.h"
 #include "algorithm"
 #include "spiderEgg.h"
+#include "NPC.h"
 
 std::vector<BillboardDrawRequest> billboardRequests;
 
@@ -92,6 +93,54 @@ void GatherEnemies(Camera& camera) {
         });
     }
 }
+
+void GatherNPCs(Camera& camera)
+{
+    for (NPC& npc : gNPCs)
+    {
+        if (!npc.isActive) continue;
+
+        float dist = Vector3Distance(camera.position, npc.position);
+
+        Rectangle sourceRect = {
+            (float)(npc.currentFrame * npc.frameWidth),
+            (float)(npc.rowIndex     * npc.frameHeight),
+            (float) npc.frameWidth,
+            (float) npc.frameHeight
+        };
+
+        // Optional: same tiny offset to reduce z-fighting with floor decals/shadows
+        Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, npc.position));
+        Vector3 offsetPos = Vector3Add(npc.position, Vector3Scale(camDir, 10.0f));
+
+        float billboardSize = GetAdjustedBillboardSize(npc.frameWidth * npc.scale, dist);
+
+        bool inRange = npc.CanInteract(player.position);
+
+        Color finalTint = npc.tint;
+
+        if (inRange){
+            finalTint.r = (unsigned char)Clamp(finalTint.r + 40, 0, 255);
+            finalTint.g = (unsigned char)Clamp(finalTint.g + 40, 0, 255);
+            finalTint.b = (unsigned char)Clamp(finalTint.b + 40, 0, 255);
+        }
+
+        billboardRequests.push_back({
+            Billboard_FacingCamera,
+            offsetPos,
+            npc.texture,
+            sourceRect,
+            billboardSize,
+            finalTint,
+            dist,
+            0.0f,
+            false,   // flipX
+            false,
+            false
+        });
+    }
+}
+
 
 
 void GatherCollectables(Camera& camera, const std::vector<Collectable>& collectables) {
@@ -326,6 +375,7 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
     billboardRequests.clear();
 
     GatherEnemies(camera);
+    GatherNPCs(camera);
     GatherDungeonFires(camera, deltaTime);
     GatherWebs(camera);
     GatherDoors(camera);

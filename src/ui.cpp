@@ -10,9 +10,50 @@
 #include "camera_system.h"
 #include "render_pipeline.h"
 #include "main_menu.h"
+#include "dialogManager.h"
 
 WeaponBar gWeaponBar;
 static HintManager hints;   // one global-ish instance, private to UI.cpp
+
+static DialogManager dialogManager;
+
+void InitDialogs()
+{
+    dialogManager.SetHintManager(&hints);
+
+    dialogManager.SetFont(
+        R.GetFont("kingthing"), // or whatever you use for hints
+        24.0f,
+        2.0f
+    );
+
+    dialogManager.AddDialog(
+        "hermit_intro",
+        {
+            "Ahoy!"
+        }
+    );
+}
+
+void UpdateInteractionNPC(){
+
+    for (NPC& npc : gNPCs){
+        if (dialogManager.IsActive()){
+            if (IsKeyPressed(KEY_E)){
+                dialogManager.Advance();
+                return;
+            }
+        }else{
+            if (IsKeyPressed(KEY_E) && npc.CanInteract(player.position)){
+                dialogManager.StartDialog(npc.dialogId);
+            }
+        }
+    }
+
+
+}
+
+
 
 void TutorialSetup(){
     if (!first){
@@ -400,7 +441,7 @@ void DrawUI(){
     player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, 
         player.hasGoldKey, player.hasSilverKey, player.hasSkeletonKey); //this is pretty dumb
     DrawHints();
-
+    dialogManager.Draw();
     float yOffset = 100.0f;
     if (player.activeWeapon == WeaponType::Blunderbuss) yOffset = GetScreenHeight() * 0.075f;
     DrawReticle(player.activeWeapon);

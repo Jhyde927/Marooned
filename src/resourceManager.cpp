@@ -294,8 +294,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("wizardSheet",      "assets/sprites/wizardSheet.png");
     R.LoadTexture("skeletonKey",      "assets/sprites/skeletonKey.png");
     R.LoadTexture("batSheet",         "assets/sprites/batSheet.png");
-
-
+    R.LoadTexture("hermitSheet",      "assets/sprites/hermitSheet.png");
 
     R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
     R.LoadTexture("swampMud",         "assets/textures/swampMud.png");

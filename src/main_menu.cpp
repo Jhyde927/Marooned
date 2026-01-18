@@ -473,11 +473,63 @@ static inline void DrawTextExShadowed(Font font,
     DrawTextExShadowed(font, s.c_str(), pos, fontSize, spacing, color, shadowPx, shadowCol);
 }
 
-struct ControlsPanel
+
+
+static int WrapIndex(int i, int count)
 {
-    Rectangle rect;
-    float padding = 18.0f;
-};
+    if (count <= 0) return 0;
+    i %= count;
+    if (i < 0) i += count;
+    return i;
+}
+
+// Returns -1, 0, +1 for menu navigation using a stick with repeat.
+static int StickNavStep(float stickY, float dt)
+{
+    // stickY: up = -1, down = +1 (raylib)
+    const float DEADZONE = 0.35f;
+    const float FIRST_DELAY = 0.25f; // delay before repeating when held
+    const float REPEAT_RATE = 0.10f; // repeat interval
+
+    static float holdTimer = 0.0f;
+    static float repeatTimer = 0.0f;
+    static int lastDir = 0;
+
+    int dir = 0;
+    if (stickY < -DEADZONE) dir = -1; // UP
+    else if (stickY > DEADZONE) dir = +1; // DOWN
+
+    if (dir == 0)
+    {
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        lastDir = 0;
+        return 0;
+    }
+
+    // New direction or fresh push -> instant step
+    if (dir != lastDir)
+    {
+        lastDir = dir;
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return dir;
+    }
+
+    // Held: wait first delay then repeat
+    holdTimer += dt;
+    if (holdTimer < FIRST_DELAY) return 0;
+
+    repeatTimer += dt;
+    if (repeatTimer >= REPEAT_RATE)
+    {
+        repeatTimer = 0.0f;
+        return dir;
+    }
+
+    return 0;
+}
+
 
 
 
@@ -518,34 +570,44 @@ namespace MainMenu
             }
         }
 
-        // --- Keyboard navigation //broken 
-        static constexpr float KEY_DELAY = 0.1f;
+        // --- Keyboard + Gamepad navigation ---
+        int navStep = 0;
+
+        // Keyboard (one-shot)
+        if (IsKeyPressed(KEY_UP))   navStep -= 1;
+        if (IsKeyPressed(KEY_DOWN)) navStep += 1;
+
+        // Keyboard repeat (your style, but dt-based)
+        static constexpr float KEY_DELAY = 0.50f;
         static float upKeyTimer = 0.0f;
         static float downKeyTimer = 0.0f;
 
-        bool shouldGoUp   = IsKeyPressed(KEY_UP);
-        bool shouldGoDown = IsKeyPressed(KEY_DOWN);
+        if (IsKeyDown(KEY_UP)) {
+            upKeyTimer += dt;
+            if (upKeyTimer >= KEY_DELAY) { upKeyTimer = 0.0f; navStep -= 1; }
+        } else upKeyTimer = 0.0f;
 
-        if (IsKeyDown(KEY_UP) && upKeyTimer >= KEY_DELAY) {
-            upKeyTimer = 0.0f;
-            shouldGoUp = true;
-        } else if (IsKeyDown(KEY_UP) && upKeyTimer < KEY_DELAY) {
-            upKeyTimer += GetFrameTime();
-        } else {
-            upKeyTimer = 0.0f; // Reset if key is not down
+        if (IsKeyDown(KEY_DOWN)) {
+            downKeyTimer += dt;
+            if (downKeyTimer >= KEY_DELAY) { downKeyTimer = 0.0f; navStep += 1; }
+        } else downKeyTimer = 0.0f;
+
+        // Gamepad: D-pad
+        if (IsGamepadAvailable(0))
+        {
+            if (IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP))   navStep -= 1;
+            if (IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN)) navStep += 1;
+
+            // Gamepad: left stick with repeat
+            float ly = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y); // up=-1, down=+1
+            navStep += StickNavStep(ly, dt);
         }
 
-        if (IsKeyDown(KEY_DOWN) && downKeyTimer >= KEY_DELAY) {
-            downKeyTimer = 0.0f;
-            shouldGoDown = true;
-        } else if (IsKeyDown(KEY_DOWN) && downKeyTimer < KEY_DELAY) {
-            downKeyTimer += GetFrameTime();
-        } else {
-            downKeyTimer = 0.0f; // Reset if key is not down
+        if (navStep != 0)
+        {
+            s.usingMouse = false; // last input is keyboard/gamepad
+            s.selectedOption = WrapIndex(s.selectedOption + navStep, optionsCount);
         }
-
-        if (shouldGoUp)   s.selectedOption = (s.selectedOption - 1 + optionsCount) % optionsCount;
-        if (shouldGoDown) s.selectedOption = (s.selectedOption + 1) % optionsCount;
 
         auto TriggerPress = [&]()
         {
@@ -581,10 +643,14 @@ namespace MainMenu
             return Action::None;
         };
 
-        if (IsKeyPressed(KEY_ENTER))
-        {
+        bool activatePressed =
+            IsKeyPressed(KEY_ENTER) ||
+            (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN)); // A
+
+        if (activatePressed){
             TriggerPress();
             return ActivateSelected();
+            
         }
 
         // --- Mouse hover support ---
@@ -600,10 +666,14 @@ namespace MainMenu
             }
         }
 
-        if (hovered != -1){ 
+        s.hoveredOption = hovered;
+
+        if (hovered != -1)
+        {
+            s.usingMouse = true;
+            // Optional: you can *also* move focus when hovering,
+            // but do NOT set -1 when not hovering.
             s.selectedOption = hovered;
-        } else{
-            s.selectedOption = -1;
         }
 
         if (hovered != -1 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && s.showMenu)
@@ -636,12 +706,16 @@ namespace MainMenu
                     TriggerPress();
                     return Action::None;
                 }
+            }else{ //select option, other than level
+                TriggerPress();
+                return ActivateSelected();
             }
 
-            // All other buttons behave as before
-            TriggerPress();
-            return ActivateSelected();
+
+
+            
         }
+
 
 
         return Action::None;

@@ -11,7 +11,10 @@ namespace MainMenu
 
     struct State
     {
-        int selectedOption = 0;
+        int selectedOption = 0;   // persistent focus (keyboard/gamepad)
+        int hoveredOption  = -1;  // transient mouse hover
+        bool usingMouse    = false;
+
         bool showControls = false;
         bool showPreview = false;
         bool showOptions = false;
@@ -34,6 +37,12 @@ namespace MainMenu
     struct Layout
     {
         Rectangle selectable[5]; // Start, Level, Controls, Fullscreen, Quit, 
+    };
+
+    struct ControlsPanel
+    {
+        Rectangle rect;
+        float padding = 18.0f;
     };
 
     // Call once if you want to reset selection when entering menu

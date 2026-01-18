@@ -19,6 +19,7 @@
 #include "miniMap.h"
 #include "heightmapPathfinding.h"
 #include "shaderSetup.h"
+#include "dialogManager.h"
 
 
 
@@ -94,6 +95,7 @@ std::vector<Collectable> collectables;
 std::vector<CollectableWeapon> worldWeapons; //weapon pickups
 std::vector<Character> enemies;  
 std::vector<Character*> enemyPtrs;
+std::vector<NPC> gNPCs;
 std::vector<DungeonEntrance> dungeonEntrances;
 std::vector<PreviewInfo> levelPreviews;
 
@@ -249,6 +251,10 @@ void InitLevel(LevelData& level, Camera& camera) {
        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);     
     }
 
+    if (levelIndex == 0){
+        InitNPCs();
+    }
+
 
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
     GenerateEntrances();
@@ -256,7 +262,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     InitOverworldWeapons();
     TutorialSetup();
-
+    InitDialogs();
 
     if (level.isDungeon){
         isDungeon = true;
@@ -434,6 +440,8 @@ void InitDungeonLights(){
 
 }
 
+
+
 void DrawEnemyShadows() {
     Model& shadowModel = R.GetModel("shadowQuad");
 
@@ -446,6 +454,12 @@ void DrawEnemyShadows() {
 
     float enemyStrength = 0.6f;
     SetShaderValue(shadowSh, locStrength, &enemyStrength, SHADER_UNIFORM_FLOAT);
+
+    for (NPC& npc : gNPCs){
+        Vector3 groundPos = {npc.position.x, npc.GetFeetPosY() + 1.0f, npc.position.z};
+        DrawModelEx(shadowModel, groundPos, {0,1,0}, 0.0f, {100,100,100}, BLACK);
+
+    }
 
     for (Character& enemy : enemies) {
         if (enemy.type == CharacterType::Bat) continue; //dont draw shadows for bats
@@ -914,6 +928,42 @@ Vector3 ResolveSpawnPoint(const LevelData& level, bool isDungeon, bool first, fl
 
     return resolvedSpawn;
 }
+
+void InitNPCs()
+{
+    gNPCs.clear();
+    
+    NPC hermit;
+    hermit.type = NPCType::Hermit;
+ 
+    hermit.position = {4851, 318, -5552};
+
+    hermit.Init(
+        R.GetTexture("hermitSheet"), // or hermitTex
+        400,                    // frame width
+        400,                    // frame height
+        0.4f                   // scale (tweak until it feels right)
+    );
+
+    // Idle pose (single frame)
+    hermit.ResetAnim(
+        /*row*/ 0,
+        /*start*/ 0,
+        /*count*/ 1,
+        /*speed*/ 0.2f
+    );
+
+    // Interaction
+    hermit.interactRadius = 300.0f;
+    hermit.dialogId = "hermit_intro";
+
+
+    hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
+    hermit.isInteractable = true;
+    hermit.position.y = hermit.GetFeetPosY() + (hermit.frameHeight/2) * hermit.scale;
+    gNPCs.push_back(hermit);
+}
+
 
 
 float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terrainScale) {
