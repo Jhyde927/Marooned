@@ -81,6 +81,7 @@ bool isFullscreen = true;
 bool hasIslandNav = false;
 int gEnemyCounter = 0;
 float lavaOffsetY = 250.0f;
+bool enteredDungeon1 = false;
 
 int gCurrentLevelIndex = -1;
 
@@ -249,6 +250,10 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     if (levelIndex == 1 || levelIndex == 23){
        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);     
+    }
+
+    if (level.name == "Dungeon1"){
+        enteredDungeon1 = true;
     }
 
     if (levelIndex == 0){
@@ -748,6 +753,14 @@ Character* FindEnemyById(int id)
     return nullptr;
 }
 
+void UpdateNPCs(float deltaTime){
+    for (NPC& npc : gNPCs){
+        npc.Update(deltaTime);
+        npc.UpdateAnim(deltaTime);
+    }
+
+}
+
 void UpdateEnemies(float deltaTime) {
     if (isLoadingLevel) return;
     for (Character& e : enemies){
@@ -935,8 +948,12 @@ void InitNPCs()
     
     NPC hermit;
     hermit.type = NPCType::Hermit;
- 
-    hermit.position = {4851, 318, -5552};
+    Vector3 hermitStart = {4851.0f, 318.0f, -5552.0f};
+    Vector3 hermitFarIsland = {-5815.0f, 304.0f, 6359.0f};
+
+    Vector3 newHermitPos = enteredDungeon1 ? hermitFarIsland : hermitStart;
+
+    hermit.position = newHermitPos;
 
     hermit.Init(
         R.GetTexture("hermitSheet"), // or hermitTex
@@ -950,13 +967,12 @@ void InitNPCs()
         /*row*/ 0,
         /*start*/ 0,
         /*count*/ 1,
-        /*speed*/ 0.2f
+        /*speed*/ 0.05f
     );
 
     // Interaction
-    hermit.interactRadius = 300.0f;
-    hermit.dialogId = "hermit_intro";
-
+    hermit.interactRadius = 400.0f;
+    hermit.dialogId = enteredDungeon1 ? "hermit_2" : "hermit_intro";
 
     hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
     hermit.isInteractable = true;
@@ -1083,6 +1099,7 @@ void ClearLevel() {
     isDungeon = false;
     player.hasGoldKey = false;
     player.hasSilverKey = false;
+    player.hasSkeletonKey = false;
 
 }
 

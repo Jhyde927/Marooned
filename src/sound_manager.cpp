@@ -2,13 +2,132 @@
 #include <iostream>
 #include "raymath.h"
 
+int SoundManager::PickRandomIndexNoRepeat(int count, int lastIndex)
+{
+    if (count <= 1) return 0;
+    int idx = GetRandomValue(0, count - 1);
+    if (idx == lastIndex) {
+        idx = (idx + 1) % count; // cheap no-repeat
+    }
+    return idx;
+}
+
+void SoundManager::RegisterSpeechBank(const std::string& bankName, const std::vector<std::string>& keys)
+{
+    speechBanks[bankName] = keys;
+}
+
+void SoundManager::StartSpeech(int npcId, const std::string& bankName, float durationSec, bool extend)
+{
+    auto bankIt = speechBanks.find(bankName);
+    if (bankIt == speechBanks.end() || bankIt->second.empty()) {
+        std::cerr << "Speech bank missing/empty: " << bankName << "\n";
+        return;
+    }
+
+    SpeechState& st = npcSpeech[npcId];
+    st.active = true;
+    st.bankName = bankName;
+
+    if (extend) st.timeLeft += durationSec;
+    else        st.timeLeft  = durationSec;
+
+    // optional: clamp so repeated clicks don't stack forever
+    if (st.timeLeft > 6.0f) st.timeLeft = 6.0f;
+
+    // If nothing is currently playing, kick it immediately (no pause)
+    if (st.currentKey.empty() || !IsSoundPlaying(sounds[st.currentKey])) {
+        st.pauseTimer = 0.0f;
+    }
+}
+
+void SoundManager::StopSpeech(int npcId)
+{
+    auto it = npcSpeech.find(npcId);
+    if (it == npcSpeech.end()) return;
+
+    // Optional: stop the currently playing clip (not required)
+    if (!it->second.currentKey.empty()) {
+        auto sIt = sounds.find(it->second.currentKey);
+        if (sIt != sounds.end()) StopSound(sIt->second);
+    }
+
+    npcSpeech.erase(it);
+}
+
+bool SoundManager::IsSpeaking(int npcId) const
+{
+    auto it = npcSpeech.find(npcId);
+    if (it == npcSpeech.end()) return false;
+    return it->second.active;
+}
+
+void SoundManager::UpdateSpeech(float dt)
+{
+    for (auto it = npcSpeech.begin(); it != npcSpeech.end(); )
+    {
+        SpeechState& st = it->second;
+
+        if (!st.active) { it = npcSpeech.erase(it); continue; }
+
+        // bank lookup
+        auto bankIt = speechBanks.find(st.bankName);
+        if (bankIt == speechBanks.end() || bankIt->second.empty()) {
+            it = npcSpeech.erase(it);
+            continue;
+        }
+        const auto& keys = bankIt->second;
+
+        // If current clip still playing, wait
+        if (!st.currentKey.empty()) {
+            auto sIt = sounds.find(st.currentKey);
+            if (sIt != sounds.end() && IsSoundPlaying(sIt->second)) {
+                ++it;
+                continue;
+            }
+        }
+
+        // Pause between clips
+        if (st.pauseTimer > 0.0f) {
+            st.pauseTimer -= dt;
+            ++it;
+            continue;
+        }
+
+        // Done?
+        if (st.timeLeft <= 0.0f) {
+            it = npcSpeech.erase(it);
+            continue;
+        }
+
+        // Pick + play next clip
+        int idx = PickRandomIndexNoRepeat((int)keys.size(), st.lastIndex);
+        st.lastIndex = idx;
+        st.currentKey = keys[idx];
+
+        auto sIt = sounds.find(st.currentKey);
+        if (sIt != sounds.end()) {
+            // fixed volume; adjust if you want
+            SetSoundVolume(sIt->second, 1.0f);
+            PlaySound(sIt->second);
+        }
+
+        // Estimate: your clips are ~1–2 seconds; we just budget ~1.0f each,
+        // and the IsSoundPlaying() check prevents overlap anyway.
+        st.timeLeft -= 1.0f;
+
+        // Small natural gap between syllables
+        st.pauseTimer = (float)GetRandomValue(6, 18) / 100.0f; // 0.06..0.18
+
+        ++it;
+    }
+}
+
 std::vector<std::string> footstepKeys;
 SoundManager& SoundManager::GetInstance() {
     static SoundManager instance;
     return instance;
 }
-
-
 
 void SoundManager::LoadSound(const std::string& name, const std::string& filePath) {
     Sound sound = ::LoadSound(filePath.c_str());
@@ -63,10 +182,14 @@ void SoundManager::PlayMusic(const std::string& name, float volume) {
     PlayMusicStream(music);
 }
 
-void SoundManager::Update() {
-    for (auto& [name, music] : musicTracks) {
-        UpdateMusicStream(music);
-    }
+void SoundManager::Update(float dt) {
+    // for (auto& [name, music] : musicTracks) {
+    //     UpdateMusicStream(music);
+    // }
+
+    UpdateSpeech(dt);
+
+
 }
 
 Music& SoundManager::GetMusic(const std::string& name) {
@@ -182,6 +305,20 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("squish",         "assets/sounds/squish.ogg");
     SoundManager::GetInstance().LoadSound("crossbowFire",   "assets/sounds/crossbowFire.ogg");
     SoundManager::GetInstance().LoadSound("crossbowReload", "assets/sounds/crossbowReload.ogg");
+
+
+    //speech
+    SoundManager::GetInstance().LoadSound("hermitTalk1", "assets/sounds/AlienVoice1.ogg");
+    SoundManager::GetInstance().LoadSound("hermitTalk2", "assets/sounds/AlienVoice2.ogg");
+    SoundManager::GetInstance().LoadSound("hermitTalk3", "assets/sounds/AlienVoice3.ogg");
+    SoundManager::GetInstance().LoadSound("hermitTalk4", "assets/sounds/AlienVoice4.ogg");
+    SoundManager::GetInstance().LoadSound("hermitTalk5", "assets/sounds/AlienVoice5.ogg");
+    SoundManager::GetInstance().LoadSound("hermitTalk6", "assets/sounds/AlienVoice6.ogg");
+
+    SoundManager::GetInstance().RegisterSpeechBank("hermitSpeech", {
+        "hermitTalk1","hermitTalk2","hermitTalk3",
+        "hermitTalk4","hermitTalk5","hermitTalk6"
+    });
 
     
     //music (ambience)

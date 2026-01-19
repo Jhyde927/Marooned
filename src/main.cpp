@@ -115,7 +115,7 @@ int main() {
             if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
             UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
             CameraSystem::Get().Update(deltaTime);
-
+            SoundManager::GetInstance().Update(deltaTime); //update speech
             player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; 
             //update context
             UpdateWeaponBarLayoutOnResize();
@@ -126,12 +126,7 @@ int main() {
 
             miniMap.Update(deltaTime, player.position);
             UpdateEnemies(deltaTime);
-
-            for (NPC& npc : gNPCs){
-                npc.Update(deltaTime);
-                
-            }
-
+            UpdateNPCs(deltaTime);
             UpdateBullets(camera, deltaTime);
             GatherFrameLights();
             EraseBullets();

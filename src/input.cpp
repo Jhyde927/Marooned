@@ -138,8 +138,8 @@ void HandleGamepadLook(float dt)
     if (fabsf(rx) < DEADZONE) rx = 0.0f;
     if (fabsf(ry) < DEADZONE) ry = 0.0f;
 
-    const float yawSpeed   = 100.0f; // horizontal
-    const float pitchSpeed = 75.0f;  // vertical (lower!)
+    const float yawSpeed   = 120.0f; // horizontal
+    const float pitchSpeed = 70.0f;  // vertical (lower!)
 
     player.rotation.y -= rx * yawSpeed   * dt;
     player.rotation.x -= ry * pitchSpeed * dt;

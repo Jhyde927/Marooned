@@ -87,6 +87,7 @@ extern int gEnemyCounter;
 extern int gCurrentLevelIndex; //for resuming game
 extern bool quitQued;
 extern float lavaOffsetY;
+extern bool enteredDungeon1;
 //extern float muzzleFlashTimer;
 
 
@@ -122,6 +123,7 @@ void generateTrex(int amount, Vector3 centerPos, float radius);
 void GenerateEntrances();
 void HandleWaves(Camera& camera);
 void UpdateEnemies(float deltaTime);
+void UpdateNPCs(float deltaTime);
 void DrawEnemyShadows();
 void UpdateMuzzleFlashes(float deltaTime);
 void UpdateBullets(Camera& camera, float deltaTime);

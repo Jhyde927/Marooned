@@ -2,6 +2,13 @@
 #include "raylib.h"
 #include <string>
 
+enum class NPCAnimMode
+{
+    None = 0,
+    OneShot,
+    TimedLoop
+};
+
 enum class NPCState
 {
     Idle = 0,
@@ -31,13 +38,13 @@ public:
 
     float scale = 1.0f;
     float rotationY = 0.0f; // optional if you ever want yaw-facing billboards
-    Color tint = WHITE;
+    Color tint = RED;
 
     bool isActive = true;
     bool isVisible = true;
 
     // --- interaction ---
-    float interactRadius = 250.0f;
+    float interactRadius = 400.0f;
     bool  isInteractable = true;
     std::string dialogId; // dialog lives elsewhere, this is the key
 
@@ -50,10 +57,21 @@ public:
     int rowIndex     = 0;
 
     float animationTimer = 0.0f;
-    float animationSpeed = 0.10f;
+    float animationSpeed = 0.10f; 
 
     int animationStart      = 0;
     int animationFrameCount = 1;
+
+    // --- one-shot animation support ---
+    bool  oneShotActive = false;     // if true, animation plays once and stops
+
+    NPCAnimMode animMode = NPCAnimMode::None;
+    float talkLoopTimeLeft = 0.0f;
+
+    // where to return after one-shot / timed loop
+    int returnRow = 0;
+    int returnFrame = 0;
+
 
 public:
     NPC() = default;
@@ -66,6 +84,8 @@ public:
     // Animation helpers
     void ResetAnim(int row, int startFrame, int frameCount, float speed);
     void UpdateAnim(float dt);
+    void PlayTalkOneShot();
+    void PlayTalkLoopForSeconds(float seconds);
     float GetFeetPosY();
     Rectangle GetSourceRect() const;
 

@@ -1,6 +1,6 @@
 #include "dialogManager.h"
 #include "hintManager.h" // for MeasureMultiline / DrawMultilineText
-
+#include "iostream"
 #include <algorithm>
 
 DialogManager::DialogManager() {}
@@ -27,7 +27,7 @@ void DialogManager::StartDialog(const std::string& dialogId)
 {
     auto it = dialogs.find(dialogId);
     if (it == dialogs.end()) return;
-
+    
     activeDialogId   = dialogId;
     currentLineIndex = 0;
     isActive         = true;
@@ -40,6 +40,7 @@ void DialogManager::Advance()
     currentLineIndex++;
 
     const auto& lines = dialogs[activeDialogId];
+
     if (currentLineIndex >= (int)lines.size())
     {
         EndDialog();
@@ -57,6 +58,31 @@ bool DialogManager::IsActive() const
 {
     return isActive;
 }
+
+void DialogManager::SetActive(bool active){
+    isActive = active;
+}
+
+int DialogManager::GetCurrentLineIndex(){
+    return currentLineIndex;
+}
+
+const std::string& DialogManager::GetCurrentLineText() const
+{
+    static const std::string empty = "";
+
+    if (!isActive) return empty;
+
+    auto it = dialogs.find(activeDialogId);
+    if (it == dialogs.end()) return empty;
+
+    const auto& lines = it->second;
+    if (currentLineIndex < 0 || currentLineIndex >= (int)lines.size())
+        return empty;
+
+    return lines[currentLineIndex];
+}
+
 
 void DialogManager::Update(float /*dt*/)
 {
@@ -100,7 +126,7 @@ void DialogManager::Draw() const
 
     // ---- draw panel ----
     DrawRectangleRec(panel, { 0, 0, 0, 200 });
-    DrawRectangleLinesEx(panel, 2.0f, WHITE);
+    //DrawRectangleLinesEx(panel, 2.0f, WHITE);
 
     // ---- draw text ----
     Vector2 textPos = {

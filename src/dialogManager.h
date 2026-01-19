@@ -26,6 +26,10 @@ public:
     void EndDialog();
 
     bool IsActive() const;
+    void SetActive(bool active);
+    int GetCurrentLineIndex();
+    const std::string& GetCurrentLineText() const;
+
 
     // ---- update / draw ----
     void Update(float dt);

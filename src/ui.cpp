@@ -11,6 +11,7 @@
 #include "render_pipeline.h"
 #include "main_menu.h"
 #include "dialogManager.h"
+#include "sound_manager.h"
 
 WeaponBar gWeaponBar;
 static HintManager hints;   // one global-ish instance, private to UI.cpp
@@ -22,7 +23,7 @@ void InitDialogs()
     dialogManager.SetHintManager(&hints);
 
     dialogManager.SetFont(
-        R.GetFont("kingthing"), // or whatever you use for hints
+        R.GetFont("Kingthings"), // or whatever you use for hints
         24.0f,
         2.0f
     );
@@ -30,29 +31,138 @@ void InitDialogs()
     dialogManager.AddDialog(
         "hermit_intro",
         {
-            "Ahoy!"
+        "Ahoy!",
+        "Another poor soul washed ashore...",
+        "Alas."
         }
     );
+
+    dialogManager.AddDialog(
+        "hermit_2",
+        {
+        "You still alive?",
+        "Here take this",
+        "You need it more than me."
+        }
+    );
+
 }
 
-void UpdateInteractionNPC(){
+static int gActiveNpcIndex = -1;
 
-    for (NPC& npc : gNPCs){
-        if (dialogManager.IsActive()){
-            if (IsKeyPressed(KEY_E)){
-                dialogManager.Advance();
-                return;
-            }
-        }else{
-            if (IsKeyPressed(KEY_E) && npc.CanInteract(player.position)){
-                dialogManager.StartDialog(npc.dialogId);
+
+static void EndNpcDialog()
+{
+    if (dialogManager.IsActive())
+        dialogManager.EndDialog();
+
+    if (gActiveNpcIndex >= 0 && gActiveNpcIndex < (int)gNPCs.size())
+        gNPCs[gActiveNpcIndex].state = NPCState::Idle;
+
+    gActiveNpcIndex = -1;
+}
+
+int FindHermitIndex(const std::vector<NPC>& npcs)
+{
+    for (int i = 0; i < (int)npcs.size(); ++i) {
+        if (npcs[i].type == NPCType::Hermit) return i;
+    }
+    return -1;
+}
+
+void StartHermitSpeech(float length){
+    int hermitId = FindHermitIndex(gNPCs);
+    if (hermitId != -1) {
+        SoundManager::GetInstance().StartSpeech(hermitId, "hermitSpeech", length, true);
+    }
+    
+}
+
+
+
+void UpdateInteractionNPC()
+{
+    // ---- 1) If dialog is active, handle ONLY dialog logic this frame ----
+    if (dialogManager.IsActive())
+    {
+        // Safety: if we lost the speaker, end dialog
+        if (gActiveNpcIndex < 0 || gActiveNpcIndex >= (int)gNPCs.size())
+        {
+            EndNpcDialog();
+            return;
+        }
+
+        NPC& speaker = gNPCs[gActiveNpcIndex];
+
+        // If player walked away from the speaking NPC, end dialog
+        if (!speaker.CanInteract(player.position))
+        {
+            EndNpcDialog();
+            return;
+        }
+
+
+
+        // Advance line on E
+        if (IsKeyPressed(KEY_E))
+        {
+            dialogManager.Advance();
+            const std::string& text = dialogManager.GetCurrentLineText();
+            float duration = text.length() * 0.08f; 
+
+            StartHermitSpeech(duration);
+
+            // optional clamp so it doesn’t go crazy
+            if (duration < 1.0f) duration = 1.0f;
+
+            gNPCs[gActiveNpcIndex].PlayTalkLoopForSeconds(duration*2);
+
+            // if (gActiveNpcIndex >= 0)
+            //     gNPCs[gActiveNpcIndex].PlayTalkOneShot();
+
+            // If that advance ended the dialog, clean up NPC state too
+            if (!dialogManager.IsActive())
+            {
+                speaker.state = NPCState::Idle;
+                gActiveNpcIndex = -1;
+                int hermitId = FindHermitIndex(gNPCs);
+                if (hermitId != -1) {
+                    SoundManager::GetInstance().StopSpeech(hermitId);
+                }
             }
         }
+
+        return; // IMPORTANT: don't scan NPCs while dialog is active
     }
 
+    // ---- 2) Dialog not active: allow starting a dialog ----
+    if (!IsKeyPressed(KEY_E)) return;
 
+    // Find the first NPC in range (or you can pick closest later)
+    for (int i = 0; i < (int)gNPCs.size(); ++i)
+    {
+        NPC& npc = gNPCs[i];
+
+        if (!npc.isActive || !npc.isInteractable) continue;
+
+        if (npc.CanInteract(player.position))
+        {
+            dialogManager.StartDialog(npc.dialogId);
+            gActiveNpcIndex = i;
+            npc.state = NPCState::Talk;
+           //npc.PlayTalkOneShot();
+            const std::string& text = dialogManager.GetCurrentLineText();
+            float duration = text.length() * 0.08f; 
+
+            // optional clamp so it doesn’t go crazy
+            if (duration < 1.0f) duration = 1.0f;
+            gNPCs[gActiveNpcIndex].PlayTalkLoopForSeconds(duration);
+
+            StartHermitSpeech(duration);
+            break; // only one NPC talks at a time
+        }
+    }
 }
-
 
 
 void TutorialSetup(){
@@ -441,7 +551,7 @@ void DrawUI(){
     player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, 
         player.hasGoldKey, player.hasSilverKey, player.hasSkeletonKey); //this is pretty dumb
     DrawHints();
-    dialogManager.Draw();
+    if (dialogManager.IsActive()) dialogManager.Draw();
     float yOffset = 100.0f;
     if (player.activeWeapon == WeaponType::Blunderbuss) yOffset = GetScreenHeight() * 0.075f;
     DrawReticle(player.activeWeapon);

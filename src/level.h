@@ -26,6 +26,8 @@ extern DungeonEntrance entranceToDungeon1;
 extern DungeonEntrance entranceToDungeon3;
 extern DungeonEntrance entranceToDungeon4;
 extern DungeonEntrance entranceToDungeon11;
+
+
 // Struct that holds all necessary data for a level
 struct LevelData {
     std::string name;                 // Display name

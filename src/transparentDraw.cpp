@@ -397,6 +397,7 @@ void DrawTransparentDrawRequests(Camera& camera) {
         //use alpha cut out shader on everything. treeShader does the fog at a distance thing + alpha cutout
         if (!isDungeon) BeginShaderMode(R.GetShader("treeShader"));
         if (isDungeon) BeginShaderMode(R.GetShader("cutoutShader"));
+        
 
         Rectangle src = req.sourceRect;
         if (req.flipX) {
@@ -414,6 +415,7 @@ void DrawTransparentDrawRequests(Camera& camera) {
                     Vector2{req.size, req.size},
                     req.tint
                 );
+                
                 break;
             case Billboard_FixedFlat: //special case for webs
                 DrawFlatWeb(
