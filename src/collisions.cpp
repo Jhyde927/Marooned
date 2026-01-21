@@ -648,6 +648,15 @@ void CheckBulletHits(Camera& camera) {
             bool isGhost = (enemy->type == CharacterType::Ghost);
             if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), b.GetPosition(), b.GetRadius())) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
+
+
+                    if (b.hermit){
+                        enemy->TakeDamage(999);
+                        b.alive = false;
+                        b.exploded = true;
+                        break;
+                    }
+
                     int extraD = 0;
                     if (enemy->state == CharacterState::Harpooned) extraD = 20;//enemies take more damage when harpooned. 
                     enemy->TakeDamage((int)b.ComputeDamage() + extraD); //damage based on bullets velocity, base 10 damage for blunderbuss

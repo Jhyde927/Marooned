@@ -356,8 +356,8 @@ void DrawHUDBars(const Player& player) {
     hp.height  = 15.0f;         
     hp.slant   = 14.0f;
     hp.slantSide = SlantSide::Right;
-    hp.lowColor  = (Color){220,40,40,255};
-    hp.highColor = (Color){50,220,90,255};
+    hp.lowColor  = {220,40,40,255};
+    hp.highColor = {50,220,90,255};
     hp.pulseWhenLow = true;
     hp.outlineThickness = 2.0f;
     hp.outline = hp.highColor;
@@ -366,8 +366,8 @@ void DrawHUDBars(const Player& player) {
     BarStyle manaBar = hp;
     manaBar.height  = hp.height;     
     manaBar.slant   = hp.slant;       
-    manaBar.lowColor  = (Color){0,150,255,120};
-    manaBar.highColor = (Color){0,150,255,255};
+    manaBar.lowColor  = {0,150,255,120};
+    manaBar.highColor = {0,150,255,255};
     manaBar.pulseWhenLow = false;
     manaBar.outlineThickness = 1.5f;         
     manaBar.outline = manaBar.highColor;
@@ -376,8 +376,8 @@ void DrawHUDBars(const Player& player) {
     BarStyle stam = hp;
     stam.height  = hp.height;
     stam.slant   = hp.slant;
-    stam.lowColor  = (Color){200,200,200, 120};
-    stam.highColor = (Color){200,200,200,255};
+    stam.lowColor  = {200,200,200, 120};
+    stam.highColor = {200,200,200,255};
     stam.pulseWhenLow = false;
     stam.outlineThickness = 1.5f;
     stam.outline = stam.highColor;

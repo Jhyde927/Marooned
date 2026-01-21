@@ -50,7 +50,8 @@ public:
     float radius = 25.0f; //draw radius or collider radius? 
     float spinAngle = 0.0f;
     float size = 3.0f;
-    
+    bool hermit = false;
+
     //Grapple
     bool stuckToGrapple = false;
     Vector3 stuckWorldPos = {0,0,0};   // where it sticks if not attached to enemy
@@ -106,7 +107,7 @@ public:
 };
 void ExplodeShrapnelSphere(Vector3 origin, int pelletCount =10,float speed = 2000.0f,float lifetime = 0.6f,bool enemy = false);
 void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int pelletCount, float speed, float lifetime, bool enemy);
-void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy);
+void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool hermit);
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher, bool wizard);
 void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher);
 void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);

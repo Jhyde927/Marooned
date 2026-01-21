@@ -525,6 +525,7 @@ void OpenEventLockedDoors(){
 void removeAllCharacters(){
     enemies.clear();
     enemyPtrs.clear();
+    gNPCs.clear();
 
 }
 
@@ -948,6 +949,7 @@ void InitNPCs()
     
     NPC hermit;
     hermit.type = NPCType::Hermit;
+    //(1304.0f, 316.0f, -1141.0f)
     Vector3 hermitStart = {4851.0f, 318.0f, -5552.0f};
     Vector3 hermitFarIsland = {-5815.0f, 304.0f, 6359.0f};
 

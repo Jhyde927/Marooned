@@ -818,12 +818,16 @@ void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int p
     }
 }
 
-void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy) {
+
+
+void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool hermit) {
     Vector3 direction = Vector3Subtract(target, origin);
     direction = Vector3Normalize(direction);
     Vector3 velocity = Vector3Scale(direction, speed);
     Bullet b = {origin, velocity, lifetime, enemy};
     b.id = gBulletCounter++;
+    b.hermit = hermit;
+
     activeBullets.emplace_back(b);
 }
 
