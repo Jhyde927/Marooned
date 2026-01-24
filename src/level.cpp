@@ -419,7 +419,7 @@ std::vector<LevelData> levels = {
         19, 
         20, //change to river. 
         {}, 
-        false,// ceiling
+        true,// ceiling
     },
 
         {
@@ -488,9 +488,9 @@ std::vector<LevelData> levels = {
     },
 
         {
-        "Arena", 
+        "Dungeon24", 
         "assets/heightmaps/blank.png",
-        "assets/maps/arena2.png", //arena
+        "assets/maps/map28.png", //arena
         {0.0f, 300.0f, 0.0f},
         90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -500,7 +500,7 @@ std::vector<LevelData> levels = {
         24, 
         0, //change to river. 
         {}, 
-        false,// ceiling
+        true,// ceiling
     },
 };
 

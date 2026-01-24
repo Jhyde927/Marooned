@@ -558,14 +558,6 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
         case CharacterState::Patrol: {
 
-            //ignore player while patrolling
-
-            // if (distance < 4000.0f && playerVisible){
-            //     ChangeState(CharacterState::Chase);
-            //     AlertNearbySkeletons(position, 3000.0f);
-
-            // }
-
             if (!currentWorldPath.empty()) { 
                 Vector3 targetPos = currentWorldPath[0];
                 Vector3 dir = Vector3Normalize(Vector3Subtract(targetPos, position));
@@ -670,7 +662,7 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
         case CharacterState::Death:
             if (!isDead) {
                 SetAnimation(4, 3, 0.5f, false); 
-                if (type == CharacterType::Ghost) SetAnimation(1, 7, 0.2); 
+
                 isDead = true;
                 deathTimer = 0.0f;         // Start counting
             }

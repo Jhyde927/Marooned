@@ -324,10 +324,10 @@ void Character::Update(float deltaTime, Player& player ) {
     }
 
     //Drop bat to the floor on death.
-    // } else if (type == CharacterType::Bat && deathTimer > 0.0f){
-    //     position.y = Lerp(position.y, dungeonEnemyHeight, 5 * deltaTime);
+    if (type == CharacterType::Bat && deathTimer > 0.0f){
+        position.y = Lerp(position.y, dungeonEnemyHeight, 5 * deltaTime);
 
-    // }
+    }
 
     // Advance animation frame
     if (animationTimer >= animationSpeed) {

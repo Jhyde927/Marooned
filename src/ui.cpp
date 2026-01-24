@@ -15,8 +15,13 @@
 
 WeaponBar gWeaponBar;
 static HintManager hints;   // one global-ish instance, private to UI.cpp
-
 static DialogManager dialogManager;
+
+bool gHermitIntroDone = false;     // set true after the dialog fully ends once
+static bool gHermitFollowing = false;     // whether hermit is currently in Follow state
+
+
+static int gActiveNpcIndex = -1;
 
 void InitDialogs()
 {
@@ -48,19 +53,83 @@ void InitDialogs()
 
 }
 
-static int gActiveNpcIndex = -1;
-
-
-static void EndNpcDialog()
+static int GetHermitIndex()
 {
-    if (dialogManager.IsActive())
-        dialogManager.EndDialog();
-
-    if (gActiveNpcIndex >= 0 && gActiveNpcIndex < (int)gNPCs.size())
-        gNPCs[gActiveNpcIndex].state = NPCState::Idle;
-
-    gActiveNpcIndex = -1;
+    return FindHermitIndex(gNPCs);
 }
+
+static bool PlayerNearHermit(int hermitId)
+{
+    if (hermitId < 0) return false;
+    return gNPCs[hermitId].isActive &&
+           gNPCs[hermitId].isInteractable &&
+           gNPCs[hermitId].CanInteract(player.position);
+}
+
+static void ToggleHermitFollow(int hermitId)
+{
+    if (hermitId < 0) return;
+
+    NPC& hermit = gNPCs[hermitId];
+
+    // toggle the follow permission
+    gHermitFollowing = !gHermitFollowing;
+    hermit.canFollow = gHermitFollowing;
+    std::cout << "toggle hermit patrol " << gHermitFollowing << "\n";
+    // optional: force immediate brain switch
+    hermit.hermitBrain = gHermitFollowing ? HermitBrain::Follow : HermitBrain::Patrol;
+
+    // reset follow/path bits so it reacts immediately
+    hermit.navHasPath = false;
+    hermit.navPathIndex = -1;
+    hermit.navPath.clear();
+    hermit.navRepathTimer = hermit.navRepathCooldown; // allow immediate BFS
+
+    // also reset patrol goal so it picks a new one when you stop following
+    if (!gHermitFollowing)
+    {
+        hermit.patrolHasGoal = false;
+        hermit.patrolState   = HermitPatrolState::Idle;
+        hermit.animIntent    = AnimIntent::Idle;
+        // optional: clear target too
+        hermit.target = nullptr;
+        hermit.turretState = HermitTurretState::Idle;
+    }
+}
+
+
+
+
+void EndNpcDialog()
+{
+    if (gActiveNpcIndex >= 0 && gActiveNpcIndex < (int)gNPCs.size())
+    {
+        NPC& npc = gNPCs[gActiveNpcIndex];
+        npc.state = NPCState::Idle;
+        npc.animMode = NPCAnimMode::None;      // optional: stop timed loop immediately
+        npc.talkLoopTimeLeft = 0.0f;           // optional
+    }
+
+    dialogManager.EndDialog(); // or whatever your function is
+    gActiveNpcIndex = -1;
+
+    int hermitId = FindHermitIndex(gNPCs);
+    if (hermitId != -1)
+        SoundManager::GetInstance().StopSpeech(hermitId);
+}
+
+
+// static void EndNpcDialog()
+// {
+//     if (dialogManager.IsActive())
+//         dialogManager.EndDialog();
+
+//     if (gActiveNpcIndex >= 0 && gActiveNpcIndex < (int)gNPCs.size())
+//         gNPCs[gActiveNpcIndex].state = NPCState::Idle;
+
+
+//     gActiveNpcIndex = -1;
+// }
 
 int FindHermitIndex(const std::vector<NPC>& npcs)
 {
@@ -104,39 +173,55 @@ void UpdateInteractionNPC()
 
 
         // Advance line on E
+        // Advance line on E
         if (IsKeyPressed(KEY_E))
         {
             dialogManager.Advance();
-            const std::string& text = dialogManager.GetCurrentLineText();
-            float duration = text.length() * 0.08f; 
 
-            StartHermitSpeech(duration);
-
-            // optional clamp so it doesn’t go crazy
-            if (duration < 1.0f) duration = 1.0f;
-
-            gNPCs[gActiveNpcIndex].PlayTalkLoopForSeconds(duration*2);
-
-            // if (gActiveNpcIndex >= 0)
-            //     gNPCs[gActiveNpcIndex].PlayTalkOneShot();
-
-            // If that advance ended the dialog, clean up NPC state too
             if (!dialogManager.IsActive())
             {
+                // dialog ended
                 speaker.state = NPCState::Idle;
                 gActiveNpcIndex = -1;
+
                 int hermitId = FindHermitIndex(gNPCs);
-                if (hermitId != -1) {
-                    SoundManager::GetInstance().StopSpeech(hermitId);
-                }
+                if (hermitId != -1) SoundManager::GetInstance().StopSpeech(hermitId);
+
+                if (speaker.type == NPCType::Hermit)
+                    gHermitIntroDone = true;
+
+                return;
             }
+
+            // dialog still active -> animate + audio for *current line*
+            const std::string& text = dialogManager.GetCurrentLineText();
+            float duration = text.length() * 0.08f;
+            if (duration < 1.0f) duration = 1.0f;
+
+            speaker.PlayTalkLoopForSeconds(duration * 2.0f);
+
+            if (speaker.type == NPCType::Hermit)
+                StartHermitSpeech(duration);
         }
+
 
         return; // IMPORTANT: don't scan NPCs while dialog is active
     }
 
     // ---- 2) Dialog not active: allow starting a dialog ----
     if (!IsKeyPressed(KEY_E)) return;
+
+
+    int hermitId = GetHermitIndex();
+    if (PlayerNearHermit(hermitId))
+    {
+        if (gHermitIntroDone)
+        {
+            ToggleHermitFollow(hermitId);
+            return; // consume E
+        }
+        // else: fall through and start dialog normally (first time)
+    }
 
     // Find the first NPC in range (or you can pick closest later)
     for (int i = 0; i < (int)gNPCs.size(); ++i)
@@ -149,17 +234,18 @@ void UpdateInteractionNPC()
         {
             dialogManager.StartDialog(npc.dialogId);
             gActiveNpcIndex = i;
-            npc.state = NPCState::Talk;
-           //npc.PlayTalkOneShot();
+
             const std::string& text = dialogManager.GetCurrentLineText();
-            float duration = text.length() * 0.08f; 
-
-            // optional clamp so it doesn’t go crazy
+            float duration = text.length() * 0.08f;
             if (duration < 1.0f) duration = 1.0f;
-            gNPCs[gActiveNpcIndex].PlayTalkLoopForSeconds(duration);
 
-            StartHermitSpeech(duration);
-            break; // only one NPC talks at a time
+            npc.PlayTalkLoopForSeconds(duration);
+
+            if (npc.type == NPCType::Hermit)
+                StartHermitSpeech(duration);
+
+            break;
+
         }
     }
 }

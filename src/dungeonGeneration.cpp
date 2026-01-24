@@ -17,7 +17,7 @@
 #include "viewCone.h"
 #include <algorithm>
 
-
+Texture2D ceilingVoidMaskTex;
 std::vector<uint8_t> voidMask;
 std::vector<uint8_t> lavaMask; // width*height, 1 = lava, 0 = not
 
@@ -342,6 +342,55 @@ bool IsVoid(int gx, int gy) {
     return voidMask[Idx(gx,gy)] != 0;
 }
 
+static std::vector<Color> voidMaskRGBA;
+
+void UpdateVoidMaskTextureFromCPU()
+{
+    voidMaskRGBA.resize(dungeonWidth * dungeonHeight);
+
+    for (int i = 0; i < dungeonWidth * dungeonHeight; ++i)
+    {
+        unsigned char v = voidMask[i]; // 0 or 255
+        voidMaskRGBA[i] = Color{ v, v, v, 255 };
+    }
+
+    UpdateTexture(ceilingVoidMaskTex, voidMaskRGBA.data());
+}
+
+void CreateVoidMaskTexture(int w, int h)
+{
+    Image img = GenImageColor(w, h, BLACK);     // allocates RGBA8 buffer
+    ceilingVoidMaskTex = LoadTextureFromImage(img);    // uploads to GPU
+    UnloadImage(img);                           // CPU buffer gone, GPU stays
+
+    SetTextureFilter(ceilingVoidMaskTex, TEXTURE_FILTER_POINT);
+    SetTextureWrap(ceilingVoidMaskTex, TEXTURE_WRAP_CLAMP);
+}
+
+Texture2D UploadVoidMaskTextureRGBA( const std::vector<uint8_t>& voidMask, int w, int h)
+{
+    Image img = GenImageColor(w, h, BLACK);
+    Color* px = (Color*)img.data; // RGBA8
+
+    for (int i = 0; i < w*h; ++i)
+    {
+        uint8_t v = voidMask[i]; // 0 or 255
+        px[i] = { v, v, v, 255 };
+    }
+
+    Texture2D tex = LoadTextureFromImage(img);
+    UnloadImage(img);
+
+    // Critical for masks
+    SetTextureWrap(tex, TEXTURE_WRAP_CLAMP);
+    SetTextureFilter(tex, TEXTURE_FILTER_POINT);
+
+    return tex;
+}
+
+
+
+
 
 void GenerateCeilingTiles(float ceilingOffsetY) {
     ceilingTiles.clear();
@@ -380,7 +429,7 @@ void GenerateFloorTiles(float baseY) {
 
             // Void Tiles Build Void Mask
             if (pixel.a == 0){
-                voidMask[Idx(x,y)] = 1;  //mark as lava on void mask
+                voidMask[Idx(x,y)] = 255;  //mark as lava on void mask
                 continue; 
             } 
 
@@ -405,6 +454,8 @@ void GenerateFloorTiles(float baseY) {
             floorTiles.push_back(tile);
         }
     }
+
+
 }
 
 static Vector3 CenterOfBounds(const BoundingBox& bb)

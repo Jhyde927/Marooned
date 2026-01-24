@@ -90,8 +90,6 @@ extern float lavaOffsetY;
 extern bool enteredDungeon1;
 //extern float muzzleFlashTimer;
 
-
-
 extern GameState currentGameState;
 extern FadePhase gFadePhase;
 extern MainMenu::State gMenu;

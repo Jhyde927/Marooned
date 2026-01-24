@@ -504,6 +504,8 @@ void ResourceManager::SetLightingShaderValues() {
     Model& brokeModel    = R.GetModel("brokeBarrel");
     Model& ceilingPlane  = R.GetModel("ceilingPlane");
 
+    
+
     ceilingPlane.materials[0].shader = ceilingShader;
 
     // 2) Bind ceiling tiles to diffuse
@@ -511,17 +513,31 @@ void ResourceManager::SetLightingShaderValues() {
     ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].color   = WHITE;
     SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture, TEXTURE_WRAP_REPEAT);
 
-    // 3) Bind lightmap to emission slot (texture4 in your shader)
     ceilingPlane.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
 
-    // 4) Set u_TilingXZ (THIS is why it looked uniform)
-    int tilLoc = GetShaderLocation(ceilingShader, "u_TilingXZ");
-    Vector2 til = { (float)dungeonWidth, (float)dungeonHeight };
-    SetShaderValue(ceilingShader, tilLoc, &til, SHADER_UNIFORM_VEC2);
+    ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture = ceilingVoidMaskTex;
+    SetTextureFilter(ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture, TEXTURE_FILTER_POINT);
+    SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture, TEXTURE_WRAP_CLAMP);
+
+    ceilingShader.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(ceilingShader, "texture3");
+
+    int locGridSize = GetShaderLocation(ceilingShader, "u_GridSize");
+    int locTiling   = GetShaderLocation(ceilingShader, "u_TilingXZ");
 
 
-    // If you want true tiling without seams:
-    SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture, TEXTURE_WRAP_REPEAT);
+    Shader& sh = ceilingPlane.materials[0].shader;
+
+    // Vector2 gridSize = { (float)dungeonWidth, (float)dungeonHeight };
+    // if (locGridSize >= 0) SetShaderValue(ceilingShader, locGridSize, &gridSize, SHADER_UNIFORM_VEC2);
+
+    // Visual tiling (pick what you like; start with 1 tile per cell)
+    Vector2 tiling = { (float)dungeonWidth, (float)dungeonHeight };
+    // or if you want larger tiles: { dungeonWidth*0.5f, dungeonHeight*0.5f }
+    if (locTiling >= 0) SetShaderValue(ceilingShader, locTiling, &tiling, SHADER_UNIFORM_VEC2);
+
+    // int tilLoc = GetShaderLocation(ceilingShader, "u_TilingXZ");
+    // Vector2 til = { (float)dungeonWidth, (float)dungeonHeight };
+    // SetShaderValue(sh, tilLoc, &til, SHADER_UNIFORM_VEC2);
 
 
     // assign shader to all dungeon materials

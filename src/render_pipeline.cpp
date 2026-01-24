@@ -250,7 +250,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         } else {
             //health mana stam bars UI
             if (controlPlayer) DrawUI();
-            
+
             //draw mini map
             if (isDungeon) miniMap.DrawMiniMap();
 

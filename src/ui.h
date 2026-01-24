@@ -4,6 +4,7 @@
 #include "player.h"
 #include "hintManager.h" 
 #include <array>
+#include "NPC.h"
 
 
 
@@ -29,7 +30,7 @@ struct WeaponBar
 extern WeaponBar gWeaponBar;
 
 enum class SlantSide { Right, Left };
-
+extern bool gHermitIntroDone; 
 
 // ---------- customizable style ----------
 struct BarStyle {
@@ -82,3 +83,4 @@ void InitWeaponBar();
 void UpdateWeaponBarLayoutOnResize();
 void DrawUI();
 void UpdateInteractionNPC();
+int FindHermitIndex(const std::vector<NPC>& npcs);

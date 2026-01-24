@@ -256,7 +256,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         enteredDungeon1 = true;
     }
 
-    if (levelIndex == 0){
+    if (levelIndex == 0 || levelIndex == 1){
         InitNPCs();
     }
 
@@ -274,11 +274,18 @@ void InitLevel(LevelData& level, Camera& camera) {
         drawCeiling = level.hasCeiling;
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
+
+        CreateVoidMaskTexture(dungeonWidth, dungeonHeight);
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
+  
+
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index, 
+        //ceilingVoidMaskTex = UploadVoidMaskTextureRGBA(voidMask, dungeonWidth, dungeonHeight);
+
+        UpdateVoidMaskTextureFromCPU();   // pushes it to GPU
 
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
@@ -305,6 +312,8 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateGhostsFromImage(dungeonEnemyHeight);
         GenerateGiantSpiderFromImage(dungeonEnemyHeight);
         GenerateSpiderEggFromImage(dungeonEnemyHeight);
+
+
 
         if (levelIndex == 4) levels[0].startPosition = {-5484.34, 180, -5910.67}; //exit dungeon 3 to dungeon enterance 2 position.
 
@@ -756,7 +765,8 @@ Character* FindEnemyById(int id)
 
 void UpdateNPCs(float deltaTime){
     for (NPC& npc : gNPCs){
-        npc.Update(deltaTime);
+        //npc.Update(deltaTime);
+        npc.Update(deltaTime, enemyPtrs);
         npc.UpdateAnim(deltaTime);
     }
 
@@ -954,14 +964,26 @@ void InitNPCs()
     Vector3 hermitFarIsland = {-5815.0f, 304.0f, 6359.0f};
 
     Vector3 newHermitPos = enteredDungeon1 ? hermitFarIsland : hermitStart;
+    if (levels[gCurrentLevelIndex].name == "River"){
+        newHermitPos = Vector3{5531.0f, 320.0f, -4990.0f};
+    }
 
     hermit.position = newHermitPos;
+
+    Vector3 toPlayer = Vector3Subtract(player.position, hermit.position);
+    toPlayer.y = 0.0f;
+
+    float rotY = atan2f(toPlayer.x, toPlayer.z) * RAD2DEG;
+    
+    
 
     hermit.Init(
         R.GetTexture("hermitSheet"), // or hermitTex
         400,                    // frame width
         400,                    // frame height
-        0.4f                   // scale (tweak until it feels right)
+        0.4f,                   // scale (tweak until it feels right)
+        rotY
+
     );
 
     // Idle pose (single frame)

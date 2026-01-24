@@ -275,6 +275,7 @@ struct InvisibleWall {
 
 };
 
+extern Texture2D ceilingVoidMaskTex;
 extern std::vector<uint8_t> lavaMask;
 extern std::vector<uint8_t> voidMask;
 extern std::vector<LightSample> frameLights;
@@ -333,7 +334,9 @@ void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
-
+void CreateVoidMaskTexture(int w, int h);
+void UpdateVoidMaskTextureFromCPU();
+Texture2D UploadVoidMaskTextureRGBA( const std::vector<uint8_t>& voidMask, int w, int h);
 void UpdateDungeonTileFlags(Player& player, float dt);
 void ApplyEnemyLavaDPS();
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist);
