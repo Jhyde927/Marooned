@@ -135,9 +135,31 @@ void Character::TakeDamage(int amount) {
             decals.emplace_back(offsetPos, DecalType::Blood, R.GetTexture("bloodSheet"), 8, 0.7f, 0.07f,128.0f);
         }
 
+        if (type == CharacterType::Bat && bloatBat){
+            float minDamage = 10;
+            float maxDamage = 50;
+            float explosionRadius = 400;
+    
+            float dist = Vector3Distance(position, player.position);
+            if (dist < explosionRadius) {
+                for (WallRun& wall : wallRunColliders){
+                    if (HasWorldLineOfSight(position, player.position, 0.01)){
+                        float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
+                        if (player.hitTimer <= 0) player.TakeDamage(dmg);
+                        SoundManager::GetInstance().Play("explosion");
+                        deathTimer = 6.0f;
+
+                    }
+                }
+            }
+            
+
+        }
+
         ChangeState(CharacterState::Death);
 
-        
+
+
         if (type != CharacterType::Spider)  SoundManager::GetInstance().PlaySoundAtPosition("dinoDeath", position, player.position, 0.0f, 3000);
         if (type == CharacterType::Skeleton) SoundManager::GetInstance().PlaySoundAtPosition("bones", position, player.position, 0.0f, 3000);
         if (type == CharacterType::Spider) SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
@@ -657,13 +679,35 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Chase:
                 case CharacterState::Patrol:
                 case CharacterState::Reposition:
-                    return AnimDesc{1, 4, 0.2f, true}; // walk
+                    if (bloatBat){
+                        return AnimDesc{6, 4, 0.2f, true}; // walk
+                    }else{
+                        return AnimDesc{1, 4, 0.2f, true}; // walk
+                    }
+
 
                 case CharacterState::Freeze: return {0, 1, 1.0f, true};
-                case CharacterState::Idle:   return {0, 5, 0.2f, true};
+                case CharacterState::Idle:
+                {
+                   if (bloatBat){
+                        return AnimDesc{6, 4, 0.2, true}; // idle
+                   }else{
+                        return AnimDesc{0, 5, 0.2f, true};
+
+                   }
+
+                }
+
                 case CharacterState::Attack: return {2, 5, 0.2f, false};  // 4 * 0.2 = 0.8s
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
-                case CharacterState::Death:  return {4, 5, 0.15f, false};
+
+                case CharacterState::Death:
+                    if (bloatBat){
+                        return AnimDesc{5, 5, 0.2, false};
+                    }else{
+                        return AnimDesc{4, 5, 0.15f, false};
+                    }
+    
                 
                 default:                     return {0, 1, 1.0f, true};
             }

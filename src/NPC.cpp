@@ -114,7 +114,7 @@ void NPC::Update(float dt, const std::vector<Character*>& enemyPtrs)
 void NPC::UpdateHermitBrain(float dt, const std::vector<Character*>& enemyPtrs)
 {
 
-    if (!gHermitIntroDone)
+    if (!gHermitIntroDone) // wait until you end the conversation before allowing anything else. 
     {
         hermitBrain = HermitBrain::Patrol;      // or anything; doesn't matter
         SetPatrolState(HermitPatrolState::Idle);
@@ -122,7 +122,7 @@ void NPC::UpdateHermitBrain(float dt, const std::vector<Character*>& enemyPtrs)
         ClearNav();
         return;
     }
-    // Keep your old "if no target for long -> patrol" vibe:
+
     // We only advance idleNoTargetTimer while NOT seeing enemies.
     if (!HasTargetInVision(enemyPtrs))
     {

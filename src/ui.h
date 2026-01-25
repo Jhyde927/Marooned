@@ -30,7 +30,8 @@ struct WeaponBar
 extern WeaponBar gWeaponBar;
 
 enum class SlantSide { Right, Left };
-extern bool gHermitIntroDone; 
+
+extern bool gHermitIntroDone; //tell NPC convo is done. There is a better way. 
 
 // ---------- customizable style ----------
 struct BarStyle {

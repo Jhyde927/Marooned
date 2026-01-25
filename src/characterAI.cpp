@@ -439,6 +439,14 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
+            if (bloatBat){
+                if (distance < 200 && canSee){
+                    TakeDamage(999);
+                    ChangeState(CharacterState::Death);
+                    
+
+                }
+            }
             if (distance < 200.0f && canSee) {
                 ChangeState(CharacterState::Attack);
 

@@ -1532,7 +1532,7 @@ void GenerateBatsFromImage(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
             // Look for pure red pixels (255, 0, 0) → Skeleton spawn
-            if (EqualsRGB(current, ColorOf(Code::Bat))) {
+            if (EqualsRGB(current, ColorOf(Code::Bat)) || EqualsRGB(current, ColorOf(Code::bloatBat))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
                 Character bat(
@@ -1548,6 +1548,9 @@ void GenerateBatsFromImage(float baseY) {
                 bat.currentHealth = 75; //1.5 sword attacks
                 bat.id = gEnemyCounter++;
                 bat.bobPhase = Rand01() * 2.0f * PI; //random starting offset
+                if (EqualsRGB(current, ColorOf(Code::bloatBat))){
+                    bat.bloatBat = true; //exploding bats (110, 0, 110)
+                }
 
                 enemies.push_back(bat);
                 enemyPtrs.push_back(&enemies.back()); 

@@ -145,6 +145,8 @@ public:
     float bobAmplitude = 18.0f;   // world units
     float hoverHeight = 225.0f;   // base offset above ground
 
+    //bloat
+    bool bloatBat = false;
 
 
 

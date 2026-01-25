@@ -527,8 +527,8 @@ void ResourceManager::SetLightingShaderValues() {
 
     Shader& sh = ceilingPlane.materials[0].shader;
 
-    // Vector2 gridSize = { (float)dungeonWidth, (float)dungeonHeight };
-    // if (locGridSize >= 0) SetShaderValue(ceilingShader, locGridSize, &gridSize, SHADER_UNIFORM_VEC2);
+    Vector2 gridSize = { (float)dungeonWidth, (float)dungeonHeight };
+    if (locGridSize >= 0) SetShaderValue(ceilingShader, locGridSize, &gridSize, SHADER_UNIFORM_VEC2);
 
     // Visual tiling (pick what you like; start with 1 tile per cell)
     Vector2 tiling = { (float)dungeonWidth, (float)dungeonHeight };
