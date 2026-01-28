@@ -16,9 +16,12 @@
 #include "spiderEgg.h"
 #include "viewCone.h"
 #include <algorithm>
+#include "ui.h"
 
 Texture2D ceilingVoidMaskTex;
+Texture2D ceilingMaskTex;
 std::vector<uint8_t> voidMask;
+std::vector<uint8_t> ceilingMask; 
 std::vector<uint8_t> lavaMask; // width*height, 1 = lava, 0 = not
 
 std::vector<LightSample> frameLights;
@@ -342,121 +345,120 @@ bool IsVoid(int gx, int gy) {
     return voidMask[Idx(gx,gy)] != 0;
 }
 
-static std::vector<Color> voidMaskRGBA;
+static std::vector<Color> ceilingMaskRGBA;
 
-void UpdateVoidMaskTextureFromCPU()
+void CreateCeilingMaskTexture(int w, int h)
 {
-    voidMaskRGBA.resize(dungeonWidth * dungeonHeight);
+    Image img = GenImageColor(w, h, BLACK);
+    ceilingMaskTex = LoadTextureFromImage(img);
+    UnloadImage(img);
+
+    SetTextureFilter(ceilingMaskTex, TEXTURE_FILTER_POINT);
+    SetTextureWrap(ceilingMaskTex, TEXTURE_WRAP_CLAMP);
+}
+
+
+
+inline bool InBounds(int x, int y) {
+    return x >= 0 && y >= 0 && x < dungeonWidth && y < dungeonHeight;
+}
+
+inline bool IsVoidTile(const std::vector<uint8_t>& mask, int x, int y) {
+    // Treat out-of-bounds as void so edges behave nicely
+    if (!InBounds(x,y)) return true;
+    return mask[Idx(x,y)] != 0;
+}
+
+bool IsPlatformIslandTile(int x, int y, const std::vector<uint8_t>& voidMaskLocal)
+{
+    // Only consider solid tiles
+    if (IsVoidTile(voidMaskLocal, x, y)) return false;
+
+    int voidCount = 0;
+    for (int oy = -1; oy <= 1; ++oy) {
+        for (int ox = -1; ox <= 1; ++ox) {
+            if (ox == 0 && oy == 0) continue;
+            if (IsVoidTile(voidMaskLocal, x + ox, y + oy)) voidCount++;
+        }
+    }
+
+    // Tune this:
+
+    return voidCount >= 4; //lowest it can be before holes in normal ceilings
+}
+
+void UpdateCeilingMaskTextureFromCPU()
+{
+    ceilingMaskRGBA.resize(dungeonWidth * dungeonHeight);
 
     for (int i = 0; i < dungeonWidth * dungeonHeight; ++i)
     {
-        unsigned char v = voidMask[i]; // 0 or 255
-        voidMaskRGBA[i] = Color{ v, v, v, 255 };
+        unsigned char v = ceilingMask[i]; // 0 or 255
+        ceilingMaskRGBA[i] = Color{ v, v, v, 255 };
     }
 
-    UpdateTexture(ceilingVoidMaskTex, voidMaskRGBA.data());
+    UpdateTexture(ceilingMaskTex, ceilingMaskRGBA.data());
 }
 
-void CreateVoidMaskTexture(int w, int h)
+
+
+void GenerateFloorTiles(float baseY)
 {
-    Image img = GenImageColor(w, h, BLACK);     // allocates RGBA8 buffer
-    ceilingVoidMaskTex = LoadTextureFromImage(img);    // uploads to GPU
-    UnloadImage(img);                           // CPU buffer gone, GPU stays
-
-    SetTextureFilter(ceilingVoidMaskTex, TEXTURE_FILTER_POINT);
-    SetTextureWrap(ceilingVoidMaskTex, TEXTURE_WRAP_CLAMP);
-}
-
-Texture2D UploadVoidMaskTextureRGBA( const std::vector<uint8_t>& voidMask, int w, int h)
-{
-    Image img = GenImageColor(w, h, BLACK);
-    Color* px = (Color*)img.data; // RGBA8
-
-    for (int i = 0; i < w*h; ++i)
-    {
-        uint8_t v = voidMask[i]; // 0 or 255
-        px[i] = { v, v, v, 255 };
-    }
-
-    Texture2D tex = LoadTextureFromImage(img);
-    UnloadImage(img);
-
-    // Critical for masks
-    SetTextureWrap(tex, TEXTURE_WRAP_CLAMP);
-    SetTextureFilter(tex, TEXTURE_FILTER_POINT);
-
-    return tex;
-}
-
-
-
-
-
-void GenerateCeilingTiles(float ceilingOffsetY) {
-    ceilingTiles.clear();
-
-    //fill the whole dungeon with ceiling tiles. 
-    for (int y = 0; y < dungeonHeight; y++) {
-        for (int x = 0; x < dungeonWidth; x++) {
-
-            Color pixel = GetImageColor(dungeonImg, x, y);
-            Vector3 pos = GetDungeonWorldPos(x, y, tileSize, ceilingHeight);
-
-            // Only skip transparent pixels
-            if (pixel.a == 0) continue;
-
-            CeilingTile ceiling;
-            ceiling.position = pos;
-            ceiling.tint = GRAY;
-            ceilingTiles.push_back(ceiling);
-
-        }
-
-    }
-}
-
-void GenerateFloorTiles(float baseY) {
     floorTiles.clear();
     lavaTiles.clear();
 
     voidMask.assign(dungeonWidth * dungeonHeight, 0);
     lavaMask.assign(dungeonWidth * dungeonHeight, 0);
 
+    // --- PASS A: build floor/lava and voidMask ---
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color pixel = GetImageColor(dungeonImg, x, y);
             Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
-            // Void Tiles Build Void Mask
-            if (pixel.a == 0){
-                voidMask[Idx(x,y)] = 255;  //mark as lava on void mask
-                continue; 
-            } 
+            if (pixel.a == 0) {
+                voidMask[Idx(x,y)] = 255;
+                continue;
+            }
 
-            if (pixel.r == 200 && pixel.g == 0 && pixel.b == 0){
-                //generate lava tile instead, add to vector of lava tiles. 
+            if (pixel.r == 200 && pixel.g == 0 && pixel.b == 0) {
                 FloorTile lavaTile;
                 Vector3 offset = {0, -lavaOffsetY, 0};
                 lavaTile.position = pos + offset;
                 lavaTile.tint = BLACK;
                 lavaTile.floorType = FloorType::Lava;
                 lavaTiles.push_back(lavaTile);
-                lavaMask[Idx(x,y)] = 1;  //mark as lava on lava mask
+
+                lavaMask[Idx(x,y)] = 255;
                 continue;
             }
 
-            
-
             FloorTile tile;
             tile.position = pos;
-            tile.tint = WHITE; 
+            tile.tint = WHITE;
             tile.floorType = FloorType::Normal;
             floorTiles.push_back(tile);
         }
     }
 
+    // --- PASS B: build ceilingMask (start as "no ceiling over void") ---
+    ceilingMask.assign(dungeonWidth * dungeonHeight, 0);
 
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            int idx = Idx(x,y);
+            const bool isVoid = (voidMask[idx] != 0);
+            // discard over void
+            ceilingMask[idx] = IsVoidTile(voidMask, x, y) ? 255 : 0;
+
+            // discard over isolated platforms
+            if (!isVoid && IsPlatformIslandTile(x, y, voidMask))
+                ceilingMask[idx] = 255;
+                
+        }
+    }
 }
+
 
 static Vector3 CenterOfBounds(const BoundingBox& bb)
 {
@@ -742,7 +744,7 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
 
             if (portal){
                 archway.isPortal = true;
-                nextLevel = true; //why not portals to the same level
+                nextLevel = true; //why not portals to the same level - need another color
             }
 
             if (isExit) { //teal
@@ -1531,7 +1533,7 @@ void GenerateBatsFromImage(float baseY) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            // Look for pure red pixels (255, 0, 0) → Skeleton spawn
+ 
             if (EqualsRGB(current, ColorOf(Code::Bat)) || EqualsRGB(current, ColorOf(Code::bloatBat))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
@@ -1709,6 +1711,100 @@ void GenerateGiantSpiderFromImage(float baseY) {
 
 }
 
+
+void ConfigureHermitForLevel(NPC& hermit, bool isDungeonLevel)
+{
+    if (isDungeonLevel)
+    {
+        // In dungeons: no intro dialog, just follow immediately
+        gHermitIntroDone = true;
+
+        hermit.canFollow = true;
+        gHermitFollowing = true;
+
+        hermit.hermitBrain = HermitBrain::Follow;   // optional: force immediate
+        hermit.followState = HermitFollowState::Move;
+
+        // don't allow interacting / dialog in dungeon (for now)
+        hermit.isInteractable = true;
+        hermit.dialogId.clear();
+
+        // reset nav so follow reacts immediately
+        hermit.navHasPath = false;
+        hermit.navPathIndex = -1;
+        hermit.navPath.clear();
+        hermit.navRepathTimer = hermit.navRepathCooldown;
+    }
+    else
+    {
+        // Overworld: if intro already done, don't talk again
+        if (gHermitIntroDone)
+        {
+            hermit.isInteractable = false;   // or leave interactable if you want other lines later
+            // hermit.dialogId = "";         // optional
+        }
+        else
+        {
+            hermit.isInteractable = true;    // allow first meeting dialog
+        }
+    }
+}
+
+
+
+void GenerateHermitFromImage(float baseY) {
+
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            // Look for pure red pixels (255, 0, 0) → Skeleton spawn
+            if (EqualsRGB(current, ColorOf(Code::Hermit))) {
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, 250.0f);
+                NPC hermit;
+                hermit.type = NPCType::Hermit;
+                hermit.position = spawnPos;
+
+                Vector3 toPlayer = Vector3Subtract(player.position, hermit.position);
+                toPlayer.y = 0.0f;
+
+                float rotY = atan2f(toPlayer.x, toPlayer.z) * RAD2DEG;
+                
+                
+
+                hermit.Init(
+                    R.GetTexture("hermitSheet"), // or hermitTex
+                    400,                    // frame width
+                    400,                    // frame height
+                    0.4f,                   // scale (tweak until it feels right)
+                    rotY
+
+                );
+
+                // Idle pose (single frame)
+                hermit.ResetAnim(
+                    /*row*/ 0,
+                    /*start*/ 0,
+                    /*count*/ 1,
+                    /*speed*/ 0.05f
+                );
+
+                // Interaction
+                hermit.interactRadius = 400.0f;
+                //hermit.dialogId = enteredDungeon1 ? "hermit_2" : "hermit_intro";
+
+                hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
+                hermit.isInteractable = true;
+                //hermit.position.y = dungeonEnemyHeight;//hermit.GetFeetPosY() + (hermit.frameHeight/2) * hermit.scale;
+                ConfigureHermitForLevel(hermit, isDungeon);
+                gNPCs.push_back(hermit);                   
+
+            }
+        }
+    }
+}
+
+
 void GenerateSkeletonsFromImage(float baseY) {
 
 
@@ -1734,7 +1830,7 @@ void GenerateSkeletonsFromImage(float baseY) {
                 skeleton.id = gEnemyCounter++;
                 
                 enemies.push_back(skeleton);
-                enemyPtrs.push_back(&enemies.back()); 
+                //enemyPtrs.push_back(&enemies.back()); 
             }
         }
     }

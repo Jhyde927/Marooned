@@ -431,7 +431,7 @@ void DrawSpiralRope(Vector3 anchor, Vector3 tip, float timeSec)
     float amp = Clamp(len * 0.006f, 1.5f, 6.0f);
 
     // how many turns along the rope (slow spiral = < 1.5 turns)
-    float turns = 1.0f;
+    float turns = 2.0f;
 
     Vector3 prev = anchor;
 
@@ -667,6 +667,7 @@ void Bullet::Explode(Camera& camera) {
         
         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
         Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
+
         if (type == BulletType::Fireball){
             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
             fireEmitter.EmitBurst(position, 200, ParticleType::Sparks);
@@ -677,34 +678,49 @@ void Bullet::Explode(Camera& camera) {
             fireEmitter.EmitBurst(position, 200, ParticleType::IceBlast);
         }
 
-        //shoot a ray, from bullet position to in range enemies, if the ray hits a wall before it hits the enemy, don't deal damage. 
-        
-        float minDamage = 10;
-        float maxDamage = 200;
-        float explosionRadius = 400;
-        //area damage
-        if (type == BulletType::Fireball){
-            for (Character* enemy : enemyPtrs){
-                float dist = Vector3Distance(position, enemy->position);
-                if (dist < explosionRadius) {
-                    for (WallRun& wall : wallRunColliders){
-                        if (HasWorldLineOfSight(position, enemy->position, 0.01)){
-                            float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
-                            if (enemy->type != CharacterType::Wizard) enemy->TakeDamage(dmg);  
+        float minDamage = 10.0f;
+        float maxDamage = 200.0f;
+        float explosionRadius = 400.0f;
+        float r2 = explosionRadius * explosionRadius;
 
-                            break;
-                            //wizards are immune to fireballs.                        
-                        }
+        if (type == BulletType::Fireball)
+        {
+            // Enemy splash
+            for (Character* enemy : enemyPtrs)
+            {
+                Vector3 d = Vector3Subtract(enemy->position, position);
+                float dist2 = Vector3DotProduct(d, d);
+
+                if (dist2 < r2)
+                {
+                    if (HasWorldLineOfSight(position, enemy->position, 0.01f))
+                    {
+                        float dist = sqrtf(dist2); // only now pay for sqrt
+                        float t = dist / explosionRadius; // 0..1
+                        float dmg = Lerp(maxDamage, minDamage, t);
+
+                        if (enemy->type != CharacterType::Wizard)
+                            enemy->TakeDamage(dmg);
+
+ 
                     }
                 }
             }
-            //damage player if too close, 
+
+            // Player splash
             float pDamage = 50.0f;
-            float pdist = Vector3Distance(player.position, position);
-            if (pdist < explosionRadius){
-                float dmg =  Lerp(pDamage, minDamage, pdist / explosionRadius); //damage fall off with distance.
-                player.TakeDamage(dmg);//upto 50 percent health may be a lot for direct hit. 
+
+            Vector3 dp = Vector3Subtract(player.position, position);
+            float pdist2 = Vector3DotProduct(dp, dp);
+
+            if (pdist2 < r2)
+            {
+                float pdist = sqrtf(pdist2);
+                float t = pdist / explosionRadius;
+                float dmg = Lerp(pDamage, minDamage, t);
+                player.TakeDamage(dmg);
             }
+        
 
         }else if (type == BulletType::Iceball){
             for (Character* enemy : enemyPtrs){

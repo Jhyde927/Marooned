@@ -58,7 +58,7 @@ enum class Code {
     SkeletonDoor,             // (230, 225, 200) Aged Ivory
     Bat,                      // (75, 0, 130) Deep Purple
     bloatBat,                 // (110, 0, 110) Bruised Purple
-
+    Hermit,                   // (110, 74, 45) Weathered Oak
     switchID,                // (0, 102, 85) Payne's Green
     Switch,                   // (178, 190, 181) Ash Gray
 
@@ -123,6 +123,7 @@ constexpr Color ColorOf(Code c) {
         case Code::bloatBat:               return Make(110, 0, 110);
         case Code::switchID:               return Make(0, 102, 85);
         case Code::Switch:                 return Make(178, 190, 181);
+        case Code::Hermit:                 return Make(110, 74, 45);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

@@ -147,6 +147,7 @@ public:
 
     //bloat
     bool bloatBat = false;
+    bool hasExploded = false;
 
 
 
@@ -188,7 +189,7 @@ public:
     void BuildPathToPlayer();
     bool ChoosePatrolTarget();
     bool BuildPathTo(const Vector3& goalWorld);
-    void eraseCharacters();
+
     void TakeDamage(int amount);
     void SetAnimation(int row, int frames, float speed, bool loop=true);
     void playRaptorSounds();
@@ -199,7 +200,7 @@ public:
     void UpdateRunawaySteering(float dt);
     void UpdateChase(float deltaTime);
     void UpdateTrexStepSFX(float dt);
-
+    void ApplyAreaDamage();
     AnimDesc GetAnimFor(CharacterType type, CharacterState state);
 
     void UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos);

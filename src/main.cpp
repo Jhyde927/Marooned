@@ -145,7 +145,7 @@ int main() {
             //collisions
             UpdateCollisions(camera);
             HandleDoorInteraction(camera);
-
+            eraseCharacters(); //clean up dead enemies
             HandleWeaponTints();
             if (isDungeon){
                 if (!debugInfo) drawCeiling = levels[levelIndex].hasCeiling;

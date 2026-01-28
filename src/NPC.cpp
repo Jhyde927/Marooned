@@ -1,12 +1,13 @@
 #include "NPC.h"
 #include <cmath>
 #include <iostream>
-
+#include "pathfinding.h"
 #include "world.h"
 #include "sound_manager.h"
 #include "utilities.h"
 #include "character.h"
 #include "ui.h"
+#include "dungeonGeneration.h"
 
 static bool PtrStillListed(Character* p, const std::vector<Character*>& enemyPtrs)
 {
@@ -108,20 +109,32 @@ void NPC::Update(float dt, const std::vector<Character*>& enemyPtrs)
     previousPosition = position;
 }
 
+
+
 // -------------------------------------------------------------
 // High-level hermit brain selection (ONE place)
 // -------------------------------------------------------------
 void NPC::UpdateHermitBrain(float dt, const std::vector<Character*>& enemyPtrs)
 {
-
-    if (!gHermitIntroDone) // wait until you end the conversation before allowing anything else. 
+    // ---- PRE-INTRO: stationary defender ----
+    if (!gHermitIntroDone)
     {
-        hermitBrain = HermitBrain::Patrol;      // or anything; doesn't matter
-        SetPatrolState(HermitPatrolState::Idle);
-        animIntent = AnimIntent::Idle;
+        // Never move
         ClearNav();
+        patrolHasGoal = false;
+        canFollow = false;
+
+        // Always act like a turret (even if no enemies, he just idles)
+        hermitBrain = HermitBrain::Turret;
+
+        // Optional: prevent any leftover timers from kicking him into anything weird
+        idleNoTargetTimer = 0.0f;
+
+        UpdateHermitTurretBrain(dt, enemyPtrs);
         return;
     }
+
+    // ---- NORMAL BEHAVIOR (post-intro) ----
 
     // We only advance idleNoTargetTimer while NOT seeing enemies.
     if (!HasTargetInVision(enemyPtrs))
@@ -131,7 +144,6 @@ void NPC::UpdateHermitBrain(float dt, const std::vector<Character*>& enemyPtrs)
         {
             idleNoTargetTimer = 0.0f;
 
-            // If we aren't in combat, bias back toward patrol (matches your old behavior)
             if (hermitBrain != HermitBrain::Turret)
                 hermitBrain = HermitBrain::Patrol;
         }
@@ -160,6 +172,7 @@ void NPC::UpdateHermitBrain(float dt, const std::vector<Character*>& enemyPtrs)
     }
 }
 
+
 // -------------------------------------------------------------
 // Animation mapping (ONE place)
 // -------------------------------------------------------------
@@ -172,7 +185,7 @@ void NPC::UpdateHermitAnimationFromIntent()
     const int FRONT_ROW_WALK = 5;
 
     const int REAR_ROW_IDLE  = 3;
-    const int REAR_ROW_AIM   = 3;
+    const int REAR_ROW_AIM   = 4;
     const int REAR_ROW_FIRE  = 4;
     const int REAR_ROW_WALK  = 6;
 
@@ -634,7 +647,7 @@ void NPC::Hermit_Follow_Move(float dt)
     animIntent = AnimIntent::Walk;
 
     Vector3 goal = player.position;
-    goal.y = GetHeightAtWorldPosition(goal, heightmap, terrainScale);
+    goal.y = isDungeon ? GetHeightAtWorldPosition(goal, heightmap, terrainScale) : dungeonPlayerHeight;
 
     Vector3 goalDelta = Vector3Subtract(goal, followLastGoal);
     goalDelta.y = 0.0f;
@@ -666,13 +679,41 @@ void NPC::Hermit_Follow_Move(float dt)
 // -------------------------------------------------------------
 // Pathfinding helpers (kept from your version)
 // -------------------------------------------------------------
+
+bool NPC::BuildDungeonPath(const Vector3& goalWorld)
+{
+    Vector2 startTile = WorldToImageCoords(position);
+    Vector2 goalTile  = WorldToImageCoords(goalWorld);
+
+    std::vector<Vector2> tilePath = FindPath(walkable, startTile, goalTile);
+    if (tilePath.empty()) return false;
+
+    navPath.clear();
+    for (const Vector2& t : tilePath)
+    {
+        Vector3 wp = GetDungeonWorldPos(t.x, t.y, tileSize, dungeonEnemyHeight);
+        navPath.push_back(wp);
+    }
+
+    navPathIndex = 0;
+    navHasPath   = true;
+    navRepathTimer = 0.0f;
+    return true;
+}
+
+
+
 bool NPC::BuildPathTo(const Vector3& goalWorld)
 {
     navPath.clear();
     navPathIndex = -1;
     navHasPath   = false;
 
-    if (!hasIslandNav) return false;
+    if (isDungeon)
+        return BuildDungeonPath(goalWorld);
+
+    if (!hasIslandNav) 
+        return false;
 
     std::vector<Vector3> path;
     bool ok = HeightmapPathfinding::FindPathBFS(

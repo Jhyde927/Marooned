@@ -94,7 +94,8 @@ std::vector<Decal> decals;
 std::vector<MuzzleFlash> activeMuzzleFlashes;
 std::vector<Collectable> collectables;
 std::vector<CollectableWeapon> worldWeapons; //weapon pickups
-std::vector<Character> enemies;  
+std::vector<Character> enemies;
+//std::vector<std::unique_ptr<Character>> enemies;  
 std::vector<Character*> enemyPtrs;
 std::vector<NPC> gNPCs;
 std::vector<DungeonEntrance> dungeonEntrances;
@@ -274,23 +275,41 @@ void InitLevel(LevelData& level, Camera& camera) {
         drawCeiling = level.hasCeiling;
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
-
-        CreateVoidMaskTexture(dungeonWidth, dungeonHeight);
+       
+        //CreateVoidMaskTexture(dungeonWidth, dungeonHeight);
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
+
+        if (ceilingMaskTex.id == 0 ||
+            ceilingMaskTex.width  != dungeonWidth ||
+            ceilingMaskTex.height != dungeonHeight)
+        {
+            if (ceilingMaskTex.id != 0) UnloadTexture(ceilingMaskTex);
+            CreateCeilingMaskTexture(dungeonWidth, dungeonHeight);
+        }
+
+        UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
+
+        int islands = 0;
+        for (int y=0; y<dungeonHeight; ++y)
+        for (int x=0; x<dungeonWidth; ++x)
+        {
+            if (IsPlatformIslandTile(x, y, voidMask)) islands++;
+        }
+        TraceLog(LOG_INFO, "platform islands detected: %d", islands);
   
 
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index, 
-        //ceilingVoidMaskTex = UploadVoidMaskTextureRGBA(voidMask, dungeonWidth, dungeonHeight);
 
-        UpdateVoidMaskTextureFromCPU();   // pushes it to GPU
+
+        //UpdateVoidMaskTextureFromCPU();   // pushes it to GPU
 
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);
-        GenerateCeilingTiles(ceilingHeight);//400
+        //GenerateCeilingTiles(ceilingHeight);//400
         GenerateBarrels(floorHeight);
         GenerateLaunchers(floorHeight);
         GenerateSpiderWebs(floorHeight);
@@ -303,6 +322,9 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateGrapplePoints(floorHeight);
 
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
+
+        //GenerateHermitFromImage(floorHeight);
+
         //generate enemies.
         GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
         GeneratePiratesFromImage(dungeonEnemyHeight);
@@ -450,7 +472,8 @@ void InitDungeonLights(){
     BuildStaticLightmapOnce(dungeonLights);
     BuildDynamicLightmapFromFrameLights(frameLights); // build dynamic light map once for good luck.
 
-    ResourceManager::Get().SetLightingShaderValues();
+    R.SetLightingShaderValues();
+    R.SetCeilingShaderValues();
 
 }
 
@@ -1105,6 +1128,21 @@ void UpdateWorldFrame(float dt, Player& player) {
     // Update camera (handles free vs player internally)
     CameraSystem::Get().Update(dt);
 
+}
+
+void eraseCharacters() {
+    // Remove dead enemies
+    enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
+        [](const Character& e) {
+            return e.isDead && e.deathTimer > 5.0f; //is dead AND deathtimer > 5
+        }),
+        enemies.end());
+
+    // Rebuild enemyPtrs
+    enemyPtrs.clear();
+    for (auto& e : enemies) {
+        enemyPtrs.push_back(&e);
+    }
 }
 
 void ClearLevel() {

@@ -103,7 +103,7 @@ extern std::vector<Collectable> collectables;
 extern std::vector<MuzzleFlash> activeMuzzleFlashes;
 extern std::vector<PreviewInfo> levelPreviews;
 extern std::vector<CollectableWeapon> worldWeapons;
-
+//extern std::vector<std::unique_ptr<Character>> enemies;
 extern std::vector<Character> enemies;  
 extern std::vector<Character*> enemyPtrs;
 extern std::vector<NPC> gNPCs;
@@ -149,5 +149,6 @@ void InitShaders();
 void EnterMenu();
 void UpdateShadersPerFrame(float deltaTime, float ElapsedTime, Camera& camera);
 void InitNPCs();
+void eraseCharacters();
 
 

@@ -49,6 +49,7 @@ public:
     void UpdateShaders(Camera& camera);
     void SetLightingShaderValues();
     void SetTerrainShaderValues();
+    void SetCeilingShaderValues();
 
     //Moved to ShaderSetup
     //void SetBloomShaderValues();

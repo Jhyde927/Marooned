@@ -18,7 +18,8 @@ static HintManager hints;   // one global-ish instance, private to UI.cpp
 static DialogManager dialogManager;
 
 bool gHermitIntroDone = false;     // set true after the dialog fully ends once
-static bool gHermitFollowing = false;     // whether hermit is currently in Follow state
+bool gHermitFollowing = false;
+
 
 
 static int gActiveNpcIndex = -1;
@@ -75,7 +76,7 @@ static void ToggleHermitFollow(int hermitId)
     // toggle the follow permission
     gHermitFollowing = !gHermitFollowing;
     hermit.canFollow = gHermitFollowing;
-    std::cout << "toggle hermit patrol " << gHermitFollowing << "\n";
+
     // optional: force immediate brain switch
     hermit.hermitBrain = gHermitFollowing ? HermitBrain::Follow : HermitBrain::Patrol;
 
@@ -187,8 +188,16 @@ void UpdateInteractionNPC()
                 int hermitId = FindHermitIndex(gNPCs);
                 if (hermitId != -1) SoundManager::GetInstance().StopSpeech(hermitId);
 
-                if (speaker.type == NPCType::Hermit)
+                if (speaker.type == NPCType::Hermit){
                     gHermitIntroDone = true;
+
+                    speaker.turretState = HermitTurretState::Idle;
+                    speaker.target = nullptr;
+                    speaker.aimTimer = 0.0f;
+                    speaker.stateTimer = 0.0f;
+                }
+                    
+
 
                 return;
             }
@@ -217,6 +226,7 @@ void UpdateInteractionNPC()
     {
         if (gHermitIntroDone)
         {
+            std::cout << "togglehermitfollow\n";
             ToggleHermitFollow(hermitId);
             return; // consume E
         }

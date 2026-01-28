@@ -241,7 +241,7 @@ private:
     // shared movement/pathing
     bool BuildPathTo(const Vector3& goalWorld);
     void FollowNavPath(float dt);
-
+    bool BuildDungeonPath(const Vector3& goalWorld);
     // senses
     bool HasTargetInVision(const std::vector<Character*>& enemyPtrs) const;
 

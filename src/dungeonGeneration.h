@@ -275,9 +275,11 @@ struct InvisibleWall {
 
 };
 
+extern Texture2D ceilingMaskTex;
 extern Texture2D ceilingVoidMaskTex;
 extern std::vector<uint8_t> lavaMask;
 extern std::vector<uint8_t> voidMask;
+extern std::vector<uint8_t> ceilingMask;
 extern std::vector<LightSample> frameLights;
 extern std::vector<LauncherTrap> launchers;
 extern std::vector<PillarInstance> pillars;
@@ -313,7 +315,7 @@ void UpdateDungeonChests();
 void LoadDungeonLayout(const std::string& imagePath); // Just loads and caches image
 void GenerateFloorTiles(float baseY);
 void GenerateWallTiles(float baseY);
-void GenerateCeilingTiles(float ceilingOffsetY);
+//void GenerateCeilingTiles(float ceilingOffsetY);
 void GenerateBarrels(float baseY);
 void GenerateSpiderWebs(float baseY);
 void GenerateChests(float baseY); 
@@ -328,15 +330,19 @@ void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
 void GenerateSwitches(float baseY);
+void GenerateHermitFromImage(float baseY);
 
 void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
 int Idx(int x, int y); 
-void CreateVoidMaskTexture(int w, int h);
-void UpdateVoidMaskTextureFromCPU();
-Texture2D UploadVoidMaskTextureRGBA( const std::vector<uint8_t>& voidMask, int w, int h);
+//void CreateVoidMaskTexture(int w, int h);
+//void UpdateVoidMaskTextureFromCPU();
+void CreateCeilingMaskTexture(int w, int h);
+void UpdateCeilingMaskTextureFromCPU();
+bool IsPlatformIslandTile(int x, int y, const std::vector<uint8_t>& voidMaskLocal);
+
 void UpdateDungeonTileFlags(Player& player, float dt);
 void ApplyEnemyLavaDPS();
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist);

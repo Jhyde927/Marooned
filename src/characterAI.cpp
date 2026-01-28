@@ -441,10 +441,9 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
             if (bloatBat){
                 if (distance < 200 && canSee){
-                    TakeDamage(999);
-                    ChangeState(CharacterState::Death);
-                    
-
+                    TakeDamage(999); //trigger death/explosion
+                    return; //bat is exploding make sure we don't change state later on.
+                
                 }
             }
             if (distance < 200.0f && canSee) {
@@ -670,12 +669,12 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
         case CharacterState::Death:
             if (!isDead) {
                 SetAnimation(4, 3, 0.5f, false); 
-
+                
                 isDead = true;
                 deathTimer = 0.0f;         // Start counting
             }
-
             deathTimer += deltaTime;
+            if (deathTimer >= 5.0) isDead = true;
             break;
         }
 }

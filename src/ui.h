@@ -32,7 +32,7 @@ extern WeaponBar gWeaponBar;
 enum class SlantSide { Right, Left };
 
 extern bool gHermitIntroDone; //tell NPC convo is done. There is a better way. 
-
+extern bool gHermitFollowing;   // optional: whether follow is currently enabled
 // ---------- customizable style ----------
 struct BarStyle {
     // geometry
