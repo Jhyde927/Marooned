@@ -6,6 +6,13 @@
 // Forward decl to avoid include cycles
 class Character;
 
+enum class Facing3
+{
+    Front,
+    Side,
+    Back
+};
+
 // --- NPC types (unchanged) ---
 enum class NPCType
 {

@@ -1906,6 +1906,55 @@ void GenerateWizardsFromImage(float baseY) {
 
 }
 
+void GenerateInvisibleLightSources(float baseY){
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            
+            // Check for light yellow 
+            if (EqualsRGB(current,ColorOf(Code::InvisibleLight))) {
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                LightSource L = MakeStaticTorch(pos);
+
+                if (levelIndex == 21){ //blue lights on ice level
+                    L.colorTint = Vector3{0.0, 0.0, 1.0};
+                }
+                dungeonLights.push_back(L);
+            }
+
+            // Check for FireBrick red
+            if (EqualsRGB(current,ColorOf(Code::LavaGlow))){
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                LightSource L = MakeStaticTorch(pos);
+                L.colorTint = Vector3 {1, 0, 0}; // 0..1
+                dungeonLights.push_back(L);
+            }
+
+            if (EqualsRGB(current,ColorOf(Code::BlueLight))){
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                LightSource L = MakeStaticTorch(pos);
+                L.colorTint = Vector3 {0, 0, 1}; // 0..1
+                dungeonLights.push_back(L);
+            }
+
+            if (EqualsRGB(current,ColorOf(Code::GreenLight))){
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                LightSource L = MakeStaticTorch(pos);
+                L.colorTint = Vector3 {0, 1, 0}; // 0..1
+                dungeonLights.push_back(L);
+            }
+
+            if (EqualsRGB(current,ColorOf(Code::YellowLight))){
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                LightSource L = MakeStaticTorch(pos);
+                L.colorTint = Vector3 {1, 1, 0}; // 0..1
+                dungeonLights.push_back(L);
+            }
+
+        }
+    } 
+}
+
 void GenerateLightSources(float baseY) {
     dungeonLights.clear();
 
@@ -1934,38 +1983,7 @@ void GenerateLightSources(float baseY) {
         }
     }
     //Invisible light sources
-    for (int y = 0; y < dungeonHeight; y++) {
-        for (int x = 0; x < dungeonWidth; x++) {
-            Color current = dungeonPixels[y * dungeonWidth + x];
-            
-            // Check for light yellow 
-            if (EqualsRGB(current,ColorOf(Code::InvisibleLight))) {
-                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
-                LightSource L = MakeStaticTorch(pos);
-
-                if (levelIndex == 21){ //blue lights on ice level
-                    L.colorTint = Vector3{0.0, 0.0, 1.0};
-                }
-                dungeonLights.push_back(L);
-            }
-
-        }
-    }
-    //Lava glow
-    for (int y = 0; y < dungeonHeight; y++) {
-        for (int x = 0; x < dungeonWidth; x++) {
-            Color current = dungeonPixels[y * dungeonWidth + x];
-            
-            // Check for FireBrick red
-            if (EqualsRGB(current,ColorOf(Code::LavaGlow))){
-                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
-                LightSource L = MakeStaticTorch(pos);
-                L.colorTint = Vector3 {1, 0, 0}; // 0..1
-                dungeonLights.push_back(L);
-            }
-
-        }
-    }
+    GenerateInvisibleLightSources(baseY);
 
 }
 

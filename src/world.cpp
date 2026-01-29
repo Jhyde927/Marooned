@@ -20,6 +20,7 @@
 #include "heightmapPathfinding.h"
 #include "shaderSetup.h"
 #include "dialogManager.h"
+#include "portal.h"
 
 
 
@@ -290,22 +291,13 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
 
-        int islands = 0;
-        for (int y=0; y<dungeonHeight; ++y)
-        for (int x=0; x<dungeonWidth; ++x)
-        {
-            if (IsPlatformIslandTile(x, y, voidMask)) islands++;
-        }
-        TraceLog(LOG_INFO, "platform islands detected: %d", islands);
-  
-
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index, 
-
+        PortalSystem::GenerateFromDungeon(dungeonImg, dungeonWidth, dungeonHeight, tileSize, floorHeight);
 
         //UpdateVoidMaskTextureFromCPU();   // pushes it to GPU
-
+        
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);

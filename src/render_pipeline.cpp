@@ -14,6 +14,7 @@
 #include "shadows.h"
 #include "terrainChunking.h"
 #include "main_menu.h"
+#include "portal.h"
 
 
 static int lastW = 0;
@@ -170,7 +171,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         } else {
             //draw the dungeon
             DrawDungeonGeometry(camera, 8000);
-            //DebugDrawGrappleBox();
+            PortalSystem::DrawDebug();
             DrawDungeonBarrels();
             DrawLaunchers();
             DrawDungeonChests();

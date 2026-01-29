@@ -16,6 +16,7 @@
 #include "spiderEgg.h"
 #include "miniMap.h"
 #include "shaderSetup.h"
+#include "portal.h"
 
 
 //As above, so below.
@@ -125,6 +126,7 @@ int main() {
             UpdateShadersPerFrame(deltaTime, ElapsedTime, camera);
 
             miniMap.Update(deltaTime, player.position);
+            PortalSystem::Update(player.position, player.radius, deltaTime);
             UpdateEnemies(deltaTime);
             UpdateNPCs(deltaTime);
             UpdateBullets(camera, deltaTime);

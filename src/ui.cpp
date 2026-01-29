@@ -52,6 +52,20 @@ void InitDialogs()
         }
     );
 
+    dialogManager.AddDialog(
+        "hermit_follow",
+        {
+            "I'll follow you."
+        }
+    );
+
+    dialogManager.AddDialog(
+        "hermit_patrol",
+        {
+            "I'll return to camp."
+        }
+    );
+
 }
 
 static int GetHermitIndex()
@@ -73,12 +87,23 @@ static void ToggleHermitFollow(int hermitId)
 
     NPC& hermit = gNPCs[hermitId];
 
+
     // toggle the follow permission
     gHermitFollowing = !gHermitFollowing;
     hermit.canFollow = gHermitFollowing;
 
+    std::string msg = gHermitFollowing ? "hermit_follow" : "hermit_patrol";
+    gActiveNpcIndex = hermitId;
+    dialogManager.StartDialog(msg);
+    gNPCs[hermitId].PlayTalkLoopForSeconds(1.0f);
+
+    
     // optional: force immediate brain switch
     hermit.hermitBrain = gHermitFollowing ? HermitBrain::Follow : HermitBrain::Patrol;
+
+
+
+
 
     // reset follow/path bits so it reacts immediately
     hermit.navHasPath = false;
@@ -120,17 +145,6 @@ void EndNpcDialog()
 }
 
 
-// static void EndNpcDialog()
-// {
-//     if (dialogManager.IsActive())
-//         dialogManager.EndDialog();
-
-//     if (gActiveNpcIndex >= 0 && gActiveNpcIndex < (int)gNPCs.size())
-//         gNPCs[gActiveNpcIndex].state = NPCState::Idle;
-
-
-//     gActiveNpcIndex = -1;
-// }
 
 int FindHermitIndex(const std::vector<NPC>& npcs)
 {
@@ -226,7 +240,7 @@ void UpdateInteractionNPC()
     {
         if (gHermitIntroDone)
         {
-            std::cout << "togglehermitfollow\n";
+
             ToggleHermitFollow(hermitId);
             return; // consume E
         }

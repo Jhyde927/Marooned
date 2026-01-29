@@ -53,6 +53,9 @@ enum class Code {
     WindowedWall,             // (83, 104, 120) Payne's Gray
     InvisibleLight,           // (255, 255, 100) lighter yellow
     LavaGlow,                 // (178, 34, 34) fire brick
+    BlueLight,                // (100, 149, 237) cornflower blue
+    YellowLight,              // ( 255, 216, 0) safety yellow
+    GreenLight,               // (80, 200, 120) emerald green
     Wizard,                   // (148, 0, 211) DarkViolet
     SkeletonKey,              // (192, 192, 192) Steel
     SkeletonDoor,             // (230, 225, 200) Aged Ivory
@@ -61,6 +64,8 @@ enum class Code {
     Hermit,                   // (110, 74, 45) Weathered Oak
     switchID,                // (0, 102, 85) Payne's Green
     Switch,                   // (178, 190, 181) Ash Gray
+    PortalTile,                // (0, 180, 200) Deep Cyan
+    PortalID                  // (220, 140, 40) amber
 
 };
 
@@ -80,6 +85,9 @@ constexpr Color ColorOf(Code c) {
         case Code::Skeleton:               return Make(255, 0, 0);
         case Code::Light:                  return Make(255, 255, 0);
         case Code::InvisibleLight:         return Make(255, 255, 100);
+        case Code::BlueLight:              return Make(100, 149, 237);
+        case Code::YellowLight:            return Make(255, 216, 0);
+        case Code::GreenLight:             return Make(80, 200, 120);
         case Code::Doorway:                return Make(128, 0, 128);
         case Code::DoorPortal:             return Make(200, 0, 200);
         case Code::ExitTeal:               return Make(0, 128, 128);
@@ -124,6 +132,8 @@ constexpr Color ColorOf(Code c) {
         case Code::switchID:               return Make(0, 102, 85);
         case Code::Switch:                 return Make(178, 190, 181);
         case Code::Hermit:                 return Make(110, 74, 45);
+        case Code::PortalTile:             return Make(0, 180, 200);
+        case Code::PortalID:               return Make(220, 140, 40);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

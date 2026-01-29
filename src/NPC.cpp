@@ -77,8 +77,6 @@ void NPC::Update(float dt, const std::vector<Character*>& enemyPtrs)
 {
     if (!isActive) return;
 
-
-
     // Talk override behavior (same idea you had)
     if (state == NPCState::Talk && !CanInteract(player.position))
         state = NPCState::Idle;
@@ -95,7 +93,7 @@ void NPC::Update(float dt, const std::vector<Character*>& enemyPtrs)
 
     if (type == NPCType::Hermit)
     {
-        UpdateHermitBrain(dt, enemyPtrs);
+        if (state != NPCState::Talk) UpdateHermitBrain(dt, enemyPtrs);
         UpdateHermitAnimationFromIntent();
         UpdateAnim(dt);
     }
@@ -173,12 +171,32 @@ void NPC::UpdateHermitBrain(float dt, const std::vector<Character*>& enemyPtrs)
 }
 
 
+static Facing3 GetFacing3Way(const Vector3& npcPos, float npcYawDeg, const Vector3& viewerPos)
+{
+    float yaw = npcYawDeg * DEG2RAD;
+    Vector3 forward = { sinf(yaw), 0.0f, cosf(yaw) };
+
+    Vector3 toViewer = Vector3Subtract(viewerPos, npcPos);
+    toViewer.y = 0.0f;
+
+    float lenSq = Vector3DotProduct(toViewer, toViewer);
+    if (lenSq < 0.0001f)
+        return Facing3::Front; // arbitrary when on top of NPC
+
+    toViewer = Vector3Scale(toViewer, 1.0f / sqrtf(lenSq));
+
+    float d = Vector3DotProduct(forward, toViewer); // [-1..1]
+
+    const float SIDE_THRESH = 0.35f;  // tune: bigger = more "side" time
+    if (fabsf(d) <= SIDE_THRESH) return Facing3::Side;
+    return (d > 0.0f) ? Facing3::Front : Facing3::Back;
+}
+
 // -------------------------------------------------------------
 // Animation mapping (ONE place)
 // -------------------------------------------------------------
 void NPC::UpdateHermitAnimationFromIntent()
 {
-    // Your rows (unchanged)
     const int FRONT_ROW_IDLE = 0;
     const int FRONT_ROW_AIM  = 2;
     const int FRONT_ROW_FIRE = 2;
@@ -189,23 +207,39 @@ void NPC::UpdateHermitAnimationFromIntent()
     const int REAR_ROW_FIRE  = 4;
     const int REAR_ROW_WALK  = 6;
 
-    Vector3 viewerPos = player.position;
-    bool showFront = ViewerIsInFrontOfNPC(position, rotationY, viewerPos);
+    const int SIDE_ROW_AIM   = 7; // your side aim row (also used for fire)
+
+    Facing3 facing = GetFacing3Way(position, rotationY, player.position);
+
+    // Base rows = front/back like before
+    bool showFront = (facing == Facing3::Front);
 
     int rowIdle = showFront ? FRONT_ROW_IDLE : REAR_ROW_IDLE;
-    int rowAim  = showFront ? FRONT_ROW_AIM  : REAR_ROW_AIM;
-    int rowFire = showFront ? FRONT_ROW_FIRE : REAR_ROW_FIRE;
     int rowWalk = showFront ? FRONT_ROW_WALK : REAR_ROW_WALK;
+
+    // Aim/Fire rows: if Side -> row 7, else front/back
+    int rowAim  = (facing == Facing3::Side) ? SIDE_ROW_AIM : (showFront ? FRONT_ROW_AIM  : REAR_ROW_AIM);
+    int rowFire = (facing == Facing3::Side) ? SIDE_ROW_AIM : (showFront ? FRONT_ROW_FIRE : REAR_ROW_FIRE);
 
     switch (animIntent)
     {
         case AnimIntent::Idle: ResetAnim(rowIdle, 0, 1, 0.10f); break;
-        case AnimIntent::Aim:  ResetAnim(rowAim,  1, 1, 0.10f); break;
-        case AnimIntent::Fire: ResetAnim(rowFire, 2, 1, 0.10f); break;
         case AnimIntent::Walk: ResetAnim(rowWalk, 0, 2, 0.50f); break;
-        case AnimIntent::Talk: ResetAnim(1,       0, 3, 0.50f); break;
+
+        case AnimIntent::Aim:
+            ResetAnim(rowAim, 1, 1, 0.10f);
+            break;
+
+        case AnimIntent::Fire:
+            ResetAnim(rowFire, 2, 1, 0.10f);
+            break;
+
+        case AnimIntent::Talk:
+            ResetAnim(1, 0, 3, 0.50f);
+            break;
     }
 }
+
 
 // -------------------------------------------------------------
 // Senses
