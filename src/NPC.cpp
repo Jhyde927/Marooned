@@ -93,7 +93,7 @@ void NPC::Update(float dt, const std::vector<Character*>& enemyPtrs)
 
     if (type == NPCType::Hermit)
     {
-        if (state != NPCState::Talk) UpdateHermitBrain(dt, enemyPtrs);
+        UpdateHermitBrain(dt, enemyPtrs);
         UpdateHermitAnimationFromIntent();
         UpdateAnim(dt);
     }

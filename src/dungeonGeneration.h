@@ -7,11 +7,23 @@
 #include "bullet.h"
 #include "player.h"
 #include <cstdint>
+#include "box.h"
 
 
-enum class KeyType { None, Gold, Silver, Skeleton };
+
+enum class KeyType { None, Gold, Silver, Skeleton, Event };
 
 enum class LockType {None, Gold, Silver, Skeleton, Event};
+
+enum class TriggerMode { OnEnter, WhileHeld };
+
+//floor switch
+enum Activator : uint32_t {
+    Act_Player = 1 << 0,
+    Act_Box    = 1 << 1,
+    Act_Enemy  = 1 << 2,
+};
+
 
 enum class FloorType {
     Normal,
@@ -74,14 +86,18 @@ struct LightSample {
     float   intensity;
 };
 
+
 struct SwitchTile {
     Vector3 position;
     BoundingBox box;
-    bool triggered;
-    bool oneShot = true;
-    LockType lockType;
 
+    LockType lockType = LockType::None;
 
+    TriggerMode mode = TriggerMode::OnEnter;
+    uint32_t activators = Act_Box | Act_Player; // default behavior matches your current invisible switch
+
+    bool triggered = false;      // for OnEnter
+    bool isPressed = false;      // for WhileHeld
 };
 
 struct GrapplePoint {
@@ -299,6 +315,7 @@ extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 extern std::vector<WindowCollider> windowColliders;
 extern std::vector<SwitchTile> switches;
+extern std::vector<Box> boxes;
 
 
 
@@ -312,6 +329,7 @@ extern float playerLightIntensity;
 extern size_t gStaticLightCount;  // global or dungeon-level
 
 void UpdateDungeonChests();
+void UpdateBoxes(float deltaTime);
 void LoadDungeonLayout(const std::string& imagePath); // Just loads and caches image
 void GenerateFloorTiles(float baseY);
 void GenerateWallTiles(float baseY);
@@ -350,6 +368,7 @@ void BindSecretWallsToRuns();
 void OpenSecrets();
 void DrawDungeonChests(); 
 void DrawDungeonPillars();
+void DrawBoxes();
 //void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint);
 void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height, float rotationY, Color tint);
 void GenerateWeapons(float Height);
@@ -378,6 +397,7 @@ void GenerateGhostsFromImage(float baseY);
 void GenerateGiantSpiderFromImage(float baseY);
 void GenerateSpiderEggFromImage(float baseY);
 void SpawnSpiderFromEgg(Vector3 spawnPos);
+void GenerateBoxesFromImage(float baseY);
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
 bool IsLava(int gx, int gy);
@@ -385,5 +405,4 @@ bool IsVoid(int gx, int gy);
 int GetDoorIndexAtTile(int nx, int nz);
 bool TileNearSolid(int tx, int tz);
 void ClearDungeon();
-
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);

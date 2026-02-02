@@ -4,10 +4,13 @@
 #include "weapon.h"
 #include "inventory.h"
 
+
 extern Weapon weapon;
 extern MeleeWeapon meleeWeapon;
 extern MagicStaff magicStaff;
 extern Crossbow crossbow;
+
+class Box;
 
 enum class PlayerState { Normal, Grappling, Frozen};
 
@@ -97,6 +100,12 @@ struct Player {
     bool blocking = false;
     bool isFallingIntoVoid = false;
     bool godMode = false;
+
+    //box interaction
+    bool interactPressed;
+    bool dropPressed;
+    bool isCarrying;
+    Box* carriedBox = nullptr;
 
     float centerGroundY = 0.0f;
 

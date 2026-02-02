@@ -3,6 +3,13 @@
 #include <vector>
 #include "decal.h"
 #include "weapon.h"
+#include "portal.h"
+
+struct PortalPalette
+{
+    Vector3 colorA;
+    Vector3 colorB;
+};
 
 enum BillboardType {
     Billboard_FacingCamera,
@@ -24,8 +31,7 @@ struct BillboardDrawRequest {
     bool flipX = false; 
     bool isPortal;
     bool isOpen;
-
-
+    PortalPalette pallet;
 };
 
 extern std::vector<BillboardDrawRequest> billboardRequests;
@@ -38,5 +44,5 @@ void GatherEnemies(Camera& camera);
 void GatherDungeonFires(Camera& camera, float deltaTime);
 void GatherWebs(Camera& camera);
 void GatherDecals(Camera& camera, const std::vector<Decal>& decals);
-
+void GatherPortals(Camera& camera, const std::vector<Portal>& portals);
 float GetAdjustedBillboardSize(float baseSize, float distance);

@@ -90,17 +90,17 @@ FadePhase gFadePhase = FadePhase::Idle;
 
 //std::vector<Bullet> activeBullets;
 std::list<Bullet> activeBullets; // instead of std::vector
-
+std::vector<Portal> portals;
 std::vector<Decal> decals;
 std::vector<MuzzleFlash> activeMuzzleFlashes;
 std::vector<Collectable> collectables;
 std::vector<CollectableWeapon> worldWeapons; //weapon pickups
 std::vector<Character> enemies;
-//std::vector<std::unique_ptr<Character>> enemies;  
 std::vector<Character*> enemyPtrs;
 std::vector<NPC> gNPCs;
 std::vector<DungeonEntrance> dungeonEntrances;
 std::vector<PreviewInfo> levelPreviews;
+
 
 MiniMap miniMap;
 
@@ -278,6 +278,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         ConvertImageToWalkableGrid(dungeonImg);
        
         //CreateVoidMaskTexture(dungeonWidth, dungeonHeight);
+        PortalSystem::GenerateFromDungeon(dungeonImg, dungeonWidth, dungeonHeight, tileSize, floorHeight);
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
 
@@ -294,7 +295,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index, 
-        PortalSystem::GenerateFromDungeon(dungeonImg, dungeonWidth, dungeonHeight, tileSize, floorHeight);
+        
 
         //UpdateVoidMaskTextureFromCPU();   // pushes it to GPU
         
@@ -312,6 +313,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateKeys(floorHeight);
         GenerateWeapons(200);
         GenerateGrapplePoints(floorHeight);
+        GenerateBoxesFromImage(floorHeight);
 
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
 
@@ -374,8 +376,14 @@ inline float FadeDt() {
     return dt;
 }
 
+void StartFadeOutFromTeleport() {
+    gFadePhase = FadePhase::FadingOut;
+    fadeSpeed = 10.0f; //fade back in really fast
+}
+
 
 void StartFadeOutFromMenu(int LevelIndex) {
+    fadeSpeed = 1.0f;
     queuedLevel = levelIndex;
     gFadePhase = FadePhase::FadingOut;
     // don't rely on previous value; clamp explicitly
@@ -384,6 +392,7 @@ void StartFadeOutFromMenu(int LevelIndex) {
 
 
 void StartFadeOutToLevel(int levelIndex) {
+    fadeSpeed = 1.0f;
     queuedLevel = levelIndex;
     gFadePhase = FadePhase::FadingOut;
     // don't rely on previous value; clamp explicitly
@@ -397,14 +406,14 @@ void StartFadeInFromBlack() {
 
 
 // Called every frame before any world/menu update or rendering
-void UpdateFade(Camera& camera) {
+void UpdateFade(Camera& camera, float deltaTime) {
 
     const float dt = FadeDt();
     switch (gFadePhase) {
     case FadePhase::FadingOut:
         if (player.position.y > 0) player.canMove = false; //player can still fall into voids, so canMove remains true if below ground level. 
-
         if (currentGameState == GameState::Menu){
+            
             //it didn't print 0.99 it never reaches 1, clamp? 
             if (fadeValue >= 0.98) {
                 pendingLevelIndex = levelIndex;

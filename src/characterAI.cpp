@@ -424,9 +424,8 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
                 if (IsWalkable(randomTile.x, randomTile.y, dungeonImg)) {
                     if (TrySetRandomPatrolPath(start, this, currentWorldPath)) {
-                        state = CharacterState::Patrol;
-                        SetAnimation(1, 4, 0.2f); // walk anim
-                        if (type == CharacterType::Ghost) SetAnimation(0, 7, 0.2, true);
+                        ChangeState(CharacterState::Patrol);
+                        
                     }
                 }
             }

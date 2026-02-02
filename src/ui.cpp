@@ -95,8 +95,9 @@ static void ToggleHermitFollow(int hermitId)
     std::string msg = gHermitFollowing ? "hermit_follow" : "hermit_patrol";
     gActiveNpcIndex = hermitId;
     dialogManager.StartDialog(msg);
-    gNPCs[hermitId].PlayTalkLoopForSeconds(1.0f);
-
+    gNPCs[hermitId].PlayTalkLoopForSeconds(1.0f); // needed for the animation to play for some reason
+    //play audio normally because playTalkLoop doesn't work.
+    SoundManager::GetInstance().PlaySoundAtPosition("hermitTalk1", hermit.position, player.position, 0.0f, 3000.0f);
     
     // optional: force immediate brain switch
     hermit.hermitBrain = gHermitFollowing ? HermitBrain::Follow : HermitBrain::Patrol;

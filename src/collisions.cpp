@@ -168,61 +168,156 @@ void AgroAllGiantSpiders(){
 
 }
 
-void SwitchCollision(){
-    for (SwitchTile& st : switches){
-        if (!st.triggered){
-            if (CheckCollisionBoxSphere(st.box, player.position, player.radius)){
-                st.triggered = true;
+//floor switch. make a floorswitch.h or something. 
 
-                if (st.lockType == LockType::Gold){
-                    for (Door& door : doors){
-                        if (door.requiredKey == KeyType::Gold){
-                            door.isLocked = false;
-                            door.isOpen = true;
-                            walkable[door.tileX][door.tileY] = true;
-                            walkableBat[door.tileX][door.tileY] = true;
-                            AgroAllSkeletons();   
-                        }
-                    }
-                }else if (st.lockType == LockType::Silver){
-                    for (Door& door : doors){
-                        if (door.requiredKey == KeyType::Silver){
-                            door.isLocked = false;
-                            door.isOpen = true;
-                            walkable[door.tileX][door.tileY] = true;
-                            walkableBat[door.tileX][door.tileY] = true;
-                            AgroAllPirates();
-                            
-                        }
-                    }
+inline bool HasActivator(uint32_t mask, Activator a) { return (mask & (uint32_t)a) != 0; }
 
-                }else if (st.lockType == LockType::Skeleton){
-                    for (Door& door : doors){
-                        if (door.requiredKey == KeyType::Skeleton){
-                            door.isLocked = false;
-                            door.isOpen = true;
-                            walkable[door.tileX][door.tileY] = true;
-                            walkableBat[door.tileX][door.tileY] = true;
-                            AgroAllGiantSpiders();
-  
-                            
-                        }
-                    }
+bool IsSwitchPressed(const SwitchTile& st, const Player& player, const std::vector<Box>& boxes)
+{
+    // Player
+    if (HasActivator(st.activators, Act_Player)) {
+        if (CheckCollisionBoxSphere(st.box, player.position, player.radius)){
+            return true;
+        }
 
-                }
+    }
 
-                OpenEventLockedDoors(); //any switch opens all even locked door for now. 
+    // Boxes
+    if (HasActivator(st.activators, Act_Box)) {
+        for (const Box& b : boxes) {
+            if (CheckCollisionBoxes(st.box, b.bounds)){
+                return true;
+            }
+
+        }
+    }
+
+
+    return false;
+}
+
+void DeactivateSwitch(const SwitchTile& st)
+{
+    if (st.lockType == LockType::Event)
+    {
+        for (Door& door : doors) {
+            if (door.requiredKey == KeyType::Event) {
+                door.isLocked = true;
+                door.isOpen   = false;
+                walkable[door.tileX][door.tileY]    = false;
+                walkableBat[door.tileX][door.tileY] = false;
             }
         }
     }
 }
 
 
+// void DeactivateSwitch(const SwitchTile& st)
+// {
+//     SoundManager::GetInstance().PlaySoundAtPosition("doorClose", st.position, player.position, 0.0f, 3000.0f);
+//     for (Door& door : doors) {
+//         door.isLocked = true;
+//         door.isOpen   = false;
+//         walkable[door.tileX][door.tileY]    = false;
+//         walkableBat[door.tileX][door.tileY] = false;
+    
+//     }
+    
+// }
+
+void ActivateSwitch(const SwitchTile& st)
+{
+    SoundManager::GetInstance().PlaySoundAtPosition("doorOpen", st.position, player.position, 0.0f, 3000.0f);
+    auto UnlockDoors = [&](KeyType key){
+        for (Door& door : doors) {
+            if (door.requiredKey != key) continue;
+
+            door.isLocked = false;
+            door.isOpen   = true;
+            walkable[door.tileX][door.tileY]    = true;
+            walkableBat[door.tileX][door.tileY] = true;
+        }
+    };
+
+    switch (st.lockType)
+    {
+        case LockType::Gold:
+            UnlockDoors(KeyType::Gold);
+            break;
+
+        case LockType::Silver:
+            UnlockDoors(KeyType::Silver);
+            break;
+
+        case LockType::Skeleton:
+            UnlockDoors(KeyType::Skeleton);
+            break;
+
+        case LockType::Event:
+            UnlockDoors(KeyType::Event);
+            OpenEventLockedDoors();
+            break;
+
+        default: break;
+    }
+}
+
+
+void SwitchCollision()
+{
+    for (SwitchTile& st : switches)
+    {
+        const bool pressedNow =
+            IsSwitchPressed(st, player, boxes);
+
+        // -------------------------
+        // ON ENTER (one-shot)
+        // -------------------------
+        if (st.mode == TriggerMode::OnEnter)
+        {
+            if (!st.triggered && pressedNow)
+            {
+                st.triggered = true;
+                ActivateSwitch(st);
+            }
+        }
+
+        // -------------------------
+        // WHILE HELD
+        // -------------------------
+        else if (st.mode == TriggerMode::WhileHeld)
+        {
+            // newly pressed
+            if (!st.triggered && pressedNow)
+            {
+                
+                st.triggered = true;
+                ActivateSwitch(st);
+            }
+            // just released
+            else if (st.triggered && !pressedNow)
+            {
+                
+                st.triggered = false;
+                DeactivateSwitch(st);
+            }
+        }
+    }
+}
+
 
 void launcherCollision(){
     for (LauncherTrap& launcher : launchers){
         if (CheckCollisionBoxSphere(launcher.bounds, player.position, player.radius)){
             ResolveBoxSphereCollision(launcher.bounds, player.position, player.radius);
+        }
+    }
+}
+
+void DungeonBoxCollision(){
+    for (Box& box : boxes){
+        if (CheckCollisionBoxSphere(box.bounds, player.position, player.radius)){
+            ResolveBoxSphereCollision(box.bounds, player.position, player.radius);
         }
     }
 }
@@ -1221,6 +1316,7 @@ void UpdateCollisions(Camera& camera){
     HandleMeleeHitboxCollision(camera);
     SpiderEggCollision();
     SwitchCollision();
+    DungeonBoxCollision();
 }
 
 

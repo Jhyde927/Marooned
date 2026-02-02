@@ -9,6 +9,8 @@ struct Portal
     BoundingBox box;    // trigger volume
     int tileX;
     int tileY;
+    int groupID;
+    Color tint;
 };
 
 // Holds and manages all portals in the current dungeon
@@ -27,7 +29,7 @@ namespace PortalSystem
     void Update(Vector3& playerPos, float playerRadius, float dt);
 
     // Debug draw (red cubes for now)
-    void DrawDebug();
+    void DrawDebug(Camera& camera);
 
     // Clear all portals (when unloading dungeon)
     void Clear();

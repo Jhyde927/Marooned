@@ -17,6 +17,7 @@
 #include "viewCone.h"
 #include <algorithm>
 #include "ui.h"
+#include "box.h"
 
 Texture2D ceilingVoidMaskTex;
 Texture2D ceilingMaskTex;
@@ -43,6 +44,7 @@ std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
 std::vector<WindowCollider> windowColliders;
 std::vector<SwitchTile> switches;
+std::vector<Box> boxes;
 
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
@@ -765,7 +767,7 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
 
             } else if (eventLocked) {
                 archway.eventLocked = true; //unlock on giant spider death ect..
-
+                archway.requiredKey = KeyType::Event;
             }else if (monsterDoor){
                 archway.isLocked = true;
                 archway.monster = true;
@@ -780,6 +782,12 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
 
     GenerateDoorsFromArchways();
 }
+
+// void UpdateBoxes(float deltaTime){
+//     for (Box& box : boxes){
+//         box.Update(deltaTime, player.position, player.forward, );
+//     }
+// }
 
 void UpdateMonsterDoors(float deltaTime){
     //update monster door timer
@@ -1312,59 +1320,20 @@ void GenerateSwitches(float baseY)
             SwitchTile st = {};
             st.position  = GetDungeonWorldPos(x, y, tileSize, baseY);
             st.triggered = false;
-            st.oneShot   = true;
+            st.mode = TriggerMode::WhileHeld;
+
+            st.activators = Act_Player | Act_Box;
             st.lockType  = LockTypeFromSwitchNeighborCount(idCount);
 
             // --- bounding box: 200x200x200 cube centered on pos (y from base to base+200) ---
             const float halfSize = 100.0f;
             st.box.min = { st.position.x - halfSize, st.position.y,         st.position.z - halfSize };
-            st.box.max = { st.position.x + halfSize, st.position.y + 200.0f, st.position.z + halfSize };
+            st.box.max = { st.position.x + halfSize, st.position.y + 25.0f, st.position.z + halfSize };
 
             switches.push_back(st);
         }
     }
 }
-
-
-
-// void GenerateSwitches(float baseY) {
-//     switches.clear();
-
-//     for (int y = 0; y < dungeonHeight; y++) {
-//         for (int x = 0; x < dungeonWidth; x++) {
-//             Color current = dungeonPixels[y * dungeonWidth + x];
-
-//             if (EqualsRGB(current, ColorOf(Code::Switch))) { // Ash Gray switch tile
-//                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
-
-//                 // Define bounding box as 200x200x200 cube centered on pos
-//                 float halfSize = 100.0f;
-//                 BoundingBox box;
-//                 box.min = {
-//                     pos.x - halfSize,
-//                     pos.y,
-//                     pos.z - halfSize
-//                 };
-//                 box.max = {
-//                     pos.x + halfSize,
-//                     pos.y + 200.0f,
-//                     pos.z + halfSize
-//                 };
-
-//                 SwitchTile st = {
-//                     pos, 
-//                     box,
-//                     false,
-//                     true
-//                 };
-
-//                 switches.push_back(st);
-
-
-//             }
-//         }
-//     }
-// }
 
 void GenerateChests(float baseY) {
     chestInstances.clear();
@@ -1985,9 +1954,33 @@ void GenerateLightSources(float baseY) {
     //Invisible light sources
     GenerateInvisibleLightSources(baseY);
 
+    //portals
+    for (Portal& p : portals){
+        LightSource L = MakeStaticTorch(p.position);
+        L.colorTint = ColorToV3(p.tint);
+        dungeonLights.push_back(L);
+
+    }
+
 }
 
+void GenerateBoxesFromImage(float baseY) {
 
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            if (EqualsRGB(current, ColorOf(Code::Box))) {
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                Box box = {BoxType::WoodenCrate, spawnPos};
+                boxes.push_back(box);
+
+            }
+
+        }
+
+    }
+}
 // Returns true if world point is inside the dungeon bounds.
 // world → image grid (with your X/Z flips baked in)
 inline bool WorldToGrid(const Vector3& worldPos,
@@ -2169,8 +2162,13 @@ void DrawDungeonBarrels() {
         DrawModelEx(modelToDraw, offsetPos, Vector3{0, 1, 0}, 0.0f, Vector3{350.0f, 350.0f, 350.0f}, barrel.tint); //scaled half size
         
     }
+}
 
-
+void DrawBoxes(){
+    for (const Box& box : boxes){
+        Vector3 offsetPos = {box.position.x, box.position.y + 20, box.position.z}; //move the barrel up a bit
+        DrawModelEx(R.GetModel("box"), offsetPos, Vector3{0, 1, 0}, 0.0f, Vector3{40.0f, 40.0f, 40.0f}, WHITE); //scaled half size
+    }
 }
 
 
@@ -2210,11 +2208,6 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
     }
 
-    // for (const WallInstance& window : windowWallInstances) {
-    //     if (!IsInViewCone(vp, window.position) && !debugInfo) continue;
-    //     DrawModelEx(R.GetModel("windowedWall"), window.position, Vector3{0, 1, 0}, window.rotationY, Vector3{700, 700, 700}, window.tint);
-    // }
-
 
     //Doorways
     for (const DoorwayInstance& d : doorways) { 
@@ -2223,7 +2216,7 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
         if (d.window){
             Vector3 dPos = {d.position.x, d.position.y, d.position.z};
-            DrawModelEx(R.GetModel("windowWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {500, 595, 500}, d.tint);
+            DrawModelEx(R.GetModel("windowWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {500, 620, 500}, d.tint);
         }else{
             Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
             DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
@@ -2253,13 +2246,17 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     if (drawCeiling && isDungeon){
         DrawModelEx(R.GetModel("ceilingPlane"), Vector3 {scale/2, ceilingHeight, scale/2}, {0,1,0}, 0.0f, Vector3{scale, scale, scale}, WHITE); 
     } 
-    // for (CeilingTile& tile : ceilingTiles){
-    //     if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
 
-    //     if (!drawCeiling) continue;
-    //     DrawModelEx(R.GetModel("floorTileGray"), tile.position, {1,0,0}, 180.0f, baseScale, tile.tint);
-    // }
-    //rlDisableBackfaceCulling();
+    //Switches
+    //I could have just scaled it here. 
+    for (const SwitchTile& s : switches){
+        
+        Vector3 raisedPos = {s.position.x, s.position.y + 20.0f, s.position.z};
+        Vector3 pressedPos = {s.position.x, s.position.y + 15.0f, s.position.z};
+        Vector3 triggerdPos = s.triggered ? pressedPos : raisedPos;
+        DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, WHITE);
+
+    }
 
 }
 
@@ -2485,6 +2482,8 @@ void ClearDungeon() {
     secretWalls.clear();
     invisibleWalls.clear(); //there aren't any invisible walls yet.
     windowColliders.clear(); 
+    PortalSystem::Clear();
+    switches.clear();
 
 
     for (ChestInstance& chest : chestInstances) {

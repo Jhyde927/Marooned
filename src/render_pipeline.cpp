@@ -171,11 +171,11 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         } else {
             //draw the dungeon
             DrawDungeonGeometry(camera, 8000);
-            PortalSystem::DrawDebug();
             DrawDungeonBarrels();
             DrawLaunchers();
             DrawDungeonChests();
             DrawDungeonPillars();
+            DrawBoxes();
             
             // for (WallRun& b : wallRunColliders){ //debug draw wall colliders
             //     DrawBoundingBox(b.bounds, WHITE);

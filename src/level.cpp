@@ -490,7 +490,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon24", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map28.png", //arena
+        "assets/maps/map28.png",
         {0.0f, 300.0f, 0.0f},
         90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -506,7 +506,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon25", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map29.png", //arena
+        "assets/maps/map29.png", //portal level 
         {0.0f, 300.0f, 0.0f},
         90.0f, //player rot
         {0.0f, 0.0f, 0.0f},

@@ -65,7 +65,8 @@ enum class Code {
     switchID,                // (0, 102, 85) Payne's Green
     Switch,                   // (178, 190, 181) Ash Gray
     PortalTile,                // (0, 180, 200) Deep Cyan
-    PortalID                  // (220, 140, 40) amber
+    PortalID,                  // (220, 140, 40) amber
+    Box,                      // (139, 69, 19) Saddle Brown
 
 };
 
@@ -134,6 +135,7 @@ constexpr Color ColorOf(Code c) {
         case Code::Hermit:                 return Make(110, 74, 45);
         case Code::PortalTile:             return Make(0, 180, 200);
         case Code::PortalID:               return Make(220, 140, 40);
+        case Code::Box:                    return Make(139, 69, 19);
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);

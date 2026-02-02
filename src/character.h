@@ -189,7 +189,7 @@ public:
     void BuildPathToPlayer();
     bool ChoosePatrolTarget();
     bool BuildPathTo(const Vector3& goalWorld);
-
+    void PlayDeathSound();
     void TakeDamage(int amount);
     void SetAnimation(int row, int frames, float speed, bool loop=true);
     void playRaptorSounds();

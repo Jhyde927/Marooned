@@ -62,7 +62,7 @@ int main() {
         if (deltaTime > 0.05f) deltaTime = 0.05f;   
         // Use the active camera everywhere:
         Camera3D& camera = CameraSystem::Get().Active();
-        UpdateFade(camera); //always update fade regardless of state
+        UpdateFade(camera, deltaTime); //always update fade regardless of state
 
 
 
@@ -139,6 +139,7 @@ int main() {
             UpdateLauncherTraps(deltaTime);
             UpdateMonsterDoors(deltaTime);
             UpdateDungeonChests();
+            
             UpdateSpiderEggs(deltaTime, player.position);
             UpdateDungeonTileFlags(player, deltaTime);
             ApplyEnemyLavaDPS();

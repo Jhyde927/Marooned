@@ -11,8 +11,25 @@
 #include "algorithm"
 #include "spiderEgg.h"
 #include "NPC.h"
+#include "portal.h"
+#include "utilities.h"
 
 std::vector<BillboardDrawRequest> billboardRequests;
+
+PortalPalette GetPortalPalette(int groupID){
+    switch (groupID)
+    {
+    case 0:
+        return { {0.0f, 0.25f, 1.0f}, {0.5f, 0.2f, 1.0f} }; 
+    case 1:
+        return { {0.10f, 0.90f, 0.25f}, {0.90f, 0.90f, 0.15f} };
+    case 2:
+        return {{1.00f, 0.10f, 0.10f}, {1.00f, 0.55f, 0.05f} };
+    default:
+        return  { {0.0f, 0.25f, 1.0f}, {0.5f, 0.2f, 1.0f} };
+
+    }
+}
 
 float GetAdjustedBillboardSize(float baseSize, float distance) {
     //billboard scalling is way to extreme because of the size of the world. compensate by enlarging it a tiny bit depending on distance. 
@@ -137,6 +154,33 @@ void GatherNPCs(Camera& camera)
             npc.flipX,   // flipX
             false,
             false
+        });
+    }
+}
+
+
+
+void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
+    for (const Portal& p : portals) {
+        float dist = Vector3Distance(camera.position, p.position);
+        Texture2D& pTex = R.GetTexture("whiteGradient");
+        Vector3 portalPos = {p.position.x, p.position.y+125.0f, p.position.z};
+        PortalPalette palette = GetPortalPalette(p.groupID);
+
+
+        billboardRequests.push_back({
+            Billboard_FacingCamera, 
+            portalPos,
+            pTex,
+            Rectangle{0, 0, (float)pTex.width, (float)pTex.height},
+            100.0f,
+            WHITE, //tint
+            dist,
+            0.0f,
+            false,
+            true,
+            false,
+            palette
         });
     }
 }
@@ -384,6 +428,22 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
     GatherCollectables(camera, collectables);
     GatherSpiderEggDrawRequests(camera);
     GatherGrapplePoint(camera);
+    GatherPortals(camera, portals);
+}
+
+void SetPortalShaderColor(Vector3 colorA, Vector3 colorB){
+    Shader& portalShader = R.GetShader("portalShader");
+    int locTint = GetShaderLocation(portalShader, "u_tint");
+    int locTintStrength = GetShaderLocation(portalShader, "u_tintStrength");
+
+    int locColorA = GetShaderLocation(portalShader, "u_colorA");
+    int locColorB = GetShaderLocation(portalShader, "u_colorB");
+    float strength = 0.1f; // or 0.6f for subtle
+    //SetShaderValue(R.GetShader("portalShader"), locTint, &tint, SHADER_UNIFORM_VEC3);
+    SetShaderValue(portalShader, locColorA, &colorA, SHADER_UNIFORM_VEC3);
+    SetShaderValue(portalShader, locColorB, &colorB, SHADER_UNIFORM_VEC3);
+    SetShaderValue(portalShader, locTintStrength, &strength, SHADER_UNIFORM_FLOAT);
+
 }
 
 void DrawTransparentDrawRequests(Camera& camera) {
@@ -397,7 +457,10 @@ void DrawTransparentDrawRequests(Camera& camera) {
         //use alpha cut out shader on everything. treeShader does the fog at a distance thing + alpha cutout
         if (!isDungeon) BeginShaderMode(R.GetShader("treeShader"));
         if (isDungeon) BeginShaderMode(R.GetShader("cutoutShader"));
+        float aspect = (float)req.texture.height / (float)req.texture.width; // 2.0 for 512x1024
 
+        float sizeY = req.isPortal ? req.size * aspect : req.size; //HACK, make portals twice as tall.
+        Vector2 worldSize = { req.size, sizeY };
 
         Rectangle src = req.sourceRect;
         if (req.flipX) {
@@ -407,15 +470,17 @@ void DrawTransparentDrawRequests(Camera& camera) {
         switch (req.type) {
             case Billboard_FacingCamera: //use draw billboard for both decals, and enemies. 
             case Billboard_Decal:
+                SetPortalShaderColor(req.pallet.colorA, req.pallet.colorB);
+                if (req.isPortal) BeginShaderMode(R.GetShader("portalShader")); 
                 DrawBillboardRec(
                     camera,
                     (req.texture),
                     src,
                     req.position,
-                    Vector2{req.size, req.size},
+                    worldSize,
                     req.tint
                 );
-                
+                EndShaderMode();
                 break;
             case Billboard_FixedFlat: //special case for webs
                 DrawFlatWeb(

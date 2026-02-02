@@ -17,6 +17,7 @@
 #include "heightmapPathfinding.h"
 #include "main_menu.h"
 #include "NPC.h"
+#include "portal.h"
 
 enum class GameState {
     Menu,
@@ -103,6 +104,7 @@ extern std::vector<Collectable> collectables;
 extern std::vector<MuzzleFlash> activeMuzzleFlashes;
 extern std::vector<PreviewInfo> levelPreviews;
 extern std::vector<CollectableWeapon> worldWeapons;
+extern std::vector<Portal> portals;
 //extern std::vector<std::unique_ptr<Character>> enemies;
 extern std::vector<Character> enemies;  
 extern std::vector<Character*> enemyPtrs;
@@ -112,7 +114,7 @@ Character* FindEnemyById(int id);
 void ClearLevel();
 void InitLevel(LevelData& level, Camera& camera);
 void InitDungeonLights();
-void UpdateFade(Camera& camera);
+void UpdateFade(Camera& camera, float deltaTime);
 void removeAllCharacters();
 void generateRaptors(int amount, Vector3 centerPos, float radius);
 void generateDactyls(int amount, Vector3 centerPos, float radius);
@@ -140,6 +142,7 @@ float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terra
 void PlayerSwipeDecal(Camera& camera);
 void UpdateWorldFrame(float dt, Player& player);
 void StartFadeOutToLevel(int levelIndex);
+void StartFadeOutFromTeleport();
 void StartFadeInFromBlack(); 
 void OpenEventLockedDoors();
 void InitOverworldWeapons();

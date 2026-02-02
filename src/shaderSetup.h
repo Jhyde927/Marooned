@@ -33,8 +33,11 @@ namespace ShaderSetup
         float rings         = 0.7f;
         float glowBoost     = 0.8f;
 
-        Vector3 colorA      = { 0.0f, 0.25f, 1.0f };
-        Vector3 colorB      = { 0.5f, 0.2f,  1.0f };
+        Vector3 colorA = { 0.5f, 0.5f, 0.5f }; //gray
+        Vector3 colorB = { 0.1f, 0.1f, 0.1f };
+
+        // Vector3 colorA      = { 0.0f, 0.25f, 1.0f }; //purplish pink
+        // Vector3 colorB      = { 0.5f, 0.2f,  1.0f };
     };
 
 

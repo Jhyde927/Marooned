@@ -151,6 +151,39 @@ void Character::ApplyAreaDamage(){
 
 }
 
+void Character::PlayDeathSound() {
+    switch (type)
+    {
+
+    case CharacterType::Raptor:
+    case CharacterType::Pterodactyl:
+    case CharacterType::GiantSpider:
+        SoundManager::GetInstance().PlaySoundAtPosition("dinoDeath", position, player.position, 0.0f, 3000);
+        break;
+
+    case CharacterType::Skeleton:
+        SoundManager::GetInstance().PlaySoundAtPosition("bones", position, player.position, 0.0f, 3000);
+        SoundManager::GetInstance().PlaySoundAtPosition("dinoDeath", position, player.position, 0.0f, 3000);
+        break;
+
+    case CharacterType::Spider:
+        SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
+        break;
+
+    case CharacterType::Pirate:
+        if (GetRandomValue(0,1) > 0){
+            SoundManager::GetInstance().PlaySoundAtPosition("pirateDeath", position, player.position, 0.0f, 3000);
+        }else{
+            SoundManager::GetInstance().PlaySoundAtPosition("deathScream", position, player.position, 0.0f, 3000);
+        }
+
+
+    default:
+        break;
+    }
+
+}
+
 void Character::TakeDamage(int amount) {
     if (isDead) return;
     if (amount <= 0) return;
@@ -208,12 +241,9 @@ void Character::TakeDamage(int amount) {
 
         ChangeState(CharacterState::Death);
 
+        PlayDeathSound();
 
-
-
-        if (type != CharacterType::Spider)  SoundManager::GetInstance().PlaySoundAtPosition("dinoDeath", position, player.position, 0.0f, 3000);
-        if (type == CharacterType::Skeleton) SoundManager::GetInstance().PlaySoundAtPosition("bones", position, player.position, 0.0f, 3000);
-        if (type == CharacterType::Spider) SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
+        
      
     } else {
         hitTimer = 0.5f; //tint red

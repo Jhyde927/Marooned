@@ -14,6 +14,7 @@
 #include "array"
 #include "utilities.h"
 #include "pathfinding.h"
+#include "box.h"
 
 Weapon weapon;
 MeleeWeapon meleeWeapon;
@@ -53,6 +54,9 @@ void InitPlayer(Player& player, Vector3 startPosition) {
     
 }
 
+
+
+
 static inline Vector3 FootSample(const Player& p, float offX, float offZ)
 {
     Vector3 s = p.position;
@@ -62,6 +66,79 @@ static inline Vector3 FootSample(const Player& p, float offX, float offZ)
     // y not needed for tile lookup; keep it for completeness
     return s;
 }
+
+void UpdateBoxInteraction(Player& player)
+{
+    // 1) Read input ONCE
+    const bool ePressed = IsKeyPressed(KEY_E);
+
+    // Clear intents each frame (so they're edge-triggered)
+    player.interactPressed = false;
+    player.dropPressed     = false;
+
+    // 2) If carrying: only update the carried box
+    if (player.isCarrying && player.carriedBox)
+    {
+        if (ePressed) player.dropPressed = true;
+
+        // Compute the tile center you want to drop onto (your grid math)
+        Vector2 tilePos = WorldToImageCoords(player.carriedBox->position);
+        Vector3 dropTileCenter = GetDungeonWorldPos(tilePos.x, tilePos.y, tileSize, floorHeight);
+
+        player.carriedBox->Update(
+            GetFrameTime(),
+            player.position,
+            player.forward,      // however you store it
+            player.rotation,
+            false,               // interactPressed (not needed if you use dropPressed)
+            player.dropPressed,
+            dropTileCenter
+        );
+
+        // If box dropped, clear carry state (you can also detect via box->state)
+        if (player.carriedBox->state == BoxState::OnGround)
+        {
+            player.isCarrying = false;
+            player.carriedBox = nullptr;
+        }
+
+        return; // important: don't also try to pick up another box this frame
+    }
+
+    // 3) Not carrying: find ONE target box (closest in pickup radius)
+    Box* best = nullptr;
+    float bestDistSq = 1e30f;
+
+    for (Box& box : boxes)
+    {
+        if (!box.CanPickup(player.position)) continue;
+
+        float dSq = Vector3DistanceSqr(player.position, box.position);
+        if (dSq < bestDistSq)
+        {
+            bestDistSq  = dSq;
+            best        = &box;
+        }
+    }
+
+    if (!best) return;
+
+    // 4) Attempt pickup ONLY if E pressed
+    if (ePressed)
+    {
+        player.interactPressed = true;
+
+        // You can either call Pickup() directly...
+        best->Pickup();
+
+        // ...or call best->Update(...) with interactPressed=true if you prefer.
+        // (If you do that, don't also call Pickup() here.)
+
+        player.isCarrying = true;
+        player.carriedBox = best;
+    }
+}
+
 
 void UpdatePlayerGrapple(Player& player, float dt)
 {
@@ -704,7 +781,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     HandleMouseLook(deltaTime);
     TriggerMonsterDoors();
     UpdateWeapons(deltaTime);
-
+    UpdateBoxInteraction(player);
     UpdateMeleeHitbox(camera);
     UpdateFootsteps(deltaTime);
 
@@ -1060,6 +1137,7 @@ void DrawPlayer(const Player& player, Camera& camera) {
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
         DrawBoundingBox(player.GetBoundingBox(), RED);
+        DrawSphere(player.position, player.radius, RED);
     }
 
     if (player.debugShowFootSamples)
