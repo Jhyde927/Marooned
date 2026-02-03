@@ -62,11 +62,14 @@ enum class Code {
     Bat,                      // (75, 0, 130) Deep Purple
     bloatBat,                 // (110, 0, 110) Bruised Purple
     Hermit,                   // (110, 74, 45) Weathered Oak
+    SwitchInvis,               // (159, 226, 191) seafoam green
+    SwitchFire,               // (255, 99, 71) tomato
     switchID,                // (0, 102, 85) Payne's Green
     Switch,                   // (178, 190, 181) Ash Gray
     PortalTile,                // (0, 180, 200) Deep Cyan
     PortalID,                  // (220, 140, 40) amber
     Box,                      // (139, 69, 19) Saddle Brown
+
 
 };
 
@@ -130,6 +133,8 @@ constexpr Color ColorOf(Code c) {
         case Code::SkeletonDoor:           return Make(230, 225, 200);
         case Code::Bat:                    return Make(75, 0, 130);
         case Code::bloatBat:               return Make(110, 0, 110);
+        case Code::SwitchInvis:            return Make(159, 226, 191);
+        case Code::SwitchFire:             return Make(255, 99, 71);
         case Code::switchID:               return Make(0, 102, 85);
         case Code::Switch:                 return Make(178, 190, 181);
         case Code::Hermit:                 return Make(110, 74, 45);

@@ -10,8 +10,82 @@
 #include "collisions.h"
 #include "miniMap.h"
 #include "lighting.h"
+#include "utilities.h"
 
 
+
+
+
+static BoundingBox MakeBoxAABBAt(const Box& box, Vector3 pos)
+{
+    float half = 50.0f * box.scale;     // match your UpdateBounds() half-size
+    float h    = 100.0f * box.scale;
+
+    BoundingBox bb;
+    bb.min = { pos.x - half, pos.y,       pos.z - half };
+    bb.max = { pos.x + half, pos.y + h,   pos.z + half };
+    return bb;
+}
+
+// Returns a corrected position that does NOT overlap any wall boxes, by clamping along one axis.
+static float ClampAxisAgainstWalls(
+    float startAxis, float desiredAxis,
+    Vector3 basePos,              // position containing the other axes already chosen
+    bool clampX,                  // true: move along X, false: move along Z
+    const Box& box,
+    const std::vector<BoundingBox>& wallBoxes)
+{
+    float outAxis = desiredAxis;
+
+    // Build candidate position with the proposed axis change
+    Vector3 candPos = basePos;
+    if (clampX) candPos.x = outAxis;
+    else        candPos.z = outAxis;
+
+    BoundingBox candBB = MakeBoxAABBAt(box, candPos);
+
+    for (const BoundingBox& w : wallBoxes)
+    {
+        if (!CheckCollisionBoxes(candBB, w)) continue;
+
+        // We collided. Push back to the closest non-penetrating position along that axis.
+        // Determine direction of motion:
+        float delta = desiredAxis - startAxis;
+
+        if (clampX)
+        {
+            if (delta > 0.0f) {
+                // Moving +X: clamp our max.x to wall min.x
+                float half = 50.0f * box.scale;
+                outAxis = w.min.x - half;
+            } else if (delta < 0.0f) {
+                // Moving -X: clamp our min.x to wall max.x
+                float half = 50.0f * box.scale;
+                outAxis = w.max.x + half;
+            }
+        }
+        else
+        {
+            if (delta > 0.0f) {
+                // Moving +Z: clamp our max.z to wall min.z
+                float half = 50.0f * box.scale;
+                outAxis = w.min.z - half;
+            } else if (delta < 0.0f) {
+                // Moving -Z: clamp our min.z to wall max.z
+                float half = 50.0f * box.scale;
+                outAxis = w.max.z + half;
+            }
+        }
+
+        // Update candidate after clamping, and rebuild BB for subsequent walls
+        if (clampX) candPos.x = outAxis;
+        else        candPos.z = outAxis;
+
+        candBB = MakeBoxAABBAt(box, candPos);
+    }
+
+    return outAxis;
+}
 
 
 bool CheckCollisionPointBox(Vector3 point, BoundingBox box) {
@@ -191,47 +265,64 @@ bool IsSwitchPressed(const SwitchTile& st, const Player& player, const std::vect
 
         }
     }
+    //fireballs
+    if (HasActivator(st.activators, Act_Fireball)) {
+        for (Bullet& b : activeBullets) {
+            if (CheckCollisionBoxSphere(st.box, b.position, b.radius) && b.type == BulletType::Fireball){
+                Camera& camera = CameraSystem::Get().Active();
+                b.Explode(camera);
+                return true;
+            }
+
+        }
+    }
 
 
     return false;
 }
 
-void DeactivateSwitch(const SwitchTile& st)
+static KeyType KeyTypeFromLockType(LockType lt)
 {
-    if (st.lockType == LockType::Event)
+    switch (lt)
     {
-        for (Door& door : doors) {
-            if (door.requiredKey == KeyType::Event) {
-                door.isLocked = true;
-                door.isOpen   = false;
-                walkable[door.tileX][door.tileY]    = false;
-                walkableBat[door.tileX][door.tileY] = false;
-            }
-        }
+        case LockType::Gold:     return KeyType::Gold;
+        case LockType::Silver:   return KeyType::Silver;
+        case LockType::Skeleton: return KeyType::Skeleton;
+        case LockType::Event:    return KeyType::Event;
+        default:                 return KeyType::None; // or a sentinel
     }
 }
 
 
-// void DeactivateSwitch(const SwitchTile& st)
-// {
-//     SoundManager::GetInstance().PlaySoundAtPosition("doorClose", st.position, player.position, 0.0f, 3000.0f);
-//     for (Door& door : doors) {
-//         door.isLocked = true;
-//         door.isOpen   = false;
-//         walkable[door.tileX][door.tileY]    = false;
-//         walkableBat[door.tileX][door.tileY] = false;
-    
-//     }
-    
-// }
+void DeactivateSwitch(const SwitchTile& st)
+{
+    const KeyType key = KeyTypeFromLockType(st.lockType);
+    if (key == KeyType::None) return;
+
+    for (Door& door : doors)
+    {
+        if (door.requiredKey != key) continue;
+
+        SoundManager::GetInstance().PlaySoundAtPosition(
+            "doorClose", door.position, player.position, 0.0f, 3000.0f);
+
+        door.isLocked = true;
+        door.isOpen   = false;
+
+        walkable[door.tileX][door.tileY]    = false;
+        walkableBat[door.tileX][door.tileY] = false;
+    }
+}
+
+
 
 void ActivateSwitch(const SwitchTile& st)
 {
-    SoundManager::GetInstance().PlaySoundAtPosition("doorOpen", st.position, player.position, 0.0f, 3000.0f);
+    
     auto UnlockDoors = [&](KeyType key){
         for (Door& door : doors) {
             if (door.requiredKey != key) continue;
-
+            SoundManager::GetInstance().PlaySoundAtPosition("doorOpen", door.position, player.position, 0.0f, 3000.0f);
             door.isLocked = false;
             door.isOpen   = true;
             walkable[door.tileX][door.tileY]    = true;
@@ -255,7 +346,7 @@ void ActivateSwitch(const SwitchTile& st)
 
         case LockType::Event:
             UnlockDoors(KeyType::Event);
-            OpenEventLockedDoors();
+            //OpenEventLockedDoors();
             break;
 
         default: break;
@@ -378,6 +469,8 @@ void WallCollision(){
         if (CheckCollisionBoxSphere(run.bounds, player.position, player.radius)) { //player wall collision
             ResolveBoxSphereCollision(run.bounds, player.position, player.radius);
         }
+
+
     }
 
     for (WindowCollider& wc : windowColliders) {
@@ -887,7 +980,7 @@ void CheckBulletHits(Camera& camera) {
         }
 
         for (Collectable& c : collectables)
-{
+        {
             // Optional: don't harpoon the harpoon pickup itself
             //if (c.type == CollectableType::Harpoon) continue;
 
@@ -963,10 +1056,24 @@ void CheckBulletHits(Camera& camera) {
             }
         }
 
+        //Moveable boxes
+        for (const Box& box : boxes){
+            if (CheckCollisionBoxSphere(box.bounds, b.position, b.radius) && b.type == BulletType::Fireball){
+                if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
+                    b.Explode(camera);
+                    break;
+                }else{ //normal bullets
+                    Vector3 n = AABBHitNormal(box.bounds, b.position);
+                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                    break;
+
+                }
+            }
+        }
 
 
         // 🔹 6. Hit pillars
-        for (PillarInstance& pillar : pillars) {
+        for (const PillarInstance& pillar : pillars) {
             if (CheckCollisionPointBox(pos, pillar.bounds)) {
                 if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
                     b.Explode(camera);
@@ -999,6 +1106,8 @@ void CheckBulletHits(Camera& camera) {
         if (HandleBarrelHitsForBullet(b, camera)){
             break; //check bullets last
         }
+
+        
 
         
 
@@ -1219,7 +1328,8 @@ void HandleDoorInteraction(Camera& camera) {
     if (!isWaiting && IsKeyPressed(KEY_E) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)) {
         for (size_t i = 0; i < doors.size(); ++i) {
             float distanceTo = Vector3Distance(doors[i].position, player.position);
-            if (distanceTo < 250) {
+            bool facingDoor = IsFacingTarget2D(player.position, player.forward, doors[i].position, 0.45);
+            if (distanceTo < 250 && facingDoor) {
 
                 if (doors[i].eventLocked){ //no access until world event triggers OpenEventLockedDoors()
                     SoundManager::GetInstance().Play("lockedDoor");

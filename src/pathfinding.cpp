@@ -112,9 +112,10 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool silver = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
             bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey))); //skeleton doors
             bool eventLocked = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked doors
+            bool boxes = (EqualsRGB(c, ColorOf(Code::Box)));
             //secret walls? 
 
-            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || eventLocked);
+            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || eventLocked || boxes);
 
             walkableBat[x][y] = !(black || purple || aqua || window || silver || skeleton || eventLocked || blue || yellow); //bats cant fly over barrels for reasons
         }   //bats can fly through windows? sure.
@@ -177,8 +178,29 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
     bool silver   = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
     bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey))); //skeleton key door
     bool event    = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked door
+    bool boxes = (EqualsRGB(c, ColorOf(Code::Box)));
 
-    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || event);
+    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || event || boxes);
+}
+
+void SetTileWalkable(int x, int y, bool batAlso)
+{
+    if (!InBounds(x, y, dungeonWidth, dungeonHeight)) return;
+
+    walkable[x][y] = true;
+
+    if (batAlso)
+        walkableBat[x][y] = true;
+}
+
+void SetTileUnwalkable(int x, int y, bool batAlso)
+{
+    if (!InBounds(x, y, dungeonWidth, dungeonHeight)) return;
+
+    walkable[x][y] = false;
+
+    if (batAlso)
+        walkableBat[x][y] = false;
 }
 
 

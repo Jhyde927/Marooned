@@ -10,6 +10,8 @@ class Character;
 void ConvertImageToWalkableGrid(const Image& dungeonMap);
 Vector2 WorldToImageCoords(Vector3 worldPos);
 bool IsWalkable(int x, int y, const Image& dungeonMap);
+void SetTileWalkable(int x, int y, bool batAlso = false);
+void SetTileUnwalkable(int x, int y, bool batAlso = true);
 bool IsSeeThroughForLOS(int x, int y);
 bool IsLavaTile(int x, int y);
 bool CanSeeDoorTile(int x0, int y0, int x1, int y1);
@@ -40,7 +42,7 @@ Vector3 ArriveXZ(const Vector3& pos, const Vector3& target, float maxSpeed, floa
 Vector3 SeekXZ(const Vector3& pos, const Vector3& target, float maxSpeed);
 Vector3 FleeXZ(const Vector3& pos, const Vector3& threat, float maxSpeed);
 Vector3 WanderXZ(float& wanderAngle, float wanderTurnRate, float wanderSpeed, float dt);
-Vector3 OrbitXZ(const Vector3& pos, const Vector3& target, float orbitRadius, int clockwise,float tangentGain, float radialGain,float maxSpeed);
+
 
 bool StopAtWaterEdge(const Vector3& pos,Vector3& desiredVel, float waterLevel, float dt);
 bool IsWaterAtXZ(float x, float z, float waterLevel);

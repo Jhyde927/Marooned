@@ -222,3 +222,37 @@ Rectangle FitTextureDest(const Texture2D& tex, int screenW, int screenH, bool co
 
     return Rectangle{ dx, dy, dw, dh };
 }
+
+// Returns true if targetPos is within a forward-facing cone from origin.
+// - forward should be the player's facing direction (can include pitch; we'll flatten it)
+// - maxDist is a hard distance cutoff
+// - minDot controls cone width: 0.5 ~ 60deg, 0.35 ~ 70deg, 0.7 ~ 45deg
+bool IsFacingTarget2D(Vector3 origin, Vector3 forward, Vector3 targetPos, float minDot)
+{
+    Vector3 to = Vector3Subtract(targetPos, origin);
+
+    // flatten to XZ
+    to.y = 0.0f;
+    forward.y = 0.0f;
+
+    float toLenSq = Vector3DotProduct(to, to);
+    if (toLenSq < 0.000001f) {
+        return false; // if we're basically on top of it, don't auto-true
+    }
+
+
+    float invToLen = 1.0f / sqrtf(toLenSq);
+    to = Vector3Scale(to, invToLen);
+
+    float fLenSq = Vector3DotProduct(forward, forward);
+    if (fLenSq < 0.000001f){
+        return false;
+    }
+
+
+    float invFLen = 1.0f / sqrtf(fLenSq);
+    forward = Vector3Scale(forward, invFLen);
+
+    float dot = Vector3DotProduct(forward, to);
+    return dot >= minDot;
+}

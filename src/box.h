@@ -24,7 +24,8 @@ public:
     BoxState state = BoxState::OnGround;
 
     // --- Transform ---
-    Vector3 position {0, 0, 0};
+    Vector3 position = {0, 0, 0};
+    Vector3 startPosition = {0, 0, 0};
     float   rotationY = 0.0f;
     float   scale     = 1.0f;
 

@@ -15,12 +15,12 @@
 #include "utilities.h"
 #include "pathfinding.h"
 #include "box.h"
+#include "utilities.h"
 
 Weapon weapon;
 MeleeWeapon meleeWeapon;
 MagicStaff magicStaff;
 Crossbow crossbow;
-
 
 
 //Refactor this whole mess at some point. 
@@ -67,7 +67,7 @@ static inline Vector3 FootSample(const Player& p, float offX, float offZ)
     return s;
 }
 
-void UpdateBoxInteraction(Player& player)
+void UpdateBoxInteraction(Player& player, float deltaTime)
 {
     // 1) Read input ONCE
     const bool ePressed = IsKeyPressed(KEY_E);
@@ -80,6 +80,7 @@ void UpdateBoxInteraction(Player& player)
     if (player.isCarrying && player.carriedBox)
     {
         if (ePressed) player.dropPressed = true;
+        if (player.dying && player.isCarrying) player.dropPressed = true;
 
         // Compute the tile center you want to drop onto (your grid math)
         Vector2 tilePos = WorldToImageCoords(player.carriedBox->position);
@@ -90,7 +91,7 @@ void UpdateBoxInteraction(Player& player)
             player.position,
             player.forward,      // however you store it
             player.rotation,
-            false,               // interactPressed (not needed if you use dropPressed)
+            player.interactPressed,               // interactPressed (not needed if you use dropPressed)
             player.dropPressed,
             dropTileCenter
         );
@@ -129,7 +130,10 @@ void UpdateBoxInteraction(Player& player)
         player.interactPressed = true;
 
         // You can either call Pickup() directly...
-        best->Pickup();
+        if (IsFacingTarget2D(player.position, player.forward, best->position, 0.45)){
+            best->Pickup();
+        }
+
 
         // ...or call best->Update(...) with interactPressed=true if you prefer.
         // (If you do that, don't also call Pickup() here.)
@@ -238,15 +242,23 @@ bool ShouldRun(const Vector2& wish, bool canRun)
     if (!canRun) return false;
 
     // Keyboard sprint always wins
-    if (IsKeyDown(KEY_LEFT_SHIFT))
+    if (IsKeyDown(KEY_LEFT_SHIFT)){
         return true;
+    }
 
-    // Analog sprint: full stick push
-    const float RUN_THRESHOLD = 0.85f;
 
-    float wishLen = Vector2Length(wish);
+    if (IsGamepadAvailable(0)){
+        // Analog sprint: full stick push
+        const float RUN_THRESHOLD = 0.85f;
 
-    return wishLen > RUN_THRESHOLD;
+        float wishLen = Vector2Length(wish);
+
+        return wishLen > RUN_THRESHOLD;
+
+    }
+
+    return false;
+
 }
 
 
@@ -330,8 +342,6 @@ void HandlePlayerMovement(float deltaTime){
     
     player.position = Vector3Add(player.position, Vector3Scale(player.velocity, dt)); //apply movement
     
-    
-
 }
 
 void WeaponDip(){
@@ -781,7 +791,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     HandleMouseLook(deltaTime);
     TriggerMonsterDoors();
     UpdateWeapons(deltaTime);
-    UpdateBoxInteraction(player);
+    UpdateBoxInteraction(player, deltaTime);
     UpdateMeleeHitbox(camera);
     UpdateFootsteps(deltaTime);
 
@@ -839,7 +849,6 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     if (player.dying) {
 
         player.deathTimer += deltaTime;
-
         //player.canMove = false;
         vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe. 
         vignetteFade = 0.0f;
@@ -1137,7 +1146,7 @@ void DrawPlayer(const Player& player, Camera& camera) {
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
         DrawBoundingBox(player.GetBoundingBox(), RED);
-        DrawSphere(player.position, player.radius, RED);
+
     }
 
     if (player.debugShowFootSamples)

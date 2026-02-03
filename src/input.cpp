@@ -58,6 +58,10 @@ void debugControls(Camera& camera, float deltaTime){
             MovePlayerToFreeCam();
         }
 
+        if (IsKeyPressed(KEY_O)){
+            DebugOpenAllDoors();
+        }
+
         if (IsKeyPressed(KEY_APOSTROPHE)){ //hide ceiling for better screenshots. 
             drawCeiling = !drawCeiling; //maybe just don't draw ceiling ever in free cam. 
         }
@@ -115,6 +119,11 @@ void HandleMouseLook(float deltaTime){
     player.rotation.y -= mouseDelta.x * mouseSensitivity;
     player.rotation.x -= mouseDelta.y * mouseSensitivity;
     player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
+
+
+    // --- ALWAYS recompute forward from yaw ---
+    float yaw = DEG2RAD * player.rotation.y;
+    player.forward = Vector3Normalize({ sinf(yaw), 0.0f, cosf(yaw) });
     
 }
 

@@ -21,9 +21,14 @@ enum class TriggerMode { OnEnter, WhileHeld };
 enum Activator : uint32_t {
     Act_Player = 1 << 0,
     Act_Box    = 1 << 1,
-    Act_Enemy  = 1 << 2,
+    Act_Fireball  = 1 << 2,
 };
 
+enum class SwitchKind {
+    FloorPlate,      // visible pressure pad, overlap/held
+    InvisibleTrigger,// invisible overlap trigger (your old switches)
+    FireballTarget   // hit by fireball (impact), maybe wall-mounted rune
+};
 
 enum class FloorType {
     Normal,
@@ -95,6 +100,8 @@ struct SwitchTile {
 
     TriggerMode mode = TriggerMode::OnEnter;
     uint32_t activators = Act_Box | Act_Player; // default behavior matches your current invisible switch
+
+    SwitchKind kind = SwitchKind::FloorPlate;
 
     bool triggered = false;      // for OnEnter
     bool isPressed = false;      // for WhileHeld
@@ -404,5 +411,10 @@ bool IsLava(int gx, int gy);
 bool IsVoid(int gx, int gy);
 int GetDoorIndexAtTile(int nx, int nz);
 bool TileNearSolid(int tx, int tz);
-void ClearDungeon();
+void DebugOpenAllDoors();
+
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);
+std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired);
+
+
+void ClearDungeon();

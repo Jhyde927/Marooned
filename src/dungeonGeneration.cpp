@@ -110,6 +110,53 @@ using namespace dungeon;
 // Epsilon for float compares
 static inline bool NearlyEq(float a, float b, float eps = 1e-4f) { return fabsf(a - b) < eps; }
 
+
+void DebugOpenAllDoors(){
+    for (Door& door : doors){
+        door.isOpen = true;
+        door.isLocked = false;
+        walkable[door.tileX][door.tileY]    = false;
+        walkableBat[door.tileX][door.tileY] = false;
+
+    }
+}
+
+BoundingBox MakeSwitchBox(const Vector3& pos, SwitchKind kind, float tileSize, float baseY)
+{
+    BoundingBox b{};
+
+    switch (kind)
+    {
+        case SwitchKind::FloorPlate:
+        {
+            const float half = tileSize * 0.5f; // 100 if tileSize=200
+            b.min = { pos.x - half, pos.y,          pos.z - half };
+            b.max = { pos.x + half, pos.y + 25.0f,  pos.z + half };
+        } break;
+
+        case SwitchKind::InvisibleTrigger:
+        {
+            const float half = tileSize * 0.5f;
+            b.min = { pos.x - half, pos.y,          pos.z - half };
+            b.max = { pos.x + half, pos.y + 200.0f, pos.z + half }; // taller volume
+        } break;
+
+        case SwitchKind::FireballTarget:
+        {
+            // “thin slab” target, centered; you can later orient it based on adjacent wall
+            const float halfW = tileSize * 0.25f; // 50 if tileSize=200
+            const float halfH = tileSize * 0.35f; // 70 if tileSize=200
+            const float halfT = 8.0f;             // thickness
+
+            b.min = { pos.x - halfW, pos.y + 40.0f, pos.z - halfT };
+            b.max = { pos.x + halfW, pos.y + 40.0f + 2*halfH, pos.z + halfT };
+        } break;
+    }
+
+    return b;
+}
+
+
 Vector3 ColorToNormalized(Color color) {
     return (Vector3){
         color.r / 255.0f,
@@ -241,6 +288,86 @@ void UpdateDungeonChests() {
     }
 
 }
+
+static inline Vector3 BoxCenter(const BoundingBox& b)
+{
+    return {
+        (b.min.x + b.max.x) * 0.5f,
+        (b.min.y + b.max.y) * 0.5f,
+        (b.min.z + b.max.z) * 0.5f
+    };
+}
+
+std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired)
+{
+    std::vector<BoundingBox> out;
+
+    const float radius    = 400.0f; // 300 + padding
+    const float radiusSqr = radius * radius;
+
+    // Optional: reduce reallocs
+    out.reserve(wallRunColliders.size() + doors.size() * 3);
+
+    // --- wall runs ---
+    for (const WallRun& wall : wallRunColliders)
+    {
+        const Vector3 center = BoxCenter(wall.bounds);
+        if (Vector3DistanceSqr(center, desired) < radiusSqr)
+            out.push_back(wall.bounds);
+    }
+
+    // --- doors ---
+    for (const Door& door : doors)
+    {
+        // When closed, collide against the main door collider.
+        if (!door.isOpen)
+        {
+            const Vector3 center = BoxCenter(door.collider);
+            if (Vector3DistanceSqr(center, desired) < radiusSqr)
+                out.push_back(door.collider);
+        }
+        else
+        {
+            // When open, collide against the side colliders (door frame / jamb).
+            for (const BoundingBox& side : door.sideColliders)
+            {
+                const Vector3 center = BoxCenter(side);
+                if (Vector3DistanceSqr(center, desired) < radiusSqr)
+                    out.push_back(side);
+            }
+        }
+    }
+
+    return out;
+}
+
+
+// std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired)
+// {
+//     std::vector<BoundingBox> out;
+
+//     const float radius     = 400.0f; // 300 + padding
+//     const float radiusSqr  = radius * radius;
+
+//     for (const WallRun& wall : wallRunColliders)
+//     {
+//         // Use center of the wall bounds, not startPos
+//         Vector3 center = {
+//             (wall.bounds.min.x + wall.bounds.max.x) * 0.5f,
+//             (wall.bounds.min.y + wall.bounds.max.y) * 0.5f,
+//             (wall.bounds.min.z + wall.bounds.max.z) * 0.5f
+//         };
+
+//         float distSqr = Vector3DistanceSqr(center, desired);
+
+//         if (distSqr < radiusSqr)
+//         {
+//             out.push_back(wall.bounds);
+//         }
+//     }
+
+//     return out;
+// }
 
 
 
@@ -1247,6 +1374,42 @@ void GenerateBarrels(float baseY) {
     }
 }
 
+static bool HasOrthogonalNeighborWithColor(
+    const Color* pixels,
+    int w, int h,
+    int x, int y,
+    Color target)
+{
+    auto InBounds = [&](int ix, int iy) -> bool {
+        return (ix >= 0 && ix < w && iy >= 0 && iy < h);
+    };
+
+    // N
+    if (InBounds(x, y - 1)) {
+        if (EqualsRGB(pixels[(y - 1) * w + x], target))
+            return true;
+    }
+    // E
+    if (InBounds(x + 1, y)) {
+        if (EqualsRGB(pixels[y * w + (x + 1)], target))
+            return true;
+    }
+    // S
+    if (InBounds(x, y + 1)) {
+        if (EqualsRGB(pixels[(y + 1) * w + x], target))
+            return true;
+    }
+    // W
+    if (InBounds(x - 1, y)) {
+        if (EqualsRGB(pixels[y * w + (x - 1)], target))
+            return true;
+    }
+
+    return false;
+}
+
+
+
 static int CountOrthogonalNeighborsWithColor(
     const Color* pixels,
     int w, int h,
@@ -1291,44 +1454,66 @@ static LockType LockTypeFromSwitchNeighborCount(int n)
     return LockType::Event; // 3 or 4
 }
 
-
-
 void GenerateSwitches(float baseY)
 {
     switches.clear();
 
-    const Color cSwitch   = ColorOf(Code::Switch);   // Ash Gray
-    const Color cSwitchID = ColorOf(Code::switchID); // Payne's Green (0,102,85)
+    const Color cSwitch      = ColorOf(Code::Switch);     // anchor pixel
+    const Color cSwitchID    = ColorOf(Code::switchID);   // lock markers
+    const Color cSwitchFire  = ColorOf(Code::SwitchFire); // kind marker
+    const Color cSwitchInvis = ColorOf(Code::SwitchInvis);// kind marker
 
     for (int y = 0; y < dungeonHeight; y++)
     {
         for (int x = 0; x < dungeonWidth; x++)
         {
             Color current = dungeonPixels[y * dungeonWidth + x];
+            if (!EqualsRGB(current, cSwitch)) continue;
 
-            if (!EqualsRGB(current, cSwitch))
-                continue;
-
-            // --- decode lock type from adjacent SwitchID pixels ---
+            // ---- decode lock routing ----
             const int idCount = CountOrthogonalNeighborsWithColor(
-                dungeonPixels,
-                dungeonWidth, dungeonHeight,
-                x, y,
-                cSwitchID
+                dungeonPixels, dungeonWidth, dungeonHeight, x, y, cSwitchID
             );
+
+            // ---- decode kind (default FloorPlate) ----
+            SwitchKind kind = SwitchKind::FloorPlate;
+            if (HasOrthogonalNeighborWithColor(dungeonPixels, dungeonWidth, dungeonHeight, x, y, cSwitchFire))
+                kind = SwitchKind::FireballTarget;
+            else if (HasOrthogonalNeighborWithColor(dungeonPixels, dungeonWidth, dungeonHeight, x, y, cSwitchInvis))
+                kind = SwitchKind::InvisibleTrigger;
 
             SwitchTile st = {};
             st.position  = GetDungeonWorldPos(x, y, tileSize, baseY);
-            st.triggered = false;
-            st.mode = TriggerMode::WhileHeld;
-
-            st.activators = Act_Player | Act_Box;
             st.lockType  = LockTypeFromSwitchNeighborCount(idCount);
+            st.kind      = kind;
 
-            // --- bounding box: 200x200x200 cube centered on pos (y from base to base+200) ---
-            const float halfSize = 100.0f;
-            st.box.min = { st.position.x - halfSize, st.position.y,         st.position.z - halfSize };
-            st.box.max = { st.position.x + halfSize, st.position.y + 25.0f, st.position.z + halfSize };
+            // ---- per-kind defaults ----
+            switch (st.kind)
+            {
+                case SwitchKind::FloorPlate:
+                    st.mode       = TriggerMode::WhileHeld;
+                    st.activators = Act_Player | Act_Box;
+                    st.triggered  = false;
+                    st.isPressed  = false;
+                    break;
+
+                case SwitchKind::InvisibleTrigger:
+                    st.mode       = TriggerMode::OnEnter;
+                    st.activators = Act_Player;      // match your old invisible switch behavior
+                    st.triggered  = false;
+                    st.isPressed  = false;
+                    break;
+
+                case SwitchKind::FireballTarget:
+                    st.mode       = TriggerMode::OnEnter; // almost always what you want
+                    st.activators = Act_Fireball;
+                    st.triggered  = false;
+                    st.isPressed  = false;
+                    break;
+            }
+
+            // ---- collider shape depends on kind ----
+            st.box = MakeSwitchBox(st.position, st.kind, tileSize, baseY);
 
             switches.push_back(st);
         }
@@ -1973,8 +2158,8 @@ void GenerateBoxesFromImage(float baseY) {
             if (EqualsRGB(current, ColorOf(Code::Box))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 Box box = {BoxType::WoodenCrate, spawnPos};
+                box.startPosition = spawnPos; //remember starting position
                 boxes.push_back(box);
-
             }
 
         }
@@ -2168,6 +2353,7 @@ void DrawBoxes(){
     for (const Box& box : boxes){
         Vector3 offsetPos = {box.position.x, box.position.y + 20, box.position.z}; //move the barrel up a bit
         DrawModelEx(R.GetModel("box"), offsetPos, Vector3{0, 1, 0}, 0.0f, Vector3{40.0f, 40.0f, 40.0f}, WHITE); //scaled half size
+
     }
 }
 
@@ -2250,11 +2436,40 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     //Switches
     //I could have just scaled it here. 
     for (const SwitchTile& s : switches){
+
+        switch (s.kind)
+        {
+        case SwitchKind::FloorPlate:
+        {
+            Vector3 raisedPos = {s.position.x, s.position.y + 20.0f, s.position.z};
+            Vector3 pressedPos = {s.position.x, s.position.y + 15.0f, s.position.z};
+            Vector3 triggerdPos = s.triggered ? pressedPos : raisedPos;
+            DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, WHITE);
+            break;
+
+        }
+
+
+        case SwitchKind::FireballTarget:
+        {
+            DrawCube(s.position, 100, 400, 100, RED);
+            break;
+            
+        }
+
+
+        case SwitchKind::InvisibleTrigger:
+        {
+            break;
+        }
+
         
-        Vector3 raisedPos = {s.position.x, s.position.y + 20.0f, s.position.z};
-        Vector3 pressedPos = {s.position.x, s.position.y + 15.0f, s.position.z};
-        Vector3 triggerdPos = s.triggered ? pressedPos : raisedPos;
-        DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, WHITE);
+        default:
+        
+            break;
+        }
+    
+
 
     }
 
@@ -2484,6 +2699,7 @@ void ClearDungeon() {
     windowColliders.clear(); 
     PortalSystem::Clear();
     switches.clear();
+    boxes.clear();
 
 
     for (ChestInstance& chest : chestInstances) {
