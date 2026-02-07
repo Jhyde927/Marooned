@@ -13,22 +13,6 @@
 
 enum class KeyType { None, Gold, Silver, Skeleton, Event };
 
-enum class LockType {None, Gold, Silver, Skeleton, Event};
-
-enum class TriggerMode { OnEnter, WhileHeld };
-
-//floor switch
-enum Activator : uint32_t {
-    Act_Player = 1 << 0,
-    Act_Box    = 1 << 1,
-    Act_Fireball  = 1 << 2,
-};
-
-enum class SwitchKind {
-    FloorPlate,      // visible pressure pad, overlap/held
-    InvisibleTrigger,// invisible overlap trigger (your old switches)
-    FireballTarget   // hit by fireball (impact), maybe wall-mounted rune
-};
 
 enum class FloorType {
     Normal,
@@ -92,20 +76,7 @@ struct LightSample {
 };
 
 
-struct SwitchTile {
-    Vector3 position;
-    BoundingBox box;
 
-    LockType lockType = LockType::None;
-
-    TriggerMode mode = TriggerMode::OnEnter;
-    uint32_t activators = Act_Box | Act_Player; // default behavior matches your current invisible switch
-
-    SwitchKind kind = SwitchKind::FloorPlate;
-
-    bool triggered = false;      // for OnEnter
-    bool isPressed = false;      // for WhileHeld
-};
 
 struct GrapplePoint {
     Vector3 position;        // world-space anchor position
@@ -153,7 +124,6 @@ struct Door {
     Texture2D doorTexture;
     Vector3 scale = {100.0f, 200.0f, 1.0f}; // width, height, unused
     Color tint = WHITE;
-    float debugDoorOpenAngleDeg = 0.0f;
     int tileX; 
     int tileY;
     DoorType doorType = DoorType::Normal;
@@ -298,6 +268,13 @@ struct InvisibleWall {
 
 };
 
+struct DoorDelayedAction
+{
+    int   doorIndex = -1;
+    bool  open      = false;  // true=open, false=close
+    float t         = 0.0f;   // seconds remaining
+};
+
 extern Texture2D ceilingMaskTex;
 extern Texture2D ceilingVoidMaskTex;
 extern std::vector<uint8_t> lavaMask;
@@ -321,7 +298,7 @@ extern std::vector<SecretWall> secretWalls;
 extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 extern std::vector<WindowCollider> windowColliders;
-extern std::vector<SwitchTile> switches;
+
 extern std::vector<Box> boxes;
 
 
@@ -354,7 +331,7 @@ void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);
 void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
-void GenerateSwitches(float baseY);
+// void GenerateSwitches(float baseY);
 void GenerateHermitFromImage(float baseY);
 
 void GenerateGrapplePoints(float baseY);
@@ -412,7 +389,8 @@ bool IsVoid(int gx, int gy);
 int GetDoorIndexAtTile(int nx, int nz);
 bool TileNearSolid(int tx, int tz);
 void DebugOpenAllDoors();
-
+void ScheduleDoorAction(int doorIndex, bool open);
+void UpdateDoorDelayedActions(float dt);
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);
 std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired);
 

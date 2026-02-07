@@ -11,7 +11,7 @@
 using namespace dungeon;
 
 
-static constexpr float REVEAL_FADE_DURATION = 0.2f; // ~180 ms feels snappy
+static constexpr float REVEAL_FADE_DURATION = 0.2f; 
 
 MiniMap::MiniMap() {}
 MiniMap::~MiniMap()
@@ -125,16 +125,14 @@ Texture2D MiniMap::GenerateWallMaskTexture()
         }
     }
 
-    Image img = {
-        .data = pixels.data(),
-        .width = mapW,
-        .height = mapH,
-        .mipmaps = 1,
-        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
-    };
+    Image img{};
+    img.data     = pixels.data();
+    img.width    = mapW;
+    img.height   = mapH;
+    img.mipmaps  = 1;
+    img.format   = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
     Texture2D tex = LoadTextureFromImage(img);
-    // Do NOT UnloadImage(img) here; pixels is owned by std::vector
 
     return tex;
 }

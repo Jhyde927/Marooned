@@ -19,6 +19,8 @@
 #include "ui.h"
 #include "box.h"
 
+#include "switch_tile.h"
+
 Texture2D ceilingVoidMaskTex;
 Texture2D ceilingMaskTex;
 std::vector<uint8_t> voidMask;
@@ -43,11 +45,13 @@ std::vector<InvisibleWall> invisibleWalls;
 std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
 std::vector<WindowCollider> windowColliders;
-std::vector<SwitchTile> switches;
+//std::vector<SwitchTile> switches;
 std::vector<Box> boxes;
 
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
+static std::vector<DoorDelayedAction> gDoorDelayed;
+static constexpr float kDoorDelay = 0.25f;
 
 Image dungeonImg; //save the dungeon info globaly
 Color* dungeonPixels = nullptr;
@@ -60,52 +64,6 @@ float tickDamage = 0.5;
 size_t gStaticLightCount = 0; 
 
 using namespace dungeon;
-
-//Dungeon Legend
-
-//   Transparent = Void (no floor tiles)
-
-//⬛ Black = Wall
-
-//⬜ White = Floor (the whole dungeon is filled with floor not just white pixels)
-
-//🟩 Green = Player Start
-
-//🔵 Blue = Barrel
-
-//🟥 Red = Skeleton
-
-//🟨 Yellow = Light
-
-//🟪 Purple = Doorway (128, 0, 128)
-
-//   Teal = Dungeon Exit (0, 128, 128)
-
-//🟧 Orange = Next Level (255, 128, 0)
-
-//   Aqua = locked door (0, 255, 255)
-
-//   Magenta = Pirate (255, 0, 255)
-
-//💗 Pink = health pot (255, 105, 180)
-
-//⭐ Gold = key (255, 200, 0)
-
-//  Sky Blue = Chest (0, 128, 255)
-
-// ⚫ Dark Gray = Spider (64, 64, 64)
-
-//    light gray = spiderWeb (128, 128, 128)
-
-//    Dark Red = magicStaff (128, 0, 0)
-
-//    very light grey = ghost (200, 200, 200)
-
-//    Vermillion = launcherTrap (255, 66, 52)
-
-//    yellowish = direction pixel (200, 200, 0)
-
-//    medium yellow = timing pixel (200, 50, 0)/ (200, 100, 0)/ (200, 150, 0)
 
 // Epsilon for float compares
 static inline bool NearlyEq(float a, float b, float eps = 1e-4f) { return fabsf(a - b) < eps; }
@@ -121,39 +79,61 @@ void DebugOpenAllDoors(){
     }
 }
 
-BoundingBox MakeSwitchBox(const Vector3& pos, SwitchKind kind, float tileSize, float baseY)
+void ScheduleDoorAction(int doorIndex, bool open)
 {
-    BoundingBox b{};
+    if (doorIndex < 0 || doorIndex >= (int)doors.size()) return;
 
-    switch (kind)
+    Door& door = doors[doorIndex];
+    DoorwayInstance& doorway = doorways[doorIndex];
+
+    // If there’s already a pending action for this door, replace it
+    for (auto& a : gDoorDelayed)
     {
-        case SwitchKind::FloorPlate:
+        if (a.doorIndex == doorIndex)
         {
-            const float half = tileSize * 0.5f; // 100 if tileSize=200
-            b.min = { pos.x - half, pos.y,          pos.z - half };
-            b.max = { pos.x + half, pos.y + 25.0f,  pos.z + half };
-        } break;
-
-        case SwitchKind::InvisibleTrigger:
-        {
-            const float half = tileSize * 0.5f;
-            b.min = { pos.x - half, pos.y,          pos.z - half };
-            b.max = { pos.x + half, pos.y + 200.0f, pos.z + half }; // taller volume
-        } break;
-
-        case SwitchKind::FireballTarget:
-        {
-            // “thin slab” target, centered; you can later orient it based on adjacent wall
-            const float halfW = tileSize * 0.25f; // 50 if tileSize=200
-            const float halfH = tileSize * 0.35f; // 70 if tileSize=200
-            const float halfT = 8.0f;             // thickness
-
-            b.min = { pos.x - halfW, pos.y + 40.0f, pos.z - halfT };
-            b.max = { pos.x + halfW, pos.y + 40.0f + 2*halfH, pos.z + halfT };
-        } break;
+            a.open = open;
+            a.t    = kDoorDelay;
+            return;
+        }
     }
 
-    return b;
+    // Play sound immediately (so it lines up with the delayed motion/state)
+    SoundManager::GetInstance().PlaySoundAtPosition(
+        open ? "doorOpen" : "doorClose",
+        door.position,
+        player.position,
+        0.0f, 4000.0f
+    );
+
+    gDoorDelayed.push_back({ doorIndex, open, kDoorDelay });
+}
+
+void UpdateDoorDelayedActions(float dt)
+{
+    for (int i = (int)gDoorDelayed.size() - 1; i >= 0; --i)
+    {
+        auto& a = gDoorDelayed[i];
+        a.t -= dt;
+
+        if (a.t > 0.0f) continue;
+
+        const int di = a.doorIndex;
+        Door& door = doors[di];
+
+        // apply open/close
+        door.isOpen = a.open;
+
+        // keep doorway in sync (same index)
+        if (di >= 0 && di < (int)doorways.size())
+            doorways[di].isOpen = a.open;
+
+        if (a.open)
+            door.isLocked = false;
+
+        SetTileWalkable(door.tileX, door.tileY, a.open);
+
+        gDoorDelayed.erase(gDoorDelayed.begin() + i);
+    }
 }
 
 
@@ -1374,151 +1354,9 @@ void GenerateBarrels(float baseY) {
     }
 }
 
-static bool HasOrthogonalNeighborWithColor(
-    const Color* pixels,
-    int w, int h,
-    int x, int y,
-    Color target)
-{
-    auto InBounds = [&](int ix, int iy) -> bool {
-        return (ix >= 0 && ix < w && iy >= 0 && iy < h);
-    };
-
-    // N
-    if (InBounds(x, y - 1)) {
-        if (EqualsRGB(pixels[(y - 1) * w + x], target))
-            return true;
-    }
-    // E
-    if (InBounds(x + 1, y)) {
-        if (EqualsRGB(pixels[y * w + (x + 1)], target))
-            return true;
-    }
-    // S
-    if (InBounds(x, y + 1)) {
-        if (EqualsRGB(pixels[(y + 1) * w + x], target))
-            return true;
-    }
-    // W
-    if (InBounds(x - 1, y)) {
-        if (EqualsRGB(pixels[y * w + (x - 1)], target))
-            return true;
-    }
-
-    return false;
-}
 
 
 
-static int CountOrthogonalNeighborsWithColor(
-    const Color* pixels,
-    int w, int h,
-    int x, int y,
-    Color target)
-{
-    auto InBounds = [&](int ix, int iy) -> bool {
-        return (ix >= 0 && ix < w && iy >= 0 && iy < h);
-    };
-
-    int count = 0;
-
-    // N
-    if (InBounds(x, y - 1)) {
-        Color c = pixels[(y - 1) * w + x];
-        if (EqualsRGB(c, target)) count++;
-    }
-    // E
-    if (InBounds(x + 1, y)) {
-        Color c = pixels[y * w + (x + 1)];
-        if (EqualsRGB(c, target)) count++;
-    }
-    // S
-    if (InBounds(x, y + 1)) {
-        Color c = pixels[(y + 1) * w + x];
-        if (EqualsRGB(c, target)) count++;
-    }
-    // W
-    if (InBounds(x - 1, y)) {
-        Color c = pixels[y * w + (x - 1)];
-        if (EqualsRGB(c, target)) count++;
-    }
-
-    return count;
-}
-
-static LockType LockTypeFromSwitchNeighborCount(int n)
-{
-    if (n <= 0) return LockType::Gold;
-    if (n == 1) return LockType::Silver;
-    if (n == 2) return LockType::Skeleton;
-    return LockType::Event; // 3 or 4
-}
-
-void GenerateSwitches(float baseY)
-{
-    switches.clear();
-
-    const Color cSwitch      = ColorOf(Code::Switch);     // anchor pixel
-    const Color cSwitchID    = ColorOf(Code::switchID);   // lock markers
-    const Color cSwitchFire  = ColorOf(Code::SwitchFire); // kind marker
-    const Color cSwitchInvis = ColorOf(Code::SwitchInvis);// kind marker
-
-    for (int y = 0; y < dungeonHeight; y++)
-    {
-        for (int x = 0; x < dungeonWidth; x++)
-        {
-            Color current = dungeonPixels[y * dungeonWidth + x];
-            if (!EqualsRGB(current, cSwitch)) continue;
-
-            // ---- decode lock routing ----
-            const int idCount = CountOrthogonalNeighborsWithColor(
-                dungeonPixels, dungeonWidth, dungeonHeight, x, y, cSwitchID
-            );
-
-            // ---- decode kind (default FloorPlate) ----
-            SwitchKind kind = SwitchKind::FloorPlate;
-            if (HasOrthogonalNeighborWithColor(dungeonPixels, dungeonWidth, dungeonHeight, x, y, cSwitchFire))
-                kind = SwitchKind::FireballTarget;
-            else if (HasOrthogonalNeighborWithColor(dungeonPixels, dungeonWidth, dungeonHeight, x, y, cSwitchInvis))
-                kind = SwitchKind::InvisibleTrigger;
-
-            SwitchTile st = {};
-            st.position  = GetDungeonWorldPos(x, y, tileSize, baseY);
-            st.lockType  = LockTypeFromSwitchNeighborCount(idCount);
-            st.kind      = kind;
-
-            // ---- per-kind defaults ----
-            switch (st.kind)
-            {
-                case SwitchKind::FloorPlate:
-                    st.mode       = TriggerMode::WhileHeld;
-                    st.activators = Act_Player | Act_Box;
-                    st.triggered  = false;
-                    st.isPressed  = false;
-                    break;
-
-                case SwitchKind::InvisibleTrigger:
-                    st.mode       = TriggerMode::OnEnter;
-                    st.activators = Act_Player;      // match your old invisible switch behavior
-                    st.triggered  = false;
-                    st.isPressed  = false;
-                    break;
-
-                case SwitchKind::FireballTarget:
-                    st.mode       = TriggerMode::OnEnter; // almost always what you want
-                    st.activators = Act_Fireball;
-                    st.triggered  = false;
-                    st.isPressed  = false;
-                    break;
-            }
-
-            // ---- collider shape depends on kind ----
-            st.box = MakeSwitchBox(st.position, st.kind, tileSize, baseY);
-
-            switches.push_back(st);
-        }
-    }
-}
 
 void GenerateChests(float baseY) {
     chestInstances.clear();

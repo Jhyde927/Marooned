@@ -318,7 +318,7 @@ void GatherDoors(Camera& camera) {
 
         // bottom-left corner in CLOSED pose: center − right * halfWidth
         Vector3 bottomLeftClosed = Vector3Add(center, Vector3Scale(rightClosed, -halfW));
-
+        PortalPalette palette = GetPortalPalette(-1); // -1 return default portal palette
         billboardRequests.push_back({
             Billboard_Door,
             bottomLeftClosed,   // <-- store the *hinge corner*
@@ -330,7 +330,8 @@ void GatherDoors(Camera& camera) {
             door.rotationY,     // closed yaw (radians)
             false, //flipx
             door.isPortal,
-            door.isOpen
+            door.isOpen,
+            palette
         });
     }
 }
@@ -438,7 +439,7 @@ void SetPortalShaderColor(Vector3 colorA, Vector3 colorB){
 
     int locColorA = GetShaderLocation(portalShader, "u_colorA");
     int locColorB = GetShaderLocation(portalShader, "u_colorB");
-    float strength = 0.1f; // or 0.6f for subtle
+    float strength = 0.6f; // or 0.6f for subtle
     //SetShaderValue(R.GetShader("portalShader"), locTint, &tint, SHADER_UNIFORM_VEC3);
     SetShaderValue(portalShader, locColorA, &colorA, SHADER_UNIFORM_VEC3);
     SetShaderValue(portalShader, locColorB, &colorB, SHADER_UNIFORM_VEC3);
@@ -494,6 +495,8 @@ void DrawTransparentDrawRequests(Camera& camera) {
                 break;
 
             case Billboard_Door:
+                
+                SetPortalShaderColor(req.pallet.colorA, req.pallet.colorB);
                 if (req.isPortal) BeginShaderMode(R.GetShader("portalShader")); 
 
                 float doorWidth  = req.size;    // what we pushed from GatherDoors

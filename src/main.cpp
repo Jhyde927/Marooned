@@ -22,6 +22,7 @@
 //As above, so below.
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
+bool showTutorial = false;
 
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;
@@ -47,13 +48,12 @@ int main() {
     float fovy   = (aspect < (16.0f/9.0f)) ? 50.0f : 45.0f; //bump up FOV if it's narrower than 16x9
     Vector3 camPos = {startPosition.x, startPosition.y + 1000, startPosition.z};
 
-    CameraSystem::Get().Init(camPos); //init camera to player pos, setting it to cinematic overwrites this. but we still need to init with something
+    CameraSystem::Get().Init(camPos); //init camera to player pos, setting it to cinematic overwrites this. but we still need to init with something. so set it to cinematic then. 
     CameraSystem::Get().SetFOV(fovy);
 
     MainMenu::gLevelPreviews = BuildLevelPreviews(true);
-
-    
     InitMenuLevel(levels[0]);
+
     //main game loop
     while (!WindowShouldClose()) {
         float rawDt = GetFrameTime();
@@ -93,13 +93,9 @@ int main() {
             
             CameraSystem::Get().Update(deltaTime); //update orbit
 
-            //ATTENTION THIS IS THE MENU
+            //ATTENTION THIS IS THE MENU 
             R.UpdateShaders(camera);
             UpdateShadersPerFrame(deltaTime, ElapsedTime, camera);
-
-            //WIP
-            //ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, camera);
-
 
             drawCeiling = false; 
             UpdateMenu(camera, deltaTime);//lives in UI.cpp calls main_menu
@@ -116,8 +112,8 @@ int main() {
             if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
             UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
             CameraSystem::Get().Update(deltaTime);
-            SoundManager::GetInstance().Update(deltaTime); //update speech
-            player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; 
+            SoundManager::GetInstance().Update(deltaTime); //update hermit speech
+            player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; //player is invincible in freecam 
             //update context
             UpdateWeaponBarLayoutOnResize();
             debugControls(camera, deltaTime); 
@@ -139,11 +135,11 @@ int main() {
             UpdateLauncherTraps(deltaTime);
             UpdateMonsterDoors(deltaTime);
             UpdateDungeonChests();
-            
+            UpdateDoorDelayedActions(deltaTime);
             UpdateSpiderEggs(deltaTime, player.position);
             UpdateDungeonTileFlags(player, deltaTime);
             ApplyEnemyLavaDPS();
-            UpdateHintManager(deltaTime);
+            if (showTutorial) UpdateHintManager(deltaTime);
             UpdateInteractionNPC();
             //collisions
             UpdateCollisions(camera);

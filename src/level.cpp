@@ -75,7 +75,7 @@ std::vector<PreviewInfo> BuildLevelPreviews(bool preloadTextures)
 
 DungeonEntrance entranceToDungeon1 = {
     {0, 180, 0}, // position
-    2, // linkedLevelIndex
+    1, // linkedLevelIndex //// Set index to 2 for old levels. 
     false, //islocked
 };
 
@@ -101,8 +101,212 @@ DungeonEntrance entranceToDungeon11 = {
 
 };
 
-
 std::vector<LevelData> levels = {
+    {
+
+        "MiddleIsland", //display name
+        "assets/heightmaps/MiddleIsland.png", //heightmap
+        "",//dungeon path
+        {0.0f, 300.0f, 0.0f}, //starting position
+        -90.0f, //starting player rotation
+        {0, 0, 0}, //raptor spawn center
+        5, //raptor count
+        false, //isDungeon
+        {entranceToDungeon1, entranceToDungeon3, entranceToDungeon4}, //add entrance struct to level's vector of entrances. 
+        0, //current level
+        1, //next level, index 1 for new levels
+        {
+            { PropType::FirePit,  Vector3{5200.f, 0.0f, -5600.f},  0.f, 100.0f }, // outdoor props
+            { PropType::Boat,     Vector3{-4368.62, -20, -4036.75}}, //Vector3{-3767.0f,-20, 5199.0f}}
+            
+        },
+        true, //ceiling default is true. doesn't matter for islands. 
+        
+    },
+
+    {
+        "Dungeon1",
+        "assets/heightmaps/blank.png", //big blank heightmap incase we want water underneath the dungeon. 
+        "assets/maps/map4.png",
+        {0.0f, 300.0f, 0.0f}, //overwritten by green pixel 
+        -90.0f, //starting look direction
+        {0.0f, 0.0f, 0.0f}, //raptor spawn center
+        0, //raptor count
+        true, //isDungeon is true
+        {}, //dungeons don't have level entrances
+        1, //current level index
+        2, //next level index 
+        {}, //outdoor props
+        true,
+
+    },
+
+    {
+        "Dungeon2",
+        "assets/heightmaps/blank.png",
+        "assets/maps/map6.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        2, 
+        3,
+        {},
+        true,
+       
+
+    },
+
+    {
+        "Dungeon3",
+        "assets/heightmaps/blank.png",
+        "assets/maps/map7.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        3, 
+        4, 
+        {},
+        true,
+    },
+
+    {
+        "River", 
+        "assets/heightmaps/River.png",
+        "",
+        {5475.0f, 300.0f, -5665.0f},
+        180.0f,
+        {0.0f, 0, 0.0f},
+        15,//raptor count
+        false,
+        {entranceToDungeon11},
+        4, 
+        5,
+        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
+        false, //ceiling
+   
+    },
+
+        {
+        "Dungeon5", //door maze
+        "assets/heightmaps/blank.png",
+        "assets/maps/map9.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        5, 
+        6, //skip dungeon 6/map10/index7
+        {}, 
+        true, 
+    },
+
+        {
+        "Dungeon9",
+        "assets/heightmaps/blank.png",
+        "assets/maps/map14.png",
+        {0.0f, 300.0f, 0.0f},
+        0.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        6, 
+        7,
+        {}, 
+        true, 
+    },
+
+        {
+        "Dungeon7",  //spider boss
+        "assets/heightmaps/blank.png",
+        "assets/maps/map11.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        7, 
+        8,
+        {}, 
+        true,
+    },
+        {
+        "Dungeon8", //fireball level
+        "assets/heightmaps/blank.png",
+        "assets/maps/map12.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        9, 
+        10,
+        {},
+        false, 
+    },
+
+        {
+        "Dungeon12", //river exits to here. 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map17.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        10, 
+        11, 
+        {}, 
+        true,// ceiling
+    },
+
+        {
+        "Dungeon17", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map21.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        11, 
+        12, 
+        {}, 
+        true,// ceiling
+    },
+
+        {
+        "Dungeon18", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map22.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        12, 
+        14, 
+        {}, 
+        false,// ceiling
+    },
+
+};
+
+
+std::vector<LevelData> oldLevels = {
 
     {
 
@@ -401,7 +605,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         18, 
-        19, //change to river. 
+        19, 
         {}, 
         false,// ceiling
     },

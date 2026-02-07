@@ -141,6 +141,7 @@ void Box::Update(float dt,
     if (state == BoxState::OnGround)
     {
         //do nothing?
+        //PickUp() is called from player
     }
 
     // --- While carried ---
@@ -155,14 +156,11 @@ void Box::Update(float dt,
         // Lock to waist height
         target.y = playerPos.y - carryOffset.y;
 
-        //position = target;
-
         // desired target based on player look direction
         Vector3 desired = target;
 
-        // gather nearby wall boxes around desired (or around current)
-        // IMPORTANT: don't iterate *all* walls in the dungeon. Use a radius / tile neighborhood.
-        std::vector<BoundingBox> nearbyWalls = GatherWallBoxesNear(desired); // you implement
+        // gather nearby wall boxes around desired 
+        std::vector<BoundingBox> nearbyWalls = GatherWallBoxesNear(desired);
 
         Vector3 corrected = position;     // start from current
         corrected.y = desired.y;

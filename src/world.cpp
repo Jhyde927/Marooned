@@ -21,6 +21,7 @@
 #include "shaderSetup.h"
 #include "dialogManager.h"
 #include "portal.h"
+#include "switch_tile.h"
 
 
 
@@ -250,7 +251,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
 
-    if (levelIndex == 1 || levelIndex == 23){
+    if (level.name == "River" || level.name == "Swamp"){
        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);     
     }
 
@@ -258,7 +259,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         enteredDungeon1 = true;
     }
 
-    if (levelIndex == 0 || levelIndex == 1){
+    if (level.name == "MiddleIsland" || level.name == "River"){
         InitNPCs();
     }
 
