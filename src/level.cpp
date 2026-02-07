@@ -101,7 +101,7 @@ DungeonEntrance entranceToDungeon11 = {
 
 };
 
-std::vector<LevelData> levels = {
+std::vector<LevelData> newLevels = {
     {
 
         "MiddleIsland", //display name
@@ -306,7 +306,7 @@ std::vector<LevelData> levels = {
 };
 
 
-std::vector<LevelData> oldLevels = {
+std::vector<LevelData> levels = {
 
     {
 

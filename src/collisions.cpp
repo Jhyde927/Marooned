@@ -1210,7 +1210,7 @@ void TreeCollision(Camera& camera){
 void HandleDoorInteraction(Camera& camera)
 {
     float dt = GetFrameTime();
-    
+
     const bool interactPressed =
         IsKeyPressed(KEY_E) ||
         (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT));
@@ -1226,7 +1226,7 @@ void HandleDoorInteraction(Camera& camera)
         if (!facingDoor) continue;
 
         // Event locked
-        if (doors[i].eventLocked)
+        if (doors[i].eventLocked) //not even skeleton key can open event lock
         {
             SoundManager::GetInstance().Play("lockedDoor");
             return;

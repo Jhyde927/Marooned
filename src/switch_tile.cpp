@@ -10,7 +10,7 @@ using namespace dungeon;
 
 std::vector<SwitchTile> switches;
 
-static bool HasOrthogonalNeighborWithColor(
+static bool HasOrthogonalNeighborWithColor( //look for the fireswitch pixel
     const Color* pixels,
     int w, int h,
     int x, int y,
@@ -46,7 +46,8 @@ static bool HasOrthogonalNeighborWithColor(
 
 
 
-static int CountOrthogonalNeighborsWithColor(
+static int CountOrthogonalNeighborsWithColor(//determine the locktype of the switch. 0 neighbors = gold, 1 = silver, 2 = skeleton 
+//3 = event 4 = event. The switch pixel can also have a tomato colored neighbor that means it's a switch activated by fireball. 
     const Color* pixels,
     int w, int h,
     int x, int y,
@@ -84,8 +85,8 @@ static int CountOrthogonalNeighborsWithColor(
 
 BoundingBox MakeSwitchBox(const Vector3& pos, SwitchKind kind, float tileSize, float baseY)
 {
+    //Make differently shaped bounding box depending on SwitchKind. 
     BoundingBox b{};
-
     switch (kind)
     {
         case SwitchKind::FloorPlate:

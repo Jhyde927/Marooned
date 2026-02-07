@@ -878,7 +878,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         case CharacterState::Freeze: {
             stateTimer += deltaTime;
             //do nothing
-            if (currentHealth <= 0 && !isDead){ //hopefully prevents invincible skeles. 
+            if (currentHealth <= 0 && !isDead){ 
                 ChangeState(CharacterState::Death);
                 break;
             }
@@ -939,7 +939,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
             if (timeDone && closeEnough)
             {
                 currentWorldPath.clear();
-                ChangeState(CharacterState::Stagger);
+                ChangeState(CharacterState::Stagger); //stun the target after grapple
                 break;
             }
 
@@ -973,9 +973,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         }
        
 }
-
-// Raptor = overworld, no grid pathing.
-// Skeleton only (structure + thresholds). Fill TODOs as you add steering.
 
 void Character::UpdateTrexAI(float deltaTime, Player& player){
     stateTimer += deltaTime;

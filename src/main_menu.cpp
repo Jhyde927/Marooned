@@ -144,6 +144,16 @@ MainMenu::Layout MainMenu::ComputeLayout(float menuX, float baseY, float gapY, f
     return L;
 }
 
+MainMenu::Layout MainMenu::ComputeOptionsLayout(float menuX, float baseY, float gapY, float btnW, float btnH)
+{
+    float cx = menuX + btnW * 0.5f;
+
+    Layout L{};
+    L.selectable[0] = MakeButtonRect(cx, baseY + gapY*5.0f, btnW, btnH); // Back
+
+    return L;
+}
+
 
 static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alphaMul = 1.0f, bool title = false)
 {
@@ -617,7 +627,9 @@ namespace MainMenu
 
         auto ActivateSelected = [&]() -> Action
         {
-            if (!s.showMenu) return Action::None;
+            if (s.showOptions){
+                return Action::Back;
+            } 
 
             switch (s.selectedOption)
             {
@@ -633,7 +645,7 @@ namespace MainMenu
                     s.showMenu = false;
                     s.showOptions = true;
                     s.showPreview = false;
-                    return Action::Controls;
+                    return Action::Options;
                 case 3:
                     ToggleBorderlessFullscreenClean();
                     isFullscreen = !isFullscreen;
@@ -674,6 +686,12 @@ namespace MainMenu
             // Optional: you can *also* move focus when hovering,
             // but do NOT set -1 when not hovering.
             s.selectedOption = hovered;
+        }
+
+        if (hovered != -1 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && s.showOptions)
+        {
+            TriggerPress();
+            return ActivateSelected();
         }
 
         if (hovered != -1 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && s.showMenu)
@@ -789,7 +807,7 @@ namespace MainMenu
         Rectangle rFull     = MakeButtonRect(menuX, baseY + gapY*3.0f, btnW, btnH);
         Rectangle rQuit     = MakeButtonRect(menuX, baseY + gapY*4.0f, btnW, btnH); 
 
-        Rectangle rMenu     = MakeButtonRect(menuX, baseY + gapY*4.0f, btnW, btnH); 
+        Rectangle rMenu     = MakeButtonRect(menuX, baseY + gapY*5.0f, btnW, btnH); 
 
         // Split Level row into (-) [center] (+)
         float sideW = rLevel.height; // square mini-buttons
@@ -809,6 +827,7 @@ namespace MainMenu
         const char* lblControls = "Options";
         const char* lblFull  = "Fullscreen";
         const char* lblQuit  = "Quit";
+        const char* lblMenu  = "Menu";
 
         
         bool selStart    = (s.selectedOption == 0);
@@ -817,7 +836,7 @@ namespace MainMenu
         bool selFull     = (s.selectedOption == 3);
         bool selQuit     = (s.selectedOption == 4);
 
-        bool selMenu     = false;
+        bool selMenu     = (s.selectedOption == 0);
 
         Vector2 m = GetMousePosition();
         bool hovMinus  = CheckCollisionPointRec(m, rLevelMinus);
@@ -865,6 +884,7 @@ namespace MainMenu
             Rectangle oPanel = ComputeOptionsPanelRect(rStart, rQuit);
             DrawOptionsPanelAsButton(oPanel, false);
             DrawMenuButtonRounded(rMenu, selMenu);
+            DrawCarvedText(pieces, lblMenu, rMenu, menuFontSizeF, menuSpacing, false, selMenu);
 
             //controls panel
             Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);

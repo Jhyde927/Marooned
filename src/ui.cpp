@@ -541,12 +541,12 @@ void UpdateMenu(Camera& camera, float dt)
     float btnH  = 66.0f; 
     int menuX = GetScreenWidth() / 2.0f - btnW / 2.0f;
 
-    MainMenu::Layout layout = MainMenu::ComputeLayout(menuX, baseY, gapY, btnW, btnH);
-
-    MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, 5, levelIndex, (int)levels.size(), layout);
+    MainMenu::Layout layout = gMenu.showOptions ? MainMenu::ComputeOptionsLayout(menuX, baseY, gapY, btnW, btnH) : 
+    MainMenu::ComputeLayout(menuX, baseY, gapY, btnW, btnH);
+    int oCount = gMenu.showOptions ? 1 : 5;
+    MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, oCount, levelIndex, (int)levels.size(), layout);
 
     if (a == MainMenu::Action::StartGame)
-
     {
         //fade out of menu, init level is called from update fade just like level switching. Remember to set PendingLevelIndex to not -1
         gFadePhase = FadePhase::FadingOut;
@@ -561,6 +561,11 @@ void UpdateMenu(Camera& camera, float dt)
     }else if (a == MainMenu::Action::Quit)
     {
         currentGameState = GameState::Quit;
+
+    }else if (a == MainMenu::Action::Back){
+        gMenu.showOptions = false;
+        gMenu.showMenu = true;
+        
     }
 }
 
