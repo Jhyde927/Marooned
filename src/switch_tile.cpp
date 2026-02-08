@@ -180,7 +180,7 @@ void DeactivateSwitch(const SwitchTile& st)
         Door& door = doors[i];
         if (door.requiredKey != key) continue;
 
-        ScheduleDoorAction(i, false); //false for close door
+        ScheduleDoorAction(i, false, true); // false for close door, true for relock door. 
     }
 
 }

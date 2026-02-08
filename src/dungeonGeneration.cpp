@@ -79,25 +79,24 @@ void DebugOpenAllDoors(){
     }
 }
 
-void ScheduleDoorAction(int doorIndex, bool open)
+void ScheduleDoorAction(int doorIndex, bool open, bool relockOnClose)
 {
     if (doorIndex < 0 || doorIndex >= (int)doors.size()) return;
 
     Door& door = doors[doorIndex];
-    DoorwayInstance& doorway = doorways[doorIndex];
 
-    // If there’s already a pending action for this door, replace it
+    // Replace any pending action for this door
     for (auto& a : gDoorDelayed)
     {
         if (a.doorIndex == doorIndex)
         {
             a.open = open;
-            a.t    = kDoorDelay;
+            a.relockOnClose = relockOnClose;
+            a.t = kDoorDelay;
             return;
         }
     }
 
-    // Play sound immediately (so it lines up with the delayed motion/state)
     SoundManager::GetInstance().PlaySoundAtPosition(
         open ? "doorOpen" : "doorClose",
         door.position,
@@ -105,8 +104,68 @@ void ScheduleDoorAction(int doorIndex, bool open)
         0.0f, 4000.0f
     );
 
-    gDoorDelayed.push_back({ doorIndex, open, kDoorDelay });
+    gDoorDelayed.push_back({ doorIndex, open, relockOnClose, kDoorDelay });
 }
+
+
+// void ScheduleDoorAction(int doorIndex, bool open)
+// {
+//     if (doorIndex < 0 || doorIndex >= (int)doors.size()) return;
+
+//     Door& door = doors[doorIndex];
+//     DoorwayInstance& doorway = doorways[doorIndex];
+
+//     // If there’s already a pending action for this door, replace it
+//     for (auto& a : gDoorDelayed)
+//     {
+//         if (a.doorIndex == doorIndex)
+//         {
+//             a.open = open;
+//             a.t    = kDoorDelay;
+//             return;
+//         }
+//     }
+
+//     // Play sound immediately (so it lines up with the delayed motion/state)
+//     SoundManager::GetInstance().PlaySoundAtPosition(
+//         open ? "doorOpen" : "doorClose",
+//         door.position,
+//         player.position,
+//         0.0f, 4000.0f
+//     );
+
+//     gDoorDelayed.push_back({ doorIndex, open, kDoorDelay });
+// }
+
+// void UpdateDoorDelayedActions(float dt)
+// {
+//     for (int i = (int)gDoorDelayed.size() - 1; i >= 0; --i)
+//     {
+//         auto& a = gDoorDelayed[i];
+//         a.t -= dt;
+
+//         if (a.t > 0.0f) continue;
+
+//         const int di = a.doorIndex;
+//         Door& door = doors[di];
+
+//         // apply open/close
+//         door.isOpen = a.open;
+
+//         // keep doorway in sync (same index)
+//         if (di >= 0 && di < (int)doorways.size())
+//             doorways[di].isOpen = a.open;
+
+//         if (a.open){
+//             door.isLocked = false;
+//         }
+
+
+//         SetTileWalkable(door.tileX, door.tileY, a.open);
+
+//         gDoorDelayed.erase(gDoorDelayed.begin() + i);
+//     }
+// }
 
 void UpdateDoorDelayedActions(float dt)
 {
@@ -114,27 +173,37 @@ void UpdateDoorDelayedActions(float dt)
     {
         auto& a = gDoorDelayed[i];
         a.t -= dt;
-
         if (a.t > 0.0f) continue;
 
         const int di = a.doorIndex;
         Door& door = doors[di];
 
-        // apply open/close
         door.isOpen = a.open;
 
-        // keep doorway in sync (same index)
+        // keep doorway in sync
         if (di >= 0 && di < (int)doorways.size())
             doorways[di].isOpen = a.open;
 
-        if (a.open)
-            door.isLocked = false;
-
+        // walkable
         SetTileWalkable(door.tileX, door.tileY, a.open);
+
+        // locking rules:
+        if (a.open)
+        {
+            // opening never implies "lock"
+            door.isLocked = false;   // optional but usually correct
+        }
+        else
+        {
+            // only relock when caller asked for it (floor switch)
+            if (a.relockOnClose)
+                door.isLocked = true;
+        }
 
         gDoorDelayed.erase(gDoorDelayed.begin() + i);
     }
 }
+
 
 
 Vector3 ColorToNormalized(Color color) {
@@ -1925,7 +1994,7 @@ void GenerateInvisibleLightSources(float baseY){
             if (EqualsRGB(current,ColorOf(Code::BlueLight))){
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
-                L.colorTint = Vector3 {0, 0, 1}; // 0..1
+                L.colorTint = Vector3 {0, 0.5, 1}; // 0..1
                 dungeonLights.push_back(L);
             }
 
@@ -1945,6 +2014,17 @@ void GenerateInvisibleLightSources(float baseY){
 
         }
     } 
+}
+
+void GeneratePortalLights(float baseY) {
+    //portals
+    for (Portal& p : portals){
+        LightSource L = MakeStaticTorch(p.position);
+        L.colorTint = ColorToV3(p.tint);
+        L.range = 800.0f; //less range for portal lights
+        L.intensity = 0.5;
+        dungeonLights.push_back(L);
+    }
 }
 
 void GenerateLightSources(float baseY) {
@@ -1976,14 +2056,7 @@ void GenerateLightSources(float baseY) {
     }
     //Invisible light sources
     GenerateInvisibleLightSources(baseY);
-
-    //portals
-    for (Portal& p : portals){
-        LightSource L = MakeStaticTorch(p.position);
-        L.colorTint = ColorToV3(p.tint);
-        dungeonLights.push_back(L);
-
-    }
+    GeneratePortalLights(baseY);
 
 }
 
@@ -2253,7 +2326,17 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
 
     for (const FloorTile& tile : floorTiles) {
         if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
-        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tile.tint);    
+        Color tileTint = WHITE;
+        Vector2 tilePos = WorldToImageCoords(tile.position);
+
+        for (const SwitchTile& st : switches){
+            Vector2 switchPos = WorldToImageCoords(st.position);
+            if (switchPos == tilePos){
+                tileTint = DARKGRAY;
+            }
+        }
+
+        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint);    
     }
 
     //Lava floor
@@ -2272,17 +2355,21 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     } 
 
     //Switches
-    //I could have just scaled it here. 
+
     for (const SwitchTile& s : switches){
 
         switch (s.kind)
         {
         case SwitchKind::FloorPlate:
         {
+
             Vector3 raisedPos = {s.position.x, s.position.y + 20.0f, s.position.z};
             Vector3 pressedPos = {s.position.x, s.position.y + 15.0f, s.position.z};
             Vector3 triggerdPos = s.triggered ? pressedPos : raisedPos;
-            DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, WHITE);
+            Vector3 modelPos = {s.position.x, s.position.y + 25.0f, s.position.z};
+
+
+            DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, RED);
             break;
 
         }

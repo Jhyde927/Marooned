@@ -22,9 +22,22 @@ PortalPalette GetPortalPalette(int groupID){
     case 0:
         return { {0.0f, 0.25f, 1.0f}, {0.5f, 0.2f, 1.0f} }; 
     case 1:
-        return { {0.10f, 0.90f, 0.25f}, {0.90f, 0.90f, 0.15f} };
+        return { {0.0f, 0.3f, 0.1f},{0.0f, 0.40f, 0.30f}}; 
     case 2:
-        return {{1.00f, 0.10f, 0.10f}, {1.00f, 0.55f, 0.05f} };
+        return { {0.20f, 0.10f, 0.85f},{0.0f, 0.25f, 1.00f}};
+
+    case 3:
+        return {{0.9f, 0.1f, 0.1}, {1.0f, 0.25f, 0.25f}};
+
+    case 4:
+        return {{0.9f, 0.8f, 0.1}, {1.0f, 0.25f, 0.05f}};
+
+    case 5:
+        return {{0.9f, 0.1f, 0.9}, {0.0f, 0.25f, 0.55f}};
+
+    case 6:
+        return {{1.0f, 0.1f, 0.1}, {1.0f, 0.55f, 0.55f}};
+
     default:
         return  { {0.0f, 0.25f, 1.0f}, {0.5f, 0.2f, 1.0f} };
 
@@ -166,7 +179,6 @@ void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
         Texture2D& pTex = R.GetTexture("whiteGradient");
         Vector3 portalPos = {p.position.x, p.position.y+125.0f, p.position.z};
         PortalPalette palette = GetPortalPalette(p.groupID);
-
 
         billboardRequests.push_back({
             Billboard_FacingCamera, 

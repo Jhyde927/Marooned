@@ -4,12 +4,17 @@
 #include "dungeonGeneration.h"
 #include "resourceManager.h"
 #include "world.h"
+#include "sound_manager.h"
 
 using namespace dungeon;
 
 static std::vector<Portal> portalsGroup0; // default group (no ID pixel)
 static std::vector<Portal> portalsGroup1; // has PortalID pixel to the right
 static std::vector<Portal> portalsGroup2; // has portalID pixel to the left
+static std::vector<Portal> portalsGroup3; // has portalID pixel to the left and right
+static std::vector<Portal> portalsGroup4; // has portalID pixel to the top
+static std::vector<Portal> portalsGroup5; // has portalID pixel to the bottom
+static std::vector<Portal> portalsGroup6; // has portalID pixel to the top and bottom
 
 
 // Simple anti-bounce
@@ -33,6 +38,11 @@ void PortalSystem::Clear()
     portalsGroup0.clear();
     portalsGroup1.clear();
     portalsGroup2.clear();
+    portalsGroup3.clear();
+    portalsGroup4.clear();
+    portalsGroup5.clear();
+    portalsGroup6.clear();
+
 }
 
 void PortalSystem::GenerateFromDungeon(
@@ -47,6 +57,10 @@ void PortalSystem::GenerateFromDungeon(
     portalsGroup0.clear();
     portalsGroup1.clear();
     portalsGroup2.clear();
+    portalsGroup3.clear();
+    portalsGroup4.clear();
+    portalsGroup5.clear();
+    portalsGroup6.clear();
 
     Color* pixels = LoadImageColors(dungeonImage);
 
@@ -58,9 +72,7 @@ void PortalSystem::GenerateFromDungeon(
             const Color c = pixels[index];
 
             if (!EqualsRGB(c, ColorOf(Code::PortalTile)))
-            {
                 continue;
-            }
 
             Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
 
@@ -71,55 +83,93 @@ void PortalSystem::GenerateFromDungeon(
                 { spawnPos.x + tileSize * 0.4f, baseY + 50.0f, spawnPos.z + tileSize * 0.4f }
             };
 
+            // Detect PortalID neighbors
             bool hasPortalIdRight = false;
             if (x + 1 < dungeonWidth)
             {
                 const Color right = pixels[y * dungeonWidth + (x + 1)];
-                if (EqualsRGB(right, ColorOf(Code::PortalID)))
-                {
-                    hasPortalIdRight = true;
-                }
+                hasPortalIdRight = EqualsRGB(right, ColorOf(Code::PortalID));
             }
 
             bool hasPortalIdLeft = false;
             if (x - 1 >= 0)
             {
                 const Color left = pixels[y * dungeonWidth + (x - 1)];
-                if (EqualsRGB(left, ColorOf(Code::PortalID)))
-                {
-                    hasPortalIdLeft = true;
-                }
+                hasPortalIdLeft = EqualsRGB(left, ColorOf(Code::PortalID));
             }
 
-            // Group priority: left-ID => group3, else right-ID => group1, else group0
-            if (hasPortalIdLeft)
+            bool hasPortalIdTop = false;
+            if (y + 1 < dungeonHeight)
             {
-                p.groupID = 2;
-                p.tint = { 50, 50, 255, 255 };
-                portalsGroup2.push_back(p);
-                portals.push_back(p);
+                const Color top = pixels[(y + 1) * dungeonWidth + x];
+                hasPortalIdTop = EqualsRGB(top, ColorOf(Code::PortalID));
+            }
 
+            bool hasPortalIdBottom = false;
+            if (y - 1 >= 0)
+            {
+                const Color bottom = pixels[(y - 1) * dungeonWidth + x];
+                hasPortalIdBottom = EqualsRGB(bottom, ColorOf(Code::PortalID));
+            }
+
+            // Group priority:
+            // both sides => group3
+            // left-only  => group2
+            // right-only => group1
+            // top-only =>   group4
+            // bottom-only => group5
+            // top and bottom => group6
+            // none       => group0
+            if (hasPortalIdLeft && hasPortalIdRight)
+            {
+                p.tint = RED;
+                p.groupID = 3;
+                portalsGroup3.push_back(p);
+            }
+            else if (hasPortalIdLeft)
+            {
+                p.tint = BLUE;
+                p.groupID = 2;
+                portalsGroup2.push_back(p);
             }
             else if (hasPortalIdRight)
             {
-                p.tint = { 50, 255, 50, 255 };
+                p.tint = GREEN;
                 p.groupID = 1;
                 portalsGroup1.push_back(p);
-                portals.push_back(p);
+            }
+            else if (hasPortalIdBottom && hasPortalIdTop)
+            {
+                p.tint = SKYBLUE;
+                p.groupID = 6;
+                portalsGroup6.push_back(p);
+            }
+            else if (hasPortalIdTop)
+            {
+                p.tint = ORANGE;
+                p.groupID = 4;
+                portalsGroup4.push_back(p);
+            }
+            else if (hasPortalIdBottom)
+            {
+                p.tint = PINK;
+                p.groupID = 5;
+                portalsGroup5.push_back(p);
             }
             else
             {
-               
-                p.tint = { 255, 50, 50, 255 };
+                p.tint = PURPLE;
                 p.groupID = 0;
                 portalsGroup0.push_back(p);
-                portals.push_back(p);
             }
+
+            portals.push_back(p);
         }
     }
 
     UnloadImageColors(pixels);
 }
+
 
 
 static bool TryTeleportInGroup(
@@ -185,6 +235,9 @@ void PortalSystem::Update(Vector3& playerPos, float playerRadius, float dt)
         {
             // Move player AFTER fade out
             playerPos = Vector3Add(gPendingDestPos, Vector3{ 0.0f, 20.0f, 0.0f });
+            
+            std::string pSound = (GetRandomValue(0, 1) > 0) ? "portal" : "portal2";
+            SoundManager::GetInstance().Play(pSound);
 
             // Start fade in elsewhere
 
@@ -217,6 +270,26 @@ void PortalSystem::Update(Vector3& playerPos, float playerRadius, float dt)
     }
 
     if (TryTeleportInGroup(portalsGroup2, playerPos, playerRadius, gTeleportCooldown, 2))
+    {
+        return;
+    }
+
+    if (TryTeleportInGroup(portalsGroup3, playerPos, playerRadius, gTeleportCooldown, 3))
+    {
+        return;
+    }
+
+    if (TryTeleportInGroup(portalsGroup4, playerPos, playerRadius, gTeleportCooldown, 4))
+    {
+        return;
+    }
+
+    if (TryTeleportInGroup(portalsGroup5, playerPos, playerRadius, gTeleportCooldown, 5))
+    {
+        return;
+    }
+
+    if (TryTeleportInGroup(portalsGroup6, playerPos, playerRadius, gTeleportCooldown, 6))
     {
         return;
     }

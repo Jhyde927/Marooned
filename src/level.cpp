@@ -101,6 +101,15 @@ DungeonEntrance entranceToDungeon11 = {
 
 };
 
+DungeonEntrance entranceToDungeon24 = {
+
+    
+    {-6226, 180, 462},
+    24, 
+    false 
+
+};
+
 std::vector<LevelData> newLevels = {
     {
 
@@ -683,7 +692,7 @@ std::vector<LevelData> levels = {
         {0.0f, 0, 0.0f},
         5,//raptor count
         false,
-        {entranceToDungeon11},
+        {entranceToDungeon24},
         23, 
         24,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
@@ -734,6 +743,22 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         26, 
+        27,
+        {}, 
+        true,// ceiling
+    },
+
+        {
+        "Dungeon27", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/map31.png", //portal/box level 
+        {0.0f, 300.0f, 0.0f},
+        90.0f, //player rot
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        27, 
         0,
         {}, 
         true,// ceiling

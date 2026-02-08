@@ -318,7 +318,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
 
-        //GenerateHermitFromImage(floorHeight);
+        GenerateHermitFromImage(floorHeight);
 
         //generate enemies.
         GenerateSkeletonsFromImage(dungeonEnemyHeight); //165

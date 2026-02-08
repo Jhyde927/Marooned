@@ -331,7 +331,6 @@ void ResourceManager::LoadAllResources() {
     //generated models
 
     R.AddModelFromMesh("squareBolt", GenMeshCube(2.0f, 2.0f, 20.0f));
-
     R.AddModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
     R.AddModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
     R.AddModelFromMesh("ceilingPlane", GenMeshPlane(1.0f, 1.0f, 1, 1)); //we can scale it later. 

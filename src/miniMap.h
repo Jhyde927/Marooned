@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include <vector>
 #include "character.h"
+#include "NPC.h"
 #include "dungeonGeneration.h"
 
 
@@ -23,6 +24,7 @@ public:
     // playerPos = world-space player position (x,z used)
     void Update(float dt, Vector3 playerPos);
     void DrawEnemies(const std::vector<Character*>& enemies, int screenX, int screenY);
+    void DrawNPCs(const std::vector<NPC>& NPCs, int screenX, int screenY);
     void DrawPlayer(Player& player, float screenX, float screenY) const;
     void DrawDoors(const std::vector<Door>& doors, int screenX, int screenY) const;
     void DrawMiniMap(); //call the draw functions

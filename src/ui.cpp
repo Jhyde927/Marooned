@@ -52,19 +52,11 @@ void InitDialogs()
         }
     );
 
-    dialogManager.AddDialog(
-        "hermit_follow",
-        {
-            "I'll follow you."
-        }
-    );
+    dialogManager.AddDialog("hermit_follow",{"I'll follow you."});
 
-    dialogManager.AddDialog(
-        "hermit_patrol",
-        {
-            "I'll return to camp."
-        }
-    );
+    dialogManager.AddDialog("hermit_patrol", {"I'll return to camp."});
+
+    dialogManager.AddDialog("hermit_stay", {"I'll stay here."});
 
 }
 
@@ -91,8 +83,8 @@ static void ToggleHermitFollow(int hermitId)
     // toggle the follow permission
     gHermitFollowing = !gHermitFollowing;
     hermit.canFollow = gHermitFollowing;
-
-    std::string msg = gHermitFollowing ? "hermit_follow" : "hermit_patrol";
+    std::string patrolMsg = isDungeon ? "hermit_stay" : "hermit_patrol"; 
+    std::string msg = gHermitFollowing ? "hermit_follow" : patrolMsg;
     gActiveNpcIndex = hermitId;
     dialogManager.StartDialog(msg);
     gNPCs[hermitId].PlayTalkLoopForSeconds(1.0f); // needed for the animation to play for some reason
@@ -101,10 +93,6 @@ static void ToggleHermitFollow(int hermitId)
     
     // optional: force immediate brain switch
     hermit.hermitBrain = gHermitFollowing ? HermitBrain::Follow : HermitBrain::Patrol;
-
-
-
-
 
     // reset follow/path bits so it reacts immediately
     hermit.navHasPath = false;
@@ -186,9 +174,6 @@ void UpdateInteractionNPC()
             return;
         }
 
-
-
-        // Advance line on E
         // Advance line on E
         if (IsKeyPressed(KEY_E))
         {

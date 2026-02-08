@@ -272,6 +272,7 @@ struct DoorDelayedAction
 {
     int   doorIndex = -1;
     bool  open      = false;  // true=open, false=close
+    bool  relockOnClose = false;  // only used when open == false
     float t         = 0.0f;   // seconds remaining
 };
 
@@ -298,7 +299,6 @@ extern std::vector<SecretWall> secretWalls;
 extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 extern std::vector<WindowCollider> windowColliders;
-
 extern std::vector<Box> boxes;
 
 
@@ -389,7 +389,7 @@ bool IsVoid(int gx, int gy);
 int GetDoorIndexAtTile(int nx, int nz);
 bool TileNearSolid(int tx, int tz);
 void DebugOpenAllDoors();
-void ScheduleDoorAction(int doorIndex, bool open);
+void ScheduleDoorAction(int doorIndex, bool open, bool relockOnClose = false);
 void UpdateDoorDelayedActions(float dt);
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);
 std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired);

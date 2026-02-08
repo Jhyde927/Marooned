@@ -251,6 +251,7 @@ bool NPC::HasTargetInVision(const std::vector<Character*>& enemyPtrs) const
         if (!e) continue;
         if (e->isDead) continue;
         if (e->currentHealth <= 0) continue;
+        if (isDungeon && !HasWorldLineOfSight(position, e->position, 0.1f)) continue;
 
         Vector3 d = Vector3Subtract(e->position, position);
         float distSq = Vector3DotProduct(d, d);
@@ -328,6 +329,7 @@ Character* NPC::AcquireClosestEnemy(const std::vector<Character*>& enemyPtrs)
         if (!e) continue;
         if (e->isDead) continue;
         if (e->currentHealth <= 0) continue;
+        if (isDungeon && !HasWorldLineOfSight(position, e->position, 0.1f)) continue;
 
         Vector3 d = Vector3Subtract(e->position, position);
         float distSq = Vector3DotProduct(d, d);
@@ -348,9 +350,12 @@ void NPC::MaintainOrAcquireTarget(float dt, const std::vector<Character*>& enemy
         if (!PtrStillListed(target, enemyPtrs)) return false;
         if (target->isDead) return false;
         if (target->currentHealth <= 0) return false;
+        if (isDungeon && !HasWorldLineOfSight(position, target->position, 0.1f)) return false;
+        
 
         Vector3 d = Vector3Subtract(target->position, position);
         float distSq = Vector3DotProduct(d, d);
+        
         return distSq <= visionRadiusSq;
     };
 
@@ -681,7 +686,7 @@ void NPC::Hermit_Follow_Move(float dt)
     animIntent = AnimIntent::Walk;
 
     Vector3 goal = player.position;
-    goal.y = isDungeon ? GetHeightAtWorldPosition(goal, heightmap, terrainScale) : dungeonPlayerHeight;
+    goal.y = isDungeon ? GetHeightAtWorldPosition(goal, heightmap, terrainScale) : dungeonEnemyHeight;
 
     Vector3 goalDelta = Vector3Subtract(goal, followLastGoal);
     goalDelta.y = 0.0f;
@@ -750,6 +755,7 @@ bool NPC::BuildPathTo(const Vector3& goalWorld)
         return false;
 
     std::vector<Vector3> path;
+
     bool ok = HeightmapPathfinding::FindPathBFS(
         gIslandNav,
         position,
@@ -798,7 +804,7 @@ void NPC::FollowNavPath(float dt)
     position.x += dir.x * patrolSpeed * dt;
     position.z += dir.z * patrolSpeed * dt;
 
-    position.y = GetCenterPosY();
+    position.y = isDungeon ? GetCenterDungeonPosY() : GetCenterPosY();
     rotationY = atan2f(dir.x, dir.z) * RAD2DEG;
 }
 
@@ -919,4 +925,9 @@ float NPC::GetFeetPosY()
 float NPC::GetCenterPosY() const
 {
     return GetHeightAtWorldPosition(position, heightmap, terrainScale) + (frameHeight * scale) * 0.5f;
+}
+
+float NPC::GetCenterDungeonPosY() const 
+{
+    return floorHeight + 20 + (frameHeight * scale) * 0.5f;
 }

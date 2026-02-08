@@ -332,7 +332,19 @@ void MiniMap::DrawPlayer(Player& player, float screenX, float screenY) const {
     float py = screenY + playerV * drawSize;
 
     Vector2 p = { px, py };
-    DrawCircleV(p, 3.0f, GREEN);
+
+    //pulse player pixel
+    float t = (float)GetTime();
+    float s = 0.5f + 0.5f*sinf(t * 6.0f);          // 0..1
+    unsigned char boost = (unsigned char)(60*s);  // 0..60
+
+    Color playerColor = GREEN;
+    playerColor.r = (unsigned char)Clamp(playerColor.r + boost, 0, 255);
+    playerColor.g = (unsigned char)Clamp(playerColor.g + boost, 0, 255);
+    playerColor.b = (unsigned char)Clamp(playerColor.b + boost, 0, 255);
+    playerColor.a = 255;
+
+    DrawCircleV(p, 3.0f, playerColor);
 
     // 5) Facing direction indicator (line coming out of the dot)
     const float headingLen = 5.0f;   // pixels on the minimap
@@ -346,7 +358,38 @@ void MiniMap::DrawPlayer(Player& player, float screenX, float screenY) const {
 
     Vector2 end = { p.x + dir.x * headingLen, p.y + dir.y * headingLen };
 
+
+
     DrawLineEx(p, end, lineThick, GREEN);
+}
+
+void MiniMap::DrawNPCs(const std::vector<NPC>& NPCs, int screenX, int screenY){
+
+    for (const NPC& npc : NPCs){
+
+        Vector3 pos = npc.position;
+
+        // Convert enemy world position to dungeon tile
+        int tileX = GetDungeonImageX(pos.x, tileSize, dungeonWidth);
+        int tileY = GetDungeonImageY(pos.z, tileSize, dungeonHeight);
+
+        if (tileX < 0 || tileX >= dungeonWidth ||
+            tileY < 0 || tileY >= dungeonHeight)
+            continue;
+
+        //Allways show NPCs regardless of LOS, or explored
+
+        // Convert tile coord → minimap pixel center
+        float u = (tileX + 0.5f) / (float)dungeonWidth;
+        float v = (tileY + 0.5f) / (float)dungeonHeight;
+
+        float ex = screenX + u * drawSize;
+        float ey = screenY + v * drawSize;
+
+        DrawCircleV(Vector2{ ex, ey }, 3.5f, SKYBLUE);
+
+    }
+
 }
 
 void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
@@ -354,8 +397,6 @@ void MiniMap::DrawEnemies(const std::vector<Character*>& enemies,
 {
     if (!initialized || !isDungeon) return;
 
-    // float tileW = drawSize / (float)dungeonWidth;
-    // float tileH = drawSize / (float)dungeonHeight;
 
     for (Character* enemy : enemies)
     {
@@ -477,6 +518,7 @@ void MiniMap::DrawMiniMap(){
 
     miniMap.Draw(x, y, player);
     miniMap.DrawEnemies(enemyPtrs, x, y);
+    miniMap.DrawNPCs(gNPCs, x, y);
     miniMap.DrawDoors(doors, x, y);
     miniMap.RevealDoorsFromPlayer(player.position, doors);
     

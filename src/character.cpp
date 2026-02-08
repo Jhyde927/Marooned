@@ -166,11 +166,18 @@ void Character::PlayDeathSound() {
         SoundManager::GetInstance().PlaySoundAtPosition("dinoDeath", position, player.position, 0.0f, 3000);
         break;
 
+
+    case CharacterType::Bat:
+        SoundManager::GetInstance().PlaySoundAtPosition("batDamage", position, player.position, 0.0f, 3000);
+        break;
+
     case CharacterType::Spider:
+
         SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
         break;
 
     case CharacterType::Pirate:
+    case CharacterType::Wizard:
         if (GetRandomValue(0,1) > 0){
             SoundManager::GetInstance().PlaySoundAtPosition("pirateDeath", position, player.position, 0.0f, 3000);
         }else{

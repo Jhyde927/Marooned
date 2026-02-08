@@ -290,6 +290,9 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("giantSpiderBite", "assets/sounds/monsterBite.ogg");
     SoundManager::GetInstance().LoadSound("pirateDeath", "assets/sounds/pirateDeath.ogg");
     SoundManager::GetInstance().LoadSound("deathScream", "assets/sounds/deathScream.ogg");
+    SoundManager::GetInstance().LoadSound("batDamage", "assets/sounds/batDamage.ogg");
+    SoundManager::GetInstance().LoadSound("portal", "assets/sounds/portal.ogg");
+    SoundManager::GetInstance().LoadSound("portal2", "assets/sounds/portal2.ogg");
 
     SoundManager::GetInstance().LoadSound("swim1", "assets/sounds/swim1.ogg");
     SoundManager::GetInstance().LoadSound("swim2", "assets/sounds/swim2.ogg");
