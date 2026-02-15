@@ -96,7 +96,7 @@ DungeonEntrance entranceToDungeon4 = {
 
 DungeonEntrance entranceToDungeon11 = {
     {6294, 150, 5515},
-    12, //go back to start
+    9, //go back to start
     false 
 
 };
@@ -110,13 +110,13 @@ DungeonEntrance entranceToDungeon24 = {
 
 };
 
-std::vector<LevelData> newLevels = {
+std::vector<LevelData> levels = {
     {
-
+        //
         "MiddleIsland", //display name
         "assets/heightmaps/MiddleIsland.png", //heightmap
         "",//dungeon path
-        {0.0f, 300.0f, 0.0f}, //starting position
+        {-5404.0f, 318.0f, -6064.0f}, //Entrance 2 position
         -90.0f, //starting player rotation
         {0, 0, 0}, //raptor spawn center
         5, //raptor count
@@ -136,7 +136,7 @@ std::vector<LevelData> newLevels = {
     {
         "Dungeon1",
         "assets/heightmaps/blank.png", //big blank heightmap incase we want water underneath the dungeon. 
-        "assets/maps/map4.png",
+        "assets/maps/newMaps/dungeon1.png",
         {0.0f, 300.0f, 0.0f}, //overwritten by green pixel 
         -90.0f, //starting look direction
         {0.0f, 0.0f, 0.0f}, //raptor spawn center
@@ -153,7 +153,7 @@ std::vector<LevelData> newLevels = {
     {
         "Dungeon2",
         "assets/heightmaps/blank.png",
-        "assets/maps/map6.png",
+        "assets/maps/newMaps/dungeon2.png",
         {0.0f, 300.0f, 0.0f},
         180.0f,
         {0.0f, 0.0f, 0.0f},
@@ -171,7 +171,7 @@ std::vector<LevelData> newLevels = {
     {
         "Dungeon3",
         "assets/heightmaps/blank.png",
-        "assets/maps/map7.png",
+        "assets/maps/newMaps/dungeon3.png",
         {0.0f, 300.0f, 0.0f},
         180.0f,
         {0.0f, 0.0f, 0.0f},
@@ -179,9 +179,72 @@ std::vector<LevelData> newLevels = {
         true, //isDungeon is true
         {},
         3, 
-        4, 
+        0, 
         {},
         true,
+    },
+
+        {
+        "Dungeon4", //door maze
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon4.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        4, 
+        5, //skip dungeon 6/map10/index7
+        {}, 
+        true, 
+    },
+
+        {
+        "Dungeon5",
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon5.png",
+        {0.0f, 300.0f, 0.0f},
+        0.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        5, 
+        6,
+        {}, 
+        true, 
+    },
+
+        {
+        "Dungeon6",
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon6.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        6, 
+        7,
+        {}, 
+        true,
+    },
+        {
+        "Dungeon7", //fireball level
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon7.png",
+        {0.0f, 300.0f, 0.0f},
+        180.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        7, 
+        8,
+        {},
+        false, 
     },
 
     {
@@ -193,81 +256,34 @@ std::vector<LevelData> newLevels = {
         {0.0f, 0, 0.0f},
         15,//raptor count
         false,
-        {entranceToDungeon11},
-        4, 
-        5,
+        {entranceToDungeon11}, //entrance needs to exit to 9
+        8, 
+        9,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling
    
     },
 
         {
-        "Dungeon5", //door maze
+        "Dungeon8",  
         "assets/heightmaps/blank.png",
-        "assets/maps/map9.png",
+        "assets/maps/newMaps/dungeon8.png",
         {0.0f, 300.0f, 0.0f},
-        180.0f,
-        {0.0f, 0.0f, 0.0f},
-        0, 
-        true, //isDungeon is true
-        {},
-        5, 
-        6, //skip dungeon 6/map10/index7
-        {}, 
-        true, 
-    },
-
-        {
-        "Dungeon9",
-        "assets/heightmaps/blank.png",
-        "assets/maps/map14.png",
-        {0.0f, 300.0f, 0.0f},
-        0.0f,
-        {0.0f, 0.0f, 0.0f},
-        0, 
-        true, //isDungeon is true
-        {},
-        6, 
-        7,
-        {}, 
-        true, 
-    },
-
-        {
-        "Dungeon7",  //spider boss
-        "assets/heightmaps/blank.png",
-        "assets/maps/map11.png",
-        {0.0f, 300.0f, 0.0f},
-        180.0f,
-        {0.0f, 0.0f, 0.0f},
-        0, 
-        true, //isDungeon is true
-        {},
-        7, 
-        8,
-        {}, 
-        true,
-    },
-        {
-        "Dungeon8", //fireball level
-        "assets/heightmaps/blank.png",
-        "assets/maps/map12.png",
-        {0.0f, 300.0f, 0.0f},
-        180.0f,
+        -90.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true
         {},
         9, 
-        10,
-        {},
-        false, 
+        10, 
+        {}, 
+        true,// ceiling
     },
 
         {
-        "Dungeon12", //river exits to here. 
+        "Dungeon9", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map17.png",
+        "assets/maps/newMaps/dungeon9.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -281,9 +297,9 @@ std::vector<LevelData> newLevels = {
     },
 
         {
-        "Dungeon17", 
+        "Dungeon10", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map21.png",
+        "assets/maps/newMaps/dungeon10.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -293,13 +309,13 @@ std::vector<LevelData> newLevels = {
         11, 
         12, 
         {}, 
-        true,// ceiling
+        false,// ceiling
     },
 
         {
-        "Dungeon18", 
+        "Dungeon11", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map22.png",
+        "assets/maps/newMaps/dungeon11.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -307,15 +323,93 @@ std::vector<LevelData> newLevels = {
         true, //isDungeon is true
         {},
         12, 
+        13, 
+        {}, 
+        false,// ceiling
+    },
+        {
+        "Dungeon12", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon12.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        13, 
         14, 
         {}, 
         false,// ceiling
     },
 
+        {
+        "Dungeon14", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon14.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        14, 
+        15, 
+        {}, 
+        false,// ceiling
+    },
+        {
+        "Dungeon15", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon15.png",
+        {0.0f, 300.0f, 0.0f},
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        15, 
+        16, 
+        {}, 
+        false,// ceiling
+    },
+        {
+        "Dungeon16", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/newMaps/dungeon16.png",
+        {5475.0f, 300.0f, -5665.0f}, //original player start position
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        16, 
+        0, //exit to middle island
+        {}, 
+        false,// ceiling
+    },
+
+        {
+        "Swamp", 
+        "assets/heightmaps/Noise4.png",
+        "",
+        {5475.0f, 300.0f, -5665.0f},
+        0.0f,
+        {0.0f, 0, 0.0f},
+        5,//raptor count
+        false,
+        {entranceToDungeon24},
+        17, 
+        0,
+        {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
+        false, //ceiling
+   
+    },
+
 };
 
 
-std::vector<LevelData> levels = {
+std::vector<LevelData> oldlevels = {
 
     {
 
@@ -735,7 +829,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon26", 
         "assets/heightmaps/blank.png",
-        "assets/maps/map30.png", //portal level 
+        "assets/maps/map30.png", //box level 
         {0.0f, 300.0f, 0.0f},
         90.0f, //player rot
         {0.0f, 0.0f, 0.0f},

@@ -93,9 +93,12 @@ void ScheduleDoorAction(int doorIndex, bool open, bool relockOnClose)
             a.open = open;
             a.relockOnClose = relockOnClose;
             a.t = kDoorDelay;
+            
             return;
         }
     }
+
+
 
     SoundManager::GetInstance().PlaySoundAtPosition(
         open ? "doorOpen" : "doorClose",
@@ -107,65 +110,6 @@ void ScheduleDoorAction(int doorIndex, bool open, bool relockOnClose)
     gDoorDelayed.push_back({ doorIndex, open, relockOnClose, kDoorDelay });
 }
 
-
-// void ScheduleDoorAction(int doorIndex, bool open)
-// {
-//     if (doorIndex < 0 || doorIndex >= (int)doors.size()) return;
-
-//     Door& door = doors[doorIndex];
-//     DoorwayInstance& doorway = doorways[doorIndex];
-
-//     // If there’s already a pending action for this door, replace it
-//     for (auto& a : gDoorDelayed)
-//     {
-//         if (a.doorIndex == doorIndex)
-//         {
-//             a.open = open;
-//             a.t    = kDoorDelay;
-//             return;
-//         }
-//     }
-
-//     // Play sound immediately (so it lines up with the delayed motion/state)
-//     SoundManager::GetInstance().PlaySoundAtPosition(
-//         open ? "doorOpen" : "doorClose",
-//         door.position,
-//         player.position,
-//         0.0f, 4000.0f
-//     );
-
-//     gDoorDelayed.push_back({ doorIndex, open, kDoorDelay });
-// }
-
-// void UpdateDoorDelayedActions(float dt)
-// {
-//     for (int i = (int)gDoorDelayed.size() - 1; i >= 0; --i)
-//     {
-//         auto& a = gDoorDelayed[i];
-//         a.t -= dt;
-
-//         if (a.t > 0.0f) continue;
-
-//         const int di = a.doorIndex;
-//         Door& door = doors[di];
-
-//         // apply open/close
-//         door.isOpen = a.open;
-
-//         // keep doorway in sync (same index)
-//         if (di >= 0 && di < (int)doorways.size())
-//             doorways[di].isOpen = a.open;
-
-//         if (a.open){
-//             door.isLocked = false;
-//         }
-
-
-//         SetTileWalkable(door.tileX, door.tileY, a.open);
-
-//         gDoorDelayed.erase(gDoorDelayed.begin() + i);
-//     }
-// }
 
 void UpdateDoorDelayedActions(float dt)
 {
@@ -1852,7 +1796,7 @@ void GenerateHermitFromImage(float baseY) {
 
                 // Interaction
                 hermit.interactRadius = 400.0f;
-                //hermit.dialogId = enteredDungeon1 ? "hermit_2" : "hermit_intro";
+                hermit.dialogId = enteredDungeon1 ? "hermit_2" : "hermit_intro"; //we commented this out because we put hermit in dungeon1? 
 
                 hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
                 hermit.isInteractable = true;

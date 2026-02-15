@@ -69,8 +69,6 @@ enum class Code {
     PortalTile,                // (0, 180, 200) Deep Cyan
     PortalID,                  // (220, 140, 40) amber
     Box,                      // (139, 69, 19) Saddle Brown
-
-
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)

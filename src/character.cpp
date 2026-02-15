@@ -88,68 +88,152 @@ void Character::ApplyGroundSnap()
 
 }
 
-void Character::ApplyAreaDamage(){
+void Character::ApplyAreaDamage()
+{
     if (hasExploded) return;
     hasExploded = true;
-    float minDamage = 10.0f;
-    float maxDamage = 50.0f;
-    float explosionRadius = 400.0f;
 
+    const float minDamage = 10.0f;
+    const float maxDamage = 50.0f;
+    const float explosionRadius = 400.0f;
 
-    float r = explosionRadius;
-    float r2 = r * r;
-    
+    const float r  = explosionRadius;
+    const float r2 = r * r;
+
     Camera& camera = CameraSystem::Get().Active();
 
-    Vector3 d = Vector3Subtract(player.position, position);
-    float dist2 = Vector3DotProduct(d, d);
-
-    if (dist2 < r2 && HasWorldLineOfSight(position, player.position, 0.01f))
+    // ----------------------------
+    // 1) ALWAYS show the explosion
+    // ----------------------------
     {
-        float dist = sqrtf(dist2);
-        float dmg = Lerp(maxDamage, minDamage, dist / r);
-
-        if (player.hitTimer <= 0.0f)
-            player.TakeDamage(dmg);
-        
-
         SoundManager::GetInstance().Play("explosion");
+
+        // Put decal slightly toward the camera so it doesn’t Z-fight / clip weird
         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
         Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
-        decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
 
+        decals.emplace_back(
+            offsetPos,
+            DecalType::Explosion,
+            R.GetTexture("explosionSheet"),
+            13,
+            1.0f,
+            0.1f,
+            500.0f
+        );
     }
 
-    for (Character* e : enemyPtrs)
+    // ----------------------------
+    // 2) PLAYER damage (radius + LOS)
+    // ----------------------------
     {
-
-        if (!e) continue;                 // null pointer guard
-        if (e->isDead) continue;       // skip dead/pooled
-        if (e == this) continue;
-        Vector3 d = Vector3Subtract(e->position, position);
+        Vector3 d = Vector3Subtract(player.position, position);
         float dist2 = Vector3DotProduct(d, d);
 
-        
-        if (dist2 <= r2)
+        if (dist2 < r2)
         {
-            if (HasWorldLineOfSight(position, e->position, 0.1f))
+            // Optional: LOS gating for damage only
+            if (HasWorldLineOfSight(position, player.position, 0.01f))
             {
                 float dist = sqrtf(dist2);
-                float t = dist / r; // 0..1
-                float dmg = Lerp(300, 50, t);
+                float dmg  = Lerp(maxDamage, minDamage, dist / r);
 
-                e->TakeDamage(dmg);
-                SoundManager::GetInstance().Play("explosion");
-                Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
-                Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
-                decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
-                
-
+                if (player.hitTimer <= 0.0f)
+                    player.TakeDamage(dmg);
             }
         }
     }
 
+    // ----------------------------
+    // 3) ENEMY damage (radius + LOS)
+    // ----------------------------
+    for (Character* e : enemyPtrs)
+    {
+        if (!e) continue;
+        if (e->isDead) continue;
+        if (e == this) continue;
+
+        Vector3 d = Vector3Subtract(e->position, position);
+        float dist2 = Vector3DotProduct(d, d);
+
+        if (dist2 > r2) continue;
+
+        // Optional LOS gating for damage
+        if (!HasWorldLineOfSight(position, e->position, 0.1f))
+            continue;
+
+        float dist = sqrtf(dist2);
+        float t    = dist / r; // 0..1
+
+        // (Keep your enemy damage curve; just consistent naming)
+        float dmg  = Lerp(300.0f, 50.0f, t);
+        e->TakeDamage(dmg);
+    }
 }
+
+
+// void Character::ApplyAreaDamage(){
+//     if (hasExploded) return;
+//     hasExploded = true;
+//     float minDamage = 10.0f;
+//     float maxDamage = 50.0f;
+//     float explosionRadius = 400.0f;
+
+
+//     float r = explosionRadius;
+//     float r2 = r * r;
+    
+//     Camera& camera = CameraSystem::Get().Active();
+
+//     Vector3 d = Vector3Subtract(player.position, position);
+//     float dist2 = Vector3DotProduct(d, d);
+
+//     if (dist2 < r2 && HasWorldLineOfSight(position, player.position, 0.01f))
+//     {
+//         float dist = sqrtf(dist2);
+//         float dmg = Lerp(maxDamage, minDamage, dist / r);
+
+//         if (player.hitTimer <= 0.0f)
+//             player.TakeDamage(dmg);
+        
+
+//         SoundManager::GetInstance().Play("explosion");
+//         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
+//         Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
+//         decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
+
+//     }
+
+//     for (Character* e : enemyPtrs)
+//     {
+
+//         if (!e) continue;                 // null pointer guard
+//         if (e->isDead) continue;       // skip dead/pooled
+//         if (e == this) continue;
+//         Vector3 d = Vector3Subtract(e->position, position);
+//         float dist2 = Vector3DotProduct(d, d);
+
+        
+//         if (dist2 <= r2)
+//         {
+//             if (HasWorldLineOfSight(position, e->position, 0.1f))
+//             {
+//                 float dist = sqrtf(dist2);
+//                 float t = dist / r; // 0..1
+//                 float dmg = Lerp(300, 50, t);
+
+//                 e->TakeDamage(dmg);
+//                 SoundManager::GetInstance().Play("explosion");
+//                 Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
+//                 Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
+//                 decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
+                
+
+//             }
+//         }
+//     }
+
+// }
 
 void Character::PlayDeathSound() {
     switch (type)
@@ -222,7 +306,7 @@ void Character::TakeDamage(int amount) {
         currentHealth = 0;
         isDead = true;
         deathTimer = 0.0f;
-        if (type == CharacterType::GiantSpider && levelIndex == 8) OpenEventLockedDoors(); //open boss door when spider dies. abstract this 
+        if (type == CharacterType::GiantSpider && levelIndex == 7) OpenEventLockedDoors(); //open boss door when spider dies. abstract this 
 
         if (type == CharacterType::Ghost) SetAnimation(1, 7, 0.2);
 

@@ -193,6 +193,8 @@ static bool TryTeleportInGroup(
             hitIndex = i;
             break;
         }
+
+
     }
 
     if (hitIndex == -1)
@@ -242,7 +244,7 @@ void PortalSystem::Update(Vector3& playerPos, float playerRadius, float dt)
             // Start fade in elsewhere
 
             // Start cooldown now (prevents instant retrigger)
-            gTeleportCooldown = 3.0f;
+            gTeleportCooldown = 1.5f;
 
             // Clear pending
             gTeleportPending = false;

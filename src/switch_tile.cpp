@@ -179,7 +179,7 @@ void DeactivateSwitch(const SwitchTile& st)
     {
         Door& door = doors[i];
         if (door.requiredKey != key) continue;
-
+        SoundManager::GetInstance().Play("floorSwitchUnpress");
         ScheduleDoorAction(i, false, true); // false for close door, true for relock door. 
     }
 
@@ -196,8 +196,8 @@ void ActivateSwitch(const SwitchTile& st)
             Door& door = doors[i];
             if (door.requiredKey != key) continue;
 
-            // Instead of immediate:
-            // door.isLocked = false; door.isOpen = true; SetTileWalkable(...)
+        //std::string sn = open ? "floorSwitch" : "floorSwitchUnpress";
+        SoundManager::GetInstance().Play("floorSwitch");
 
             ScheduleDoorAction(i, true);
         }

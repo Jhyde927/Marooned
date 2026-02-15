@@ -109,8 +109,8 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool window   = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
             bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));    // lava pit
             bool aqua    = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));  // gold key locked doors
-            bool silver = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
-            bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey))); //skeleton doors
+            bool silver = (EqualsRGB(c, ColorOf(Code::SilverDoor)));   //silver key doors
+            bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonDoor))); //skeleton doors
             bool eventLocked = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked doors
             bool boxes = (EqualsRGB(c, ColorOf(Code::Box)));
             //secret walls? 
@@ -175,8 +175,8 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
     bool window   = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
     bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));     // lava
     bool aqua     = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
-    bool silver   = (EqualsRGB(c, ColorOf(Code::SilverKey)));   //silver key doors
-    bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonKey))); //skeleton key door
+    bool silver   = (EqualsRGB(c, ColorOf(Code::SilverDoor)));   //silver key doors
+    bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonDoor))); //skeleton key door
     bool event    = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked door
     bool boxes = (EqualsRGB(c, ColorOf(Code::Box)));
 

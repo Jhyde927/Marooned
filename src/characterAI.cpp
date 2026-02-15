@@ -55,6 +55,37 @@ void Character::UpdateAI(float deltaTime, Player& player) {
     }
 }
 
+void Character::UpdateChaseSound(float deltaTime, Player& player){
+    if (state != CharacterState::Chase) return;
+    chaseSoundTimer -= deltaTime;
+
+    if (chaseSoundTimer <= 0){
+        chaseSoundTimer = RandomFloat(3.5, 8.5);
+        switch (type)
+        {
+        case CharacterType::Skeleton:
+        {
+            //play random grunt noises while chasing.
+            std::string sn = (GetRandomValue(0,1) > 0) ? "skeletonGrunt" : "skeletonGrunt2";
+            SoundManager::GetInstance().PlaySoundAtPosition(sn, position, player.position, 0.0f, 3000);
+            break;
+        }
+
+        case CharacterType::Pirate:
+        {
+            std::string sn = (GetRandomValue(0,1) > 0) ? "pirateYell1" : "pirateYell2";
+            SoundManager::GetInstance().PlaySoundAtPosition(sn, position, player.position, 0.0f, 3000);
+
+        }
+
+        
+        default:
+            break;
+        }
+
+    }
+}
+
 void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime, float epsilon) {
     if (player.godMode){
         canSee = false;
@@ -678,13 +709,15 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
         }
 }
 
+
+
 void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
     float distance = Vector3Distance(position, player.position);
 
     Vector2 start = WorldToImageCoords(position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
-
+    if (state != CharacterState::Chase) chaseSoundTimer = 0.0f;
  
     switch (state){
         case CharacterState::Idle: {
@@ -721,6 +754,8 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         case CharacterState::Chase: {
             stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+
+            UpdateChaseSound(deltaTime, player);
 
             if (distance < 200.0f && canSee) {
                 ChangeState(CharacterState::Attack);
@@ -1957,7 +1992,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         case CharacterState::Chase: {
             stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
-
+            UpdateChaseSound(deltaTime, player);
             UpdateMovementAnim();
             if (distance < 250 && canSee){
                 ChangeState(CharacterState::MeleeAttack);

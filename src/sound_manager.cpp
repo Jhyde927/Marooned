@@ -293,6 +293,14 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("batDamage", "assets/sounds/batDamage.ogg");
     SoundManager::GetInstance().LoadSound("portal", "assets/sounds/portal.ogg");
     SoundManager::GetInstance().LoadSound("portal2", "assets/sounds/portal2.ogg");
+    SoundManager::GetInstance().LoadSound("floorSwitch", "assets/sounds/floorSwitch.ogg");
+    SoundManager::GetInstance().LoadSound("floorSwitchUnpress", "assets/sounds/floorSwitchUnpress.ogg");
+
+    SoundManager::GetInstance().LoadSound("skeletonGrunt", "assets/sounds/skeletonGrunt.ogg");
+    SoundManager::GetInstance().LoadSound("skeletonGrunt2", "assets/sounds/skeletonGrunt2.ogg");
+    SoundManager::GetInstance().LoadSound("pirateYell1", "assets/sounds/pirate1.ogg");
+    SoundManager::GetInstance().LoadSound("pirateYell2", "assets/sounds/pirate2.ogg");
+
 
     SoundManager::GetInstance().LoadSound("swim1", "assets/sounds/swim1.ogg");
     SoundManager::GetInstance().LoadSound("swim2", "assets/sounds/swim2.ogg");

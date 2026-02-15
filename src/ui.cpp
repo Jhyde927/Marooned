@@ -103,6 +103,10 @@ static void ToggleHermitFollow(int hermitId)
     // also reset patrol goal so it picks a new one when you stop following
     if (!gHermitFollowing)
     {
+        if (isDungeon){
+            
+            
+        }
         hermit.patrolHasGoal = false;
         hermit.patrolState   = HermitPatrolState::Idle;
         hermit.animIntent    = AnimIntent::Idle;

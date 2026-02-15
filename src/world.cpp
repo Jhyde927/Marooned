@@ -215,13 +215,6 @@ void InitLevel(LevelData& level, Camera& camera) {
     gCurrentLevelIndex = levelIndex; //save current level globally so we can tell if we are changing levels or resuming. 
 
 
-    if (level.heightmapPath.empty() && level.dungeonPath.empty()) {
-        TraceLog(LOG_INFO, "Skipping placeholder level index %d", levelIndex);
-        level = levels[2];
-    }
-
-
-
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
@@ -247,6 +240,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
 
     dungeonEntrances = level.entrances; //get level entrances from level data
+    GenerateEntrances();
     generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances. 
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
@@ -265,7 +259,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
 
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
-    GenerateEntrances();
+
 
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     InitOverworldWeapons();
@@ -606,7 +600,6 @@ void GenerateEntrances() {
 
     for (size_t i = 0; i < dungeonEntrances.size(); ++i) {
         const DungeonEntrance& e = dungeonEntrances[i];
-
         Door d{};
         d.position = e.position;
         d.rotationY = 0.0f;

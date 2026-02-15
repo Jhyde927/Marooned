@@ -22,7 +22,7 @@
 //As above, so below.
 
 bool squareRes = false; // set true for 1280x1024, false for widescreen
-bool showTutorial = false;
+bool showTutorial = true;
 
 int main() { 
     int screenWidth = squareRes ? 1280 : 1600;

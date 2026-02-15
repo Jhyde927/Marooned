@@ -729,7 +729,7 @@ void CheckBulletHits(Camera& camera) {
 
 
                     if (b.hermit){
-                        enemy->TakeDamage(999);
+                        enemy->TakeDamage(200); //one shots skeles
                         b.alive = false;
                         b.exploded = true;
                         break;
@@ -1262,7 +1262,7 @@ void HandleDoorInteraction(Camera& camera)
             isLoadingLevel = true;
             currentGameState = GameState::LoadingLevel;
 
-            if (levelIndex == 4) unlockEntrances = true;
+            if (levelIndex == 3) unlockEntrances = true;
 
             return;
         }
@@ -1275,100 +1275,6 @@ void HandleDoorInteraction(Camera& camera)
     }
 }
 
-
-
-// void HandleDoorInteraction(Camera& camera) {
-//     static bool isWaiting = false;
-//     static float openTimer = 0.0f;
-//     static int pendingDoorIndex = -1;
-
-//     float deltaTime = GetFrameTime();
-
-//     if (!isWaiting && IsKeyPressed(KEY_E) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)) {
-//         for (size_t i = 0; i < doors.size(); ++i) {
-//             float distanceTo = Vector3Distance(doors[i].position, player.position);
-//             bool facingDoor = IsFacingTarget2D(player.position, player.forward, doors[i].position, 0.45);
-//             if (distanceTo < 250 && facingDoor) {
-
-//                 if (doors[i].eventLocked){ //no access until world event triggers OpenEventLockedDoors()
-//                     SoundManager::GetInstance().Play("lockedDoor");
-//                     return;
-//                 }
-
-//                 // If locked and no key, deny access
-//                 if (doors[i].isLocked) {
-
-//                     bool hasKey = false;
-//                     if (doors[i].requiredKey == KeyType::Gold)   hasKey = player.hasGoldKey;
-//                     if (doors[i].requiredKey == KeyType::Silver) hasKey = player.hasSilverKey;
-//                     if (player.hasSkeletonKey) hasKey = true; //skeleton key opens all key locked doors
-
-//                     if (hasKey) {
-//                         doors[i].isLocked = false;
-//                         SoundManager::GetInstance().Play("unlock");
-//                     } else {
-//                         SoundManager::GetInstance().Play("lockedDoor");
-//                         return;
-//                     }
-//                 }
-
-//                 // Start door interaction (fade, open, etc)
-//                 isWaiting = true;
-//                 openTimer = 0.0f;
-//                 pendingDoorIndex = i;
-
-//                 std::string s = doors[i].isOpen ? "doorClose" : "doorOpen";
-//                 SoundManager::GetInstance().Play(s);
-
-//                 DoorType type = doors[i].doorType;
-//                 if (type == DoorType::GoToNext || type == DoorType::ExitToPrevious) {
-//                     previousLevelIndex = levelIndex;
-//                     isWaiting = false;
-//                     openTimer = 0.0f;
-
-//                     pendingLevelIndex = doors[i].linkedLevelIndex;
-//                     StartFadeOutToLevel(pendingLevelIndex);
-//                     isLoadingLevel = true; //stops updating characters, prevents crash on level switch.
-//                     currentGameState = GameState::LoadingLevel; 
-//                     if (levelIndex == 4) unlockEntrances = true; //unlock dungeon entrances after seeing dungeon3 (index 4)
-
-//                 }
-
-//                 break; // done with this door
-//             }
-//         }
-//     }
-
-
-//     if (isWaiting) {
-//         openTimer += deltaTime;
-
-//         if (openTimer >= 0.5f && pendingDoorIndex != -1) {
-//             doors[pendingDoorIndex].isOpen = !doors[pendingDoorIndex].isOpen;
-//             doorways[pendingDoorIndex].isOpen = doors[pendingDoorIndex].isOpen;
-
-//             // Update walkable grid, open doors are walkable. 
-//             int tileX = GetDungeonImageX(doors[pendingDoorIndex].position.x, tileSize, dungeonWidth);
-//             int tileY = GetDungeonImageY(doors[pendingDoorIndex].position.z, tileSize, dungeonHeight);
-//             if (tileX >= 0 && tileY >= 0 && tileX < (int)walkable.size() && tileY < (int)walkable[0].size()) {
-//                 walkable[tileX][tileY] = doors[pendingDoorIndex].isOpen;
-//                 walkableBat[tileX][tileY] = doors[pendingDoorIndex].isOpen; //open doors for bats as well
-//                 miniMap.RevealAroundPlayer(player.position);
-
-//                 //Failed attempt at rebaking lights on door open. Runs too slow and causes problems with orange inner light. 
-//                 // auto affected = GetStaticLightIndices(doors[pendingDoorIndex].position);
-//                 // OnDoorToggled_RebakeStaticLights(doors[pendingDoorIndex].position, affected);
-
-                
-//             }
-
-//             // Reset
-//             isWaiting = false;
-//             openTimer = 0.0f;
-//             pendingDoorIndex = -1;
-//         }
-//     }
-// }
 
 void UpdateCollisions(Camera& camera){
     CheckBulletHits(camera); //bullet collision

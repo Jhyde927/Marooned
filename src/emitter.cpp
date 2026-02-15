@@ -78,7 +78,7 @@ void Emitter::EmitBlood(Vector3 pos, int count, Color color) {
                 p.position = position;
 
                 p.color = color;
-                p.gravity = 800.0f + GetRandomValue(-200, 200);  
+                p.gravity = 1800.0f + GetRandomValue(-200, 200);  
 
                 // Directionless for now; you can bias this later
                 p.velocity = {

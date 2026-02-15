@@ -149,7 +149,8 @@ public:
     bool bloatBat = false;
     bool hasExploded = false;
 
-
+    float chaseSoundTimer = 0.0f;
+    bool wasChasing = false;
 
     FacingMode facingMode = FacingMode::Approaching;
     CharacterType type;
@@ -199,6 +200,7 @@ public:
     void UpdateRunaway(float deltaTime);
     void UpdateRunawaySteering(float dt);
     void UpdateChase(float deltaTime);
+    void UpdateChaseSound(float deltaTime, Player& player);
     void UpdateTrexStepSFX(float dt);
     void ApplyAreaDamage();
     AnimDesc GetAnimFor(CharacterType type, CharacterState state);
