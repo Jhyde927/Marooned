@@ -61,28 +61,26 @@ void Character::UpdateChaseSound(float deltaTime, Player& player){
 
     if (chaseSoundTimer <= 0){
         chaseSoundTimer = RandomFloat(3.5, 8.5);
+        const char* sn = nullptr;
+
         switch (type)
         {
-        case CharacterType::Skeleton:
+            case CharacterType::Skeleton:
+                sn = (GetRandomValue(0,1) > 0) ? "skeletonGrunt" : "skeletonGrunt2";
+                break;
+
+            case CharacterType::Pirate:
+                sn = (GetRandomValue(0,1) > 0) ? "pirateYell1" : "pirateYell2";
+                break;
+
+            default:
+                break;
+        }
+
+        if (sn)
         {
-            //play random grunt noises while chasing.
-            std::string sn = (GetRandomValue(0,1) > 0) ? "skeletonGrunt" : "skeletonGrunt2";
             SoundManager::GetInstance().PlaySoundAtPosition(sn, position, player.position, 0.0f, 3000);
-            break;
         }
-
-        case CharacterType::Pirate:
-        {
-            std::string sn = (GetRandomValue(0,1) > 0) ? "pirateYell1" : "pirateYell2";
-            SoundManager::GetInstance().PlaySoundAtPosition(sn, position, player.position, 0.0f, 3000);
-
-        }
-
-        
-        default:
-            break;
-        }
-
     }
 }
 
@@ -797,7 +795,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 }
             }
 
-            if (distance > 210.0f) { 
+            if (distance > 201.0f) { 
                 ChangeState(CharacterState::Chase);
 
             }

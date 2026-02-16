@@ -124,7 +124,7 @@ namespace ShaderSetup
         //water shader needs cameraPos for reasons. 
         SetShaderValue(sh, ws.loc_cameraPos, &camPos, SHADER_UNIFORM_VEC3);
         SetShaderValue(sh, GetShaderLocation(sh, "time"), &elapsedTime, SHADER_UNIFORM_FLOAT);
-        int isSwamp = (gCurrentLevelIndex == 23) ? 1 : 0;
+        int isSwamp = (levels[gCurrentLevelIndex].name == "Swamp") ? 1 : 0;
         Vector3 swampColor = {0.32, 0.45, 0.30};
         Vector3 oceanColor = {0.22, 0.55, 0.88};
         Vector3 waterColor = (isSwamp == 1) ? swampColor : oceanColor;
@@ -342,7 +342,7 @@ namespace ShaderSetup
         BindSkyShaderToModel(skyModel, shader);
         CacheSkyLocations(out);
         //set isSwamp on init
-        int isSwamp = (gCurrentLevelIndex == 23) ? 1 : 0;
+        int isSwamp = (levels[gCurrentLevelIndex].name == "Swamp") ? 1 : 0;
         int Dungeon = isDungeon ? 1 : 0;
         out.isSwamp = isSwamp ? 1 : 0;
         out.isDungeon = Dungeon;

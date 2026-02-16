@@ -95,8 +95,9 @@ DungeonEntrance entranceToDungeon4 = {
 };
 
 DungeonEntrance entranceToDungeon11 = {
-    {6294, 150, 5515},
-    9, //go back to start
+    //(-6146.0f, 319.0f, 5360.0f)
+    {-6146.0f, 150.0f, 5360.0f},
+    9, 
     false 
 
 };

@@ -61,8 +61,8 @@ TreeType RandomTreeType()
 
 void generateVegetation(){
 
-    float treeSpacing = (levelIndex == 23) ? 150 : 150; // higher spacing for swamp
-    float minTreeSpacing = (levelIndex == 23) ? 50 : 50;
+    float treeSpacing = (levels[gCurrentLevelIndex].name == "Swamp") ? 150 : 150; // higher spacing for swamp
+    float minTreeSpacing = (levels[gCurrentLevelIndex].name == "Swamp") ? 50 : 50;
 
     float treeHeightThreshold = terrainScale.y * 0.8f;
     float bushHeightThreshold = terrainScale.y * 0.9f;
@@ -433,22 +433,13 @@ void DrawTrees(const std::vector<TreeInstance>& trees, Camera& camera){
         pos.y += tree->yOffset;
         pos.x += tree->xOffset;
         pos.z += tree->zOffset;
-        //Model& treeModel = R.GetModel("palmTree");
-
-        // switch (tree->type) {
-        //     case TreeType::Big: treeModel = (gCurrentLevelIndex == 23) ? R.GetModel("swampTree") : R.GetModel("palmTree");
-
-        //     case TreeType::Medium: treeModel = (gCurrentLevelIndex == 23) ? R.GetModel("swampTree") : R.GetModel("palm2");
-
-        //     default: treeModel = R.GetModel("palmTree");
-        // }
 
         Model& treeModel = tree->useAltModel ? R.GetModel("palmTree") : R.GetModel("palm2");
         Model& swampTree = R.GetModel("swampTree");
         float scale = tree->useAltModel ? 80.0f : 150.0f;
         if (dist < cullDist){
 
-            if (gCurrentLevelIndex == 23){
+            if (levels[gCurrentLevelIndex].name == "Swamp"){
                 DrawModelEx(swampTree, pos, { 0, 1, 0 }, tree->rotationY, { scale, scale, scale }, WHITE);
             }else{
                 DrawModelEx(treeModel, pos, { 0, 1, 0 }, tree->rotationY, { tree->scale, tree->scale, tree->scale }, WHITE);

@@ -418,6 +418,7 @@ void HandleKeyboardInput(Camera& camera) {
     }
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || (IsGamepadAvailable(0) && GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.1f)) {
+        if (player.state == PlayerState::Frozen) return; //dont attack while frozen. 
         if (!player.isSwimming){ //dont fire gun in water
            if (player.activeWeapon == WeaponType::Blunderbuss){
                 weapon.Fire(camera); 
@@ -432,7 +433,7 @@ void HandleKeyboardInput(Camera& camera) {
 
         if (player.activeWeapon == WeaponType::MagicStaff){
                 magicStaff.StartSwing(camera);
-           }
+        }
 
         if (player.activeWeapon == WeaponType::Crossbow){
             crossbow.Fire(camera);

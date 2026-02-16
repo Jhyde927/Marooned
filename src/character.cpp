@@ -172,68 +172,6 @@ void Character::ApplyAreaDamage()
 }
 
 
-// void Character::ApplyAreaDamage(){
-//     if (hasExploded) return;
-//     hasExploded = true;
-//     float minDamage = 10.0f;
-//     float maxDamage = 50.0f;
-//     float explosionRadius = 400.0f;
-
-
-//     float r = explosionRadius;
-//     float r2 = r * r;
-    
-//     Camera& camera = CameraSystem::Get().Active();
-
-//     Vector3 d = Vector3Subtract(player.position, position);
-//     float dist2 = Vector3DotProduct(d, d);
-
-//     if (dist2 < r2 && HasWorldLineOfSight(position, player.position, 0.01f))
-//     {
-//         float dist = sqrtf(dist2);
-//         float dmg = Lerp(maxDamage, minDamage, dist / r);
-
-//         if (player.hitTimer <= 0.0f)
-//             player.TakeDamage(dmg);
-        
-
-//         SoundManager::GetInstance().Play("explosion");
-//         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
-//         Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
-//         decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
-
-//     }
-
-//     for (Character* e : enemyPtrs)
-//     {
-
-//         if (!e) continue;                 // null pointer guard
-//         if (e->isDead) continue;       // skip dead/pooled
-//         if (e == this) continue;
-//         Vector3 d = Vector3Subtract(e->position, position);
-//         float dist2 = Vector3DotProduct(d, d);
-
-        
-//         if (dist2 <= r2)
-//         {
-//             if (HasWorldLineOfSight(position, e->position, 0.1f))
-//             {
-//                 float dist = sqrtf(dist2);
-//                 float t = dist / r; // 0..1
-//                 float dmg = Lerp(300, 50, t);
-
-//                 e->TakeDamage(dmg);
-//                 SoundManager::GetInstance().Play("explosion");
-//                 Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
-//                 Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
-//                 decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
-                
-
-//             }
-//         }
-//     }
-
-// }
 
 void Character::PlayDeathSound() {
     switch (type)
@@ -441,7 +379,7 @@ void Character::Update(float deltaTime, Player& player ) {
         // 2) If standing over lava, define the lava "sink floor"
         if (overLava || overVoid)
         {
-            float lavaSinkDepth = overVoid ? 1200.0f : 150.0f;
+            float lavaSinkDepth = overVoid ? 2000.0f : 200.0f;
             const float lavaFallSpeed = 600.0f;
             const int   lavaDamage    = 500;
 

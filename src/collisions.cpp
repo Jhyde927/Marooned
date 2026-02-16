@@ -498,6 +498,8 @@ void HandleMeleeHitboxCollision(Camera& camera) {
 
         if (CheckCollisionBoxes(enemy->GetBoundingBox(), player.meleeHitbox) && enemy->lastAttackid != player.attackId){
             if (swordActive || staffActive){
+                swordActive = false;
+                staffActive = false;
                 enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
                 enemy->TakeDamage(50); //staff and sword both do 50. maybe staff should do less. 
                 

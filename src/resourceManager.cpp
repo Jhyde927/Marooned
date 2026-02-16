@@ -398,7 +398,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
     Vector3 oceanColor = {0.22, 0.55, 0.88};
     Vector3 swampColor = {0.32, 0.45, 0.30};//{0.32, 0.45, 0.35};
-    Vector3 waterColor = (gCurrentLevelIndex == 23) ? swampColor : oceanColor;
+    Vector3 waterColor = (levels[gCurrentLevelIndex].name == "Swamp") ? swampColor : oceanColor;
 
     int waterColorLoc = GetShaderLocation(sh, "u_waterColor");
     SetShaderValue(sh, waterColorLoc, &waterColor, SHADER_UNIFORM_VEC3);
@@ -411,8 +411,8 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     Texture2D sand  = R.GetTexture("sandTexture");
 
     //ternary opterator
-    grass = (gCurrentLevelIndex == 23) ? R.GetTexture("swampGrass") : R.GetTexture("grassTexture");
-    sand = (gCurrentLevelIndex == 23) ?  R.GetTexture("swampMud") : R.GetTexture("sandTexture");
+    grass = (levels[gCurrentLevelIndex].name == "Swamp") ? R.GetTexture("swampGrass") : R.GetTexture("grassTexture");
+    sand = (levels[gCurrentLevelIndex].name == "Swamp") ?  R.GetTexture("swampMud") : R.GetTexture("sandTexture");
 
     GenTextureMipmaps(&grass);
     GenTextureMipmaps(&sand);

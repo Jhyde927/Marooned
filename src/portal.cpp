@@ -78,9 +78,10 @@ void PortalSystem::GenerateFromDungeon(
 
             Portal p;
             p.position = spawnPos;
+            float half = 50;
             p.box = {
-                { spawnPos.x - tileSize * 0.4f, baseY - 50.0f, spawnPos.z - tileSize * 0.4f },
-                { spawnPos.x + tileSize * 0.4f, baseY + 50.0f, spawnPos.z + tileSize * 0.4f }
+                { spawnPos.x - half, baseY - 50.0f, spawnPos.z - half },
+                { spawnPos.x + half, baseY + 50.0f, spawnPos.z + half }
             };
 
             // Detect PortalID neighbors
