@@ -94,11 +94,11 @@ Rectangle ComputeOptionsPanelRect(Rectangle rTopButton, Rectangle rBottomButton)
 {
     float gap = 24.0f;
 
-    float x = rTopButton.x - rTopButton.width/2 + gap;
+    float x = GetScreenWidth()/2 - 185.0f;//rTopButton.x - rTopButton.width/2 + gap;
     float y = rTopButton.y;
 
     float h = (rBottomButton.y + rBottomButton.height) - rTopButton.y + 120.0f;
-    float w = 300.0f * 2.0f; // 3× wider, same height
+    float w = 370.0f; //centered on screen middle.  
 
     Rectangle r = { x, y, w, h };
 

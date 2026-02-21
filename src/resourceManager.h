@@ -50,6 +50,7 @@ public:
     void SetLightingShaderValues();
     void SetTerrainShaderValues();
     void SetCeilingShaderValues();
+    void SetGhostShaderValues();
 
     //Moved to ShaderSetup
     //void SetBloomShaderValues();

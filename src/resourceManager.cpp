@@ -326,7 +326,11 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("windowWay",              "assets/Models/windowHoleSquare.glb");
     R.LoadModel("swampTree",              "assets/Models/palm1.glb");
     R.LoadModel("box",                    "assets/Models/box.glb");
-
+    R.LoadModel("raft",                   "assets/Models/raft.glb");
+    R.LoadModel("raftBody",               "assets/Models/raftBody.glb");
+    R.LoadModel("raftMast",               "assets/Models/raftMast.glb");
+    R.LoadModel("raftBoom",               "assets/Models/raftBoom.glb");
+    R.LoadModel("raftSail",               "assets/Models/raftSail.glb");
 
     //generated models
 
@@ -350,7 +354,41 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("treeShader",     "assets/shaders/treeShader.vs",         "assets/shaders/treeShader.fs");
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
     R.LoadShader("ceilingShader",  "assets/shaders/ceiling.vs",            "assets/shaders/ceiling.fs");
+    R.LoadShader("ghostShader",    "assets/shaders/ghost_raft.vs",         "assets/shaders/ghost_raft.fs");
 
+
+}
+
+void ResourceManager::SetGhostShaderValues(){
+    Shader& ghostShader = R.GetShader("ghostShader");
+    Model& raftModel    = R.GetModel("raft");
+
+    int viewPosLoc     = GetShaderLocation(ghostShader, "viewPos");
+    int ghostColorLoc  = GetShaderLocation(ghostShader, "ghostColor");
+    int baseAlphaLoc   = GetShaderLocation(ghostShader, "baseAlpha");
+    int rimPowerLoc    = GetShaderLocation(ghostShader, "rimPower");
+    int rimStrengthLoc = GetShaderLocation(ghostShader, "rimStrength");
+
+    //raftModel.materials[0].shader = ghostShader;
+
+    for (int i = 0; i < raftModel.materialCount; i++)
+    {
+        raftModel.materials[i].shader = ghostShader;
+    }
+
+    Vector3 camPos = CameraSystem::Get().Active().position;
+
+    SetShaderValue(ghostShader, viewPosLoc, &camPos, SHADER_UNIFORM_VEC3);
+
+    Vector3 ghostTint = {0.4f, 0.8f, 1.0f}; // spectral blue
+    float alpha = 0.35f;
+    float rimPow = 2.0f;
+    float rimStr = 1.2f;
+
+    SetShaderValue(ghostShader, ghostColorLoc, &ghostTint, SHADER_UNIFORM_VEC3);
+    SetShaderValue(ghostShader, baseAlphaLoc, &alpha, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ghostShader, rimPowerLoc, &rimPow, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ghostShader, rimStrengthLoc, &rimStr, SHADER_UNIFORM_FLOAT);
 
 }
 
@@ -360,6 +398,9 @@ void ResourceManager::SetShaderValues(){
     // set shaders values
     Shader& fogShader = R.GetShader("fogShader");
     Shader& shadowShader = R.GetShader("shadowShader");
+    SetGhostShaderValues();
+
+
 
     //regular black vignette
     vignetteStrengthValue = isDungeon ? 0.8 : 0.25f; //less of vignette outdoors.

@@ -350,6 +350,7 @@ void NPC::MaintainOrAcquireTarget(float dt, const std::vector<Character*>& enemy
         if (!PtrStillListed(target, enemyPtrs)) return false;
         if (target->isDead) return false;
         if (target->currentHealth <= 0) return false;
+
         if (isDungeon && !HasWorldLineOfSight(position, target->position, 0.1f)) return false;
         
 
@@ -437,6 +438,7 @@ void NPC::Hermit_Turret_Aim(float dt, const std::vector<Character*>& /*enemyPtrs
 
     // Respect cooldown and engagement radius
     if (fireCooldownLeft > 0.0f) return;
+    if (!HasWorldLineOfSight(position, target->position, 0.1f)) return; //don't aim through walls. 
 
     if (distSq > fireRadiusSq)
     {
@@ -469,8 +471,10 @@ void NPC::Hermit_Turret_Fire(float /*dt*/, const std::vector<Character*>& enemyP
 
         FireBullet(muzzle, target->position, 10000, 1.0, false, true);
 
-        if (IsWithinAimConeXZ(muzzle, rotationY, target->position, 15.0f))
-            target->TakeDamage(999);
+        if (IsWithinAimConeXZ(muzzle, rotationY, target->position, 15.0f)){
+            target->TakeDamage(200);
+        }
+
 
         SoundManager::GetInstance().PlaySoundAtPosition(
             "musket", position, player.position, 0.0f, 3000.0f);
@@ -919,7 +923,7 @@ bool NPC::CanInteract(const Vector3& playerPos) const
 
 float NPC::GetFeetPosY()
 {
-    return GetHeightAtWorldPosition(position, heightmap, terrainScale);
+    return isDungeon ? floorHeight + 20.0f : GetHeightAtWorldPosition(position, heightmap, terrainScale);
 }
 
 float NPC::GetCenterPosY() const

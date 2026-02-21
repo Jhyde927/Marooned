@@ -498,8 +498,8 @@ void HandleMeleeHitboxCollision(Camera& camera) {
 
         if (CheckCollisionBoxes(enemy->GetBoundingBox(), player.meleeHitbox) && enemy->lastAttackid != player.attackId){
             if (swordActive || staffActive){
-                swordActive = false;
-                staffActive = false;
+                meleeWeapon.hitboxActive = false;
+                magicStaff.hitboxActive = false;
                 enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
                 enemy->TakeDamage(50); //staff and sword both do 50. maybe staff should do less. 
                 
@@ -731,7 +731,8 @@ void CheckBulletHits(Camera& camera) {
 
 
                     if (b.hermit){
-                        enemy->TakeDamage(200); //one shots skeles
+                        enemy->TakeDamage(10); // bullet shouldn't deal the damage, hermit deals damage directly incase of a miss.
+                        //if bullet actually hits target, deal 10 damage bonus i guess. 
                         b.alive = false;
                         b.exploded = true;
                         break;
@@ -1264,7 +1265,7 @@ void HandleDoorInteraction(Camera& camera)
             isLoadingLevel = true;
             currentGameState = GameState::LoadingLevel;
 
-            if (levelIndex == 3) unlockEntrances = true;
+            
 
             return;
         }

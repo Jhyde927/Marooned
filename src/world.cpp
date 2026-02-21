@@ -22,6 +22,7 @@
 #include "dialogManager.h"
 #include "portal.h"
 #include "switch_tile.h"
+#include "raft.h"
 
 
 
@@ -102,7 +103,7 @@ std::vector<NPC> gNPCs;
 std::vector<DungeonEntrance> dungeonEntrances;
 std::vector<PreviewInfo> levelPreviews;
 
-
+Raft raft;
 MiniMap miniMap;
 
 void EnterMenu() {
@@ -249,9 +250,8 @@ void InitLevel(LevelData& level, Camera& camera) {
        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);     
     }
 
-    if (level.name == "Dungeon1"){
-        enteredDungeon1 = true;
-    }
+    if (level.name == "Dungeon1") enteredDungeon1 = true;
+    if (level.name == "Dungeon3") unlockEntrances = true; // unlock entrance 3, lock entrance 1 
 
     if (level.name == "MiddleIsland" || level.name == "River"){
         InitNPCs();
@@ -457,8 +457,13 @@ void UpdateFade(Camera& camera, float deltaTime) {
 }
 
 void InitOverworldWeapons(){
-    Vector3 bpos = {4045.69, 260, -4191.75};
-    //worldWeapons.push_back(CollectableWeapon(WeaponType::Crossbow, bpos, R.GetModel("crossbow")));
+    if (unlockEntrances){ //unlock staff by hermit position on far island, if you've visited dungeon3
+        Vector3 spos = {-5790.0f, 250.0f, 5907.0f};
+        // worldWeapons.push_back(CollectableWeapon(WeaponType::MagicStaff, spos, R.GetModel("staffModel")));
+        Collectable p = {CollectableType::Harpoon, spos, R.GetTexture("harpoon"), 80};
+        collectables.push_back(p);
+    }
+
 }
 
 
@@ -490,6 +495,8 @@ void DrawEnemyShadows() {
 
     for (NPC& npc : gNPCs){
         Vector3 groundPos = {npc.position.x, npc.GetFeetPosY() + 1.0f, npc.position.z};
+        // Vector3 floorPos = {npc.position.x, floorHeight + 10.0f, npc.position.z};
+        // Vector3 currentPos = isDungeon ? floorPos : groundPos;
         DrawModelEx(shadowModel, groundPos, {0,1,0}, 0.0f, {100,100,100}, BLACK);
 
     }
@@ -936,6 +943,8 @@ void DrawBullets(Camera& camera) {
 }
 
 void DrawOverworldProps() {
+
+
     for (const auto& p : levels[levelIndex].overworldProps) {
         
         const char* modelKey =
@@ -949,6 +958,16 @@ void DrawOverworldProps() {
         DrawModelEx(R.GetModel(modelKey), propPos,
                     {0,1,0}, p.yawDeg, {p.scale,p.scale,p.scale}, WHITE);
     }
+
+    //5997.32, 119.764, -2610.64
+    //DRAW RAFT
+
+
+    //DrawModelEx(R.GetModel("raftBody"), raftPos, Vector3{0}, 0.0f, Vector3{100, 100, 100}, LIGHTGRAY);
+    // DrawModelEx(R.GetModel("raftMast"), raftPos, Vector3{0}, 0.0f, Vector3{100, 100, 100}, LIGHTGRAY);
+    // DrawModelEx(R.GetModel("raftBoom"), raftPos, Vector3{0}, 0.0f, Vector3{100, 100, 100}, LIGHTGRAY);
+    //DrawModelEx(R.GetModel("raftSail"), raftPos, Vector3{0}, 0.0f, Vector3{100, 100, 100}, WHITE);
+
 }
 
 
@@ -1015,7 +1034,7 @@ void InitNPCs()
     // Interaction
     hermit.interactRadius = 400.0f;
     hermit.dialogId = enteredDungeon1 ? "hermit_2" : "hermit_intro";
-
+    hermit.rotationY = enteredDungeon1 ? 180.0f : 90.0f;
     hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
     hermit.isInteractable = true;
     hermit.position.y = hermit.GetFeetPosY() + (hermit.frameHeight/2) * hermit.scale;

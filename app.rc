@@ -1,0 +1,2 @@
+// app.rc
+APPICON ICON "assets/icon.ico"

@@ -22,6 +22,10 @@ void debugControls(Camera& camera, float deltaTime){
 
     if (debugInfo){
 
+        if (IsKeyPressed(KEY_J)){
+            raft.AddBody();
+        }
+
         if (IsKeyDown(KEY_M)){
             //M for murder
             player.TakeDamage(9999);

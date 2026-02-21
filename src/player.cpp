@@ -69,6 +69,9 @@ static inline Vector3 FootSample(const Player& p, float offX, float offZ)
 
 void UpdateBoxInteraction(Player& player, float deltaTime)
 {
+
+    player.showWeapon = player.isCarrying ? false : true;
+
     // 1) Read input ONCE
     const bool ePressed = IsKeyPressed(KEY_E);
 
@@ -418,7 +421,9 @@ void HandleKeyboardInput(Camera& camera) {
     }
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || (IsGamepadAvailable(0) && GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.1f)) {
-        if (player.state == PlayerState::Frozen) return; //dont attack while frozen. 
+        if (player.state == PlayerState::Frozen) return; //dont attack while frozen.
+        if (player.isCarrying) return; // dont attack when carrying box
+      
         if (!player.isSwimming){ //dont fire gun in water
            if (player.activeWeapon == WeaponType::Blunderbuss){
                 weapon.Fire(camera); 
@@ -1111,7 +1116,7 @@ void Player::TakeDamage(int amount){
 }
 
 void DrawWeapons(const Player& player, Camera& camera) {
-
+    if (!player.showWeapon) return;
         //draw weapon
     if (controlPlayer) {
         switch (player.activeWeapon) {

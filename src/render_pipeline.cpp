@@ -15,6 +15,7 @@
 #include "terrainChunking.h"
 #include "main_menu.h"
 #include "portal.h"
+#include "raft.h"
 
 
 static int lastW = 0;
@@ -159,7 +160,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             rlDisableDepthMask();         // don’t write depth for transparent water
             if (!debugInfo) DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE); // Don't draw water model, shader colors the water
             rlEnableDepthMask();
-            
+
+
             DrawBoat(player_boat);
             BeginShaderMode(R.GetShader("cutoutShader"));
             DrawTrees(trees, camera); 
@@ -168,6 +170,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //DrawDungeonDoorways();          
             DrawDungeonGeometry(camera, 10000);
             DrawOverworldProps();
+            raft.Draw();
         } else {
             //draw the dungeon
             DrawDungeonGeometry(camera, 8000);

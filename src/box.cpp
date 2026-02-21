@@ -147,7 +147,7 @@ void Box::Update(float dt,
     // --- While carried ---
     if (state == BoxState::Carried)
     {
-
+        
         Vector3 lookFwd = ForwardFromYawPitch(playerRot.x, playerRot.y);
 
         // Carry position follows look direction
@@ -201,6 +201,7 @@ void Box::Pickup()
     Vector2 tilePos = WorldToImageCoords(position);
     SetTileWalkable(tilePos.x, tilePos.y, false);
     state = BoxState::Carried;
+    
 }
 
 void Box::DropToTileCenter(Vector3 tileCenter)

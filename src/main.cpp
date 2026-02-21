@@ -28,7 +28,6 @@ int main() {
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor.
-
     InitWindow(screenWidth, screenHeight, "Marooned");
 
     InitAudioDevice();

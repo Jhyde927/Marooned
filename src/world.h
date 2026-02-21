@@ -18,6 +18,7 @@
 #include "main_menu.h"
 #include "NPC.h"
 #include "portal.h"
+#include "raft.h"
 
 enum class GameState {
     Menu,
@@ -43,6 +44,7 @@ extern Vector3 waterPos;
 extern Vector3 bottomPos;
 
 extern MiniMap miniMap;
+extern Raft raft;
 
 extern bool controlPlayer;
 extern bool isDungeon;

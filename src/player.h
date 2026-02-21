@@ -100,6 +100,7 @@ struct Player {
     bool blocking = false;
     bool isFallingIntoVoid = false;
     bool godMode = false;
+    bool showWeapon = true;
 
     //box interaction
     bool interactPressed;

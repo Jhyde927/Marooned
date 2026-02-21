@@ -334,12 +334,11 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     }
     if (type == BulletType::Harpoon && !stuck && lifeTime <= 0.0f)
     {
-       std::cout << "retracting\n";
        retracting = true;
        retractTip = position;
        velocity = {0,0,0};
        lifeTime = 9999.0f; // keep it alive while retracting
-       if (Vector3Distance(position, player.position) < 100 ){
+       if (Vector3Distance(position, player.position) < 100 ){ //what if harpoon never reaches player position
             alive = false;
             exploded = true;
        } 
