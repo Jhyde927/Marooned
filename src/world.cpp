@@ -990,7 +990,7 @@ Vector3 ResolveSpawnPoint(const LevelData& level, bool isDungeon, bool first, fl
     return resolvedSpawn;
 }
 
-void InitNPCs()
+void InitNPCs() //spawn hermit on island. 
 {
     gNPCs.clear();
     
@@ -1033,8 +1033,8 @@ void InitNPCs()
 
     // Interaction
     hermit.interactRadius = 400.0f;
-    hermit.dialogId = enteredDungeon1 ? "hermit_2" : "hermit_intro";
-    hermit.rotationY = enteredDungeon1 ? 180.0f : 90.0f;
+    hermit.dialogId = unlockEntrances ? "hermit_2" : "hermit_intro";
+    hermit.rotationY = unlockEntrances ? 180.0f : 90.0f;
     hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
     hermit.isInteractable = true;
     hermit.position.y = hermit.GetFeetPosY() + (hermit.frameHeight/2) * hermit.scale;

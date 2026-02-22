@@ -1796,7 +1796,9 @@ void GenerateHermitFromImage(float baseY) {
 
                 // Interaction
                 hermit.interactRadius = 400.0f;
-                hermit.dialogId = enteredDungeon1 ? "hermit_2" : "hermit_intro"; //we commented this out because we put hermit in dungeon1? 
+                hermit.dialogId = unlockEntrances ? "hermit_2" : "hermit_intro"; 
+
+                //Make a switch. func determine hermitDialog.
 
                 hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
                 hermit.isInteractable = true;

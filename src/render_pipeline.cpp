@@ -67,13 +67,17 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
             DrawBoat(player_boat);
             HandleWaves(camera); //update water plane bob. 
 
+            BeginShaderMode(R.GetShader("cutoutShader"));
+            DrawTrees(trees, camera); 
+            DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
+            DrawOverworldProps();
+            //if (levels[gCurrentLevelIndex].name == "MiddleIsland")
+            //raft.Draw(); Dont draw raft in menu. 
+            EndShaderMode();
+
         }
 
-        BeginShaderMode(R.GetShader("cutoutShader"));
-        DrawTrees(trees, camera); 
-        DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
-        DrawOverworldProps();
-        EndShaderMode();
+
         DrawDungeonGeometry(camera, 20000);
 
         DrawDungeonPillars();
@@ -158,9 +162,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
  
             rlEnableDepthTest();
             rlDisableDepthMask();         // don’t write depth for transparent water
-            if (!debugInfo) DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE); // Don't draw water model, shader colors the water
+            //if (!debugInfo) DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE); // Don't draw water model, shader colors the water
             rlEnableDepthMask();
-
 
             DrawBoat(player_boat);
             BeginShaderMode(R.GetShader("cutoutShader"));
@@ -170,7 +173,9 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //DrawDungeonDoorways();          
             DrawDungeonGeometry(camera, 10000);
             DrawOverworldProps();
-            raft.Draw();
+            if (levels[gCurrentLevelIndex].name == "MiddleIsland") raft.Draw();
+
+
         } else {
             //draw the dungeon
             DrawDungeonGeometry(camera, 8000);

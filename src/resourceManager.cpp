@@ -436,8 +436,8 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     Shader& terrainShader = R.GetShader("terrainShader");
 
     Shader& sh = R.GetShader("terrainShader");
-
-    Vector3 oceanColor = {0.22, 0.55, 0.88};
+    //
+    Vector3 oceanColor = {0.25, 0.60, 1.0};
     Vector3 swampColor = {0.32, 0.45, 0.30};//{0.32, 0.45, 0.35};
     Vector3 waterColor = (levels[gCurrentLevelIndex].name == "Swamp") ? swampColor : oceanColor;
 

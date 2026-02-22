@@ -229,8 +229,8 @@ void BuildTerrainChunkDrawList(
             if (distSq > maxDrawDist * maxDrawDist)
                 continue;
 
-            if (c.aabb.max.y < WATER_HEIGHT && !player.isSwimming)
-                continue;
+            // if (c.aabb.max.y < WATER_HEIGHT && !player.isSwimming)  //Cull underwater tiles.
+            //     continue;
 
             if (!IsInViewCone(vp, c.center))
                 continue;
