@@ -32,6 +32,12 @@ int main() {
 
     InitAudioDevice();
     SetTargetFPS(60);
+
+    Image icon = LoadImage("assets/icon.png");
+    ImageFormat(&icon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    SetWindowIcon(icon);
+    UnloadImage(icon);
+
     //DisableCursor();
     SetExitKey(KEY_NULL); //Escape brings up menu, not quit
     ResourceManager::Get().LoadAllResources();
