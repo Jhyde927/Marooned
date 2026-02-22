@@ -46,7 +46,7 @@ void InitDialogs()
     dialogManager.AddDialog(
         "hermit_2",
         {
-        "You still alive?",
+        "Your still alive?",
         "Here take this",
         "You need it more than me."
         }
