@@ -3,7 +3,7 @@ mkdir -p build Marooned
 rm -rf build/* Marooned/* Marooned_Linux_x86_64.tar.gz
 
 cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+cmake --build build --parallel
 cp -r assets Marooned/
 cp build/marooned Marooned/
 
