@@ -31,7 +31,8 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Marooned");
 
     InitAudioDevice();
-    SetTargetFPS(60);
+    // SetTargetFPS(60);
+    SetConfigFlags(FLAG_VSYNC_HINT);
     //DisableCursor();
     SetExitKey(KEY_NULL); //Escape brings up menu, not quit
     ResourceManager::Get().LoadAllResources();

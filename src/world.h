@@ -108,7 +108,7 @@ extern std::vector<PreviewInfo> levelPreviews;
 extern std::vector<CollectableWeapon> worldWeapons;
 extern std::vector<Portal> portals;
 //extern std::vector<std::unique_ptr<Character>> enemies;
-extern std::vector<Character> enemies;  
+extern std::list<Character> enemies;  
 extern std::vector<Character*> enemyPtrs;
 extern std::vector<NPC> gNPCs;
 

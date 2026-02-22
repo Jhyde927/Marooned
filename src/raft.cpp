@@ -1,5 +1,5 @@
 #include "raft.h"
-#include "ResourceManager.h"
+#include "resourceManager.h"
 #include "rlgl.h"
 
 void Raft::Update(float dt)

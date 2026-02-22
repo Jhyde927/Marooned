@@ -97,7 +97,7 @@ std::vector<Decal> decals;
 std::vector<MuzzleFlash> activeMuzzleFlashes;
 std::vector<Collectable> collectables;
 std::vector<CollectableWeapon> worldWeapons; //weapon pickups
-std::vector<Character> enemies;
+std::list<Character> enemies;
 std::vector<Character*> enemyPtrs;
 std::vector<NPC> gNPCs;
 std::vector<DungeonEntrance> dungeonEntrances;
