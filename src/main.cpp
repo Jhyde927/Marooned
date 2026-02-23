@@ -33,6 +33,7 @@ int main() {
     InitAudioDevice();
     SetTargetFPS(60);
 
+    //linux icon
     Image icon = LoadImage("assets/icon.png");
     ImageFormat(&icon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     SetWindowIcon(icon);

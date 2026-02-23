@@ -12,11 +12,11 @@ void Raft::Draw()
 {
     const float scale = 100.0f;
 
-    rlDisableBackfaceCulling();
-    DrawModelEx(R.GetModel("raft"), position, Vector3{0}, 0.0f, Vector3{scale, scale, scale}, WHITE);
+    //rlDisableBackfaceCulling();
+    DrawModelEx(R.GetModel("raft"), position, Vector3{0}, 0.0f, Vector3{scale, scale, scale}, WHITE); //draw the ghost raft. 
 
     if (hasBody)
-        DrawModel(R.GetModel("raftBody"), position, scale, GRAY);
+        DrawModel(R.GetModel("raftBody"), position, scale, GRAY); //darken the boards.
 
     if (hasMast)
         DrawModel(R.GetModel("raftMast"), position, scale, WHITE);
