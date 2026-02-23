@@ -71,8 +71,6 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
             DrawTrees(trees, camera); 
             DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
             DrawOverworldProps();
-            //if (levels[gCurrentLevelIndex].name == "MiddleIsland")
-            //raft.Draw(); Dont draw raft in menu. 
             EndShaderMode();
 
         }
