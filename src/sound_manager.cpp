@@ -301,6 +301,12 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("pirateYell1", "assets/sounds/pirate1.ogg");
     SoundManager::GetInstance().LoadSound("pirateYell2", "assets/sounds/pirate2.ogg");
 
+    SoundManager::GetInstance().LoadSound("zombieMoan1", "assets/sounds/ZombieMoan1.ogg");
+    SoundManager::GetInstance().LoadSound("zombieMoan2", "assets/sounds/ZombieMoan2.ogg");
+    SoundManager::GetInstance().LoadSound("zombieHit1", "assets/sounds/ZombieHit1.ogg");
+    SoundManager::GetInstance().LoadSound("zombieHit2", "assets/sounds/ZombieHit2.ogg");
+    SoundManager::GetInstance().LoadSound("zombieDeath", "assets/sounds/zombieDeath.ogg");
+
 
     SoundManager::GetInstance().LoadSound("swim1", "assets/sounds/swim1.ogg");
     SoundManager::GetInstance().LoadSound("swim2", "assets/sounds/swim2.ogg");

@@ -141,6 +141,7 @@ int main() {
             UpdateLauncherTraps(deltaTime);
             UpdateMonsterDoors(deltaTime);
             UpdateDungeonChests();
+            raft.Update(deltaTime);
             UpdateDoorDelayedActions(deltaTime);
             UpdateSpiderEggs(deltaTime, player.position);
             UpdateDungeonTileFlags(player, deltaTime);

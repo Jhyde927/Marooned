@@ -45,8 +45,8 @@ std::vector<InvisibleWall> invisibleWalls;
 std::vector<LightSource> dungeonLights; //static lights.
 std::vector<GrapplePoint> grapplePoints;
 std::vector<WindowCollider> windowColliders;
-//std::vector<SwitchTile> switches;
 std::vector<Box> boxes;
+std::vector<ShipMast> masts;
 
 std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
@@ -543,7 +543,7 @@ void GenerateFloorTiles(float baseY)
                 continue;
             }
 
-            if (pixel.r == 200 && pixel.g == 0 && pixel.b == 0) {
+            if (EqualsRGB(pixel, ColorOf(Code::LavaTile))) {
                 FloorTile lavaTile;
                 Vector3 offset = {0, -lavaOffsetY, 0};
                 lavaTile.position = pos + offset;
@@ -554,6 +554,7 @@ void GenerateFloorTiles(float baseY)
                 lavaMask[Idx(x,y)] = 255;
                 continue;
             }
+
 
             FloorTile tile;
             tile.position = pos;
@@ -705,6 +706,7 @@ void GenerateWallTiles(float baseY) {
             // If this tile is void or not a wall, don’t start any wall segments from it
             if (!IsSolidWall(current)) continue;
 
+
             // === Horizontal Pair ===
             if (x < dungeonWidth - 1) {
                 Color right = dungeonPixels[y * dungeonWidth + (x + 1)];
@@ -717,6 +719,16 @@ void GenerateWallTiles(float baseY) {
                     mid.y = baseY;
 
                     WallInstance wall;
+
+                    if (EqualsRGB(current, ColorOf(Code::woodWall))){
+                        wall.type = WallType::Wood;
+                        
+                    }
+                    if (EqualsRGB(current, ColorOf(Code::woodWallHalf))){
+                        wall.type = WallType::WoodHalf;
+                        std::cout << "halfWall\n";
+                    }
+
                     wall.position  = mid;
                     wall.rotationY = 90.0f;
                     wall.tint      = WHITE;
@@ -742,6 +754,15 @@ void GenerateWallTiles(float baseY) {
                     mid.y = baseY;
 
                     WallInstance wall;
+
+                    if (EqualsRGB(current, ColorOf(Code::woodWall))){
+                        wall.type = WallType::Wood;
+                    }
+                    if (EqualsRGB(current, ColorOf(Code::woodWallHalf))){
+                        wall.type = WallType::WoodHalf;
+                        std::cout << "setting type half\n";
+                    }
+
                     wall.position  = mid;
                     wall.rotationY = 0.0f;
                     wall.tint      = WHITE;
@@ -1310,6 +1331,20 @@ void GenerateLaunchers(float baseY) {
     }
 }
 
+void GenerateShipProps(float baseY) {
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];  
+            if (EqualsRGB(current, ColorOf(Code::shipMast))){
+                ShipMast mast;
+                mast.position = GetDungeonWorldPos(x, y, tileSize, baseY);
+                masts.push_back(mast);
+
+            }
+        }
+    }
+}
+
 
 
 
@@ -1811,6 +1846,36 @@ void GenerateHermitFromImage(float baseY) {
     }
 }
 
+void GenerateZombiesFromImage(float baseY) {
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            // Look for pure red pixels (255, 0, 0) → Skeleton spawn
+            if (EqualsRGB(current, ColorOf(Code::Zombie))) {
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                
+                Character zombie(
+                    spawnPos,
+                    R.GetTexture("zombieSheet"), 
+                    200, 200,         // frame width, height
+                    1,                // max frames
+                    0.4f, 0.7f,       // speed, scale
+                    0,                // initial animation frame
+                    CharacterType::Zombie
+                );
+
+                zombie.maxHealth = 200;
+                zombie.currentHealth = 200; //at least 2 shots. 4 sword swings 
+                zombie.id = gEnemyCounter++;
+                
+                enemies.push_back(zombie);
+            
+            }
+        }
+
+    }
+}
 
 void GenerateSkeletonsFromImage(float baseY) {
 
@@ -2234,6 +2299,41 @@ void DebugDrawGrappleBox(){
     }
 }
 
+void DrawSwitches(){
+
+    for (const SwitchTile& s : switches){
+        Vector3 raisedPos = {s.position.x, s.position.y + 20.0f, s.position.z};
+        Vector3 pressedPos = {s.position.x, s.position.y + 15.0f, s.position.z};
+        Vector3 triggerdPos = s.triggered ? pressedPos : raisedPos;
+        switch (s.kind)
+        {
+        case SwitchKind::FloorPlate:
+        {
+            DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, RED);
+            break;
+        }
+
+
+        case SwitchKind::FireballTarget:
+        {
+            DrawCube(s.position, 100, 200, 100, RED);
+            break;
+            
+        }
+
+        case SwitchKind::InvisibleTrigger:
+        {
+            break;
+        }
+
+        default:
+        
+            break;
+        }
+
+    }
+}
+
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     const Vector3 baseScale   = {700, 700, 700};
 
@@ -2247,8 +2347,14 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     //Walls
     for (const WallInstance& _wall : wallInstances) {
         if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue;
-        DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
 
+        if (_wall.type == WallType::Wood){
+            DrawModelEx(R.GetModel("woodWall"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+        }else if (_wall.type == WallType::WoodHalf){
+            DrawModelEx(R.GetModel("woodWallHalf"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+        }  else{
+            DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+        }
     }
 
 
@@ -2281,8 +2387,12 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
                 tileTint = DARKGRAY;
             }
         }
-
-        DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint);    
+        if (levels[gCurrentLevelIndex].name == "Ship"){ //Draw wooden floor tiles on ship level. 
+            DrawModelEx(R.GetModel("woodFloor"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint); 
+        }else{
+            DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint);  
+        }
+          
     }
 
     //Lava floor
@@ -2298,51 +2408,16 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     float scale = dungeonWidth * tileSize;
     if (drawCeiling && isDungeon){
         DrawModelEx(R.GetModel("ceilingPlane"), Vector3 {scale/2, ceilingHeight, scale/2}, {0,1,0}, 0.0f, Vector3{scale, scale, scale}, WHITE); 
-    } 
+    }
+    
+    //Ship
+    for (const ShipMast mast : masts) {
+        DrawModelEx(R.GetModel("shipMast"), mast.position, Vector3{0, 1, 0}, -90.0f, Vector3{100, 100, 100}, LIGHTGRAY);
+    }
+
 
     //Switches
-
-    for (const SwitchTile& s : switches){
-
-        switch (s.kind)
-        {
-        case SwitchKind::FloorPlate:
-        {
-
-            Vector3 raisedPos = {s.position.x, s.position.y + 20.0f, s.position.z};
-            Vector3 pressedPos = {s.position.x, s.position.y + 15.0f, s.position.z};
-            Vector3 triggerdPos = s.triggered ? pressedPos : raisedPos;
-            Vector3 modelPos = {s.position.x, s.position.y + 25.0f, s.position.z};
-
-
-            DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, RED);
-            break;
-
-        }
-
-
-        case SwitchKind::FireballTarget:
-        {
-            DrawCube(s.position, 100, 400, 100, RED);
-            break;
-            
-        }
-
-
-        case SwitchKind::InvisibleTrigger:
-        {
-            break;
-        }
-
-        
-        default:
-        
-            break;
-        }
-    
-
-
-    }
+    DrawSwitches();
 
 }
 

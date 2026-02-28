@@ -51,6 +51,7 @@ public:
     void SetTerrainShaderValues();
     void SetCeilingShaderValues();
     void SetGhostShaderValues();
+    void SetOceanShaderValues();
 
     //Moved to ShaderSetup
     //void SetBloomShaderValues();

@@ -24,6 +24,7 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             UpdateTrexAI(deltaTime, player);
             break;
 
+        case CharacterType::Zombie:
         case CharacterType::Skeleton:
             UpdateSkeletonAI(deltaTime, player);
             break;
@@ -71,6 +72,10 @@ void Character::UpdateChaseSound(float deltaTime, Player& player){
 
             case CharacterType::Pirate:
                 sn = (GetRandomValue(0,1) > 0) ? "pirateYell1" : "pirateYell2";
+                break;
+
+            case CharacterType::Zombie:
+                sn = (GetRandomValue(0,1) > 0) ? "zombieMoan1" : "zombieMoan2";
                 break;
 
             default:
@@ -774,8 +779,9 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 
                 }
                 Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
+                float speed = (type == CharacterType::Zombie) ? 50.0f : 100.0f;
                 // Move along current path
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100, repel);
+                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
             }
         } break;
 

@@ -3,7 +3,7 @@
 
 struct Raft
 {
-    Vector3 position = {5997.0f, 55.0f, -2610.0f};
+    Vector3 position = {5997.0f, 15.0f, -2610.0f};
 
     bool hasBody  = false;
     bool hasMast  = false;

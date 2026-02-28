@@ -92,7 +92,7 @@ extern bool quitQued;
 extern float lavaOffsetY;
 extern bool enteredDungeon1;
 //extern float muzzleFlashTimer;
-
+extern Model oceanModel;
 extern GameState currentGameState;
 extern FadePhase gFadePhase;
 extern MainMenu::State gMenu;
@@ -155,5 +155,7 @@ void EnterMenu();
 void UpdateShadersPerFrame(float deltaTime, float ElapsedTime, Camera& camera);
 void InitNPCs();
 void eraseCharacters();
-
+void DrawWaterPlane();
+void DrawOcean(const Camera3D& cam);
+Mesh MakeProjectedOceanGrid(int resolution);
 

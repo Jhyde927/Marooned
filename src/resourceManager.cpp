@@ -140,19 +140,6 @@ RenderTexture2D& ResourceManager::GetRenderTexture(const std::string& name)
     }
 
 
-
-// RenderTexture2D& ResourceManager::LoadRenderTexture(const std::string& name, int w, int h) { 
-//     auto it = _renderTextures.find(name); if (it != _renderTextures.end()) return it->second; 
-//     RenderTexture2D rt = ::LoadRenderTexture(w, h); _renderTextures.emplace(name, rt); 
-//     return _renderTextures[name]; 
-// }
-
-// RenderTexture2D& ResourceManager::GetRenderTexture(const std::string& name) const {
-//     auto it = _renderTextures.find(name);
-//     if (it == _renderTextures.end()) throw std::runtime_error("RenderTexture not found: " + name);
-//     return const_cast<RenderTexture2D&>(it->second);
-// }
-
 Font& ResourceManager::LoadFont(const std::string& name,const std::string& path, int baseSize, int filter)
 {
     auto it = _fonts.find(name);
@@ -197,28 +184,8 @@ void ResourceManager::UnloadAllFonts()
 }
 
 // ResourceManager.cpp (example)
-static int gLastW = -1, gLastH = -1;
+//static int gLastW = -1, gLastH = -1;
 
-// void ResourceManager::EnsureScreenSizedRTs() {
-//     int w = GetScreenWidth(), h = GetScreenHeight();
-//     if (w == gLastW && h == gLastH) return;
-
-//     // Recreate sceneTexture
-//     if (_renderTextures.count("sceneTexture")) {
-//         UnloadRenderTexture(_renderTextures["sceneTexture"]);
-//     }
-//     _renderTextures["sceneTexture"] = LoadRenderTexture("sceneTexture", w, h);
-//     SetTextureWrap(_renderTextures["sceneTexture"].texture, TEXTURE_WRAP_CLAMP);
-
-//     // Recreate postProcessTexture
-//     if (_renderTextures.count("postProcessTexture")) {
-//         UnloadRenderTexture(_renderTextures["postProcessTexture"]);
-//     }
-//     _renderTextures["postProcessTexture"] = LoadRenderTexture("postProcessTexture", w, h);
-//     SetTextureWrap(_renderTextures["postProcessTexture"].texture, TEXTURE_WRAP_CLAMP);
-
-//     gLastW = w; gLastH = h;
-// }
 
 
 
@@ -296,9 +263,18 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("batSheet",         "assets/sprites/batSheet.png");
     R.LoadTexture("hermitSheet",      "assets/sprites/hermitSheet.png");
     R.LoadTexture("whiteGradient",    "assets/textures/whiteGradient.png");
+    R.LoadTexture("zombieSheet",       "assets/sprites/zombieSheet.png");
+    R.LoadTexture("zombieSheetArmless","assets/sprites/zombieSheetArmless.png");
+    R.LoadTexture("zombieSheetHeadless","assets/sprites/zombieSheetHeadless.png");
 
     R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
     R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
+
+
+
+
+
+
     // Models (registering with string keys)
     R.LoadModel("palmTree",               "assets/Models/bigPalmTree.glb");
     R.LoadModel("palm2",                  "assets/Models/smallPalmTree.glb");
@@ -332,11 +308,20 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("raftBoom",               "assets/Models/raftBoom.glb");
     R.LoadModel("raftSail",               "assets/Models/raftSail.glb");
 
+    R.LoadModel("collectableMast",        "assets/Models/collectableMast.glb");
+    R.LoadModel("collectableBoom",        "assets/Models/collectableBoom.glb");
+    R.LoadModel("collectableSail",        "assets/Models/collectableSail.glb");
+
+    R.LoadModel("woodWall",               "assets/Models/woodWall.glb");
+    R.LoadModel("woodWallHalf",           "assets/Models/woodWallHalf.glb");
+    R.LoadModel("woodFloor",              "assets/Models/floorTileWood.glb");
+    R.LoadModel("shipMast",               "assets/Models/shipMast.glb");
+
     //generated models
 
     R.AddModelFromMesh("squareBolt", GenMeshCube(2.0f, 2.0f, 20.0f));
     R.AddModelFromMesh("skyModel", GenMeshCube(1.0f, 1.0f, 1.0f));
-    R.AddModelFromMesh("waterModel",GenMeshPlane(16000, 160000, 1, 1));
+    R.AddModelFromMesh("waterModel",GenMeshPlane(50000, 50000, 1, 1));
     R.AddModelFromMesh("ceilingPlane", GenMeshPlane(1.0f, 1.0f, 1, 1)); //we can scale it later. 
     R.AddModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
     //R.LoadModelFromMesh("bottomPlane",GenMeshPlane(16000, 160000, 1, 1));
@@ -355,7 +340,66 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
     R.LoadShader("ceilingShader",  "assets/shaders/ceiling.vs",            "assets/shaders/ceiling.fs");
     R.LoadShader("ghostShader",    "assets/shaders/ghost_raft.vs",         "assets/shaders/ghost_raft.fs");
+    R.LoadShader("oceanShader",    "assets/shaders/ocean_infinite.vs",     "assets/shaders/ocean_infinite.fs");
 
+
+}
+
+void ResourceManager::SetOceanShaderValues(){
+    // 1) Load shader
+    //Shader ocean = LoadShader("ocean_infinite.vs", "ocean_infinite.fs");
+    Shader& ocean = R.GetShader("oceanShader");
+    // 2) Make mesh + model
+    Mesh oceanMesh = MakeProjectedOceanGrid(128);
+    oceanModel = LoadModelFromMesh(oceanMesh);
+
+    oceanModel.materials[0].shader = ocean;
+
+    // 3) Grab uniform locations once
+    int loc_ViewProj    = GetShaderLocation(ocean, "u_ViewProj");
+    int loc_InvViewProj = GetShaderLocation(ocean, "u_InvViewProj");
+
+    int loc_WaterY      = GetShaderLocation(ocean, "u_WaterY");
+    int loc_MaxDist     = GetShaderLocation(ocean, "u_MaxDist");
+    int loc_CamPos      = GetShaderLocation(ocean, "u_CamPos");
+    int loc_Time        = GetShaderLocation(ocean, "u_Time");
+    int loc_UVScale     = GetShaderLocation(ocean, "u_UVScale");
+    int loc_WaterColor  = GetShaderLocation(ocean, "u_WaterColor");
+    int loc_SkyColor    = GetShaderLocation(ocean, "u_SkyColor");
+    int loc_FogDensity  = GetShaderLocation(ocean, "u_FogDensity");
+    int loc_WaveAmp     = GetShaderLocation(ocean, "u_WaveAmp");
+    int loc_WaveFreq    = GetShaderLocation(ocean, "u_WaveFreq");
+    int loc_WaveSpeed   = GetShaderLocation(ocean, "u_WaveSpeed");
+
+    // 4) Set constants (once)
+    float maxDist   = 200000.0f;
+    float waterY    = 60.0f;
+    float uvScale   = 0.002f;
+    float fogDens   = 0.00012f;
+    float waveAmp   = 0.05f;
+    float waveFreq  = 6.0f;
+    float waveSpeed = 0.6f;
+
+    Vector3 waterColor = { 0.10f, 0.35f, 0.68f };
+    Vector3 skyColor   = { 0.55f, 0.75f, 0.95f };
+
+    SetShaderValue(ocean, loc_MaxDist,    &maxDist,   SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, loc_WaterY,     &waterY,    SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, loc_UVScale,    &uvScale,   SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, loc_FogDensity, &fogDens,   SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, loc_WaveAmp,    &waveAmp,   SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, loc_WaveFreq,   &waveFreq,  SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, loc_WaveSpeed,  &waveSpeed, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, loc_WaterColor, &waterColor, SHADER_UNIFORM_VEC3);
+    SetShaderValue(ocean, loc_SkyColor,   &skyColor,   SHADER_UNIFORM_VEC3);
+
+    //float maxDist = 50000.0f;
+    float horizonStart = 0.85f;
+    float horizonPower = 1.0f;
+
+    SetShaderValue(ocean, GetShaderLocation(ocean,"u_MaxDist"), &maxDist, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, GetShaderLocation(ocean,"u_HorizonFadeStart"), &horizonStart, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ocean, GetShaderLocation(ocean,"u_HorizonFadePower"), &horizonPower, SHADER_UNIFORM_FLOAT);
 
 }
 
@@ -398,8 +442,9 @@ void ResourceManager::SetShaderValues(){
     // set shaders values
     Shader& fogShader = R.GetShader("fogShader");
     Shader& shadowShader = R.GetShader("shadowShader");
-    SetGhostShaderValues();
 
+    SetGhostShaderValues();
+    SetOceanShaderValues();
 
 
     //regular black vignette
@@ -608,6 +653,9 @@ void ResourceManager::SetLightingShaderValues()
     Model& barrelModel   = R.GetModel("barrelModel");
     Model& brokeModel    = R.GetModel("brokeBarrel");
     Model& boxModel      = R.GetModel("box");
+    Model& woodFloor     = R.GetModel("woodFloor");
+    Model& woodWall      = R.GetModel("woodWall");
+    Model& woodWallHalf  = R.GetModel("woodWallHalf");
 
     for (int i = 0; i < wallModel.materialCount;    ++i) wallModel.materials[i].shader    = lightingShader;
     for (int i = 0; i < windowModel.materialCount;  ++i) windowModel.materials[i].shader  = lightingShader;
@@ -617,6 +665,9 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < barrelModel.materialCount;  ++i) barrelModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < brokeModel.materialCount;   ++i) brokeModel.materials[i].shader   = lightingShader;
     for (int i = 0; i < boxModel.materialCount;   ++i) boxModel.materials[i].shader   = lightingShader;
+    for (int i = 0; i < woodFloor.materialCount;   ++i) woodFloor.materials[i].shader   = lightingShader;
+    for (int i = 0; i < woodWall.materialCount;   ++i) woodWall.materials[i].shader   = lightingShader;
+    for (int i = 0; i < woodWallHalf.materialCount;   ++i) woodWallHalf.materials[i].shader   = lightingShader;
 
     // Bind the lightmap texture to EMISSION slot for each model material
     auto setLightmap = [&](Model& m){
@@ -633,6 +684,9 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(barrelModel);
     setLightmap(brokeModel);
     setLightmap(boxModel);
+    setLightmap(woodFloor);
+    setLightmap(woodWall);
+    setLightmap(woodWallHalf);
 
     // Per-level uniforms for lighting shader
     Shader& use = floorModel.materials[0].shader;

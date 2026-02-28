@@ -1,11 +1,12 @@
 #include "raft.h"
 #include "resourceManager.h"
 #include "rlgl.h"
+#include "cmath"
 
 void Raft::Update(float dt)
 {
     // Optional future bobbing
-    // position.y += sinf(GetTime()) * 0.5f;
+    position.y += sinf(GetTime()) * 0.1f;
 }
 
 void Raft::Draw()

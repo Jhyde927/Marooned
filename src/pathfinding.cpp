@@ -113,16 +113,18 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonDoor))); //skeleton doors
             bool eventLocked = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked doors
             bool boxes = (EqualsRGB(c, ColorOf(Code::Box)));
+            bool woodWalls = (EqualsRGB(c, ColorOf(Code::woodWall))); //wood walls.
+            bool woodWallHalf = (EqualsRGB(c, ColorOf(Code::woodWallHalf))); //wood walls.  
             //secret walls? 
 
-            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || eventLocked || boxes);
+            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window ||
+                 silver || skeleton || eventLocked || boxes || woodWalls || woodWallHalf);
 
-            walkableBat[x][y] = !(black || purple || aqua || window || silver || skeleton || eventLocked || blue || yellow); //bats cant fly over barrels for reasons
-        }   //bats can fly through windows? sure.
+            walkableBat[x][y] = !(black || purple || aqua || window ||
+                 silver || skeleton || eventLocked || blue || yellow || woodWalls || woodWallHalf); //bats cant fly over barrels for reasons
+        }   //bats can fly through windows? no
     }
 }
-
-
 
 
 
@@ -150,6 +152,8 @@ bool IsSeeThroughForLOS(int x, int y)
     // Special case: lava is NOT walkable but still see-through for vision
     if (IsLavaTile(x, y)) return true;
 
+    //Void Tiles should be see through? 
+
     // Everything else (walls, closed doors, barrels, etc) blocks LOS
     return false;
 
@@ -167,20 +171,23 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
         return false;
 
     // Match walkability rules from ConvertImageToWalkableGrid
-    bool black    = (EqualsRGB(c, ColorOf(Code::Wall)));;       // walls
-    bool blue     = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
-    bool yellow   = (EqualsRGB(c, ColorOf(Code::Light)));;   // light pedestals
-    bool skyBlue  = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));;   // chests 
-    bool purple   = (EqualsRGB(c, ColorOf(Code::Doorway)));   // closed doors
-    bool window   = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
-    bool lava     = (EqualsRGB(c, ColorOf(Code::LavaTile)));     // lava
-    bool aqua     = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
-    bool silver   = (EqualsRGB(c, ColorOf(Code::SilverDoor)));   //silver key doors
-    bool skeleton = (EqualsRGB(c, ColorOf(Code::SkeletonDoor))); //skeleton key door
-    bool event    = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked door
-    bool boxes = (EqualsRGB(c, ColorOf(Code::Box)));
+    bool black     = (EqualsRGB(c, ColorOf(Code::Wall)));;       // walls
+    bool blue      = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
+    bool yellow    = (EqualsRGB(c, ColorOf(Code::Light)));;   // light pedestals
+    bool skyBlue   = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));;   // chests 
+    bool purple    = (EqualsRGB(c, ColorOf(Code::Doorway)));   // closed doors
+    bool window    = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
+    bool lava      = (EqualsRGB(c, ColorOf(Code::LavaTile)));     // lava
+    bool aqua      = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
+    bool silver    = (EqualsRGB(c, ColorOf(Code::SilverDoor)));   //silver key doors
+    bool skeleton  = (EqualsRGB(c, ColorOf(Code::SkeletonDoor))); //skeleton key door
+    bool event     = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked door
+    bool boxes     = (EqualsRGB(c, ColorOf(Code::Box)));
+    bool woodWalls = (EqualsRGB(c, ColorOf(Code::woodWall))); //wood walls. 
+    bool woodWallHalf = (EqualsRGB(c, ColorOf(Code::woodWallHalf))); //wood walls. 
 
-    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver || skeleton || event || boxes);
+    return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver
+         || skeleton || event || boxes || woodWalls || woodWallHalf);
 }
 
 void SetTileWalkable(int x, int y, bool batAlso)

@@ -30,9 +30,9 @@ void main()
     vec3 shallowColor = vec3(0.25, 0.6, 0.77);
     vec3 deepColor    = vec3(0.1, 0.35, 0.68);
 
-    vec3 mixedColor = mix(shallowColor, deepColor, depthFactor) * brightness;
+    //vec3 mixedColor = mix(shallowColor, deepColor, depthFactor) * brightness;
 
-    vec3 waterColor = u_waterColor;//mix(shallowColor, deepColor, depthFactor) * brightness;
+    vec3 waterColor = mix(shallowColor, deepColor, depthFactor) * brightness;
 
     // --- ✦ Edge Fade: radial based on patch center ---
     float radialDist = length(fragPosition.xz - u_WaterCenterXZ);

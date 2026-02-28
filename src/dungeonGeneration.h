@@ -19,6 +19,12 @@ enum class FloorType {
     Lava,
 };
 
+enum class WallType {
+    Normal, 
+    Wood,
+    WoodHalf, 
+};
+
 enum class DoorType {
     Normal,
     ExitToPrevious,
@@ -31,7 +37,7 @@ enum class LightType {
     Fireball,
     Iceball,
     LavaGlow,
-    Other // fallback or future expansion
+
 };
 
 enum class TrapType {
@@ -150,6 +156,12 @@ struct ChestInstance {
     bool canDrop = true;
 };
 
+struct ShipMast {
+    Vector3 position;
+    Color tint = WHITE;
+
+};
+
 
 struct BarrelInstance {
     Vector3 position;
@@ -204,6 +216,7 @@ struct WallInstance {
     BoundingBox bounds;
     Color tint = WHITE;  // Default to no tinting
     Vector3 scale;
+    WallType type = WallType::Normal;
 };
 
 struct WallRun {
@@ -300,6 +313,7 @@ extern std::vector<InvisibleWall> invisibleWalls;
 extern std::vector<GrapplePoint> grapplePoints;
 extern std::vector<WindowCollider> windowColliders;
 extern std::vector<Box> boxes;
+extern std::vector<ShipMast> masts;
 
 
 
@@ -373,6 +387,7 @@ Vector3 GetDungeonWorldPos(int x, int y, float tileSize, float baseY);
 Vector3 FindSpawnPoint(Color* pixels, int width, int height, float tileSize, float baseY);
 
 void GenerateSkeletonsFromImage(float baseY);
+void GenerateZombiesFromImage(float baseY);
 void GeneratePiratesFromImage(float baseY);
 void GenerateWizardsFromImage(float baseY);
 void GenerateSpiderFromImage(float baseY);
@@ -382,6 +397,7 @@ void GenerateGiantSpiderFromImage(float baseY);
 void GenerateSpiderEggFromImage(float baseY);
 void SpawnSpiderFromEgg(Vector3 spawnPos);
 void GenerateBoxesFromImage(float baseY);
+void GenerateShipProps(float baseY);
 Vector3 ColorToNormalized(Color color);
 float ColorAverage(Color c);
 bool IsLava(int gx, int gy);

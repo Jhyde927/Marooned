@@ -344,6 +344,9 @@ namespace ShaderSetup
         //set isSwamp on init
         int isSwamp = (levels[gCurrentLevelIndex].name == "Swamp") ? 1 : 0;
         int Dungeon = isDungeon ? 1 : 0;
+
+        if (levels[gCurrentLevelIndex].name == "Ship") Dungeon = 0;
+
         out.isSwamp = isSwamp ? 1 : 0;
         out.isDungeon = Dungeon;
         SetShaderValue(shader, out.loc_isSwamp, &out.isSwamp, SHADER_UNIFORM_INT);

@@ -60,10 +60,11 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         DrawModel(R.GetModel("skyModel"), camera.position, 10000.0f, WHITE);
         rlEnableDepthMask(); rlEnableDepthTest();
         BeginBlendMode(BLEND_ALPHA);
-
+        DrawWaterPlane();
         if (!isDungeon){
             float maxDrawDist = 50000.0f; //Higher for menu cam
             DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
+
             DrawBoat(player_boat);
             HandleWaves(camera); //update water plane bob. 
 
@@ -72,6 +73,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
             DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
             DrawOverworldProps();
             EndShaderMode();
+
 
         }
 
@@ -146,9 +148,10 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         //skybox
         rlDisableBackfaceCulling(); rlDisableDepthMask(); rlDisableDepthTest();
         DrawModel(R.GetModel("skyModel"), camera.position, 10000.0f, WHITE);
-        rlEnableDepthMask(); rlEnableDepthTest();
+        rlEnableDepthMask(); 
+        rlEnableDepthTest();
         BeginBlendMode(BLEND_ALPHA);
-        
+
 
         if (!isDungeon) {
 
@@ -157,12 +160,13 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
 
             HandleWaves(camera); //update water plane bob. 
- 
+
+
             rlEnableDepthTest();
             rlDisableDepthMask();         // don’t write depth for transparent water
-            //if (!debugInfo) DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE); // Don't draw water model, shader colors the water
+            if (!debugInfo) DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE); // Don't draw water model, shader colors the water
             rlEnableDepthMask();
-
+        
             DrawBoat(player_boat);
             BeginShaderMode(R.GetShader("cutoutShader"));
             DrawTrees(trees, camera); 
@@ -182,7 +186,9 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonChests();
             DrawDungeonPillars();
             DrawBoxes();
-            
+            DrawWaterPlane();
+
+
             // for (WallRun& b : wallRunColliders){ //debug draw wall colliders
             //     DrawBoundingBox(b.bounds, WHITE);
             // }

@@ -188,6 +188,9 @@ void Character::PlayDeathSound() {
         SoundManager::GetInstance().PlaySoundAtPosition("dinoDeath", position, player.position, 0.0f, 3000);
         break;
 
+    case CharacterType::Zombie:
+        SoundManager::GetInstance().PlaySoundAtPosition("zombieDeath", position, player.position, 0.0f, 3000);
+        break;
 
     case CharacterType::Bat:
         SoundManager::GetInstance().PlaySoundAtPosition("batDamage", position, player.position, 0.0f, 3000);
@@ -220,6 +223,12 @@ void Character::TakeDamage(int amount) {
     currentHealth -= amount;
 
     accumulateDamage += amount;
+
+    if (accumulateDamage >= 100 && type == CharacterType::Zombie){
+        //switch to dismembered sheet. 
+        texture = (GetRandomValue(0, 1) > 0) ? R.GetTexture("zombieSheetArmless") : R.GetTexture("zombieSheetHeadless");
+    }
+
     if (accumulateDamage >= 200 && type == CharacterType::GiantSpider){
         //run away until you take 200 damage
         if (!spiderAgro){
@@ -304,6 +313,8 @@ void Character::TakeDamage(int amount) {
             SoundManager::GetInstance().PlaySoundAtPosition(GetRandomValue(0, 1) == 0 ? "TrexHurt2" : "TrexHurt", position, player.position, 0.0f, 3000);
         }else if (type == CharacterType::GiantSpider){
             SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
+        }else if (type == CharacterType::Zombie) {
+            SoundManager::GetInstance().Play(rand() % 2 ? "zombieHit1" : "zombieHit2");
         }
 
         //dont stagger if your frozen. 
@@ -748,6 +759,23 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Attack: return {2, 4, 0.2f, false};  // 4 * 0.2 = 0.8s
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
                 case CharacterState::Death:  return {4, 4, 0.2f, false};
+                
+                default:                     return {0, 1, 1.0f, true};
+            }
+
+        case CharacterType::Zombie:
+            switch (state) {
+                case CharacterState::Chase:
+                case CharacterState::Patrol:
+                case CharacterState::Reposition:
+                    //row, count, frameTime, loop
+                    return AnimDesc{1, 5, 0.2f, true}; // walk
+
+                case CharacterState::Freeze: return {0, 1, 1.0f, true};
+                case CharacterState::Idle:   return {0, 1, 1.0f, true};
+                case CharacterState::Attack: return {2, 4, 0.2f, false};  // 4 * 0.2 = 0.8s
+                case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
+                case CharacterState::Death:  return {4, 5, 0.1f, false};
                 
                 default:                     return {0, 1, 1.0f, true};
             }

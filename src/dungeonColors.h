@@ -69,6 +69,11 @@ enum class Code {
     PortalTile,                // (0, 180, 200) Deep Cyan
     PortalID,                  // (220, 140, 40) amber
     Box,                      // (139, 69, 19) Saddle Brown
+    woodWall,                 // (78, 46, 26) Dark Brown
+    woodWallHalf,             //(137, 77, 40)  Medium Brown
+    woodFloor,                // (196, 155, 96) Tan
+    shipMast,                 //(49,28,15) very dark brown. 
+    Zombie,                   //(51, 130, 9) zombie green
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -139,6 +144,12 @@ constexpr Color ColorOf(Code c) {
         case Code::PortalTile:             return Make(0, 180, 200);
         case Code::PortalID:               return Make(220, 140, 40);
         case Code::Box:                    return Make(139, 69, 19);
+        case Code::woodWall:               return Make(78, 46, 26);
+        case Code::woodFloor:              return Make(196, 155, 96);
+        case Code::shipMast:               return Make(49,28,15);
+        case Code::woodWallHalf:           return Make(137, 77, 40);
+        case Code::Zombie:                 return Make(51, 130, 9);
+
     }
     // Fallback (should not happen)
     return Make(255, 255, 255);
@@ -167,7 +178,9 @@ inline bool IsWallColor(Color c)
     // existing checks...
     if (EqualsRGB(c, ColorOf(Code::Wall))) return true;
     // etc...
+    if (EqualsRGB(c, ColorOf(Code::woodWall))) return true;
 
+    if (EqualsRGB(c, ColorOf(Code::woodWallHalf))) return true;
     // NEW:
     if (EqualsRGB(c, ColorOf(Code::SecretDoor))) return true;
 

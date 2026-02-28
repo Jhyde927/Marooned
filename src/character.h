@@ -16,6 +16,7 @@ enum class CharacterType {
     Pterodactyl,
     Wizard,
     Bat,
+    Zombie,
    
 };
 
