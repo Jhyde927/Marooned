@@ -46,6 +46,7 @@ int main() {
     
     SoundManager::GetInstance().PlayMusic("dungeonAir");
     SoundManager::GetInstance().PlayMusic("jungleAmbience");
+    SoundManager::GetInstance().PlayMusic("oceanAmbience");
     SetMusicVolume(SoundManager::GetInstance().GetMusic("jungleAmbience"), 0.5f);
 
     controlPlayer = true; //start as player //hit ~ for debug mode, hit Tab for freecam in debug mode. 
@@ -59,6 +60,7 @@ int main() {
 
     MainMenu::gLevelPreviews = BuildLevelPreviews(true);
     InitMenuLevel(levels[0]);
+    enemies.reserve(100);
 
     //main game loop
     while (!WindowShouldClose()) {
@@ -116,10 +118,23 @@ int main() {
         if (currentGameState == GameState::Playing){
             //play the game
             if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
-            UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
+
+
+            if (levels[gCurrentLevelIndex].name == "Ship"){
+                UpdateMusicStream(SoundManager::GetInstance().GetMusic("oceanAmbience")); 
+            }else{
+                UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
+            }
+
+
             CameraSystem::Get().Update(deltaTime);
             SoundManager::GetInstance().Update(deltaTime); //update hermit speech
-            player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; //player is invincible in freecam 
+            //player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; //player is invincible in freecam 
+            player.godMode = false;
+            if (player.dying || (CameraSystem::Get().GetMode() == CamMode::Free)) player.godMode = true;
+
+
+
             //update context
             UpdateWeaponBarLayoutOnResize();
             debugControls(camera, deltaTime); 

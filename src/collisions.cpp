@@ -726,6 +726,7 @@ void CheckBulletHits(Camera& camera) {
             if (enemy->isDead) continue;
             bool isSkeleton = (enemy->type == CharacterType::Skeleton);
             bool isGhost = (enemy->type == CharacterType::Ghost);
+            bool isZombie = (enemy->type == CharacterType::Zombie);
             if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), b.GetPosition(), b.GetRadius())) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
 
@@ -815,7 +816,7 @@ void CheckBulletHits(Camera& camera) {
                     break;
 
                     
-                } else if (b.IsEnemy() && isSkeleton) { // friendly fire vs skeletons
+                } else if (b.IsEnemy() && (isSkeleton || isZombie)) { // friendly fire vs skeletons and zombies
                     enemy->TakeDamage(150); //higher damage for higher chance of death by enemy bullet. 1 sword swipe plus friendly fire = death
                     BulletParticleBounce(b, LIGHTGRAY);
                     break;

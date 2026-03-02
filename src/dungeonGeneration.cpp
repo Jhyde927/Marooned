@@ -2412,9 +2412,8 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     
     //Ship
     for (const ShipMast mast : masts) {
-        DrawModelEx(R.GetModel("shipMast"), mast.position, Vector3{0, 1, 0}, -90.0f, Vector3{100, 100, 100}, LIGHTGRAY);
+        DrawModelEx(R.GetModel("shipMast"), mast.position, Vector3{0, 1, 0}, 90.0f, Vector3{100, 100, 100}, LIGHTGRAY);
     }
-
 
     //Switches
     DrawSwitches();

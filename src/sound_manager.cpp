@@ -166,6 +166,10 @@ void SoundManager::Stop(const std::string& name) {
     if (sounds.count(name)) {
         StopSound(sounds[name]);
     }
+
+    if (musicTracks.count(name)) {
+        StopMusicStream(musicTracks[name]);
+    }
 }
 
 
@@ -306,6 +310,7 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("zombieHit1", "assets/sounds/ZombieHit1.ogg");
     SoundManager::GetInstance().LoadSound("zombieHit2", "assets/sounds/ZombieHit2.ogg");
     SoundManager::GetInstance().LoadSound("zombieDeath", "assets/sounds/zombieDeath.ogg");
+    SoundManager::GetInstance().LoadSound("zombieStab", "assets/sounds/stab.ogg");
 
 
     SoundManager::GetInstance().LoadSound("swim1", "assets/sounds/swim1.ogg");
@@ -343,4 +348,5 @@ void SoundManager::LoadSounds() {
     //music (ambience)
     SoundManager::GetInstance().LoadMusic("dungeonAir", "assets/sounds/dungeonAir.ogg");
     SoundManager::GetInstance().LoadMusic("jungleAmbience", "assets/sounds/jungleSounds.ogg");
+    SoundManager::GetInstance().LoadMusic("oceanAmbience", "assets/sounds/oceanAmbience.ogg");
 }

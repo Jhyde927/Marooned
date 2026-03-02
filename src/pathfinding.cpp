@@ -171,19 +171,19 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
         return false;
 
     // Match walkability rules from ConvertImageToWalkableGrid
-    bool black     = (EqualsRGB(c, ColorOf(Code::Wall)));;       // walls
-    bool blue      = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
-    bool yellow    = (EqualsRGB(c, ColorOf(Code::Light)));;   // light pedestals
-    bool skyBlue   = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));;   // chests 
-    bool purple    = (EqualsRGB(c, ColorOf(Code::Doorway)));   // closed doors
-    bool window    = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
-    bool lava      = (EqualsRGB(c, ColorOf(Code::LavaTile)));     // lava
-    bool aqua      = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
-    bool silver    = (EqualsRGB(c, ColorOf(Code::SilverDoor)));   //silver key doors
-    bool skeleton  = (EqualsRGB(c, ColorOf(Code::SkeletonDoor))); //skeleton key door
-    bool event     = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked door
-    bool boxes     = (EqualsRGB(c, ColorOf(Code::Box)));
-    bool woodWalls = (EqualsRGB(c, ColorOf(Code::woodWall))); //wood walls. 
+    bool black        = (EqualsRGB(c, ColorOf(Code::Wall)));;       // walls
+    bool blue         = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
+    bool yellow       = (EqualsRGB(c, ColorOf(Code::Light)));;   // light pedestals
+    bool skyBlue      = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));;   // chests 
+    bool purple       = (EqualsRGB(c, ColorOf(Code::Doorway)));   // closed doors
+    bool window       = (EqualsRGB(c, ColorOf(Code::WindowedWall)));  //closed window
+    bool lava         = (EqualsRGB(c, ColorOf(Code::LavaTile)));     // lava
+    bool aqua         = (EqualsRGB(c, ColorOf(Code::LockedDoorAqua)));   // locked doors
+    bool silver       = (EqualsRGB(c, ColorOf(Code::SilverDoor)));   //silver key doors
+    bool skeleton     = (EqualsRGB(c, ColorOf(Code::SkeletonDoor))); //skeleton key door
+    bool event        = (EqualsRGB(c, ColorOf(Code::EventLocked))); //event locked door
+    bool boxes        = (EqualsRGB(c, ColorOf(Code::Box)));
+    bool woodWalls    = (EqualsRGB(c, ColorOf(Code::woodWall))); //wood walls. 
     bool woodWallHalf = (EqualsRGB(c, ColorOf(Code::woodWallHalf))); //wood walls. 
 
     return !(black || blue || yellow || skyBlue || purple || aqua || lava || window || silver

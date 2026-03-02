@@ -449,6 +449,7 @@ void ResourceManager::SetShaderValues(){
 
     //regular black vignette
     vignetteStrengthValue = isDungeon ? 0.8 : 0.25f; //less of vignette outdoors.
+    if (levels[gCurrentLevelIndex].name == "Ship") vignetteStrengthValue = 0.0f; // no vignette on ship level
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "baseVignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
 
     // Shadow shadows beneath enemies. 

@@ -853,7 +853,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     //start the dying process. 
     if (player.dying) {
-
+        player.godMode = true;
         player.deathTimer += deltaTime;
         //player.canMove = false;
         vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe. 
@@ -885,6 +885,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         player.currentHealth = player.maxHealth;
         player.dead = false;
         player.canMove = true;
+        player.godMode = false;
         CameraSystem::Get().SetMode(CamMode::Player);
 
     }

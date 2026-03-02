@@ -137,7 +137,7 @@ std::vector<LevelData> levels = {
     {
         "Dungeon1",
         "assets/heightmaps/blank.png", //big blank heightmap incase we want water underneath the dungeon. 
-        "assets/maps/newMaps/dungeon1.png",
+        "assets/maps/dungeon1.png",
         {0.0f, 300.0f, 0.0f}, //overwritten by green pixel 
         -90.0f, //starting look direction
         {0.0f, 0.0f, 0.0f}, //raptor spawn center
@@ -154,7 +154,7 @@ std::vector<LevelData> levels = {
     {
         "Dungeon2",
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon2.png",
+        "assets/maps/dungeon2.png",
         {0.0f, 300.0f, 0.0f},
         180.0f,
         {0.0f, 0.0f, 0.0f},
@@ -172,7 +172,7 @@ std::vector<LevelData> levels = {
     {
         "Dungeon3",
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon3.png",
+        "assets/maps/dungeon3.png",
         {0.0f, 300.0f, 0.0f},
         180.0f,
         {0.0f, 0.0f, 0.0f},
@@ -188,7 +188,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon4", //door maze
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon4.png",
+        "assets/maps/dungeon4.png",
         {0.0f, 300.0f, 0.0f},
         180.0f,
         {0.0f, 0.0f, 0.0f},
@@ -204,7 +204,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon5",
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon5.png",
+        "assets/maps/dungeon5.png",
         {0.0f, 300.0f, 0.0f},
         0.0f,
         {0.0f, 0.0f, 0.0f},
@@ -220,7 +220,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon6",
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon6.png",
+        "assets/maps/dungeon6.png",
         {0.0f, 300.0f, 0.0f},
         0.0f,
         {0.0f, 0.0f, 0.0f},
@@ -235,7 +235,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon7", //fireball level
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon7.png",
+        "assets/maps/dungeon7.png",
         {0.0f, 300.0f, 0.0f},
         180.0f,
         {0.0f, 0.0f, 0.0f},
@@ -268,7 +268,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon8",  
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon8.png",
+        "assets/maps/dungeon8.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -284,7 +284,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon9", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon9.png",
+        "assets/maps/dungeon9.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -300,7 +300,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon10", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon10.png",
+        "assets/maps/dungeon10.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -316,7 +316,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon11", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon11.png",
+        "assets/maps/dungeon11.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -331,7 +331,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon12", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon12.png",
+        "assets/maps/dungeon12.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -347,7 +347,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon14", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon14.png",
+        "assets/maps/dungeon14.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -362,7 +362,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon15", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon15.png",
+        "assets/maps/dungeon15.png",
         {0.0f, 300.0f, 0.0f},
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -377,7 +377,7 @@ std::vector<LevelData> levels = {
         {
         "Dungeon16", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/dungeon16.png",
+        "assets/maps/dungeon16.png",
         {5475.0f, 300.0f, -5665.0f}, //original player start position
         -90.0f,
         {0.0f, 0.0f, 0.0f},
@@ -391,17 +391,33 @@ std::vector<LevelData> levels = {
     },
 
         {
+        "Dungeon17", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/dungeon17.png",
+        {5475.0f, 300.0f, -5665.0f}, //original player start position
+        -90.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        17, 
+        18, 
+        {}, 
+        false,// ceiling
+    },
+
+        {
         "Ship", 
         "assets/heightmaps/blank.png",
-        "assets/maps/newMaps/Ship.png",
+        "assets/maps/Ship.png",
         {5475.0f, 300.0f, -5665.0f}, //original player start position
         -90.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //ship is technically a dungeon
         {},
-        17, 
-        18,
+        18, 
+        19,
         {}, 
         false,// ceiling
     },
@@ -416,7 +432,7 @@ std::vector<LevelData> levels = {
         5,//raptor count
         false,
         {entranceToDungeon24},
-        18, 
+        19, 
         0,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling

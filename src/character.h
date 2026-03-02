@@ -124,6 +124,7 @@ public:
     bool overLava = false;
     bool overVoid = false;
     bool lavaDamageApplied = false;
+    bool lostLimb = false;
     float harpoonDuration = 2.0f;
     float harpoonMinDist  = 175.0f; // stop just in front of player
 
@@ -153,6 +154,12 @@ public:
     float chaseSoundTimer = 0.0f;
     bool wasChasing = false;
 
+    //pirates vs zombies
+    Character* target = nullptr;
+    float targetDist = 999999.0f;
+    bool  targetCanSee = false;
+    float targetRefreshTimer = 0.0f; // like pathCooldownTimer
+
     FacingMode facingMode = FacingMode::Approaching;
     CharacterType type;
 
@@ -174,6 +181,7 @@ public:
     void UpdateAltitude(float dt, float groundY, float desiredAltitude);
     void UpdateAI(float deltaTime, Player& player); 
     void UpdateSkeletonAI(float deltaTime, Player& player);
+    void UpdateZombieAI(float deltaTime, Player& player);
     void UpdateBatAI(float deltaTime, Player& player);
     void UpdateGiantSpiderAI(float deltaTime, Player& player);
     void UpdatePirateAI(float deltaTime, Player& player);
@@ -195,6 +203,7 @@ public:
     void TakeDamage(int amount);
     void SetAnimation(int row, int frames, float speed, bool loop=true);
     void playRaptorSounds();
+    void PlayDamageSounds();
     void ChangeState(CharacterState next);
     bool MoveAlongPath(std::vector<Vector3>& path, Vector3& pos, float& yawDeg,float speed, float dt, float arriveEps = 100.0f, Vector3 repulsion = {});
     void UpdatePatrol(float deltaTime);
@@ -205,7 +214,7 @@ public:
     void UpdateTrexStepSFX(float dt);
     void ApplyAreaDamage();
     AnimDesc GetAnimFor(CharacterType type, CharacterState state);
-
+    void UpdateTargeting(float dt, Player& player, const std::vector<Character*>& enemyPtrs);
     void UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos);
 };
 

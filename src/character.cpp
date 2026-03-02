@@ -216,6 +216,39 @@ void Character::PlayDeathSound() {
 
 }
 
+void Character::PlayDamageSounds(){
+    switch (type)
+        {
+        case CharacterType::Pirate:
+            SoundManager::GetInstance().PlaySoundAtPosition("phit1", position, player.position, 0.0f, 3000);
+            break;
+
+        case CharacterType::Spider:
+            SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
+            break;
+
+        case CharacterType::Skeleton:    
+        case CharacterType::Raptor:
+            SoundManager::GetInstance().PlaySoundAtPosition("dinoHit", position, player.position, 0.0f, 4000.0f); //raptor and skeletons
+            break;
+
+        case CharacterType::Trex:
+            SoundManager::GetInstance().PlaySoundAtPosition(GetRandomValue(0, 1) == 0 ? "TrexHurt2" : "TrexHurt", position, player.position, 0.0f, 3000);
+            break;
+
+        case CharacterType::GiantSpider:
+            SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
+            break;
+
+        case CharacterType::Zombie:
+            SoundManager::GetInstance().Play(rand() % 2 ? "zombieHit1" : "zombieHit2");
+            break;
+        
+        default:
+            break;
+        }
+}
+
 void Character::TakeDamage(int amount) {
     if (isDead) return;
     if (amount <= 0) return;
@@ -225,8 +258,12 @@ void Character::TakeDamage(int amount) {
     accumulateDamage += amount;
 
     if (accumulateDamage >= 100 && type == CharacterType::Zombie){
-        //switch to dismembered sheet. 
-        texture = (GetRandomValue(0, 1) > 0) ? R.GetTexture("zombieSheetArmless") : R.GetTexture("zombieSheetHeadless");
+        //switch to dismembered sheet.
+        if (GetRandomValue(0, 1) > 0 && !lostLimb){ //50 percent chance they loose a limb 
+            lostLimb = true;
+            texture = (GetRandomValue(0, 1) > 0) ? R.GetTexture("zombieSheetArmless") : R.GetTexture("zombieSheetHeadless");
+        }
+
     }
 
     if (accumulateDamage >= 200 && type == CharacterType::GiantSpider){
@@ -298,24 +335,10 @@ void Character::TakeDamage(int amount) {
                 bloodEmitter.EmitBlood(newPos, 20, RED);
             }
         }
-        //SetAnimation(4, 1, 1.0f); // Use first frame of death anim for 1 second. for all enemies
         
         
         AlertNearbySkeletons(position, 3000.0f);
-
-        if (type == CharacterType::Pirate){
-            SoundManager::GetInstance().PlaySoundAtPosition("phit1", position, player.position, 0.0f, 3000);
-        }else if (type == CharacterType::Spider){
-            SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
-        }else if (type == CharacterType::Raptor || type == CharacterType::Skeleton){
-            SoundManager::GetInstance().PlaySoundAtPosition("dinoHit", position, player.position, 0.0f, 4000.0f); //raptor and skeletons
-        }else if (type == CharacterType::Trex){
-            SoundManager::GetInstance().PlaySoundAtPosition(GetRandomValue(0, 1) == 0 ? "TrexHurt2" : "TrexHurt", position, player.position, 0.0f, 3000);
-        }else if (type == CharacterType::GiantSpider){
-            SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
-        }else if (type == CharacterType::Zombie) {
-            SoundManager::GetInstance().Play(rand() % 2 ? "zombieHit1" : "zombieHit2");
-        }
+        PlayDamageSounds();
 
         //dont stagger if your frozen. 
         if (state != CharacterState::Freeze){
@@ -775,7 +798,7 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};
                 case CharacterState::Attack: return {2, 4, 0.2f, false};  // 4 * 0.2 = 0.8s
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
-                case CharacterState::Death:  return {4, 5, 0.1f, false};
+                case CharacterState::Death:  return {4, 5, 0.15f, false};
                 
                 default:                     return {0, 1, 1.0f, true};
             }
@@ -933,7 +956,7 @@ void Character::ChangeState(CharacterState next) {
 
     }
 
-    if (state == CharacterState::Attack) attackCooldown = 0.0f;
+    if (state == CharacterState::Attack && type != CharacterType::Zombie) attackCooldown = 0.0f;
 
     const AnimDesc a = GetAnimFor(type, state);
     SetAnimation(a.row, a.frames, a.frameTime, a.loop);
