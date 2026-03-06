@@ -274,6 +274,7 @@ void Character::TakeDamage(int amount) {
 
         }
     }
+    
     if (accumulateDamage >= 400 && type == CharacterType::GiantSpider){
         if (spiderAgro){
             spiderAgro = false;

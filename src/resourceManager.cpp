@@ -340,68 +340,12 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
     R.LoadShader("ceilingShader",  "assets/shaders/ceiling.vs",            "assets/shaders/ceiling.fs");
     R.LoadShader("ghostShader",    "assets/shaders/ghost_raft.vs",         "assets/shaders/ghost_raft.fs");
-    R.LoadShader("oceanShader",    "assets/shaders/ocean_infinite.vs",     "assets/shaders/ocean_infinite.fs");
 
 
-}
-
-void ResourceManager::SetOceanShaderValues(){
-    // 1) Load shader
-    //Shader ocean = LoadShader("ocean_infinite.vs", "ocean_infinite.fs");
-    Shader& ocean = R.GetShader("oceanShader");
-    // 2) Make mesh + model
-    Mesh oceanMesh = MakeProjectedOceanGrid(128);
-    oceanModel = LoadModelFromMesh(oceanMesh);
-
-    oceanModel.materials[0].shader = ocean;
-
-    // 3) Grab uniform locations once
-    int loc_ViewProj    = GetShaderLocation(ocean, "u_ViewProj");
-    int loc_InvViewProj = GetShaderLocation(ocean, "u_InvViewProj");
-
-    int loc_WaterY      = GetShaderLocation(ocean, "u_WaterY");
-    int loc_MaxDist     = GetShaderLocation(ocean, "u_MaxDist");
-    int loc_CamPos      = GetShaderLocation(ocean, "u_CamPos");
-    int loc_Time        = GetShaderLocation(ocean, "u_Time");
-    int loc_UVScale     = GetShaderLocation(ocean, "u_UVScale");
-    int loc_WaterColor  = GetShaderLocation(ocean, "u_WaterColor");
-    int loc_SkyColor    = GetShaderLocation(ocean, "u_SkyColor");
-    int loc_FogDensity  = GetShaderLocation(ocean, "u_FogDensity");
-    int loc_WaveAmp     = GetShaderLocation(ocean, "u_WaveAmp");
-    int loc_WaveFreq    = GetShaderLocation(ocean, "u_WaveFreq");
-    int loc_WaveSpeed   = GetShaderLocation(ocean, "u_WaveSpeed");
-
-    // 4) Set constants (once)
-    float maxDist   = 200000.0f;
-    float waterY    = 60.0f;
-    float uvScale   = 0.002f;
-    float fogDens   = 0.00012f;
-    float waveAmp   = 0.05f;
-    float waveFreq  = 6.0f;
-    float waveSpeed = 0.6f;
-
-    Vector3 waterColor = { 0.10f, 0.35f, 0.68f };
-    Vector3 skyColor   = { 0.55f, 0.75f, 0.95f };
-
-    SetShaderValue(ocean, loc_MaxDist,    &maxDist,   SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, loc_WaterY,     &waterY,    SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, loc_UVScale,    &uvScale,   SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, loc_FogDensity, &fogDens,   SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, loc_WaveAmp,    &waveAmp,   SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, loc_WaveFreq,   &waveFreq,  SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, loc_WaveSpeed,  &waveSpeed, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, loc_WaterColor, &waterColor, SHADER_UNIFORM_VEC3);
-    SetShaderValue(ocean, loc_SkyColor,   &skyColor,   SHADER_UNIFORM_VEC3);
-
-    //float maxDist = 50000.0f;
-    float horizonStart = 0.85f;
-    float horizonPower = 1.0f;
-
-    SetShaderValue(ocean, GetShaderLocation(ocean,"u_MaxDist"), &maxDist, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, GetShaderLocation(ocean,"u_HorizonFadeStart"), &horizonStart, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ocean, GetShaderLocation(ocean,"u_HorizonFadePower"), &horizonPower, SHADER_UNIFORM_FLOAT);
 
 }
+
+
 
 void ResourceManager::SetGhostShaderValues(){
     Shader& ghostShader = R.GetShader("ghostShader");
@@ -444,7 +388,7 @@ void ResourceManager::SetShaderValues(){
     Shader& shadowShader = R.GetShader("shadowShader");
 
     SetGhostShaderValues();
-    SetOceanShaderValues();
+
 
 
     //regular black vignette

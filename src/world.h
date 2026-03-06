@@ -156,6 +156,5 @@ void UpdateShadersPerFrame(float deltaTime, float ElapsedTime, Camera& camera);
 void InitNPCs();
 void eraseCharacters();
 void DrawWaterPlane();
-void DrawOcean(const Camera3D& cam);
-Mesh MakeProjectedOceanGrid(int resolution);
+
 

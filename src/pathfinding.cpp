@@ -457,6 +457,12 @@ bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction, LOSMod
         if (hit.hit && hit.distance + epsilon < maxDistance) return false;
     }
 
+    //windows block enemy LOS. So they don't target player with out having a valid path. 
+    for (const WindowCollider& wc : windowColliders){
+        RayCollision hit = GetRayCollisionBox(ray, wc.bounds);
+        if (hit.hit && hit.distance + epsilon < maxDistance) return false;
+    }
+
     if (mode == LOSMode::AI) {
         // For AI vision, a CLOSED door panel blocks. (Open doors do not.)
         for (const Door& door : doors) {

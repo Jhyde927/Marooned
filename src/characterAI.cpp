@@ -12,51 +12,52 @@
 void Character::UpdateAI(float deltaTime, Player& player) {
     switch (type) {
         case CharacterType::Raptor:
-            UpdateRaptorAI(deltaTime, player);
+            UpdateRaptorAI(deltaTime, player); //distSq check
 
             break;
 
         case CharacterType::Pterodactyl:
-            UpdateDactylAI(deltaTime, player);
+            UpdateDactylAI(deltaTime, player); //distsq check
             break;
 
         case CharacterType::Trex:
-            UpdateTrexAI(deltaTime, player);
+            UpdateTrexAI(deltaTime, player); //distsq check
             break;
 
         case CharacterType::Zombie:
-            UpdateZombieAI(deltaTime, player);
+            UpdateZombieAI(deltaTime, player);//distsq check
             break;
 
+        case CharacterType::Ghost: //ghost, spider, skeleton all use the same AI
+        case CharacterType::Spider:
         case CharacterType::Skeleton:
-            UpdateSkeletonAI(deltaTime, player);
+            UpdateSkeletonAI(deltaTime, player); //distsq check
             break;
 
         case CharacterType::Bat:
-            UpdateBatAI(deltaTime, player);
-            //UpdateSkeletonAI(deltaTime, player);
+            UpdateBatAI(deltaTime, player);//distsq check
             break;
             
         case CharacterType::Pirate:
-            UpdatePirateAI(deltaTime, player);        
+            UpdatePirateAI(deltaTime, player); //distsq check  
             break;
 
         case CharacterType::Wizard:
-            UpdateWizardAI(deltaTime, player);
-            break;
-
-        case CharacterType::Spider:
-            UpdateSkeletonAI(deltaTime, player); //spider uses same code as skeleton
+            UpdateWizardAI(deltaTime, player); //distsq check 
             break;
 
         case CharacterType::GiantSpider:
-            UpdateGiantSpiderAI(deltaTime, player);
+            UpdateGiantSpiderAI(deltaTime, player);//distsq check 
             break;
 
-        case CharacterType::Ghost:
-            UpdateSkeletonAI(deltaTime, player); //skeletonAI
-            break;
+
+
     }
+}
+
+static bool IsValidTarget(const Character* t)
+{
+    return t && !t->isDead; 
 }
 
 
@@ -89,8 +90,11 @@ static Character* FindClosestOfType(
 
 void Character::UpdateTargeting(float dt, Player& player, const std::vector<Character*>& enemyPtrs)
 {
+
+    if (!IsValidTarget(target)) target = nullptr;
     targetRefreshTimer = std::max(0.0f, targetRefreshTimer - dt);
     if (targetRefreshTimer > 0.0f) return;
+
 
     targetRefreshTimer = 0.25f; // refresh 4x/sec; cheap but responsive
 
@@ -115,7 +119,7 @@ void Character::UpdateTargeting(float dt, Player& player, const std::vector<Char
     
     if (target)
     {
-        targetDist = Vector3Distance(position, target->position);
+        targetDist = Vector3DistanceSqr(position, target->position);
         // Use your existing LOS checker; whichever one you use for pirates now
         targetCanSee = HasWorldLineOfSight(position, target->position, 0.1);//WorldLineOfSight(position, target->position); // placeholder
     }
@@ -163,7 +167,7 @@ void Character::UpdateChaseSound(float deltaTime, Player& player){
 void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime, float epsilon) {
     if (player.godMode){
         canSee = false;
-        playerVisible = false; //birds don't care about visibility
+        playerVisible = false; 
         return;
     }
 
@@ -185,9 +189,10 @@ void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime
 
 
 void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
-    float distance = Vector3Distance(position, player.position);
+    float distanceSq = Vector3DistanceSqr(position, player.position);
     Vector2 start = WorldToImageCoords(position);
-
+    float visionEnter = 3000.0f * 3000.0f;
+    float attackEnter = 200.0f * 200.0f;
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateLeavingFlag(player.position, player.previousPosition);
 
@@ -212,7 +217,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
             Vector2 start = WorldToImageCoords(position);
 
             // Transition to chase if player detected
-            if (distance < 3000.0f && stateTimer > 1.0f && playerVisible) {
+            if (distanceSq < visionEnter && stateTimer > 1.0f && playerVisible) {
 
                 if (type == CharacterType::GiantSpider && levelIndex == 8){ //lock the door when spider sees player
                     if (doors[5].isOpen) doors[5].isOpen = false;
@@ -261,12 +266,12 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
                 }
             }
-            if (distance < 200.0f && canSee) {
+            if (distanceSq < attackEnter && canSee) {
                 ChangeState(CharacterState::Attack);
                 break;
 
             }
-            else if (distance > 4000.0f) {
+            else if (distanceSq > visionEnter) {
                 ChangeState(CharacterState::Idle);
                 break;
 
@@ -291,7 +296,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
         case CharacterState::Attack: {
             
 
-            if (distance > 350.0f) { 
+            if (distanceSq > (350.0f  * 350.0f)) { 
                 if (spiderAgro){
                      ChangeState(CharacterState::Chase);
                      break;
@@ -360,13 +365,13 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 SetAnimation(1, 5, 0.2, true); //walk
             }
 
-            if (distance < 200.0f && canSee && spiderAgro) {
+            if (distanceSq < attackEnter && canSee && spiderAgro) {
                 ChangeState(CharacterState::Attack);
                 break;
 
             }
 
-            if (distance < 3000.0f && spiderAgro){
+            if (distanceSq < visionEnter && spiderAgro){
                 ChangeState(CharacterState::Chase);
                 AlertNearbySkeletons(position, 3000.0f);
                 break;
@@ -501,8 +506,8 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
 void Character::UpdateBatAI(float deltaTime, Player& player){
 
-    float distance = Vector3Distance(position, player.position);
-
+    float distanceSq = Vector3DistanceSqr(position, player.position);
+    float visionEnter = 4000.0f * 4000.0f;
     Vector2 start = WorldToImageCoords(position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
@@ -515,7 +520,7 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
             Vector2 start = WorldToImageCoords(position);
 
             // Transition to chase if player detected
-            if (distance < 4000.0f && stateTimer > 1.0f && playerVisible) {
+            if (distanceSq < visionEnter && stateTimer > 1.0f && playerVisible) {
                 AlertNearbySkeletons(position, 3000.0f);
                 ChangeState(CharacterState::Chase);
                 currentWorldPath.clear();
@@ -540,21 +545,21 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
         
         case CharacterState::Chase: {
-
+            float attackDistance = 200.0f * 200.0f;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
             if (bloatBat){
-                if (distance < 200 && canSee){
+                if (distanceSq < attackDistance && canSee){
                     TakeDamage(999); //trigger death/explosion
                     return; //bat is exploding make sure we don't change state later on.
                 
                 }
             }
-            if (distance < 200.0f && canSee) {
+            if (distanceSq < attackDistance && canSee) {
                 ChangeState(CharacterState::Attack);
 
             }
-            else if (distance > 4000.0f) {
+            else if (distanceSq > visionEnter) {
                 ChangeState(CharacterState::Idle);
 
             }
@@ -598,7 +603,7 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
                 }
             }
 
-            if (distance > 210.0f) { 
+            if (distanceSq > (210.0f * 210.0f)) { 
                 ChangeState(CharacterState::Chase);
 
             }
@@ -653,11 +658,11 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
                 rotationY = RAD2DEG * atan2f(dir.x, dir.z);
                 position.y = target.y;
 
-                float dist = Vector3Distance(position, target);
+             
 
-                if (dist < 300.0f && stateTimer > 1.0f) {
+                if (distanceSq < (300.0f * 300.0f) && stateTimer > 1.0f) {
                     ChangeState(CharacterState::Attack);
-                } else if (dist > 350.0f && stateTimer > 1.0f) {
+                } else if (distanceSq > (300.0f * 300.0f) && stateTimer > 1.0f) {
                     ChangeState(CharacterState::Chase);
                 }
             }
@@ -784,13 +789,15 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 }
 
 void Character::UpdateZombieAI(float deltaTime, Player& player) {
-    float distance = Vector3Distance(position, player.position);
-
+    float distanceSq = Vector3DistanceSqr(position, player.position);
     Vector2 start = WorldToImageCoords(position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateTargeting(deltaTime, player, enemyPtrs);
     if (state != CharacterState::Chase) chaseSoundTimer = 0.0f;
+
+    const float visionEnter = 4000.0f * 4000.0f;
+    const float attackEnter = 200.0f * 200.0f;
  
     switch (state){
         case CharacterState::Idle: {
@@ -798,12 +805,12 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
  
             Vector2 start = WorldToImageCoords(position);
 
-            if (target){
-                ChangeState(CharacterState::Chase);
-            }
+            // if (target){
+            //     ChangeState(CharacterState::Chase);
+            // }
 
             // Transition to chase if player detected
-            if (distance < 4000.0f && stateTimer > 1.0f && playerVisible) {
+            if (distanceSq < visionEnter && stateTimer > 1.0f && playerVisible) {
                 AlertNearbySkeletons(position, 3000.0f);
                 ChangeState(CharacterState::Chase);
                 currentWorldPath.clear();
@@ -835,7 +842,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             UpdateChaseSound(deltaTime, player);
             // Decide who we're chasing this frame
             Vector3 chasePos    = player.position;
-            float   chaseDist   = distance;   // your existing distance-to-player
+            float   chaseDist   = distanceSq;   // your existing distance-to-player
             bool    chaseCanSee = canSee;     // your existing LOS-to-player
             bool    chasingPirate = false;
 
@@ -848,12 +855,12 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             }
 
             // Enter attack when close + LOS
-            if (chaseDist < 200.0f && chaseCanSee)
+            if (chaseDist < attackEnter && chaseCanSee)
             {
                 ChangeState(CharacterState::Attack);
                 break;
             }
-            else if (chaseDist > 4000.0f)
+            else if (chaseDist > visionEnter)
             {
                 ChangeState(CharacterState::Idle);
                 break;
@@ -877,7 +884,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                 }
 
                 Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500);
-                float speed = (type == CharacterType::Zombie) ? 50.0f : 100.0f;
+                float speed = (type == CharacterType::Zombie) ? 25.0f : 100.0f;
 
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
             }
@@ -889,7 +896,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
             // Pick victim for this attack
             Vector3 victimPos = player.position;
-            float   victimDist = distance;
+            float   victimDist = distanceSq;
             bool    victimVisible = playerVisible; // for your current “must be visible” gating
             bool    attackingPirate = false;
             Character* victim = nullptr;
@@ -917,7 +924,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             }
 
             // Leave attack if out of range
-            if (victimDist > 250.0f)
+            if (victimDist > (250.0f * 250.0f))
             {
                 ChangeState(CharacterState::Chase);
                 break;
@@ -928,20 +935,17 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
             attackCooldown -= deltaTime;
 
-            if (attackCooldown <= 0.0f && currentFrame == 0 && victimVisible && horizDist < 250.0f)
+            if (attackCooldown <= 0.0f && currentFrame == 1 && victimVisible && horizDist < 250.0f)
             {
-                attackCooldown = 1.0f;
+                attackCooldown = 0.8;
 
                 //SoundManager::GetInstance().Play(rand() % 2 ? "swipe2" : "swipe3");
 
                 if (attackingPirate && victim)
                 {
-                    SoundManager::GetInstance().Play("zombieStab"); //make this positional.
+                    SoundManager::GetInstance().PlaySoundAtPosition("zombieStab", position, player.position, 0.0f, 3000.0f);
                     // --- HIT PIRATE ---
-                    // If pirates can block too, add their block logic here.
-                    // Otherwise just damage them.
-
-                    victim->TakeDamage(50); // <-- adjust to your pirate damage API
+                    victim->TakeDamage(50); 
 
                     // Optional: spawn blood decal at pirate like you do for player
                     Vector3 camDir = Vector3Normalize(Vector3Subtract(position, victimPos));
@@ -972,92 +976,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
             break;
         }
-        
-        // case CharacterState::Chase: {
-        //     stateTimer += deltaTime;
-        //     pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
-        //     UpdateChaseSound(deltaTime, player);
-
-        //     if (distance < 200.0f && canSee) {
-        //         ChangeState(CharacterState::Attack);
-
-        //     }
-
-        //     else if (distance > 4000.0f) {
-        //         ChangeState(CharacterState::Idle);
-
-        //     }
-        //     else {
-        //         const Vector2 curTile = WorldToImageCoords(player.position);
-        //         if (pathCooldownTimer <= 0.0f){
-                
-        //             lastPlayerTile = curTile;
-        //             pathCooldownTimer = 0.4f; // don’t spam BFS
-        //             const Vector2 start = WorldToImageCoords(position);
-        //             SetPath(start); 
-                
-        //         }
-        //         Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
-        //         float speed = (type == CharacterType::Zombie) ? 50.0f : 100.0f;
-        //         // Move along current path
-        //         MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
-        //     }
-        // } break;
-
-        // case CharacterState::Attack: {
-        //     //dont stand on the same tile as another skele when attacking
-        //     Vector2 myTile = WorldToImageCoords(position);
-        //     Character* occupier = GetTileOccupier(myTile.x, myTile.y, enemyPtrs, this);
-
-        //     if (occupier && occupier != this) {
-        //         // Only the one with the "greater" pointer backs off
-        //         if (this > occupier) {
-        //             ChangeState(CharacterState::Reposition);
-        //             break;
-        //         } else {
-        //             // Let the other one reposition — wait
-        //             break;
-        //         }
-        //     }
-
-        //     if (distance > 201.0f) { 
-        //         ChangeState(CharacterState::Chase);
-
-        //     }
-
-        //     float horizDist = DistXZ(position, player.position); //this should probably be vec3 distance for bats
-
-        //     attackCooldown -= deltaTime;
-        //     if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible && horizDist < 200.0f) { // make sure you can see what your attacking. 
-        //         attackCooldown = 0.8f; // 0.2 * 4 frames on animation for skele attack. 
-
-        //         // Play attack sound
-        //         SoundManager::GetInstance().Play(rand() % 2 ? "swipe2" : "swipe3");
-
-        //             // Blocked!
-        //         if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
-        //             Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-        //             Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-        //             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-        //             SoundManager::GetInstance().Play(rand() % 2 ? "swordBlock" : "swordBlock2");
-
-      
-        //         } else  {
-        //             // Player takes damage
-        //             player.TakeDamage(10);
-                    
-        //             Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-        //             Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-        //             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("biteSheet"), 4, 0.4f, 0.1f, 50.0f);
-                    
-
-        //         }
-                
-        //     }
-        //     break;
-        // }
         case CharacterState::Reposition: {
             //surround the player
             stateTimer += deltaTime;
@@ -1075,11 +994,11 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                 rotationY = RAD2DEG * atan2f(dir.x, dir.z);
                 position.y = target.y;
 
-                float dist = Vector3Distance(position, target);
+               
 
-                if (dist < 300.0f && stateTimer > 1.0f) {
+                if (distanceSq < attackEnter  && stateTimer > 1.0f) {
                     ChangeState(CharacterState::Attack);
-                } else if (dist > 350.0f && stateTimer > 1.0f) {
+                } else if (distanceSq > (250.0f * 250.0f) && stateTimer > 1.0f) {
                     ChangeState(CharacterState::Chase);
                 }
             }
@@ -1092,7 +1011,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
         case CharacterState::Patrol: {
             stateTimer += deltaTime;
 
-            if (distance < 4000.0f && playerVisible){
+            if (distanceSq < visionEnter && playerVisible){
                 ChangeState(CharacterState::Chase);
                 AlertNearbySkeletons(position, 3000.0f);
 
@@ -1201,16 +1120,20 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             }
             break;
         }
-
-
-        
-
+ 
         case CharacterState::Death:
             if (!isDead) {
-                SetAnimation(4, 3, 0.5f, false); 
-                if (type == CharacterType::Ghost) SetAnimation(1, 7, 0.2); 
+                //SetAnimation(4, 3, 0.5f, false); 
                 isDead = true;
                 deathTimer = 0.0f;         // Start counting
+            }
+
+
+            if (deathTimer >= 4.5f && !lostLimb){ //zombies can get back up. 
+                deathTimer = 0.0;
+                isDead = false;
+                currentHealth = 100;
+                ChangeState(CharacterState::Idle);
             }
 
             deathTimer += deltaTime;
@@ -1222,8 +1145,8 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
 
 void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
-    float distance = Vector3Distance(position, player.position);
-
+    float distanceSq = Vector3DistanceSqr(position, player.position);
+    float visionEnter = 4000.0f * 4000.0f;
     Vector2 start = WorldToImageCoords(position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
@@ -1236,7 +1159,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
             Vector2 start = WorldToImageCoords(position);
 
             // Transition to chase if player detected
-            if (distance < 4000.0f && stateTimer > 1.0f && playerVisible) {
+            if (distanceSq < visionEnter && stateTimer > 1.0f && playerVisible) {
                 AlertNearbySkeletons(position, 3000.0f);
                 ChangeState(CharacterState::Chase);
                 currentWorldPath.clear();
@@ -1267,11 +1190,11 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
             UpdateChaseSound(deltaTime, player);
 
-            if (distance < 200.0f && canSee) {
+            if (distanceSq < (200.0f * 200.0f) && canSee) {
                 ChangeState(CharacterState::Attack);
 
             }
-            else if (distance > 4000.0f) {
+            else if (distanceSq > visionEnter) {
                 ChangeState(CharacterState::Idle);
 
             }
@@ -1308,7 +1231,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 }
             }
 
-            if (distance > 201.0f) { 
+            if (distanceSq > (201.0f * 201.0f)) { 
                 ChangeState(CharacterState::Chase);
 
             }
@@ -1396,7 +1319,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         case CharacterState::Patrol: {
             stateTimer += deltaTime;
 
-            if (distance < 4000.0f && playerVisible){
+            if (distanceSq < visionEnter && playerVisible){
                 ChangeState(CharacterState::Chase);
                 AlertNearbySkeletons(position, 3000.0f);
 
@@ -1524,13 +1447,13 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
     stateTimer += deltaTime;
     attackCooldown  = std::max(0.0f, attackCooldown - deltaTime);
 
-    const float distance = Vector3Distance(position, player.position);
+    const float distanceSq = Vector3DistanceSqr(position, player.position);
     UpdateRaptorVisibility(player, deltaTime);
 
     // --- Simple deadbands ---
-    const float STALK_ENTER   = 2000.0f;  // engage if closer than this
-    const float ATTACK_EXIT   = 800.0f;   // leave attack if beyond this 
-    const float FLEE_ENTER    = 100.0f;   // too close -> run away
+    const float STALK_ENTER   = 2000.0f * 2000.0f;  // engage if closer than this
+    const float ATTACK_EXIT   = 800.0f * 2000.0f;   // leave attack if beyond this 
+    const float FLEE_ENTER    = 100.0f * 100.0f;   // too close -> run away
 
 
     switch (state)
@@ -1550,7 +1473,7 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
                 break;
             }
 
-            if (distance < STALK_ENTER && playerVisible) {
+            if (distanceSq < STALK_ENTER && playerVisible) {
                 if (canSee){
                     ChangeState(CharacterState::Chase);
                     SoundManager::GetInstance().PlaySoundAtPosition((GetRandomValue(0, 1) == 0 ? "TrexRoar" : "TrexRoar2"), position, player.position, 0.0, 6000);
@@ -1576,13 +1499,13 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
 
         case CharacterState::Attack:
         {
-            if (distance > ATTACK_EXIT) {
+            if (distanceSq > ATTACK_EXIT) {
                 if (canSee) ChangeState(CharacterState::Chase);
                 break;
             }
 
-            if (distance < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
-            if (attackCooldown <= 0.0f && distance < ATTACK_EXIT && canSee){
+            if (distanceSq < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
+            if (attackCooldown <= 0.0f && distanceSq < ATTACK_EXIT && canSee){
                 attackCooldown = 3.0f;
                 player.TakeDamage(20);
                 //add bite decal
@@ -1656,21 +1579,18 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
     stateTimer     += deltaTime;
     attackCooldown  = std::max(0.0f, attackCooldown - deltaTime);
 
-    const float distance = Vector3Distance(position, player.position);
+    const float distanceSq = Vector3DistanceSqr(position, player.position);
     //UpdateRaptorVisibility(player, deltaTime);
     UpdateLeavingFlag(player.position, player.previousPosition);
 
     // --- Simple deadbands ---
-    float STALK_ENTER = player.godMode ? 0.0f : 3000.0f; //birds can't see player when in free cam. 
-    float VISION_ENTER = player.godMode ? 0.0f : 4000.0f;
-
-    //const float VISION_ENTER = 4000.0f;
-    //const float STALK_ENTER   = 3000.0f;  // engage if closer than this
-    const float STALK_EXIT    = 3400.0f;  // drop back to idle 
-    const float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
-    const float ATTACK_EXIT   = 300.0f;   // leave attack if beyond this 
-    const float FLEE_ENTER    = 100.0f;   // too close -> run away
-    const float FLEE_EXIT     = 2000.0f;   // far enough -> stop fleeing
+    float STALK_ENTER = 3000.0f * 3000.0f; //birds can't see player when in free cam. 
+    float VISION_ENTER = 4000.0f * 4000.0f;
+    const float STALK_EXIT    = 3400.0f * 3400.0f;  // drop back to idle 
+    const float ATTACK_ENTER  = 200.0f * 200.0f;   // start attack if closer than this
+    const float ATTACK_EXIT   = 300.0f * 200.0f;   // leave attack if beyond this 
+    const float FLEE_ENTER    = 100.0f * 100.0f;   // too close -> run away
+    const float FLEE_EXIT     = 2000.0f * 2000.0f;   // far enough -> stop fleeing
 
 
     switch (state)
@@ -1700,7 +1620,7 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
                 break;
             }
 
-            if (distance < STALK_ENTER) {
+            if (distanceSq < STALK_ENTER) {
                 ChangeState(CharacterState::Chase);
                 
                 break;
@@ -1730,17 +1650,17 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
             if (stateTimer > 3.0f){
                 ChangeState(CharacterState::RunAway);
             }
-            if (distance > ATTACK_EXIT) {
+            if (distanceSq > ATTACK_EXIT) {
                 if (canSee) ChangeState(CharacterState::Chase);
                 break;
             }
             
-            if (distance < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
+            if (distanceSq < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
 
 
             //float horizDist = DistXZ(position, player.position);
-            float distance = Vector3Distance(position, player.position);
-            if (attackCooldown <= 0.0f && distance < ATTACK_EXIT && distance < ATTACK_ENTER) {
+            //float distance = Vector3Distance(position, player.position);
+            if (attackCooldown <= 0.0f && distanceSq < ATTACK_EXIT && distanceSq < ATTACK_ENTER) {
                 attackCooldown = 1.0f; // seconds between attacks
 
                 // Play attack sound
@@ -1881,20 +1801,20 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
     stateTimer     += deltaTime;
     attackCooldown  = std::max(0.0f, attackCooldown - deltaTime);
 
-    const float distance = Vector3Distance(position, player.position);
+    const float distanceSq = Vector3DistanceSqr(position, player.position);
     UpdateRaptorVisibility(player, deltaTime);
     UpdateLeavingFlag(player.position, player.previousPosition);
 
     //UpdateLeavingFlag(player.position);
 
     // --- Simple deadbands ---
-    const float STALK_ENTER   = 3000.0f;  // engage if closer than this
-    const float STALK_EXIT    = 3400.0f;  // drop back to idle 
-    const float ATTACK_ENTER  = 200.0f;   // start attack if closer than this
-    const float ATTACK_EXIT   = 300.0f;   // leave attack if beyond this 
-    const float FLEE_ENTER    = 100.0f;   // too close -> run away
-    const float FLEE_EXIT     = 2000.0f;   // far enough -> stop fleeing
-    const float VISION_ENTER = 4000.0f;
+    const float STALK_ENTER   = 3000.0f * 3000.0f;  // engage if closer than this
+    const float STALK_EXIT    = 3400.0f * 3400.0f;  // drop back to idle 
+    const float ATTACK_ENTER  = 200.0f * 200.0f;   // start attack if closer than this
+    const float ATTACK_EXIT   = 300.0f * 300.0f;   // leave attack if beyond this 
+    const float FLEE_ENTER    = 100.0f * 100.0f;   // too close -> run away
+    const float FLEE_EXIT     = 2000.0f * 2000.0f;   // far enough -> stop fleeing
+    const float VISION_ENTER = 4000.0f * 4000.0f;
 
 
     switch (state)
@@ -1913,7 +1833,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
                 break;
             }
 
-            if (distance < STALK_ENTER && playerVisible) {
+            if (distanceSq < STALK_ENTER && playerVisible) {
                 if (canSee) ChangeState(CharacterState::Chase);
                 
                 break;
@@ -1943,16 +1863,16 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
             if (stateTimer > 3.0f){
                 ChangeState(CharacterState::RunAway);
             }
-            if (distance > ATTACK_EXIT) {
+            if (distanceSq > ATTACK_EXIT) {
                 if (canSee) ChangeState(CharacterState::Chase);
                 break;
             }
             
-            if (distance < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
+            if (distanceSq < FLEE_ENTER) { ChangeState(CharacterState::RunAway); break;}
 
 
             float horizDist = DistXZ(position, player.position);
-            if (attackCooldown <= 0.0f && distance < ATTACK_EXIT && horizDist < ATTACK_ENTER) {
+            if (attackCooldown <= 0.0f && distanceSq < ATTACK_EXIT && horizDist < ATTACK_ENTER) {
                 attackCooldown = 1.0f; // seconds between attacks
 
                 // Play attack sound
@@ -2078,12 +1998,13 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::Death:
         {
+            deathTimer += deltaTime;
             if (!isDead) {
                 isDead = true;
                 deathTimer = 0.0f;// Start counting
             }
 
-            deathTimer += deltaTime;
+     
         } break;
     }
 
@@ -2091,13 +2012,17 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
 void Character::UpdateWizardAI(float deltaTime, Player& player) {
     if (isLoadingLevel) return;
-    constexpr float WIZARD_ATTACK_ENTER = 1600.0f; // start attacking when closer than this
-    constexpr float WIZARD_ATTACK_EXIT  = 2500.0f; // stop attacking when farther than this
+
     // (EXIT must be > ENTER)
 
     stateTimer += deltaTime; //state timer should be outside of states, change this for pirates as well. 
-    float distance = Vector3Distance(position, player.position);
+    float distanceSq = Vector3DistanceSqr(position, player.position);
 
+
+    constexpr float VISION_ENTER = 4000.0f * 4000.0f;
+    constexpr float WIZARD_ATTACK_ENTER = 1600.0f * 1600.0f; // start attacking when closer than this
+    constexpr float WIZARD_ATTACK_EXIT  = 2500.0f * 2500.0f; // stop attacking when farther than this
+    constexpr float WIZARD_MELEE_ENTER  = 250.0f * 250.0f; // stop attacking when farther than this
     Vector2 start = WorldToImageCoords(position);
     //Vector2 goal = WorldToImageCoords(player.position);
 
@@ -2110,13 +2035,13 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 
             Vector2 start = WorldToImageCoords(position);
 
-            if (distance < 250 && canSee){
+            if (distanceSq < WIZARD_MELEE_ENTER && canSee){
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
 
             // Transition to chase if player detected
-            if (distance < 4000.0f && stateTimer > 1.0f && (playerVisible)) {
+            if (distanceSq < VISION_ENTER && stateTimer > 1.0f && (playerVisible)) {
                 AlertNearbySkeletons(position, 3000.0f);
                 ChangeState(CharacterState::Chase);
                 SetPath(start);
@@ -2141,19 +2066,19 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateMovementAnim();
-            if (distance < 250 && canSee){
+            if (distanceSq < WIZARD_MELEE_ENTER && canSee){
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
 
             // 1) Try to attack when close AND we have instant LOS
-            if (distance < WIZARD_ATTACK_ENTER && canSee) {
+            if (distanceSq < WIZARD_ATTACK_ENTER && canSee) {
                 ChangeState(CharacterState::Attack);
                 break;
             }
 
             // 2) Leash out if too far
-            if (distance > 4000.0f) {
+            if (distanceSq > VISION_ENTER) {
                 ChangeState(CharacterState::Idle);
                 playerVisible = false;         // drop memory when giving up
                 currentWorldPath.clear();
@@ -2204,13 +2129,13 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
             }
 
             // Hysteresis: only leave attack if we're clearly out of range or lost LOS
-            if (distance > WIZARD_ATTACK_ENTER || !canSee) {
+            if (distanceSq > WIZARD_ATTACK_ENTER || !canSee) {
                 ChangeState(CharacterState::Chase);
                 break;
             }
 
             attackCooldown -= deltaTime;
-            if (distance < 1600 && distance > 300){
+            if (distanceSq < WIZARD_ATTACK_ENTER && distanceSq > WIZARD_MELEE_ENTER){
                 
                 if (canSee && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Wizard) {
 
@@ -2220,7 +2145,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                     SoundManager::GetInstance().PlaySoundAtPosition("flame1", position, player.position, 1.0, 2000);
                 }
 
-            }else if (distance < 280){
+            }else if (distanceSq < WIZARD_MELEE_ENTER){ //was 280
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
@@ -2251,7 +2176,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
             if (canMelee && currentFrame == 2 && horizDist < 280.0f) { // only apply damage on frame 2. Consider enemy attack ID
                 canMelee = false;
 
-                if (distance < 300.0f) {
+                if (distanceSq < (300.0f * 300.0f)) {
                     if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
                         // Blocked!
 
@@ -2277,7 +2202,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 
             // Exit state after full animation plays
             if (stateTimer >= 0.6f) {
-                if (distance > 280.0f) {
+                if (distanceSq > WIZARD_MELEE_ENTER) {
                     Vector2 start = WorldToImageCoords(position);
                     if (TrySetRandomPatrolPath(start, this, currentWorldPath)){
                         ChangeState(CharacterState::Patrol);
@@ -2315,11 +2240,9 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 
                 rotationY = RAD2DEG * atan2f(dir.x, dir.z);
 
-                float dist = Vector3Distance(position, target);
-
-                if (dist < 300.0f && stateTimer > 2.0f) {
+                if (distanceSq < WIZARD_MELEE_ENTER && stateTimer > 2.0f) {
                     ChangeState(CharacterState::MeleeAttack);
-                } else if (dist > 350.0f && stateTimer > 2.0f) {
+                } else if (distanceSq > (350.0f * 350.0f) && stateTimer > 2.0f) {
                     ChangeState(CharacterState::Chase);
                 }
             }
@@ -2429,7 +2352,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
            
             if (stateTimer > 0.9f) {
                 canBleed = true;
-                if (distance > 300){
+                if (distanceSq > WIZARD_MELEE_ENTER){
                     ChangeState(CharacterState::Chase);
                 }else{
                     ChangeState(CharacterState::MeleeAttack);
@@ -2455,37 +2378,37 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 
 void Character::UpdatePirateAI(float deltaTime, Player& player) {
     if (isLoadingLevel) return;
-    constexpr float PIRATE_ATTACK_ENTER = 800.0f; // start attacking when closer than this
-    constexpr float PIRATE_ATTACK_EXIT  = 900.0f; // stop attacking when farther than this
+
     // (EXIT must be > ENTER)
-    stateTimer += deltaTime; //state timer should be above this. It should always be counting. 
+
+
+    stateTimer += deltaTime; // is always counting
     
-    float distance = Vector3Distance(position, player.position);
+    float distanceSq = Vector3DistanceSqr(position, player.position);
     float pirateHeight = 160;
     Vector2 start = WorldToImageCoords(position);
-    //Vector2 goal = WorldToImageCoords(player.position);
+    constexpr float VISION_ENTER = 4000.0f * 4000.0f;
+    constexpr float PIRATE_ATTACK_ENTER = 800.0f * 800.0f; // start attacking when closer than this
+    constexpr float PIRATE_ATTACK_EXIT  = 900.0f * 900.0f; // stop attacking when farther than this
+    constexpr float PIRATE_MELEE_ENTER = 250.0f * 250.0f;
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateLeavingFlag(player.position, player.previousPosition);
     UpdateTargeting(deltaTime, player, enemyPtrs);
+   
     switch (state){
         case CharacterState::Idle: {
             
 
             Vector2 start = WorldToImageCoords(position);
 
-            if (distance < 250 && canSee){
+            if (distanceSq < PIRATE_MELEE_ENTER && canSee){
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
 
-            if (target){
-                ChangeState(CharacterState::Chase);
-                break;
-            }
-
             // Transition to chase if player detected
-            if (distance < 4000.0f && stateTimer > 1.0f && (playerVisible)) {
+            if (distanceSq < VISION_ENTER && stateTimer > 1.0f && (playerVisible)) {
                 AlertNearbySkeletons(position, 3000.0f);
                 ChangeState(CharacterState::Chase);
                 SetPath(start);
@@ -2507,7 +2430,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         case CharacterState::Chase:
         {
-            //stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateChaseSound(deltaTime, player);
@@ -2520,7 +2442,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             // --- Pick who we're chasing/attacking this tick ---
             // Default = player
             Vector3 chasePos      = player.position;
-            float   chaseDist     = distance;   // your existing distance-to-player
+            float   chaseDist     = distanceSq;   // your existing distance-to-player
             bool    chaseCanSee   = canSee;     // your existing LOS-to-player
             bool    chasingZombie = false;
 
@@ -2534,7 +2456,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             }
 
             // --- MELEE: super close -> melee (same rule, but uses chaseDist now) ---
-            if (chaseDist < 250.0f && chaseCanSee)
+            if (chaseDist < PIRATE_MELEE_ENTER && chaseCanSee)
             {
                 ChangeState(CharacterState::MeleeAttack);
                 break;
@@ -2548,7 +2470,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             }
 
             // --- LEASH: too far -> idle (same behavior) ---
-            if (chaseDist > 4000.0f)
+            if (chaseDist > VISION_ENTER)
             {
                 ChangeState(CharacterState::Idle);
 
@@ -2610,65 +2532,17 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         } break;
         
-        // case CharacterState::Chase: {
-        //     stateTimer += deltaTime;
-        //     pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
-        //     UpdateChaseSound(deltaTime, player);
-        //     UpdateMovementAnim();
-        //     if (distance < 250 && canSee){
-        //         ChangeState(CharacterState::MeleeAttack);
-        //         break;
-        //     }
-
-        //     // 1) Try to attack when close AND we have instant LOS
-        //     if (distance < PIRATE_ATTACK_ENTER && canSee) {
-        //         ChangeState(CharacterState::Attack);
-        //         break;
-        //     }
-
-        //     // 2) Leash out if too far
-        //     if (distance > 4000.0f) {
-        //         ChangeState(CharacterState::Idle);
-        //         playerVisible = false;         // drop memory when giving up
-        //         currentWorldPath.clear();
-        //         break;
-        //     }
-
-        //     // 3) Plan path toward current target when cooldown allows
-        //     if (pathCooldownTimer <= 0.0f) {
-        //         if (canSee) {
-        //             SetPath(start);
-        //             //SetPathTo(player.position);
-        //             pathCooldownTimer = 0.4f;
-        //         } else if (playerVisible) {       // still within memory window
-        //             SetPathTo(lastKnownPlayerPos);
-                    
-        //             pathCooldownTimer = 0.4f;
-        //         }
-        //     }
-
-
-        //     // 4) Advance along path (with repulsion)
-        //     if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
-        //         Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
-        //         MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
-
-        //         // Reached the end but still no LOS? stop chasing
-        //         if (currentWorldPath.empty() && !canSee) {
-        //             playerVisible = false;          // memory expires now that we arrived
-        //             ChangeState(CharacterState::Idle);
-        //         }
-        //     }
-        // } break;
-
         case CharacterState::Attack:
         {
-            //stateTimer += deltaTime;
+            if (hasFired && stateTimer < 1.5f){
+                //wait for half a second before switching states after firing. 
+                break;
+            }
 
-            UpdateTargeting(deltaTime, player, enemyPtrs);
+            //UpdateTargeting(deltaTime, player, enemyPtrs);
 
             Vector3 aimPos = player.position;
-            float   dist   = distance; // existing distance to player
+            float   dist   = distanceSq; // existing distance to player
             bool    los    = canSee;
 
             if (type == CharacterType::Pirate && target)
@@ -2695,7 +2569,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
             attackCooldown -= deltaTime;
 
-            if (dist < 800 && dist > 300)
+            if (dist < PIRATE_ATTACK_ENTER && dist > PIRATE_MELEE_ENTER)
             {
                 if (los && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Pirate)
                 {
@@ -2730,123 +2604,11 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         } break;
 
-        // case CharacterState::Attack: { //Pirate attack with gun
-        //     stateTimer += deltaTime;
-
-            
-            
-        //     Vector2 myTile = WorldToImageCoords(position);
-        //     Character* occupier = GetTileOccupier(myTile.x, myTile.y, enemyPtrs, this);
-        //     //pirates won't occupy the same tile while shooting. 
-        //     if (occupier && occupier != this) {
-        //         // Only the one with the "greater" pointer backs off
-        //         if (this > occupier) {
-        //             ChangeState(CharacterState::Reposition);
-        //             break;
-        //         } else {
-        //             // Let the other one reposition — wait
-        //             break;
-        //         }
-        //     }
-
-        //     // Hysteresis: only leave attack if we're clearly out of range or lost LOS
-        //     if (distance > PIRATE_ATTACK_EXIT || !canSee) {
-        //         ChangeState(CharacterState::Chase);
-        //         break;
-        //     }
-
-        //     attackCooldown -= deltaTime;
-        //     if (distance < 800 && distance > 300){
-                
-        //         if (canSee && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Pirate) {
-        //             FireBullet(position, player.position, 1500.0f, 3.0f, true, false);
-        //             hasFired = true;
-        //             attackCooldown = 1.5f;
-        //             SoundManager::GetInstance().PlaySoundAtPosition("musket", position, player.position, 1.0, 2000);
-        //         }
-
-        //     }else if (distance < 280){
-        //         ChangeState(CharacterState::MeleeAttack);
-        //         break;
-        //     }
-
-        //     // Wait for next attack opportunity
-        //     if (hasFired && stateTimer > 1.5f) {
-        //         hasFired = false;
-        //         attackCooldown = 3.5f;
-        //         currentFrame = 0;
-        //         stateTimer = 0;
-
-        //         if (TrySetRandomPatrolPath(start, this, currentWorldPath) && canSee) { //shoot then move to a random tile and shoot again.
-        //             ChangeState(CharacterState::Patrol);
-        //         }else{
-        //             ChangeState(CharacterState::Attack);
-        //         }
-               
-        //     }
-
-        //     break;
-        // }
-
-        // case CharacterState::MeleeAttack: {
-        //     //stateTimer += deltaTime;
-        //     float horizDist = DistXZ(position, player.position);
-
-        //     // Wait until animation is done to apply damage
-        //     if (canMelee && currentFrame == 2 && horizDist < 280.0f) { // only apply damage on frame 2. Consider enemy attack ID
-        //         canMelee = false;
-
-        //         if (distance < 300.0f) {
-        //             if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
-        //                 // Blocked!
-
-        //                 Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-        //                 Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-        //                 decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-        //                 SoundManager::GetInstance().Play(rand()%2 ? "swordBlock" : "swordBlock2");
-
-        //             } else {
-        //                 // Direct hit
-        //                 player.TakeDamage(10);
-                                               
-        //                 SoundManager::GetInstance().Play("slice");
-
-        //                 Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-        //                 Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-        //                 decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("slashSheetLeft"), 5, 0.5f, 0.1f, 50.0f);
-        //             }
-        //         }
-        //     }
-
-        //     // Exit state after full animation plays
-        //     if (stateTimer >= 0.6f) {
-        //         if (distance > 280.0f) {
-        //             Vector2 start = WorldToImageCoords(position);
-        //             if (TrySetRandomPatrolPath(start, this, currentWorldPath)){
-        //                 ChangeState(CharacterState::Patrol);
-        //             }else{
-        //                 ChangeState(CharacterState::Idle);
-
-        //             }
-
-        //         } else {
-        //             ChangeState(CharacterState::MeleeAttack);
-        //         }
-        //         canMelee = true;
-        //         stateTimer = 0.0f;
-        //     }
-
-        //     break;
-        // }
-
         case CharacterState::MeleeAttack:
         {
-            //stateTimer += deltaTime;
             // --- Pick victim (player by default) ---
             Vector3 victimPos    = player.position;
-            float   victimDist   = distance;  // your existing distance-to-player
+            float   victimDist   = distanceSq;  // your existing distance-to-player
             bool    victimCanSee = canSee;    // your existing LOS-to-player
             bool    attackingZombie = false;
             Character* victim = nullptr;
@@ -2871,7 +2633,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 // (Optional) require LOS for melee too, similar to your gun logic
                 // if (!victimCanSee) { /* skip damage this swing */ }
 
-                if (victimDist < 300.0f)
+                if (victimDist < PIRATE_MELEE_ENTER)
                 {
                     if (!attackingZombie)
                     {
@@ -2900,7 +2662,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                         // --- ZOMBIE HIT LOGIC ---
                         victim->TakeDamage(50);
 
-                        SoundManager::GetInstance().Play("slice");
+                        SoundManager::GetInstance().PlaySoundAtPosition("slice", position, player.position, 0.0f, 3000.0f);
 
                         // Decal facing zombie
                         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, victimPos));
@@ -2914,7 +2676,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             // Exit / loop after full animation
             if (stateTimer >= 0.6f)
             {
-                if (victimDist > 280.0f)
+                if (victimDist > (280.0f * 280.0f))
                 {
                     Vector2 start = WorldToImageCoords(position);
                     if (TrySetRandomPatrolPath(start, this, currentWorldPath))
@@ -2948,7 +2710,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         case CharacterState::Reposition: {
             //skeletons and pirates and spiders, when close, surround the player. Instead of all standing on the same tile. 
-            //stateTimer += deltaTime;
 
             Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
@@ -2965,11 +2726,10 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 rotationY = RAD2DEG * atan2f(dir.x, dir.z);
                 position.y = pirateHeight;
 
-                float dist = Vector3Distance(position, target);
 
-                if (dist < 300.0f && stateTimer > 2.0f) {
+                if (distanceSq < (300.0f * 300.0f) && stateTimer > 2.0f) {
                     ChangeState(CharacterState::MeleeAttack);
-                } else if (dist > 350.0f && stateTimer > 2.0f) {
+                } else if (distanceSq > (350.0f * 350.0f) && stateTimer > 2.0f) {
                     ChangeState(CharacterState::Chase);
                 }
             }
@@ -2978,7 +2738,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::Patrol: { //Pirate Patrol after every shot. 
-            //stateTimer += deltaTime;
             //ignore player while patroling to new tile. This means they finish patrolling before attacking you
 
             UpdateMovementAnim();
@@ -3002,7 +2761,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::Harpooned: {
-            //stateTimer += deltaTime;
 
             if (currentHealth <= 0) {
                 ChangeState(CharacterState::Death);
@@ -3058,7 +2816,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
 
         case CharacterState::Freeze: {
-            //stateTimer += deltaTime;
             //do nothing
             if (currentHealth <= 0 && !isDead){
                 ChangeState(CharacterState::Death); //check for death to freeze, freeze damage doesn't call takeDamage
@@ -3075,12 +2832,11 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
 
         case CharacterState::Stagger: {
-            //stateTimer += deltaTime;
             //do nothing
            
             if (stateTimer > 0.9f) {
                 canBleed = true;
-                if (distance > 300){
+                if (distanceSq > PIRATE_MELEE_ENTER){
                     ChangeState(CharacterState::Chase);
                 }else{
                     ChangeState(CharacterState::MeleeAttack);

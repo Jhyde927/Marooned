@@ -482,85 +482,9 @@ void InitDungeonLights(){
 
 }
 
-// Creates a projected ocean grid where vertexPosition.xz are NDC coords [-1..1]
-Mesh MakeProjectedOceanGrid(int resolution)
-{
-    // resolution = number of vertices per side (e.g. 128 or 256)
-    // quads per side = resolution - 1
-    int vertsPerSide = resolution;
-    int quadPerSide  = resolution - 1;
-
-    int vertexCount = vertsPerSide * vertsPerSide;
-    int triCount    = quadPerSide * quadPerSide * 2;
-    int indexCount  = triCount * 3;
-
-    std::vector<float> positions(vertexCount * 3);
-    std::vector<unsigned short> indices(indexCount);
-
-    // Fill positions
-    int v = 0;
-    for (int y = 0; y < vertsPerSide; y++)
-    {
-        float tz = (float)y / (float)(vertsPerSide - 1);  // 0..1
-        float z  = -1.0f + 2.0f * tz;                     // -1..1
-
-        for (int x = 0; x < vertsPerSide; x++)
-        {
-            float tx = (float)x / (float)(vertsPerSide - 1);
-            float px = -1.0f + 2.0f * tx;
-
-            positions[v * 3 + 0] = px;
-            positions[v * 3 + 1] = 0.0f; // unused
-            positions[v * 3 + 2] = z;
-            v++;
-        }
-    }
-
-    // Fill indices
-    int i = 0;
-    for (int y = 0; y < quadPerSide; y++)
-    {
-        for (int x = 0; x < quadPerSide; x++)
-        {
-            int i0 = y * vertsPerSide + x;
-            int i1 = i0 + 1;
-            int i2 = i0 + vertsPerSide;
-            int i3 = i2 + 1;
-
-            // Triangle 1: i0, i2, i1
-            indices[i++] = (unsigned short)i0;
-            indices[i++] = (unsigned short)i2;
-            indices[i++] = (unsigned short)i1;
-
-            // Triangle 2: i1, i2, i3
-            indices[i++] = (unsigned short)i1;
-            indices[i++] = (unsigned short)i2;
-            indices[i++] = (unsigned short)i3;
-        }
-    }
-
-    Mesh mesh = { 0 };
-    mesh.vertexCount   = vertexCount;
-    mesh.triangleCount = triCount;
-
-    // raylib wants raw C arrays allocated with MemAlloc (or malloc) if you keep them around
-    mesh.vertices = (float*)MemAlloc(vertexCount * 3 * sizeof(float));
-    memcpy(mesh.vertices, positions.data(), vertexCount * 3 * sizeof(float));
-
-    mesh.indices = (unsigned short*)MemAlloc(indexCount * sizeof(unsigned short));
-    memcpy(mesh.indices, indices.data(), indexCount * sizeof(unsigned short));
-
-    // No normals/texcoords needed (shader uses world pos for UV)
-    // Upload to GPU
-    UploadMesh(&mesh, false);
-
-    return mesh;
-}
 
 void DrawWaterPlane(){
     if (levels[gCurrentLevelIndex].name == "Ship"){
-        //DrawOcean(camera);
-
         float dungeonWorldWidth  = dungeonWidth  * tileSize;
         float dungeonWorldHeight = dungeonHeight * tileSize;
 
@@ -579,49 +503,6 @@ void DrawWaterPlane(){
 
 }
 
-// In your render loop, each frame:
-void DrawOcean(const Camera3D& cam)
-{
-    Shader& ocean = R.GetShader("oceanShader");
-
-
-    float aspect =(float)GetScreenWidth() / (float)GetScreenHeight();
-
-    //Matrix view = MatrixInvert(GetCameraMatrix(cam)); 
-    Matrix view = MatrixLookAt(cam.position, cam.target, cam.up);
-    float nearPlane = 0.1f;
-    float farPlane  = 20000.0f;     // or larger if you want
-    Matrix proj = MatrixPerspective(cam.fovy*DEG2RAD, aspect, nearPlane, farPlane);
-
-    Matrix viewProj = MatrixMultiply(view, proj);//MatrixMultiply(proj, view);
-    Matrix invViewProj = MatrixInvert(viewProj);
-
-    Vector3 camPos = cam.position;
-    float time = (float)GetTime();
-
-    int loc_ViewProj    = GetShaderLocation(ocean, "u_ViewProj");
-    int loc_InvViewProj = GetShaderLocation(ocean, "u_InvViewProj");
-    int loc_CamPos      = GetShaderLocation(ocean, "u_CamPos");
-    int loc_Time        = GetShaderLocation(ocean, "u_Time");
-
-    SetShaderValueMatrix(ocean, loc_ViewProj, viewProj);
-    SetShaderValueMatrix(ocean, loc_InvViewProj, invViewProj);
-    SetShaderValue(ocean, loc_CamPos, &camPos, SHADER_UNIFORM_VEC3);
-    SetShaderValue(ocean, loc_Time, &time, SHADER_UNIFORM_FLOAT);
-
-    // Important: disable backface culling or ensure winding matches
-    // For safety:
-    // rlDisableBackfaceCulling();
-    // DrawModel(oceanModel, Vector3{0,0,0}, 1.0f, WHITE);
-    // //rlEnableBackfaceCulling();
-
-    rlEnableDepthTest();
-    rlSetBlendMode(BLEND_ALPHA);          // optional
-    rlDisableDepthMask();                 // depth write OFF (key!)
-    DrawModel(oceanModel, {0,0,0}, 1.0f, WHITE);
-    rlEnableDepthMask();      
-
-}
 
 
 void DrawEnemyShadows() {

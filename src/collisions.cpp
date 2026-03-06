@@ -1220,6 +1220,7 @@ void HandleDoorInteraction(Camera& camera)
         (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT));
 
     if (!interactPressed) return;
+    if (player.isCarrying) return;
 
     for (int i = 0; i < (int)doors.size(); ++i)
     {

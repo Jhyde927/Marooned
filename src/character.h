@@ -156,7 +156,7 @@ public:
 
     //pirates vs zombies
     Character* target = nullptr;
-    float targetDist = 999999.0f;
+    float targetDist = 99999999.0f;
     bool  targetCanSee = false;
     float targetRefreshTimer = 0.0f; // like pathCooldownTimer
 

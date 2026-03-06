@@ -33,6 +33,7 @@ Vector3 RandomPointOnHeightmapRingXZ( const Vector3& center, float minR, float m
 float DistXZ(const Vector3& a, const Vector3& b);
 inline float Rand01() { return (float)GetRandomValue(0, 1000) / 1000.0f; }
 Vector3 DirFromYawDeg(float yawDeg);
+float DistSq(const Vector3& a, const Vector3& b);
 
 //launchers
 bool IsDirPixel(Color c);

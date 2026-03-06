@@ -108,7 +108,12 @@ int main() {
             drawCeiling = false; 
             UpdateMenu(camera, deltaTime);//lives in UI.cpp calls main_menu
 
-            UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience")); //menu level can be dungeon
+            if (levels[gCurrentLevelIndex].name == "Ship"){
+                UpdateMusicStream(SoundManager::GetInstance().GetMusic("oceanAmbience")); 
+            }else{
+                UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
+            }
+
             if (currentGameState == GameState::Quit) break; //break before we render the next frame. for reasons
             RenderMenuFrame(camera, player, deltaTime); //Render world with menu on top
 
@@ -129,11 +134,10 @@ int main() {
 
             CameraSystem::Get().Update(deltaTime);
             SoundManager::GetInstance().Update(deltaTime); //update hermit speech
-            //player.godMode = (CameraSystem::Get().GetMode() == CamMode::Free) ? true : false; //player is invincible in freecam 
+
             player.godMode = false;
-            if (player.dying || (CameraSystem::Get().GetMode() == CamMode::Free)) player.godMode = true;
-
-
+            if (player.dying || (CameraSystem::Get().GetMode() == CamMode::Free)) player.godMode = true; //god mode if free cam or dying.
+            //Removes vision of player from enemies. So they don't keep attacking after the player is dead. 
 
             //update context
             UpdateWeaponBarLayoutOnResize();

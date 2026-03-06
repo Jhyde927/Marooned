@@ -11,6 +11,13 @@ float RandomFloat(float min, float max) {
     return min + ((float)GetRandomValue(0, 10000) / 10000.0f) * (max - min);
 }
 
+float DistSq(const Vector3& a, const Vector3& b)
+{
+    float dx = a.x - b.x;
+    float dy = a.y - b.y;
+    float dz = a.z - b.z;
+    return dx*dx + dy*dy + dz*dz;
+}
 
 //Lerp healthbar value to target
 float LerpExp(float current, float target, float lambda, float dt) {

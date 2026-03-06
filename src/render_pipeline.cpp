@@ -168,10 +168,10 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             rlEnableDepthMask();
         
             DrawBoat(player_boat);
-            BeginShaderMode(R.GetShader("cutoutShader"));
+
             DrawTrees(trees, camera); 
             DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
-            EndShaderMode();
+
             //DrawDungeonDoorways();          
             DrawDungeonGeometry(camera, 10000);
             DrawOverworldProps();

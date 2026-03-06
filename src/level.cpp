@@ -403,7 +403,7 @@ std::vector<LevelData> levels = {
         17, 
         18, 
         {}, 
-        false,// ceiling
+        true,// ceiling
     },
 
         {
