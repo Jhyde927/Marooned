@@ -28,10 +28,11 @@ int main() {
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor.
+    //SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(screenWidth, screenHeight, "Marooned");
 
     InitAudioDevice();
-    SetTargetFPS(60);
+    //SetTargetFPS(60); //testing
 
     //linux icon
     Image icon = LoadImage("assets/icon.png");

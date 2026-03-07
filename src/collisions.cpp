@@ -909,11 +909,14 @@ void CheckBulletHits(Camera& camera) {
                 if (b.type == BulletType::Fireball || b.type == BulletType::Iceball) {
                     b.Explode(camera);
                     break;
+                }else if (b.type == BulletType::Harpoon){
+                    b.kill(camera);
+                    break;
                 }
 
                 // Default bullets: try ricochet
                 Vector3 n = AABBHitNormal(w.bounds, b.position);
-                TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);//returns false if no ricochet.
 
                 break;
             }
@@ -925,10 +928,13 @@ void CheckBulletHits(Camera& camera) {
                 if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
                     b.Explode(camera);
                     break;
-                }else{
+                }else if (b.type == BulletType::Harpoon){
+                    b.kill(camera);
+                    break;
+                } else{
+                    //default bullets
                     Vector3 n = AABBHitNormal(d.collider, b.position);
-                    //BulletParticleRicochetNormal(b, n, GRAY);
-                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                    b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f); //returns false if no ricochet.
                     break;
 
                 }
@@ -941,7 +947,7 @@ void CheckBulletHits(Camera& camera) {
                         break;
                     }else{
                         Vector3 n = AABBHitNormal(side, b.position);
-                        TryBulletRicochet(b, n, 0.6f, 80.0f, 1.0f); //always bounce off side colliders to avoid them tunneling through
+                        b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 1.0f); //always bounce off side colliders to avoid them tunneling through
                         //BulletParticleRicochetNormal(b, n, GRAY);
                         break;
 
@@ -958,7 +964,7 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{ //normal bullets
                     Vector3 n = AABBHitNormal(box.bounds, b.position);
-                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                    b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
                     break;
 
                 }
@@ -974,7 +980,7 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     Vector3 n = AABBHitNormal(pillar.bounds, b.position);
-                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                    b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
                     break;
 
                 }
@@ -1026,7 +1032,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             else
             {
                 Vector3 n = AABBHitNormal(barrel.bounds, b.position);
-                TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
 
             }
 

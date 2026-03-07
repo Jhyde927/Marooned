@@ -4,6 +4,7 @@
 #include "player.h"
 #include <vector>
 #include "emitter.h"
+#include "utilities.h"
 
 enum class CharacterType {
     Raptor,
@@ -93,7 +94,7 @@ public:
     float idleThreshold = 0.0f; // for random movements when idle
     float randomDistance = 0.0f; //how far away to run before stopping. 
     float randomTime = 0.0f;
-    float pathCooldownTimer = 0.0f;
+    float pathCooldownTimer = RandomFloat(0.25, 0.55);
     Vector2 lastPlayerTile = {-1, -1}; // Initialized to invalid tile
     float skeleSpeed = 650;
     bool playerVisible = false;
@@ -159,6 +160,8 @@ public:
     float targetDist = 99999999.0f;
     bool  targetCanSee = false;
     float targetRefreshTimer = 0.0f; // like pathCooldownTimer
+    bool canLooseLimb = true;
+    bool canRes = true;
 
     FacingMode facingMode = FacingMode::Approaching;
     CharacterType type;

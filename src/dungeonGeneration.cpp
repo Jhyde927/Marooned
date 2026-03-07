@@ -1368,7 +1368,7 @@ void GenerateBarrels(float baseY) {
                 };
                 box.max = {
                     pos.x + halfSize,
-                    pos.y + 250.0f,
+                    pos.y + 400.0f,
                     pos.z + halfSize
                 };
                 //Decide what the barrel will drop. 
@@ -2054,7 +2054,7 @@ void GenerateLightSources(float baseY) {
                 // Create a 100x100x100 bounding box centered on pos
                 BoundingBox box;
                 box.min = Vector3Subtract(pos, Vector3{50.0f, 0.0f, 50.0f});
-                box.max = Vector3Add(pos, Vector3{50.0f, 200.0f, 50.0f});
+                box.max = Vector3Add(pos, Vector3{50.0f, 400.0f, 50.0f});
 
                 pillars.push_back({ pos, 1.0f, box });
 

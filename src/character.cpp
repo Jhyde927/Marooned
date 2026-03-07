@@ -257,11 +257,15 @@ void Character::TakeDamage(int amount) {
 
     accumulateDamage += amount;
 
-    if (accumulateDamage >= 100 && type == CharacterType::Zombie){
+    if (accumulateDamage >= 100 && type == CharacterType::Zombie && canLooseLimb){
+        canLooseLimb = false;
         //switch to dismembered sheet.
-        if (GetRandomValue(0, 1) > 0 && !lostLimb){ //50 percent chance they loose a limb 
+        if (GetRandomValue(0, 2) == 0){ 
             lostLimb = true;
+
             texture = (GetRandomValue(0, 1) > 0) ? R.GetTexture("zombieSheetArmless") : R.GetTexture("zombieSheetHeadless");
+        }else{
+            
         }
 
     }

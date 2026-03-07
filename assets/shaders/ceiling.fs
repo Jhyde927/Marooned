@@ -35,8 +35,8 @@ void main()
     vec2 tile   = floor(uvMask01 * gridSize);
     vec2 maskUV = (tile + vec2(0.5)) / gridSize;
 
-    float isVoid = texture(texture3, maskUV).r; // 0 or 1-ish
-    if (isVoid > 0.5) discard;
+    // float isVoid = texture(texture3, maskUV).r; // 0 or 1-ishj  //Cull ceilings on tiles surrounded by void. 
+    // if (isVoid > 0.5) discard;
 
     // -----------------------------
     // 2) LIGHTMAP UV (world space)

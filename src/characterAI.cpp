@@ -869,7 +869,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             {
                 if (pathCooldownTimer <= 0.0f)
                 {
-                    pathCooldownTimer = 0.4f;
+                    pathCooldownTimer = RandomFloat(0.3, 0.9); //dont all act at the same time. 
 
                     // Repath to pirate target if we have one, otherwise to player (your old behavior)
                     if (chasingPirate)
@@ -1129,7 +1129,8 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             }
 
 
-            if (deathTimer >= 4.5f && !lostLimb){ //zombies can get back up. 
+            if (deathTimer >= 4.5f && canRes && !lostLimb){ //zombies can get back up. 
+                canRes = false; //zombies can only ressurect once.
                 deathTimer = 0.0;
                 isDead = false;
                 currentHealth = 100;
@@ -1203,7 +1204,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 if (pathCooldownTimer <= 0.0f){
                 
                     lastPlayerTile = curTile;
-                    pathCooldownTimer = 0.4f; // don’t spam BFS
+                    pathCooldownTimer = RandomFloat(0.3, 0.9);
                     const Vector2 start = WorldToImageCoords(position);
                     SetPath(start); 
                 
