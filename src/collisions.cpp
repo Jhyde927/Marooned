@@ -744,7 +744,7 @@ void CheckBulletHits(Camera& camera) {
                     enemy->TakeDamage((int)b.ComputeDamage() + extraD); //damage based on bullets velocity, base 10 damage for blunderbuss
                     BoundingBox box = enemy->GetBoundingBox(); //we leave an aweful lot up to chance, but it plays well. 
                     Vector3 n = AABBHitNormal(box, b.position);
-                    TryBulletRicochet(b, n, 0.6f, 500, 0.99); //0.9 cosign threshhold makes headon bullets get absorbed by enemy. 
+                    b.alive = TryBulletRicochet(b, n, 0.6f, 500, 0.99); //0.9 cosign threshhold makes headon bullets get absorbed by enemy. 
                     break;
 
                 }else if (b.type == BulletType::Bolt){
@@ -1028,6 +1028,8 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             if (b.type == BulletType::Fireball || b.type == BulletType::Iceball)
             {
                 b.Explode(camera);
+            }else if (b.type == BulletType::Bolt){
+                //bolts penetrates barrels. 
             }
             else
             {
@@ -1054,18 +1056,21 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             Vector3 dropPos{ barrel.position.x, barrel.position.y + 100.0f, barrel.position.z };
             if (barrel.containsPotion)
             {
-                collectables.emplace_back(CollectableType::HealthPotion, dropPos, 
-                                          R.GetTexture("healthPotTexture"), 40);
+                Collectable c = {CollectableType::HealthPotion, dropPos,R.GetTexture("healthPotTexture"), 40};
+                c.baseY = barrel.position.y + 100.0f;
+                collectables.emplace_back(c);
             }
             else if (barrel.containsMana)
             {
-                collectables.emplace_back(CollectableType::ManaPotion, dropPos, 
-                                          R.GetTexture("manaPotion"), 40);
+                Collectable c = {CollectableType::HealthPotion, dropPos,R.GetTexture("manaPotion"), 40};
+                c.baseY = barrel.position.y + 100.0f;
+                collectables.emplace_back(c);
             }
             else if (barrel.containsGold)
             {
                 Collectable gold(CollectableType::Gold, dropPos, R.GetTexture("coinTexture"), 40);
                 gold.value = GetRandomValue(1, 100);
+                gold.baseY = barrel.position.y + 100.0f;
                 collectables.push_back(gold);
             }
 

@@ -74,6 +74,8 @@ enum class Code {
     woodFloor,                // (196, 155, 96) Tan
     shipMast,                 //(49,28,15) very dark brown. 
     Zombie,                   //(51, 130, 9) zombie green
+    raftMast,                 // (49, 30, 20) dark brown 
+    raftSail,                 // (225, 200, 180)
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -149,6 +151,9 @@ constexpr Color ColorOf(Code c) {
         case Code::shipMast:               return Make(49,28,15);
         case Code::woodWallHalf:           return Make(137, 77, 40);
         case Code::Zombie:                 return Make(51, 130, 9);
+        case Code::raftMast:               return Make(49, 30, 20);
+        case Code::raftSail:               return Make(225, 200, 180);
+
 
     }
     // Fallback (should not happen)

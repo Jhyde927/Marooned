@@ -210,65 +210,73 @@ void ResourceManager::LoadAllResources() {
     R.LoadFont("Kingthings", "assets/fonts/KingthingsPetrock.ttf", 128, 1);
 
     //Resources are saved to unordered maps, with a string key. Get a resource by calling R.GetModel("blunderbuss") for example. 
-    R.LoadTexture("raptorTexture",    "assets/sprites/bigRaptorSheet.png");
-    R.LoadTexture("skeletonSheet",    "assets/sprites/skeletonSheet.png");
-    R.LoadTexture("muzzleFlash",      "assets/sprites/muzzleFlash.png");
-    R.LoadTexture("backDrop",         "assets/screenshots/dungeon1.png");
-    R.LoadTexture("smokeSheet",       "assets/sprites/smokeSheet.png");
-    R.LoadTexture("bloodSheet",       "assets/sprites/bloodDecalSheet.png");
-    R.LoadTexture("doorTexture",      "assets/sprites/Door.png");
-    R.LoadTexture("healthPotTexture", "assets/sprites/Healthpot.png");
-    R.LoadTexture("keyTexture",       "assets/sprites/key.png");
-    R.LoadTexture("swordBloody",      "assets/textures/swordBloody.png");
-    R.LoadTexture("swordClean",       "assets/textures/swordClean.png");
-    R.LoadTexture("fireSheet",        "assets/sprites/fireSheet.png");
-    R.LoadTexture("pirateSheet",      "assets/sprites/pirateSheet.png");
-    R.LoadTexture("coinTexture",      "assets/sprites/coin.png");
-    R.LoadTexture("spiderSheet",      "assets/sprites/spiderSheet.png");
-    R.LoadTexture("spiderWebTexture", "assets/sprites/spiderWeb.png");
-    R.LoadTexture("brokeWebTexture",  "assets/sprites/brokeWeb.png");
-    R.LoadTexture("explosionSheet",   "assets/sprites/explosionSheet.png");
-    R.LoadTexture("manaPotion",       "assets/sprites/manaPotion.png");
-    R.LoadTexture("fireIcon",         "assets/sprites/fireIcon.png");
-    R.LoadTexture("iceIcon",          "assets/sprites/iceIcon.png");
-    R.LoadTexture("shadowTex",        "assets/textures/shadow_decal.png");
-    R.LoadTexture("ghostSheet",       "assets/sprites/ghostSheet.png");
-    R.LoadTexture("magicAttackSheet", "assets/sprites/magicAttackSheet.png");
-    R.LoadTexture("treeShadow",       "assets/textures/treeShadow.png");
-    R.LoadTexture("grassTexture",     "assets/textures/grass2.png");
-    R.LoadTexture("sandTexture",      "assets/textures/sand.png");
-    R.LoadTexture("trexSheet",        "assets/sprites/trexSheet.png");
-    R.LoadTexture("blockSheet",       "assets/sprites/blockSheet2.png");
-    R.LoadTexture("playerSlashSheet", "assets/sprites/playerSlashSheet.png");
-    R.LoadTexture("slashSheet",       "assets/sprites/slashSheet.png");
-    R.LoadTexture("slashSheetLeft",   "assets/sprites/slashSheetLeft.png");
-    R.LoadTexture("biteSheet",        "assets/sprites/biteSheet.png");
-    R.LoadTexture("bulletHoleSheet",  "assets/sprites/bulletHoleSheet.png");
-    R.LoadTexture("GiantSpiderSheet", "assets/sprites/giantSpiderSheet.png");
-    R.LoadTexture("spiderEggSheet",   "assets/sprites/spiderEggSheet.png");
-    R.LoadTexture("blank",            "assets/textures/blank.png");
-    R.LoadTexture("silverKey",        "assets/sprites/silverKey.png");
-    R.LoadTexture("harpoon",          "assets/sprites/harpoon.png");
-    R.LoadTexture("backFade",         "assets/sprites/backFade.png");
-    R.LoadTexture("grapplePoint",     "assets/sprites/grapplePoint.png");
-    R.LoadTexture("swordIcon",        "assets/sprites/cutlassIcon.png");
-    R.LoadTexture("crossbowIcon",     "assets/sprites/crossbowIcon2.png");
-    R.LoadTexture("blunderbussIcon",  "assets/sprites/blunderbussIcon2.png");
-    R.LoadTexture("staffIcon",        "assets/sprites/staffIcon2.png");
-    R.LoadTexture("shotgunReticle",   "assets/sprites/shotgunReticle.png");
-    R.LoadTexture("dactylSheet",      "assets/sprites/dactylSheet.png");
-    R.LoadTexture("ceilingTexture",   "assets/textures/ceilingTilesTexture.png");
-    R.LoadTexture("wizardSheet",      "assets/sprites/wizardSheet.png");
-    R.LoadTexture("skeletonKey",      "assets/sprites/skeletonKey.png");
-    R.LoadTexture("batSheet",         "assets/sprites/batSheet.png");
-    R.LoadTexture("hermitSheet",      "assets/sprites/hermitSheet.png");
-    R.LoadTexture("whiteGradient",    "assets/textures/whiteGradient.png");
-    R.LoadTexture("zombieSheet",       "assets/sprites/zombieSheet.png");
-    R.LoadTexture("zombieSheetArmless","assets/sprites/zombieSheetArmless.png");
+    R.LoadTexture("raptorTexture",      "assets/sprites/bigRaptorSheet.png");
+    R.LoadTexture("skeletonSheet",      "assets/sprites/skeletonSheet.png");
+    R.LoadTexture("muzzleFlash",        "assets/sprites/muzzleFlash.png");
+    R.LoadTexture("backDrop",           "assets/screenshots/dungeon1.png");
+    R.LoadTexture("smokeSheet",         "assets/sprites/smokeSheet.png");
+    R.LoadTexture("bloodSheet",         "assets/sprites/bloodDecalSheet.png");
+    R.LoadTexture("doorTexture",        "assets/sprites/Door.png");
+    R.LoadTexture("healthPotTexture",   "assets/sprites/Healthpot.png");
+    R.LoadTexture("keyTexture",         "assets/sprites/key.png");
+    R.LoadTexture("swordBloody",        "assets/textures/swordBloody.png");
+    R.LoadTexture("swordClean",         "assets/textures/swordClean.png");
+    R.LoadTexture("fireSheet",          "assets/sprites/fireSheet.png");
+    R.LoadTexture("pirateSheet",        "assets/sprites/pirateSheet.png");
+    R.LoadTexture("coinTexture",        "assets/sprites/coin.png");
+    R.LoadTexture("spiderSheet",        "assets/sprites/spiderSheet.png");
+    R.LoadTexture("spiderWebTexture",   "assets/sprites/spiderWeb.png");
+    R.LoadTexture("brokeWebTexture",    "assets/sprites/brokeWeb.png");
+    R.LoadTexture("explosionSheet",     "assets/sprites/explosionSheet.png");
+    R.LoadTexture("manaPotion",         "assets/sprites/manaPotion.png");
+    R.LoadTexture("fireIcon",           "assets/sprites/fireIcon.png");
+    R.LoadTexture("iceIcon",            "assets/sprites/iceIcon.png");
+    R.LoadTexture("shadowTex",          "assets/textures/shadow_decal.png");
+    R.LoadTexture("ghostSheet",         "assets/sprites/ghostSheet.png");
+    R.LoadTexture("magicAttackSheet",   "assets/sprites/magicAttackSheet.png");
+    R.LoadTexture("treeShadow",         "assets/textures/treeShadow.png");
+    R.LoadTexture("grassTexture",       "assets/textures/grass2.png");
+    R.LoadTexture("sandTexture",        "assets/textures/sand.png");
+    R.LoadTexture("trexSheet",          "assets/sprites/trexSheet.png");
+    R.LoadTexture("blockSheet",         "assets/sprites/blockSheet2.png");
+    R.LoadTexture("playerSlashSheet",   "assets/sprites/playerSlashSheet.png");
+    R.LoadTexture("slashSheet",         "assets/sprites/slashSheet.png");
+    R.LoadTexture("slashSheetLeft",     "assets/sprites/slashSheetLeft.png");
+    R.LoadTexture("biteSheet",          "assets/sprites/biteSheet.png");
+    R.LoadTexture("bulletHoleSheet",    "assets/sprites/bulletHoleSheet.png");
+    R.LoadTexture("GiantSpiderSheet",   "assets/sprites/giantSpiderSheet.png");
+    R.LoadTexture("spiderEggSheet",     "assets/sprites/spiderEggSheet.png");
+    R.LoadTexture("blank",              "assets/textures/blank.png");
+    R.LoadTexture("silverKey",          "assets/sprites/silverKey.png");
+    R.LoadTexture("harpoon",            "assets/sprites/harpoon.png");
+    R.LoadTexture("backFade",           "assets/sprites/backFade.png");
+    R.LoadTexture("grapplePoint",       "assets/sprites/grapplePoint.png");
+    R.LoadTexture("swordIcon",          "assets/sprites/cutlassIcon.png");
+    R.LoadTexture("crossbowIcon",       "assets/sprites/crossbowIcon2.png");
+    R.LoadTexture("blunderbussIcon",    "assets/sprites/blunderbussIcon2.png");
+    R.LoadTexture("staffIcon",          "assets/sprites/staffIcon2.png");
+    R.LoadTexture("shotgunReticle",     "assets/sprites/shotgunReticle.png");
+    R.LoadTexture("dactylSheet",        "assets/sprites/dactylSheet.png");
+    R.LoadTexture("ceilingTexture",     "assets/textures/ceilingTilesTexture.png");
+    R.LoadTexture("wizardSheet",        "assets/sprites/wizardSheet.png");
+    R.LoadTexture("skeletonKey",        "assets/sprites/skeletonKey.png");
+    R.LoadTexture("batSheet",           "assets/sprites/batSheet.png");
+    R.LoadTexture("hermitSheet",        "assets/sprites/hermitSheet.png");
+    R.LoadTexture("whiteGradient",      "assets/textures/whiteGradient.png");
+    R.LoadTexture("zombieSheet",        "assets/sprites/zombieSheet.png");
+    R.LoadTexture("zombieSheetArmless", "assets/sprites/zombieSheetArmless.png");
     R.LoadTexture("zombieSheetHeadless","assets/sprites/zombieSheetHeadless.png");
+    R.LoadTexture("headSpin",           "assets/sprites/headSpin.png");
+    R.LoadTexture("armSpin",            "assets/sprites/armSpin.png");
+    R.LoadTexture("zombieGib",          "assets/sprites/zombieGib.png");
+     R.LoadTexture("boneSpin",          "assets/sprites/boneSpin.png");
 
     R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
     R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
+
+    R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
+    R.LoadTexture("raftBody", "assets/sprites/raftBody.png");
+    R.LoadTexture("raftSail", "assets/sprites/raftSail.png");
 
 
 
@@ -433,6 +441,8 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
     int waterColorLoc = GetShaderLocation(sh, "u_waterColor");
     SetShaderValue(sh, waterColorLoc, &waterColor, SHADER_UNIFORM_VEC3);
+
+
 
     sh.locs[SHADER_LOC_MAP_ALBEDO]    = GetShaderLocation(sh, "texGrass");
     sh.locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(sh, "texSand");

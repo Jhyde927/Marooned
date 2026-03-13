@@ -68,6 +68,8 @@ namespace ShaderSetup
         ws.loc_cameraPos     = GetShaderLocation(sh, "cameraPos");
         //ws.loc_waterLevel    = GetShaderLocation(sh, "waterLevel");
         ws.loc_waterColor    = GetShaderLocation(sh, "u_waterColor");
+        ws.loc_isSwamp       = GetShaderLocation(sh, "u_isSwamp");
+
 
     }
 
@@ -125,10 +127,8 @@ namespace ShaderSetup
         SetShaderValue(sh, ws.loc_cameraPos, &camPos, SHADER_UNIFORM_VEC3);
         SetShaderValue(sh, GetShaderLocation(sh, "time"), &elapsedTime, SHADER_UNIFORM_FLOAT);
         int isSwamp = (levels[gCurrentLevelIndex].name == "Swamp") ? 1 : 0;
-        Vector3 swampColor = {0.32, 0.45, 0.30};
-        Vector3 oceanColor = {0.22, 0.55, 0.88};
-        Vector3 waterColor = (isSwamp == 1) ? swampColor : oceanColor;
-        SetShaderValue(R.GetShader("waterShader"), ws.loc_waterColor, &waterColor, SHADER_UNIFORM_VEC3);
+        SetShaderValue(sh, ws.loc_isSwamp, &isSwamp, RL_SHADER_UNIFORM_INT);
+
     }
 
     //LAVA

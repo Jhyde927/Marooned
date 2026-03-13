@@ -249,6 +249,72 @@ void Character::PlayDamageSounds(){
         }
 }
 
+void Character::SpawnFlyingGib(Vector3 spawnPos, DecalType type, const std::string& textureName, bool emitBlood)
+{
+    Decal decal = {spawnPos, type, R.GetTexture(textureName), 4, 2.0f, 0.25f, 32.0f};
+
+    decal.canBounce = (GetRandomValue(0, 1) == 1);
+    decal.hasBounced = false;
+
+    decal.velocity = {
+        (float)GetRandomValue(-180, 180),
+        (float)GetRandomValue(250, 420),
+        (float)GetRandomValue(-180, 180)
+    };
+
+    if (type == DecalType::Bone){
+        decal.velocity = {
+            (float)GetRandomValue(-250, 250),
+            (float)GetRandomValue(400, 620),
+            (float)GetRandomValue(-250, 250)
+        };
+    }
+
+    if (emitBlood) {
+        decal.bloodEmitter.EmitBlood(decal.position, 20, RED);
+    }
+
+    decals.emplace_back(decal);
+}
+
+void Character::SpawnGibs(){
+    //Emit decals when taking damage. called from TakeDamage(amount). 
+
+    if (currentHealth <= 0) canGib = true; //enemies can gib on death. otherwise gib once. 
+
+    if (type == CharacterType::Skeleton && canGib){ //skeletons emit bones when taking damage.
+        canGib = false;
+        int randomNumber = GetRandomValue(1,4);
+        for (int i = 0; i < randomNumber; i++){
+            SpawnFlyingGib(position, DecalType::Bone, "boneSpin", false);
+        }
+    }
+
+
+    if (type == CharacterType::Zombie && canGib) {
+        canGib = false;
+        SpawnFlyingGib(position, DecalType::ZombieGib, "zombieGib", true);
+    }
+
+    if (type == CharacterType::Zombie && accumulateDamage >= 100 && canLoseLimb) {
+        canLoseLimb = false;
+        lostLimb = true;
+
+        if (GetRandomValue(0, 1) == 1) {
+            texture = R.GetTexture("zombieSheetArmless");
+            SpawnFlyingGib(position, DecalType::ZombieArm, "armSpin", true);
+        } else {
+            texture = R.GetTexture("zombieSheetHeadless");
+            Vector3 headPos = Vector3Add(position, {0, 50, 0});
+            SpawnFlyingGib(headPos, DecalType::ZombieHead, "headSpin", true);
+        }
+    }
+
+
+
+}
+
+
 void Character::TakeDamage(int amount) {
     if (isDead) return;
     if (amount <= 0) return;
@@ -257,18 +323,9 @@ void Character::TakeDamage(int amount) {
 
     accumulateDamage += amount;
 
-    if (accumulateDamage >= 100 && type == CharacterType::Zombie && canLooseLimb){
-        canLooseLimb = false;
-        //switch to dismembered sheet.
-        if (GetRandomValue(0, 2) == 0){ 
-            lostLimb = true;
 
-            texture = (GetRandomValue(0, 1) > 0) ? R.GetTexture("zombieSheetArmless") : R.GetTexture("zombieSheetHeadless");
-        }else{
-            
-        }
 
-    }
+    SpawnGibs();
 
     if (accumulateDamage >= 200 && type == CharacterType::GiantSpider){
         //run away until you take 200 damage
@@ -288,8 +345,6 @@ void Character::TakeDamage(int amount) {
     }
 
     if (currentHealth <= 0) { //die
-
-
 
         hitTimer = 1.0f; //stay red for 1 second on death. 
         currentHealth = 0;

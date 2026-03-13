@@ -483,6 +483,7 @@ void NPC::Hermit_Turret_Fire(float /*dt*/, const std::vector<Character*>& enemyP
     // Hold firing frame for duration
     if (stateTimer >= fireHoldDuration)
     {
+
         // reacquire like you did before
         Character* next = AcquireClosestEnemy(enemyPtrs);
         if (next)

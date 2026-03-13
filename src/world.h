@@ -148,6 +148,7 @@ void StartFadeOutFromTeleport();
 void StartFadeInFromBlack(); 
 void OpenEventLockedDoors();
 void InitOverworldWeapons();
+void InitRaftCollectables();
 void InitMenuLevel(LevelData& level);
 void MovePlayerToFreeCam();
 void InitShaders();

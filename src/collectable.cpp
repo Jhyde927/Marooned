@@ -40,8 +40,8 @@ void Collectable::RebuildBoxes()
 
 void Collectable::Update(float dt, const Vector3& playerPos) {
     bobTimer += dt;
-    float bobAmount = sinf(bobTimer) * 0.1f;
-    position.y += bobAmount;
+    float bobAmount = sinf(bobTimer) * 10.0f;
+    position.y = baseY + bobAmount;
 
 
     if (isHarpooned)

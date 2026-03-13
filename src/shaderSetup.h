@@ -57,13 +57,14 @@ namespace ShaderSetup
         int loc_cameraPos     = -1;
         int loc_waterLevel    = -1;
         int loc_waterColor    = -1;
+        int loc_isSwamp       = -1;
 
         // Constants / tunables
         float patchHalf  = 8000.0f;   // u_PatchHalfSize
         float fadeStart  = 10000.0f;  // u_FadeStart
         float fadeEnd    = 16000.0f;  // u_FadeEnd
         float feather    = 600.0f;    // used for clamping center
-
+        int   isSwamp    = 0;
         // World bounds inputs (store these so Update() can clamp)
         Vector2 worldMinXZ  = { 0, 0 };   // (minX, minZ)
         Vector2 worldSizeXZ = { 0, 0 };   // (sizeX, sizeZ)

@@ -15,6 +15,7 @@ uniform float u_FadeStart;       // start of horizon fade (e.g., 2500)
 uniform float u_FadeEnd;         // end of horizon fade (e.g., 4500)
 
 uniform vec3  u_waterColor;
+uniform int   u_isSwamp;
 
 void main()
 {
@@ -27,12 +28,20 @@ void main()
     float distanceToCam = length(fragPosition - cameraPos);
     float depthFactor = clamp((distanceToCam - 500.0) / 6000.0, 0.0, 1.0);
 
-    vec3 shallowColor = vec3(0.25, 0.6, 0.77);
-    vec3 deepColor    = vec3(0.1, 0.35, 0.68);
+    // vec3 shallowColor = vec3(0.25, 0.6, 0.77);
+    // vec3 deepColor    = vec3(0.1, 0.35, 0.68);
 
-    //vec3 mixedColor = mix(shallowColor, deepColor, depthFactor) * brightness;
+    vec3 shallowColor = vec3(0.32, 0.48, 0.65);
+    vec3 deepColor    = vec3(0.15, 0.38, 0.60);
+    vec3 swampColor   = vec3(0.32, 0.45, 0.30);
 
-    vec3 waterColor = mix(shallowColor, deepColor, depthFactor) * brightness;
+    vec3 waterColor;
+
+    if (u_isSwamp == 1){
+        waterColor = swampColor;
+    }else{
+        waterColor = mix(shallowColor, deepColor, depthFactor) * brightness;
+    }
 
     // --- ✦ Edge Fade: radial based on patch center ---
     float radialDist = length(fragPosition.xz - u_WaterCenterXZ);

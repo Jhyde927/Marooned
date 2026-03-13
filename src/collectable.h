@@ -10,6 +10,9 @@ enum class CollectableType {
     Gold,
     ManaPotion,
     Harpoon,
+    raftMast,
+    raftSail,
+    raftBody,
     // Add more types as needed
 };
 
@@ -23,6 +26,7 @@ public:
     float scale;
     int value;
     float bobTimer = 0.0f;
+    float baseY = 160.0f;
 
         // Harpoon pull
     bool  isHarpooned = false;

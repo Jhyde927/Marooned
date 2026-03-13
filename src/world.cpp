@@ -4,6 +4,7 @@
 #include "resourceManager.h"
 #include "vegetation.h"
 #include "dungeonGeneration.h"
+#include "dungeonColors.h"
 #include "boat.h"
 #include "algorithm"
 #include "sound_manager.h"
@@ -105,6 +106,8 @@ std::vector<PreviewInfo> levelPreviews;
 
 Raft raft;
 MiniMap miniMap;
+
+using namespace dungeon;
 
 void EnterMenu() {
     EnableCursor();
@@ -342,6 +345,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         miniMap.SetDrawSize(288.0f);
     }
 
+    InitRaftCollectables(); //generate dungeon before init raft collectables.
     isLoadingLevel = false;
     //R.SetPortalShaderValues();
 
@@ -467,6 +471,39 @@ void InitOverworldWeapons(){
         Collectable p = {CollectableType::Harpoon, spos, R.GetTexture("harpoon"), 80};
         collectables.push_back(p);
     }
+
+}
+
+void InitRaftCollectables(){
+
+    if (unlockEntrances && levels[gCurrentLevelIndex].name == "MiddleIsland"){
+        Vector3 bpos = {-3444.0f, 150.0f, -4640.0f};//{5956.0f, 250.0, -4910.0f};
+        Collectable p = {CollectableType::raftBody, bpos, R.GetTexture("raftBody"), 100.0f}; 
+        collectables.push_back(p);
+
+    }
+
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];  
+            if (EqualsRGB(current, ColorOf(Code::raftMast))){
+                Vector3 mastPos = GetDungeonWorldPos(x, y, tileSize, 200.0f);
+                Collectable mast = {CollectableType::raftMast, mastPos, R.GetTexture("raftMast"), 100.0f};
+                collectables.push_back(mast);
+
+            }
+
+            if (EqualsRGB(current, ColorOf(Code::raftSail))){
+                Vector3 sailPos = GetDungeonWorldPos(x, y, tileSize, 200.0f);
+                Collectable sail = {CollectableType::raftSail, sailPos, R.GetTexture("raftSail"), 100.0f};
+
+                collectables.push_back(sail);
+                std::cout << "init raft sail\n";
+            }
+        }
+
+    }
+
 
 }
 
@@ -884,6 +921,7 @@ void UpdateCollectables(float deltaTime) {
 
         // Pickup logic
         if (collectables[i].CheckPickup(player.position, 180.0f)) { //180 radius
+
             if (collectables[i].type == CollectableType::HealthPotion) {
                 player.inventory.AddItem("HealthPotion");
                 SoundManager::GetInstance().Play("clink");
@@ -907,9 +945,19 @@ void UpdateCollectables(float deltaTime) {
             } else if (collectables[i].type == CollectableType::ManaPotion) {
                 player.inventory.AddItem("ManaPotion");
                 SoundManager::GetInstance().Play("clink");
+
             } else if (collectables[i].type == CollectableType::Harpoon) {
                 hasHarpoon = true;
                 SoundManager::GetInstance().Play("ratchet");
+
+            } else if (collectables[i].type == CollectableType::raftMast) {
+                raft.hasMast = true;
+
+            } else if (collectables[i].type == CollectableType::raftBody) {
+                raft.hasBody = true;
+
+            } else if (collectables[i].type == CollectableType::raftSail) {
+                raft.hasSail = true;
             }
 
             collectables.erase(collectables.begin() + i);

@@ -3,6 +3,8 @@
 #include <vector>
 #include <iostream>
 #include "raymath.h"
+#include "emitter.h"
+
 
 // What kind of decal this is
 enum class DecalType {
@@ -13,6 +15,10 @@ enum class DecalType {
     NewBlood,
     Blocked,
     MeleeSwipe,
+    ZombieHead,
+    ZombieArm,
+    ZombieGib,
+    Bone,
 };
 
 struct Decal {
@@ -28,6 +34,10 @@ struct Decal {
     bool alive = true;
     Vector3 velocity;
     float drag = 1.0f;
+    float gravity = 900.0f;
+    bool canBounce;
+    bool hasBounced;
+    Emitter bloodEmitter;
 
     Decal(Vector3 pos, DecalType t, Texture2D tex, int frameCount, float life, float frameDuration, float scale = 1.0f)
         : position(pos), type(t), texture(tex), maxFrames(frameCount),
@@ -50,6 +60,40 @@ struct Decal {
             velocity = Vector3Scale(velocity, damp);
 
         }
+
+        if (type == DecalType::ZombieHead || type == DecalType::ZombieArm || type == DecalType::ZombieGib || type == DecalType::Bone) {
+            bloodEmitter.UpdateBlood(deltaTime);
+            //gravity
+            velocity.y -= gravity * deltaTime;
+            //move
+            position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
+            //damp
+            float damp = expf(-drag * deltaTime);
+            velocity = Vector3Scale(velocity, damp);  
+
+            float floorY = 125.0f;
+
+            if (position.y < floorY) {
+                position.y = floorY;
+
+                if (canBounce && !hasBounced) {
+                    hasBounced = true;
+
+                    velocity.y *= -0.35f;  // small bounce upward
+                    velocity.x *= 0.7f;    // lose some sideways speed
+                    velocity.z *= 0.7f;
+                }
+                else {
+                    velocity.y = 0.0f;
+                    velocity.x = 0.0f;
+                    velocity.z = 0.0f;
+                }
+            }
+
+
+        }
+
+
 
 
         currentFrame = static_cast<int>(timer / frameTime);

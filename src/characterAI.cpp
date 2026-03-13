@@ -1129,12 +1129,14 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             }
 
 
-            if (deathTimer >= 4.5f && canRes && !lostLimb){ //zombies can get back up. 
+            if (deathTimer >= 4.5f && canRes && !lostLimb && GetRandomValue(0,1) > 0){ //zombies can get back up. half the time
                 canRes = false; //zombies can only ressurect once.
                 deathTimer = 0.0;
                 isDead = false;
-                currentHealth = 100;
+                currentHealth = 50; // one sword swipe will kill ressurected zombies. 
                 ChangeState(CharacterState::Idle);
+
+                //A headless zombie can't get back up. It might look cool if they could. Maybe a chance to loose a limb on get up.
             }
 
             deathTimer += deltaTime;

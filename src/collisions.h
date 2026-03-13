@@ -6,8 +6,6 @@
 #include "bullet.h"
 #include "vegetation.h"
 
-
-
 void UpdateCollisions(Camera& camera);
 void CheckBulletHits(Camera& camera);
 void HandleMeleeHitboxCollision(Camera& camera);

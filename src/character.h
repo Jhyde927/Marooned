@@ -5,6 +5,7 @@
 #include <vector>
 #include "emitter.h"
 #include "utilities.h"
+#include "decal.h"
 
 enum class CharacterType {
     Raptor,
@@ -160,7 +161,8 @@ public:
     float targetDist = 99999999.0f;
     bool  targetCanSee = false;
     float targetRefreshTimer = 0.0f; // like pathCooldownTimer
-    bool canLooseLimb = true;
+    bool canLoseLimb = true;
+    bool canGib = true;
     bool canRes = true;
 
     FacingMode facingMode = FacingMode::Approaching;
@@ -204,9 +206,11 @@ public:
     bool BuildPathTo(const Vector3& goalWorld);
     void PlayDeathSound();
     void TakeDamage(int amount);
+    void SpawnGibs();
     void SetAnimation(int row, int frames, float speed, bool loop=true);
     void playRaptorSounds();
     void PlayDamageSounds();
+    void SpawnFlyingGib(Vector3 spawnPos, DecalType type, const std::string& textureName, bool emitBlood);
     void ChangeState(CharacterState next);
     bool MoveAlongPath(std::vector<Vector3>& path, Vector3& pos, float& yawDeg,float speed, float dt, float arriveEps = 100.0f, Vector3 repulsion = {});
     void UpdatePatrol(float deltaTime);

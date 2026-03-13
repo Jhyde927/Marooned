@@ -28,7 +28,11 @@ int main() {
     int screenWidth = squareRes ? 1280 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor.
+
+
     //SetConfigFlags(FLAG_VSYNC_HINT);
+    //we stopped targeting 60 FPS, so frame rate is uncapped. 
+    //Before making a new build, enable vsync so it maches the users monitor.
     InitWindow(screenWidth, screenHeight, "Marooned");
 
     InitAudioDevice();
@@ -40,7 +44,6 @@ int main() {
     SetWindowIcon(icon);
     UnloadImage(icon);
 
-    //DisableCursor();
     SetExitKey(KEY_NULL); //Escape brings up menu, not quit
     ResourceManager::Get().LoadAllResources();
     SoundManager::GetInstance().LoadSounds();
@@ -56,12 +59,12 @@ int main() {
     float fovy   = (aspect < (16.0f/9.0f)) ? 50.0f : 45.0f; //bump up FOV if it's narrower than 16x9
     Vector3 camPos = {startPosition.x, startPosition.y + 1000, startPosition.z};
 
-    CameraSystem::Get().Init(camPos); //init camera to player pos, setting it to cinematic overwrites this. but we still need to init with something. so set it to cinematic then. 
+    CameraSystem::Get().Init(camPos); 
     CameraSystem::Get().SetFOV(fovy);
 
     MainMenu::gLevelPreviews = BuildLevelPreviews(true);
     InitMenuLevel(levels[0]);
-    enemies.reserve(100);
+    enemies.reserve(100); //solved crash on ship level with pirates. Maybe enemies should be a list after all?
 
     //main game loop
     while (!WindowShouldClose()) {
@@ -140,7 +143,8 @@ int main() {
             if (player.dying || (CameraSystem::Get().GetMode() == CamMode::Free)) player.godMode = true; //god mode if free cam or dying.
             //Removes vision of player from enemies. So they don't keep attacking after the player is dead. 
 
-            //update context
+            //update context - make a global updateContext.h/cpp or something where all this can live. I'm just so used to going to 
+            //main to find stuff. It would do more harm than good. Who is the code for? 
             UpdateWeaponBarLayoutOnResize();
             debugControls(camera, deltaTime); 
 

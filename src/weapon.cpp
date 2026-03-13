@@ -594,19 +594,6 @@ void MagicStaff::Update(float deltaTime) {
 
     }
 
-    //was hitting when not swinging. hitbox active was remaining true is my guess. 
-    // if (swinging) {
-    //     swingTimer += deltaTime;
-    //     if (swingTimer >= swingDuration) {
-    //         swinging = false;
-    //         hitboxActive = false;
-    //         hitboxTriggered = false;
-    //     } else if (swingTimer >= hitWindowStart && swingTimer <= hitWindowEnd) {
-    //         hitboxActive = true;
-    //     } else {
-    //         hitboxActive = false;
-    //     }
-    // }
 
     timeSinceLastSwing += deltaTime;
 
