@@ -1029,7 +1029,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             {
                 b.Explode(camera);
             }else if (b.type == BulletType::Bolt){
-                //bolts penetrates barrels. 
+                //bolts penetrate barrels. 
             }
             else
             {

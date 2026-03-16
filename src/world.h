@@ -19,6 +19,7 @@
 #include "NPC.h"
 #include "portal.h"
 #include "raft.h"
+#include "tentacle.h"
 
 enum class GameState {
     Menu,
@@ -45,6 +46,7 @@ extern Vector3 bottomPos;
 
 extern MiniMap miniMap;
 extern Raft raft;
+
 
 extern bool controlPlayer;
 extern bool isDungeon;
@@ -111,6 +113,7 @@ extern std::vector<Portal> portals;
 extern std::vector<Character> enemies;  
 extern std::vector<Character*> enemyPtrs;
 extern std::vector<NPC> gNPCs;
+extern std::vector<Tentacle> tentacles;
 
 Character* FindEnemyById(int id);
 void ClearLevel();
@@ -157,5 +160,6 @@ void UpdateShadersPerFrame(float deltaTime, float ElapsedTime, Camera& camera);
 void InitNPCs();
 void eraseCharacters();
 void DrawWaterPlane();
+void InitTentacle();
 
 

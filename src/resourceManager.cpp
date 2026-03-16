@@ -321,6 +321,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("collectableSail",        "assets/Models/collectableSail.glb");
 
     R.LoadModel("woodWall",               "assets/Models/woodWall.glb");
+    R.LoadModel("woodDoorWay",            "assets/Models/woodDoorWay.glb");
     R.LoadModel("woodWallHalf",           "assets/Models/woodWallHalf.glb");
     R.LoadModel("woodFloor",              "assets/Models/floorTileWood.glb");
     R.LoadModel("shipMast",               "assets/Models/shipMast.glb");
@@ -610,6 +611,7 @@ void ResourceManager::SetLightingShaderValues()
     Model& boxModel      = R.GetModel("box");
     Model& woodFloor     = R.GetModel("woodFloor");
     Model& woodWall      = R.GetModel("woodWall");
+    Model& woodDoorWay   = R.GetModel("woodDoorWay");
     Model& woodWallHalf  = R.GetModel("woodWallHalf");
 
     for (int i = 0; i < wallModel.materialCount;    ++i) wallModel.materials[i].shader    = lightingShader;
@@ -623,6 +625,7 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < woodFloor.materialCount;   ++i) woodFloor.materials[i].shader   = lightingShader;
     for (int i = 0; i < woodWall.materialCount;   ++i) woodWall.materials[i].shader   = lightingShader;
     for (int i = 0; i < woodWallHalf.materialCount;   ++i) woodWallHalf.materials[i].shader   = lightingShader;
+    for (int i = 0; i < woodDoorWay.materialCount;   ++i) woodDoorWay.materials[i].shader   = lightingShader;
 
     // Bind the lightmap texture to EMISSION slot for each model material
     auto setLightmap = [&](Model& m){
@@ -642,6 +645,7 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(woodFloor);
     setLightmap(woodWall);
     setLightmap(woodWallHalf);
+    setLightmap(woodDoorWay);
 
     // Per-level uniforms for lighting shader
     Shader& use = floorModel.materials[0].shader;

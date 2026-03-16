@@ -863,10 +863,16 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             Color up = dungeonPixels[(y - 1) * dungeonWidth + x];
             Color down = dungeonPixels[(y + 1) * dungeonWidth + x];
 
-            bool wallLeft = left.r == 0 && left.g == 0 && left.b == 0;
-            bool wallRight = right.r == 0 && right.g == 0 && right.b == 0;
-            bool wallUp = up.r == 0 && up.g == 0 && up.b == 0;
-            bool wallDown = down.r == 0 && down.g == 0 && down.b == 0;
+            //if any neighboring pixel is wood, make the doorway wooden. 
+            bool wood = (EqualsRGB(left, ColorOf(Code::woodWall)) || EqualsRGB(right, ColorOf(Code::woodWall)) ||
+            EqualsRGB(up, ColorOf(Code::woodWall)) || EqualsRGB(down, ColorOf(Code::woodWall)));
+
+            bool wallLeft = IsWallColor(left);
+            bool wallRight = IsWallColor(right);
+            bool wallUp = IsWallColor(up);
+            bool wallDown = IsWallColor(down);
+
+
 
             float rotationY = 0.0f;
             if (wallLeft && wallRight) {
@@ -882,6 +888,7 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             archway.tileX = x;
             archway.tileY = y;
             if (window) archway.window = true;
+            if (wood) archway.wood = true;
             GenerateSideColliders(pos, rotationY, archway);
 
 
@@ -2366,7 +2373,11 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         if (d.window){
             Vector3 dPos = {d.position.x, d.position.y, d.position.z};
             DrawModelEx(R.GetModel("windowWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {500, 620, 500}, d.tint);
-        }else{
+        }else if (d.wood){
+            Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
+            DrawModelEx(R.GetModel("woodDoorWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+
+        } else{
             Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
             DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
         }

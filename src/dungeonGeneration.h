@@ -115,6 +115,7 @@ struct DoorwayInstance {
     KeyType requiredKey = KeyType::None;
     bool window = false;
     bool monster = false;
+    bool wood = false;
 
 
 };

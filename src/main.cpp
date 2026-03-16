@@ -25,10 +25,9 @@ bool squareRes = false; // set true for 1280x1024, false for widescreen
 bool showTutorial = true;
 
 int main() { 
-    int screenWidth = squareRes ? 1280 : 1600;
+    int screenWidth = squareRes ? 1024 : 1600;
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor.
-
 
     //SetConfigFlags(FLAG_VSYNC_HINT);
     //we stopped targeting 60 FPS, so frame rate is uncapped. 
@@ -154,6 +153,13 @@ int main() {
             miniMap.Update(deltaTime, player.position);
             PortalSystem::Update(player.position, player.radius, deltaTime);
             UpdateEnemies(deltaTime);
+            //tentacle.Update(deltaTime, Vector3 {3526.0f, 100.0f, 3290.0f}, player.position);
+
+            for (Tentacle& t : tentacles){
+                t.Update(deltaTime, Vector3{0}, player);
+            }
+
+
             UpdateNPCs(deltaTime);
             UpdateBullets(camera, deltaTime);
             GatherFrameLights();

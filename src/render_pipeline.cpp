@@ -152,7 +152,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         rlEnableDepthTest();
         BeginBlendMode(BLEND_ALPHA);
 
-
         if (!isDungeon) {
 
             float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
@@ -177,6 +176,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawOverworldProps();
             if (levels[gCurrentLevelIndex].name == "MiddleIsland") raft.Draw();
 
+            
+
 
         } else {
             //draw the dungeon
@@ -186,7 +187,14 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonChests();
             DrawDungeonPillars();
             DrawBoxes();
-            DrawWaterPlane();
+
+            if (levels[gCurrentLevelIndex].name == "Ship"){
+                DrawWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly. 
+                for (Tentacle& t : tentacles){
+                    t.Draw();
+                }
+            }
+
 
 
             // for (WallRun& b : wallRunColliders){ //debug draw wall colliders

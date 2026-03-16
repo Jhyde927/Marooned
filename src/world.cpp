@@ -27,6 +27,7 @@
 
 
 
+
 GameState currentGameState = GameState::Menu;
 MainMenu::State gMenu;
 //global variables, clean these up somehow. 
@@ -101,11 +102,13 @@ std::vector<CollectableWeapon> worldWeapons; //weapon pickups
 std::vector<Character> enemies;
 std::vector<Character*> enemyPtrs;
 std::vector<NPC> gNPCs;
+std::vector<Tentacle> tentacles;
 std::vector<DungeonEntrance> dungeonEntrances;
 std::vector<PreviewInfo> levelPreviews;
 
 Raft raft;
 MiniMap miniMap;
+
 
 using namespace dungeon;
 
@@ -261,6 +264,10 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     if (level.name == "MiddleIsland" || level.name == "River"){
         InitNPCs();
+    }
+
+    if (level.name == "Ship"){
+        InitTentacle();
     }
 
 
@@ -531,9 +538,9 @@ void DrawWaterPlane(){
             dungeonWorldHeight * 0.5f
         };
 
-        rlDisableDepthMask();  
+        //rlDisableDepthMask();  
         DrawModel(R.GetModel("waterModel"), dungeonCenter, 1.0f, WHITE);
-        rlEnableDepthMask();
+        //rlEnableDepthMask();
 
         
     }
@@ -864,6 +871,8 @@ void UpdateEnemies(float deltaTime) {
     for (Character& e : enemies){
         e.Update(deltaTime, player);
     }
+
+
 }
 
 void UpdateMuzzleFlashes(float deltaTime) {
@@ -908,12 +917,6 @@ void EraseBullets() {
     );
 }
 
-// void EraseBullets(){
-//     activeBullets.erase( //erase dead bullets. 
-//         std::remove_if(activeBullets.begin(), activeBullets.end(),
-//                     [](const Bullet& b) { return !b.IsAlive(); }),
-//         activeBullets.end());
-// }
 
 void UpdateCollectables(float deltaTime) { 
     for (size_t i = 0; i < collectables.size(); i++) {
@@ -1014,6 +1017,26 @@ void DrawBullets(Camera& camera) {
     }
 
 }
+
+void InitTentacle()
+{
+    //1520.04, 219.993, 3299.25)
+    Tentacle tentacle;
+    Tentacle tentacle2;
+    Vector3 rootPos = {4480.0f, 0.0f, 3501.0f};
+    Vector3 rootPos2 = {1520.0f, 0.0f, 3299.0f};
+
+    tentacle.undersideOffset = { -15.0f, -8.0f,  0.0f };
+    tentacle2.undersideOffset = {  15.0f, -8.0f,  0.0f };
+    tentacle.Init(rootPos, 8, 150.0f);
+    tentacle2.Init(rootPos2, 8, 150.0f);
+
+    tentacles.push_back(tentacle);
+    tentacles.push_back(tentacle2);
+
+}
+
+
 
 void DrawOverworldProps() {
 

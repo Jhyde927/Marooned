@@ -796,18 +796,14 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
     UpdateTargeting(deltaTime, player, enemyPtrs);
     if (state != CharacterState::Chase) chaseSoundTimer = 0.0f;
 
+    stateTimer += deltaTime; //add to state timer every frame. 
+
     const float visionEnter = 4000.0f * 4000.0f;
     const float attackEnter = 200.0f * 200.0f;
  
     switch (state){
         case CharacterState::Idle: {
-            stateTimer += deltaTime;
- 
             Vector2 start = WorldToImageCoords(position);
-
-            // if (target){
-            //     ChangeState(CharacterState::Chase);
-            // }
 
             // Transition to chase if player detected
             if (distanceSq < visionEnter && stateTimer > 1.0f && playerVisible) {
@@ -836,7 +832,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
         case CharacterState::Chase:
         {
-            stateTimer += deltaTime;
+
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateChaseSound(deltaTime, player);
@@ -884,8 +880,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                 }
 
                 Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500);
-                float speed = (type == CharacterType::Zombie) ? 25.0f : 100.0f;
-
+                float speed = 5.0f;
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
             }
 
@@ -979,8 +974,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
         case CharacterState::Reposition: {
             //surround the player
-            stateTimer += deltaTime;
-
             Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
 
@@ -1009,7 +1002,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
 
         case CharacterState::Patrol: {
-            stateTimer += deltaTime;
 
             if (distanceSq < visionEnter && playerVisible){
                 ChangeState(CharacterState::Chase);
@@ -1037,7 +1029,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::Freeze: {
-            stateTimer += deltaTime;
             //do nothing
             if (currentHealth <= 0 && !isDead){ 
                 ChangeState(CharacterState::Death);
@@ -1053,7 +1044,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::Harpooned: {
-            stateTimer += deltaTime;
 
             if (currentHealth <= 0) {
                 ChangeState(CharacterState::Death);
@@ -1110,7 +1100,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
 
         case CharacterState::Stagger: {
-            stateTimer += deltaTime;
             //do nothing
 
             if (stateTimer >= 1.0f) {
@@ -1154,11 +1143,10 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     if (state != CharacterState::Chase) chaseSoundTimer = 0.0f;
+    stateTimer += deltaTime;
  
     switch (state){
         case CharacterState::Idle: {
-            stateTimer += deltaTime;
- 
             Vector2 start = WorldToImageCoords(position);
 
             // Transition to chase if player detected
@@ -1188,7 +1176,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
         
         case CharacterState::Chase: {
-            stateTimer += deltaTime;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateChaseSound(deltaTime, player);
@@ -1290,7 +1277,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         }
         case CharacterState::Reposition: {
             //surround the player
-            stateTimer += deltaTime;
 
             Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
@@ -1320,7 +1306,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
 
         case CharacterState::Patrol: {
-            stateTimer += deltaTime;
 
             if (distanceSq < visionEnter && playerVisible){
                 ChangeState(CharacterState::Chase);
@@ -1348,7 +1333,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::Freeze: {
-            stateTimer += deltaTime;
             //do nothing
             if (currentHealth <= 0 && !isDead){ 
                 ChangeState(CharacterState::Death);
@@ -1364,7 +1348,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::Harpooned: {
-            stateTimer += deltaTime;
 
             if (currentHealth <= 0) {
                 ChangeState(CharacterState::Death);
@@ -1421,7 +1404,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
 
         case CharacterState::Stagger: {
-            stateTimer += deltaTime;
+
             //do nothing
 
             if (stateTimer >= 1.0f) {
