@@ -71,7 +71,7 @@ bool switchFromMenu = false;
 int selectedOption = 0;
 float floorHeight = 100; //100
 float wallHeight = 270;
-float dungeonEnemyHeight = 165;
+float dungeonEnemyHeight = 180.0f;
 float ElapsedTime = 0.0f;
 bool debugInfo = false;
 bool isLoadingLevel = false;
@@ -573,10 +573,10 @@ void DrawEnemyShadows() {
     for (Character& enemy : enemies) {
         if (enemy.type == CharacterType::Bat) continue; //dont draw shadows for bats
 
-        // Ideally, raycast to ground to get exact Y; add tiny epsilon to avoid z-fighting
+
         Vector3 groundPos;
         if (isDungeon) {
-            groundPos = { enemy.position.x, enemy.position.y - 40.0f, enemy.position.z };
+            groundPos = { enemy.position.x, enemy.position.y - 42.0f, enemy.position.z };
             
         }else{
             float ny = GetHeightAtWorldPosition(enemy.position, heightmap, terrainScale) + 10.0f;
@@ -621,7 +621,7 @@ void OpenEventLockedDoors(){
             doors[i].isLocked = false;
             doors[i].isOpen = true; //let the monsters out
 
-            //unlock all evenlocked doors. temporary solution. 
+            //unlock all eventlocked doors. temporary solution. 
         }
     }
 }
@@ -1089,7 +1089,7 @@ void InitNPCs() //spawn hermit on island.
     Vector3 hermitStart = {4851.0f, 318.0f, -5552.0f};
     Vector3 hermitFarIsland = {-5815.0f, 304.0f, 6359.0f};
 
-    Vector3 newHermitPos = enteredDungeon1 ? hermitFarIsland : hermitStart;
+    Vector3 newHermitPos = hermitStart;
     if (levels[gCurrentLevelIndex].name == "River"){
         newHermitPos = Vector3{5531.0f, 320.0f, -4990.0f};
     }
@@ -1101,8 +1101,6 @@ void InitNPCs() //spawn hermit on island.
 
     float rotY = atan2f(toPlayer.x, toPlayer.z) * RAD2DEG;
     
-    
-
     hermit.Init(
         R.GetTexture("hermitSheet"), // or hermitTex
         400,                    // frame width
@@ -1157,6 +1155,7 @@ float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terra
 }
 
 void DrawReticle(WeaponType& weaponType){
+    if (player.isCarrying) return; //Don't draw reticle, if carrying a box. 
     if (weaponType == WeaponType::Blunderbuss){
         Texture2D tex = R.GetTexture("shotgunReticle");
 

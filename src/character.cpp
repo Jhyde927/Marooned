@@ -785,7 +785,7 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};
                 case CharacterState::Attack: return {2, 3, 0.25f, false};  // 4 * 0.2 = 0.8s
                 case CharacterState::Stagger: return {4, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
-                case CharacterState::Death:  return {4, 4, 0.25f, false};
+                case CharacterState::Death:  return {4, 5, 0.25f, false};
                 
                 default:                     return {0, 1, 1.0f, true};
             }

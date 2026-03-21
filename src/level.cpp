@@ -190,7 +190,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/blank.png",
         "assets/maps/dungeon4.png",
         {0.0f, 300.0f, 0.0f},
-        180.0f,
+        0.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true
@@ -233,11 +233,11 @@ std::vector<LevelData> levels = {
         true,
     },
         {
-        "Dungeon7", //fireball level
+        "Dungeon7", 
         "assets/heightmaps/blank.png",
         "assets/maps/dungeon7.png",
         {0.0f, 300.0f, 0.0f},
-        180.0f,
+        -90.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true
@@ -245,7 +245,7 @@ std::vector<LevelData> levels = {
         7, 
         8,
         {},
-        false, 
+        true, 
     },
 
     {
@@ -253,7 +253,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/River.png",
         "",
         {5475.0f, 300.0f, -5665.0f},
-        180.0f,
+        0.0f,
         {0.0f, 0, 0.0f},
         15,//raptor count
         false,
@@ -302,7 +302,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/blank.png",
         "assets/maps/dungeon10.png",
         {0.0f, 300.0f, 0.0f},
-        -90.0f,
+        180.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true
@@ -333,7 +333,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/blank.png",
         "assets/maps/dungeon12.png",
         {0.0f, 300.0f, 0.0f},
-        -90.0f,
+        0.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true
@@ -379,7 +379,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/blank.png",
         "assets/maps/dungeon16.png",
         {5475.0f, 300.0f, -5665.0f}, //original player start position
-        -90.0f,
+        180.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true

@@ -514,9 +514,9 @@ void DrawTransparentDrawRequests(Camera& camera) {
                 float doorWidth  = req.size;    // what we pushed from GatherDoors
                 float doorHeight = 365.0f;
                 if (req.isOpen){
-                    rlDisableDepthMask();  // depth writes OFF, Open doors were occluding enemy billboards, so don't write to depth.
+                    //rlDisableDepthMask();  // depth writes OFF, Open doors were occluding enemy billboards, so don't write to depth.
                     DrawFlatDoor( (req.texture),  req.position,  doorWidth,  doorHeight,  req.rotationY,  req.isOpen, req.tint);
-                    rlEnableDepthMask();
+                    //rlEnableDepthMask();
                 }else{
                     rlEnableDepthMask();
                     DrawFlatDoor( (req.texture),  req.position,  doorWidth,  doorHeight,  req.rotationY,  req.isOpen, req.tint);

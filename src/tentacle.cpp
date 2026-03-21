@@ -88,6 +88,19 @@ void Tentacle::UpdateTipHitbox()
     tipHitCenter = Vector3Lerp(start, end, 0.85f);
 }
 
+void Tentacle::ResolveTentacleVsShip()
+{
+    if (state == TentacleState::Emerging || state == TentacleState::Withdraw || state == TentacleState::Hidden) return;
+
+
+    int unclampedBaseJoints = 2; // dont clamp the bottom two segments because they are below ship height. 
+    for (size_t i = 0; i < joints.size(); i++)
+    {
+    if (joints[i].y < deckHeight && i > unclampedBaseJoints)
+        joints[i].y = deckHeight;
+    }
+}
+
 
 void Tentacle::Init(const Vector3& rootPosition, int segmentCount, float newSegmentLength)
 {
@@ -95,6 +108,7 @@ void Tentacle::Init(const Vector3& rootPosition, int segmentCount, float newSegm
     segmentLength = newSegmentLength;
     emergeStepTimer = 0.0;
     emergeStepDelay = 0.12;
+    deckHeight = 200.0f;
 
     tipHitCenter = rootPos;
     tipHitRadius = 100.0f;
@@ -231,6 +245,7 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player)
 
     SolveChain();
     UpdateTipHitbox();
+    ResolveTentacleVsShip();
 }
 
 void Tentacle::UpdateHidden(float dt)
@@ -332,6 +347,10 @@ void Tentacle::UpdateSlam(float dt)
 
     float lift = (1.0f - t) * (1.0f - t) * 350.0f;
     desiredTip.y += lift;
+
+    // Prevent stabbing through deck
+    if (desiredTip.y < deckHeight)
+        desiredTip.y = deckHeight;
 
     joints.back() = desiredTip;
 

@@ -726,7 +726,7 @@ void GenerateWallTiles(float baseY) {
                     }
                     if (EqualsRGB(current, ColorOf(Code::woodWallHalf))){
                         wall.type = WallType::WoodHalf;
-                        std::cout << "halfWall\n";
+
                     }
 
                     wall.position  = mid;
@@ -760,7 +760,7 @@ void GenerateWallTiles(float baseY) {
                     }
                     if (EqualsRGB(current, ColorOf(Code::woodWallHalf))){
                         wall.type = WallType::WoodHalf;
-                        std::cout << "setting type half\n";
+
                     }
 
                     wall.position  = mid;
@@ -1552,22 +1552,25 @@ void GenerateKeys(float baseY) {
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
-
+            float keyY = baseY + 100.0f;
             if (EqualsRGB(current, ColorOf(Code::KeyGold))) { // Gold for keys
-                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 80); // raised slightly off floor
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, keyY); // raised slightly off floor
                 Collectable key = {CollectableType::GoldKey, pos, R.GetTexture("keyTexture"), 100.0f};
+                key.baseY = keyY;
                 collectables.push_back(key);
             }
 
             if (EqualsRGB(current, ColorOf(Code::SilverKey))) { // Cool Silver for silver keys
-                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 80); // raised slightly off floor
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, keyY); // raised slightly off floor
                 Collectable key = {CollectableType::SilverKey, pos, R.GetTexture("silverKey"), 100.0f};
+                key.baseY = keyY;
                 collectables.push_back(key);
             }
 
             if (EqualsRGB(current, ColorOf(Code::SkeletonKey))) { // aged ivory for bone key
-                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY + 80); // raised slightly off floor
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, keyY); // raised slightly off floor
                 Collectable key = {CollectableType::SkeletonKey, pos, R.GetTexture("skeletonKey"), 100.0f};
+                key.baseY = keyY;
                 collectables.push_back(key);
             }           
         }

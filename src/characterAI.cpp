@@ -1221,12 +1221,13 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 }
             }
 
-            if (distanceSq > (201.0f * 201.0f)) { 
+            if (distanceSq > (250.0f * 250.0f) && stateTimer > 0.5f) { //wait a bit before you switch back to chasing. 
+
                 ChangeState(CharacterState::Chase);
 
             }
 
-            float horizDist = DistXZ(position, player.position); //this should probably be vec3 distance for bats
+            float horizDist = DistXZ(position, player.position); //XZ dist allow you to jump enemy attacks. 
 
             attackCooldown -= deltaTime;
             if (attackCooldown <= 0.0f && currentFrame == 1 && playerVisible && horizDist < 200.0f) { // make sure you can see what your attacking. 
@@ -1291,11 +1292,11 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 rotationY = RAD2DEG * atan2f(dir.x, dir.z);
                 position.y = target.y;
 
-                float dist = Vector3Distance(position, target);
+                //float dist = Vector3Distance(position, target);
 
-                if (dist < 300.0f && stateTimer > 1.0f) {
+                if (distanceSq < (300.0f * 300.0f) && stateTimer > 1.0f) {
                     ChangeState(CharacterState::Attack);
-                } else if (dist > 350.0f && stateTimer > 1.0f) {
+                } else if (distanceSq > (350.0f * 350.0f) && stateTimer > 1.0f) {
                     ChangeState(CharacterState::Chase);
                 }
             }
@@ -2365,13 +2366,10 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 void Character::UpdatePirateAI(float deltaTime, Player& player) {
     if (isLoadingLevel) return;
 
-    // (EXIT must be > ENTER)
-
-
     stateTimer += deltaTime; // is always counting
     
     float distanceSq = Vector3DistanceSqr(position, player.position);
-    float pirateHeight = 160;
+
     Vector2 start = WorldToImageCoords(position);
     constexpr float VISION_ENTER = 4000.0f * 4000.0f;
     constexpr float PIRATE_ATTACK_ENTER = 800.0f * 800.0f; // start attacking when closer than this
@@ -2387,7 +2385,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             
 
             Vector2 start = WorldToImageCoords(position);
-
+ 
             if (distanceSq < PIRATE_MELEE_ENTER && canSee){
                 ChangeState(CharacterState::MeleeAttack);
                 break;
@@ -2557,7 +2555,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
             if (dist < PIRATE_ATTACK_ENTER && dist > PIRATE_MELEE_ENTER)
             {
-                if (los && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Pirate)
+                if (los && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired)
                 {
                     FireBullet(position, aimPos, 1500.0f, 3.0f, true, false);
                     hasFired = true;
@@ -2710,7 +2708,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 position = Vector3Add(position, move);
 
                 rotationY = RAD2DEG * atan2f(dir.x, dir.z);
-                position.y = pirateHeight;
+                //position.y = pirateHeight;
 
 
                 if (distanceSq < (300.0f * 300.0f) && stateTimer > 2.0f) {
@@ -3095,8 +3093,7 @@ void Character::SetPath(Vector2 start)
     std::vector<Vector3> worldPath;
     worldPath.reserve(smoothTiles.size());
     for (const Vector2& tile : smoothTiles) {
-        Vector3 wp = GetDungeonWorldPos(tile.x, tile.y, tileSize, dungeonPlayerHeight);
-        wp.y = (type == CharacterType::Pirate) ? 160.0f : 180.0f; // pirate height
+        Vector3 wp = GetDungeonWorldPos(tile.x, tile.y, tileSize, dungeonEnemyHeight);
         worldPath.push_back(wp);
     }
 
@@ -3160,11 +3157,8 @@ void Character::SetPathTo(const Vector3& goalWorld) {
     currentWorldPath.clear();
     currentWorldPath.reserve(tilePath.size());
 
-    float feetY = (type == CharacterType::Pirate) ? 160.0f : 180.0f; // keep your heights
-
     for (const Vector2& tile : tilePath) {
-        Vector3 worldPos = GetDungeonWorldPos(tile.x, tile.y, tileSize, dungeonPlayerHeight);
-        worldPos.y = feetY;
+        Vector3 worldPos = GetDungeonWorldPos(tile.x, tile.y, tileSize, dungeonEnemyHeight);
         currentWorldPath.push_back(worldPos);
     }
 

@@ -434,9 +434,8 @@ bool TrySetRandomPatrolPath(const Vector2& start, Character* self, std::vector<V
 
     outPath.clear();
     for (const Vector2& tile : tilePath) {
-        Vector3 worldPos = GetDungeonWorldPos(tile.x, tile.y, tileSize, dungeonPlayerHeight);
-        worldPos.y += 80.0f; //skeles at 80
-        if (self->type == CharacterType::Pirate) worldPos.y = 160;
+        Vector3 worldPos = GetDungeonWorldPos(tile.x, tile.y, tileSize, dungeonEnemyHeight);
+        worldPos.y = dungeonEnemyHeight; 
         outPath.push_back(worldPos);
     }
 

@@ -39,6 +39,7 @@ private:
     void UpdateHidden(float dt);
     void ChangeState(TentacleState newState);
     void UpdateTipHitbox();
+    void ResolveTentacleVsShip();
 
 
 private:
@@ -74,6 +75,7 @@ private:
     //Collision
     Vector3 tipHitCenter;
     float tipHitRadius;
+    float deckHeight;
     bool tipHitActive;
     bool canHit;
 };
