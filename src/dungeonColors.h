@@ -76,6 +76,9 @@ enum class Code {
     Zombie,                   //(51, 130, 9) zombie green
     raftMast,                 // (49, 30, 20) dark brown 
     raftSail,                 // (225, 200, 180)
+    quadDamage,               // (50, 100, 255) light blue
+    haste,                    // (229, 229, 15) yellowish. 
+    overHealth,               // (200, 17, 17) redish
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -153,6 +156,9 @@ constexpr Color ColorOf(Code c) {
         case Code::Zombie:                 return Make(51, 130, 9);
         case Code::raftMast:               return Make(49, 30, 20);
         case Code::raftSail:               return Make(225, 200, 180);
+        case Code::quadDamage:             return Make(50, 100, 255);
+        case Code::haste:                  return Make(229, 229, 15);
+        case Code::overHealth:             return Make(200, 17, 17);
 
 
     }

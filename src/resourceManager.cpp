@@ -269,7 +269,10 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("headSpin",           "assets/sprites/headSpin.png");
     R.LoadTexture("armSpin",            "assets/sprites/armSpin.png");
     R.LoadTexture("zombieGib",          "assets/sprites/zombieGib.png");
-     R.LoadTexture("boneSpin",          "assets/sprites/boneSpin.png");
+    R.LoadTexture("boneSpin",           "assets/sprites/boneSpin.png");
+    R.LoadTexture("quadDamage",         "assets/sprites/quadDamage.png");
+    R.LoadTexture("haste",              "assets/sprites/haste.png");
+    R.LoadTexture("overHealth",         "assets/sprites/overHealth.png");
 
     R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
     R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
@@ -310,6 +313,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("windowWay",              "assets/Models/windowHoleSquare.glb");
     R.LoadModel("swampTree",              "assets/Models/palm1.glb");
     R.LoadModel("box",                    "assets/Models/box.glb");
+    R.LoadModel("healthPotion",           "assets/Models/healthPotion.glb");
     R.LoadModel("raft",                   "assets/Models/raft.glb");
     R.LoadModel("raftBody",               "assets/Models/raftBody.glb");
     R.LoadModel("raftMast",               "assets/Models/raftMast.glb");

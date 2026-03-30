@@ -98,6 +98,7 @@ std::vector<Portal> portals;
 std::vector<Decal> decals;
 std::vector<MuzzleFlash> activeMuzzleFlashes;
 std::vector<Collectable> collectables;
+std::vector<PowerUpPickup> g_powerUps;
 std::vector<CollectableWeapon> worldWeapons; //weapon pickups
 std::vector<Character> enemies;
 std::vector<Character*> enemyPtrs;
@@ -108,6 +109,7 @@ std::vector<PreviewInfo> levelPreviews;
 
 Raft raft;
 MiniMap miniMap;
+
 
 
 using namespace dungeon;
@@ -316,6 +318,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateChests(floorHeight);
         GenerateSwitches(floorHeight);
         GeneratePotions(floorHeight);
+        GeneratePowerUps(floorHeight);
         GenerateHarpoon(floorHeight);
         GenerateKeys(floorHeight);
         GenerateWeapons(200);
@@ -546,7 +549,6 @@ void DrawWaterPlane(){
     }
 
 }
-
 
 
 void DrawEnemyShadows() {
@@ -917,6 +919,14 @@ void EraseBullets() {
     );
 }
 
+void DrawPotions(){
+    for (Collectable c : collectables){
+        if (c.type == CollectableType::HealthPotion){
+            DrawModel(R.GetModel("healthPotion"), c.position, 100.0f, WHITE);
+        }
+    }
+}
+
 
 void UpdateCollectables(float deltaTime) { 
     for (size_t i = 0; i < collectables.size(); i++) {
@@ -1016,6 +1026,36 @@ void DrawBullets(Camera& camera) {
         b.Draw(camera);
     }
 
+}
+
+void ActivatePowerUp(){
+    switch (player.currentPowerUp)
+    {
+    case PowerUpType::QuadDamage:
+        player.quadDamage = true;
+
+        player.currentPowerUp = PowerUpType::None;
+        player.powerUpTimer = 30.0f;
+        SoundManager::GetInstance().Play("QuadDamage");
+        break;
+
+    case PowerUpType::Haste:
+        player.haste = true;
+
+        player.currentPowerUp = PowerUpType::None;
+        player.powerUpTimer = 30.0f;
+        SoundManager::GetInstance().Play("Haste");
+        break;
+
+    case PowerUpType::OverHealth:
+        player.currentPowerUp = PowerUpType::None;
+        player.maxHealth = 200.0f;
+        player.currentHealth = player.maxHealth;
+        break;
+    
+    default:
+        break;
+    }
 }
 
 void InitTentacle()
@@ -1256,8 +1296,10 @@ void ClearLevel() {
     bulletLights.clear();
     dungeonEntrances.clear();
     masts.clear();
+    tentacles.clear();
+    g_powerUps.clear();
     
-    // if (terrainMesh.vertexCount > 0) UnloadMesh(terrainMesh); //unload mesh and heightmap when switching levels. if they exist
+     //unload mesh and heightmap when switching levels. if they exist
     if (heightmap.data != nullptr) UnloadImage(heightmap); 
     UnloadTerrainGrid(terrain);
 

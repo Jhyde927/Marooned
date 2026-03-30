@@ -635,6 +635,11 @@ void Bullet::BulletHole(Camera& camera, bool enemy){
 float Bullet::ComputeDamage()
 {
     float speed = Vector3Length(velocity);
+    float qdamage = 1.0f;
+
+    if (player.quadDamage){
+        qdamage = 4.0f;
+    }
 
     // No damage if speed is below a threshold (tune this)
     if (speed < 800.0f) {
@@ -650,7 +655,7 @@ float Bullet::ComputeDamage()
     vFactor = Clamp(vFactor, 0.0f, 1.0f);
     
 
-    return baseDamage * vFactor;
+    return baseDamage * vFactor * qdamage;
 }
 
 

@@ -167,7 +167,9 @@ int main() {
             UpdateDecals(deltaTime);
             UpdateMuzzleFlashes(deltaTime);
             UpdateBoat(player_boat, deltaTime);
-            UpdateCollectables(deltaTime); 
+            UpdateCollectables(deltaTime);
+            UpdateCollectableWeapons(deltaTime);
+            UpdatePowerUps(player, deltaTime);
             UpdateLauncherTraps(deltaTime);
             UpdateMonsterDoors(deltaTime);
             UpdateDungeonChests();

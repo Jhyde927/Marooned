@@ -339,6 +339,9 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("hermitTalk5", "assets/sounds/AlienVoice5.ogg");
     SoundManager::GetInstance().LoadSound("hermitTalk6", "assets/sounds/AlienVoice6.ogg");
 
+    SoundManager::GetInstance().LoadSound("QuadDamage",  "assets/sounds/QuadDamage.ogg");
+    SoundManager::GetInstance().LoadSound("Haste",       "assets/sounds/haste.ogg");
+
     SoundManager::GetInstance().RegisterSpeechBank("hermitSpeech", {
         "hermitTalk1","hermitTalk2","hermitTalk3",
         "hermitTalk4","hermitTalk5","hermitTalk6"

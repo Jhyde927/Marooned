@@ -18,8 +18,8 @@
 #include <algorithm>
 #include "ui.h"
 #include "box.h"
-
 #include "switch_tile.h"
+#include "powerUps.h"
 
 Texture2D ceilingVoidMaskTex;
 Texture2D ceilingMaskTex;
@@ -161,6 +161,39 @@ Vector3 ColorToNormalized(Color color) {
 float ColorAverage(Color c) {
     return ((c.r + c.g + c.b) / 3.0f) / 255.0f;
 }
+
+void GeneratePowerUps(float Height) {
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            float pHeight = Height + 100.0f;
+            //switch
+            if (EqualsRGB(current, ColorOf(Code::quadDamage))) {
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, pHeight);
+                PowerUpPickup powerUp = {PowerUpType::QuadDamage, pos, R.GetTexture("quadDamage")};
+                g_powerUps.push_back(powerUp);
+            }
+
+            if (EqualsRGB(current, ColorOf(Code::haste))) {
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, pHeight);
+                PowerUpPickup powerUp = {PowerUpType::Haste, pos, R.GetTexture("haste")};
+                g_powerUps.push_back(powerUp);
+            }
+
+            if (EqualsRGB(current, ColorOf(Code::overHealth))) {
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, pHeight);
+                PowerUpPickup powerUp = {PowerUpType::OverHealth, pos, R.GetTexture("overHealth")};
+                g_powerUps.push_back(powerUp);
+            }
+
+
+
+        }
+    }
+
+}
+
+
 
 void GenerateWeapons(float Height){
     worldWeapons.clear();

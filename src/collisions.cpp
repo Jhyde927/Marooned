@@ -451,7 +451,7 @@ void EnemyWallCollision(){
 
 void HandleMeleeHitboxCollision(Camera& camera) {
     //if (player.activeWeapon != WeaponType::Sword  && player.activeWeapon != WeaponType::MagicStaff) return;
-
+    float qDamage = player.quadDamage ? 4.0f : 1.0f;
     bool swordActive = (player.activeWeapon == WeaponType::Sword && meleeWeapon.hitboxActive);
     bool staffActive = (player.activeWeapon == WeaponType::MagicStaff && magicStaff.hitboxActive);
     if (!swordActive && !staffActive) return;
@@ -501,7 +501,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
                 meleeWeapon.hitboxActive = false;
                 magicStaff.hitboxActive = false;
                 enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
-                enemy->TakeDamage(50); //staff and sword both do 50. maybe staff should do less. 
+                enemy->TakeDamage(50 * qDamage); //staff and sword both do 50. maybe staff should do less. 
                 
                 if (enemy->type != CharacterType::Skeleton && enemy->type != CharacterType::Ghost){ //skeles and ghosts dont bleed.  
                     if (enemy->currentHealth <= 0){
@@ -685,7 +685,7 @@ bool TryBulletRicochet(Bullet& b, Vector3 n, float damp, float minSpeed, float h
 }
 
 void CheckBulletHits(Camera& camera) {
-    
+    float qDamage = player.quadDamage ? 4.0f : 1.0f;
     for (Bullet& b : activeBullets) {
         if (!b.IsAlive()) continue;
 
@@ -749,8 +749,8 @@ void CheckBulletHits(Camera& camera) {
 
                 }else if (b.type == BulletType::Bolt){
                     if (b.id != enemy->lastBulletIDHit){
- 
-                        enemy->TakeDamage(75);
+                        std::cout << "quadDamage = " << player.quadDamage;
+                        enemy->TakeDamage(75 * qDamage);
                         enemy->lastBulletIDHit = b.id;
                         break;
                         //penetration, bullet stays alive for now. 
@@ -760,7 +760,7 @@ void CheckBulletHits(Camera& camera) {
                 }else if (b.type == BulletType::Harpoon){
                     if (b.id != enemy->lastBulletIDHit) {
                         
-                        enemy->TakeDamage(75);
+                        enemy->TakeDamage(75 * qDamage);
                         enemy->lastBulletIDHit = b.id;  //only hook one enemy at a time
 
                         // Stick this harpoon to the enemy
@@ -798,7 +798,7 @@ void CheckBulletHits(Camera& camera) {
                 
                 else if (b.type == BulletType::Fireball){ //dont check if b.isEnemy, all fireballs hit enemies. 
                     if (enemy->type != CharacterType::Wizard){ //wizards are immune to fire balls. That's a rule I just made. 
-                        enemy->TakeDamage(25);
+                        enemy->TakeDamage(25 * qDamage);
                         b.pendingExplosion = true;
                         b.explosionTimer = 0.04f; // short delay //so it blows up inside the enemy not on the top of their head. 
                         // Don't call b.Explode() yet //called in updateFireball
@@ -829,11 +829,11 @@ void CheckBulletHits(Camera& camera) {
         for (SpiderEgg& egg : eggs){ //should you be able to harpoon eggs?
             if (CheckCollisionBoxSphere(egg.collider, b.position, b.radius) && egg.state != SpiderEggState::Destroyed){
                 if (b.type == BulletType::Fireball || b.type == BulletType::Iceball){
-                    DamageSpiderEgg(egg, 100, player.position);
+                    DamageSpiderEgg(egg, 100 * qDamage, player.position);
                     b.Explode(camera);
                     break;
                 }else{
-                    DamageSpiderEgg(egg, 25, player.position);
+                    DamageSpiderEgg(egg, 25 * qDamage, player.position);
                     Vector3 n = AABBHitNormal(egg.collider, b.position);
                     TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy. 
                     break;
@@ -1006,11 +1006,6 @@ void CheckBulletHits(Camera& camera) {
         if (HandleBarrelHitsForBullet(b, camera)){
             break; //check bullets last
         }
-
-        
-
-        
-
 
     }
 }

@@ -4,6 +4,7 @@
 #include <map>
 #include "raylib.h"
 #include <vector>
+#include "powerUps.h"
 
 extern std::vector<std::string> slotOrder;
 extern std::map<std::string, Texture2D> itemTextures;
@@ -17,7 +18,9 @@ public:
     void SetupItemTextures();
 
     //void DrawInventoryUI(int x = 20, int y = 800) const;
-    void DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey, bool hasSkeletonKey) const;
+    void DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures,
+         const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey,
+          bool hasSkeletonKey, PowerUpType& type) const;
 
 private:
     std::map<std::string, int> items;

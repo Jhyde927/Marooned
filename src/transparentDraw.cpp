@@ -61,7 +61,7 @@ void GatherGrapplePoint(Camera& camera) {
             g.position,
             g.tex,
             Rectangle{0, 0, (float)g.tex.width, (float)g.tex.height},
-            g.scale,
+            Vector2{g.scale,g.scale},
             WHITE,
             dist,
             1.0f,
@@ -113,7 +113,7 @@ void GatherEnemies(Camera& camera) {
             offsetPos,
             enemy->texture,
             sourceRect,
-            billboardSize,
+            Vector2 {billboardSize, billboardSize},
             finalTint,
             dist,
             0.0f,
@@ -160,7 +160,7 @@ void GatherNPCs(Camera& camera)
             offsetPos,
             npc.texture,
             sourceRect,
-            billboardSize,
+            Vector2{billboardSize,billboardSize},
             finalTint,
             dist,
             0.0f,
@@ -185,7 +185,7 @@ void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
             portalPos,
             pTex,
             Rectangle{0, 0, (float)pTex.width, (float)pTex.height},
-            100.0f,
+            Vector2{100, 100},
             WHITE, //tint
             dist,
             0.0f,
@@ -197,7 +197,25 @@ void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
     }
 }
 
-
+void GatherPowerUps(Camera& camera, const std::vector<PowerUpPickup>& powerUps) {
+    for (const PowerUpPickup& p : powerUps){
+        if (p.isCollected) continue;
+        float dist = Vector3Distance(camera.position, p.position);
+        billboardRequests.push_back({
+            Billboard_FacingCamera,
+            p.position,
+            p.texture,
+            p.source,
+            p.size, 
+            WHITE,
+            dist,
+            0.0f,
+            false,
+            false,
+            false
+        });
+    }
+}
 
 void GatherCollectables(Camera& camera, const std::vector<Collectable>& collectables) {
     for (const Collectable& c : collectables) {
@@ -208,7 +226,7 @@ void GatherCollectables(Camera& camera, const std::vector<Collectable>& collecta
             c.position,
             c.icon,
             Rectangle{0, 0, (float)c.icon.width, (float)c.icon.height},
-            c.scale,
+            Vector2{c.scale,c.scale},
             WHITE,
             dist,
             0.0f,
@@ -235,7 +253,7 @@ void GatherSpiderEggDrawRequests(Camera& camera)
         req.position  = egg.position;
         req.texture   = egg.texture;
         req.sourceRect = src;
-        req.size      = egg.frameWidth * egg.scale;
+        req.size      = Vector2{egg.frameWidth * egg.scale, egg.frameWidth * egg.scale};
         req.tint      = (egg.hitFlashTimer > 0 ? RED : WHITE);
         req.rotationY = egg.rotationY;
         req.isPortal  = false;
@@ -280,7 +298,7 @@ void GatherDungeonFires(Camera& camera, float deltaTime) {
             firePos,
             R.GetTexture("fireSheet"),
             sourceRect,
-            100.0f,
+            Vector2{100.0f, 100.0f},
             WHITE,
             dist,
             0.0f,
@@ -303,7 +321,7 @@ void GatherWebs(Camera& camera) {
             web.position,
             tex,
             Rectangle{0, 0, (float)tex.width, (float)tex.height},
-            400.0f,
+            Vector2{400.0f, 400.0f},
             WHITE,
             Vector3Distance(camera.position, web.position),
             web.rotationY,
@@ -336,7 +354,7 @@ void GatherDoors(Camera& camera) {
             bottomLeftClosed,   // <-- store the *hinge corner*
             door.doorTexture,
             Rectangle{ 0, 0, (float)door.doorTexture.width, (float)door.doorTexture.height },
-            width,              // size: treat this as world width
+            Vector2{width,width},              // size: treat this as world width
             door.tint,
             Vector3Distance(camera.position, bottomLeftClosed),
             door.rotationY,     // closed yaw (radians)
@@ -397,7 +415,7 @@ void GatherDecals(Camera& camera, const std::vector<Decal>& decals) {
             decal.position,
             decal.texture,
             sourceRect,
-            decal.size,
+            Vector2{decal.size,decal.size},
             WHITE,
             dist,
             0.0f,
@@ -417,7 +435,7 @@ void GatherMuzzleFlashes(Camera& camera, const std::vector<MuzzleFlash>& flashes
             flash.position,
             flash.texture,
             Rectangle{0, 0, (float)flash.texture.width, (float)flash.texture.height},
-            flash.size,
+            Vector2{flash.size, flash.size},
             WHITE,
             dist,
             0.0f,
@@ -439,6 +457,7 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
     GatherDecals(camera, decals);
     GatherMuzzleFlashes(camera, activeMuzzleFlashes);
     GatherCollectables(camera, collectables);
+    GatherPowerUps(camera, g_powerUps);
     GatherSpiderEggDrawRequests(camera);
     GatherGrapplePoint(camera);
     GatherPortals(camera, portals);
@@ -472,13 +491,15 @@ void DrawTransparentDrawRequests(Camera& camera) {
         if (isDungeon) BeginShaderMode(R.GetShader("cutoutShader"));
         float aspect = (float)req.texture.height / (float)req.texture.width; // 2.0 for 512x1024
 
-        float sizeY = req.isPortal ? req.size * aspect : req.size; //HACK, make portals twice as tall.
-        Vector2 worldSize = { req.size, sizeY };
+        float sizeY = req.isPortal ? req.size.y * aspect : req.size.y; //HACK, make portals twice as tall.
+        Vector2 worldSize = { req.size.x, sizeY };
 
         Rectangle src = req.sourceRect;
         if (req.flipX) {
             src.width = -src.width; // negative width flips UVs
         }
+
+
                 
         switch (req.type) {
             case Billboard_FacingCamera: //use draw billboard for both decals, and enemies. 
@@ -499,8 +520,8 @@ void DrawTransparentDrawRequests(Camera& camera) {
                 DrawFlatWeb(
                     (req.texture),
                     req.position,
-                    req.size,
-                    req.size,
+                    req.size.x,
+                    req.size.y,
                     req.rotationY,
                     req.tint
                 );
@@ -511,12 +532,12 @@ void DrawTransparentDrawRequests(Camera& camera) {
                 SetPortalShaderColor(req.pallet.colorA, req.pallet.colorB);
                 if (req.isPortal) BeginShaderMode(R.GetShader("portalShader")); 
 
-                float doorWidth  = req.size;    // what we pushed from GatherDoors
+                float doorWidth  = req.size.x;    // what we pushed from GatherDoors
                 float doorHeight = 365.0f;
                 if (req.isOpen){
-                    //rlDisableDepthMask();  // depth writes OFF, Open doors were occluding enemy billboards, so don't write to depth.
+                    rlDisableDepthMask();  // depth writes OFF, Open doors were occluding enemy billboards, so don't write to depth.
                     DrawFlatDoor( (req.texture),  req.position,  doorWidth,  doorHeight,  req.rotationY,  req.isOpen, req.tint);
-                    //rlEnableDepthMask();
+                    rlEnableDepthMask();
                 }else{
                     rlEnableDepthMask();
                     DrawFlatDoor( (req.texture),  req.position,  doorWidth,  doorHeight,  req.rotationY,  req.isOpen, req.tint);

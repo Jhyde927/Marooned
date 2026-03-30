@@ -20,6 +20,7 @@
 #include "portal.h"
 #include "raft.h"
 #include "tentacle.h"
+#include "powerUps.h"
 
 enum class GameState {
     Menu,
@@ -105,6 +106,7 @@ extern std::vector<DungeonEntrance> dungeonEntrances;
 extern std::list<Bullet> activeBullets; // instead of std::vector
 extern std::vector<Decal> decals;
 extern std::vector<Collectable> collectables;
+extern std::vector<PowerUpPickup> g_powerUps;
 extern std::vector<MuzzleFlash> activeMuzzleFlashes;
 extern std::vector<PreviewInfo> levelPreviews;
 extern std::vector<CollectableWeapon> worldWeapons;
@@ -114,6 +116,7 @@ extern std::vector<Character> enemies;
 extern std::vector<Character*> enemyPtrs;
 extern std::vector<NPC> gNPCs;
 extern std::vector<Tentacle> tentacles;
+
 
 Character* FindEnemyById(int id);
 void ClearLevel();
@@ -161,5 +164,5 @@ void InitNPCs();
 void eraseCharacters();
 void DrawWaterPlane();
 void InitTentacle();
-
-
+void ActivatePowerUp();
+void DrawPotions();

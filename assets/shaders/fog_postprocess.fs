@@ -11,6 +11,7 @@ uniform float baseVignetteStrength; // 0.0 = off, ~0.3–0.8 typical
 
 // 0 = normal (red damage)
 // 1 = frozen (blue ice)
+// 2 = Quad Damge (Orange)
 uniform int vignetteMode;
 uniform float vignetteIntensity; // red damage vignette 0.0–1.0
 uniform float fadeToBlack;       // 0.0 = no fade, 1.0 = full black
@@ -29,15 +30,16 @@ void main()
 
     // 1) Base dark vignette (normal edges)
     final = mix(final, vec3(0.0), vignette * baseVignetteStrength);
-
-    // 2) Red vignette overlay (damage)
-    //final = mix(final, vec3(1.0, 0.0, 0.0), vignette * vignetteIntensity);
     
     // 2) Damage / status vignette
     vec3 vignetteColor = vec3(1.0, 0.0, 0.0); // red default
 
     if (vignetteMode == 1) {
-        vignetteColor = vec3(0.2, 0.6, 1.0); // icy blue
+        vignetteColor = vec3(0.2, 0.6, 1.0); // icy blue Frozen
+    }else if (vignetteMode == 2){
+        vignetteColor = vec3(1.0, 0.5, 0.0); //orange QuadDamage
+    }else if (vignetteMode == 3){
+        vignetteColor = vec3(1.0, 0.9, 0.0); //yellow Haste
     }
 
     final = mix(final, vignetteColor, vignette * vignetteIntensity);

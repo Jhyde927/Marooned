@@ -120,15 +120,19 @@ struct Player {
 
     bool debugShowFootSamples = false;
 
-
     bool canRun = true;
     bool canMove = true;
 
     std::vector<WeaponType> collectedWeapons;
 
+    bool quadDamage = false;
+    bool haste = false;
+    float powerUpTimer = 0.0f;
+
     int currentWeaponIndex = -1; 
     WeaponType activeWeapon = WeaponType::Crossbow;
     WeaponType previousWeapon = WeaponType::Sword;
+    PowerUpType currentPowerUp = PowerUpType::None;
     float switchTimer = 0.0f;
     float switchDuration = 0.3f; // time to lower or raise
     BoundingBox GetBoundingBox() const;

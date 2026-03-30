@@ -379,7 +379,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/blank.png",
         "assets/maps/dungeon16.png",
         {5475.0f, 300.0f, -5665.0f}, //original player start position
-        180.0f,
+        0.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true

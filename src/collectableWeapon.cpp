@@ -30,13 +30,12 @@ bool CollectableWeapon::CheckPickup(Player& player, float pickupRadius) {
     return false;
 }
 
-void DrawCollectableWeapons(Player& player, float deltaTime){
+void UpdateCollectableWeapons(float deltaTime){
     for (CollectableWeapon& cw : worldWeapons){
         cw.Update(deltaTime);
-        cw.Draw();
 
-        if (cw.CheckPickup(player) && player.collectedWeapons.size() < 3) {
-            player.collectedWeapons.push_back(cw.type);
+        if (cw.CheckPickup(player)) { 
+
             if (cw.type == WeaponType::MagicStaff){
                 hasStaff = true;
                 SoundManager::GetInstance().Play("flame1");
@@ -59,6 +58,11 @@ void DrawCollectableWeapons(Player& player, float deltaTime){
                 player.activeWeapon = cw.type;
             }
         }
+    }
+}
 
+void DrawCollectableWeapons(Player& player, float deltaTime){
+    for (CollectableWeapon& cw : worldWeapons){
+        cw.Draw();
     }
 }

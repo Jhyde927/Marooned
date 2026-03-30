@@ -341,6 +341,7 @@ void GenerateLightSources(float baseY);
 void GenerateDoorways( float baseY, int currentLevelIndex);
 void GenerateDoorsFromArchways();
 void GeneratePotions(float baseY);
+void GeneratePowerUps(float Height);
 void GenerateHarpoon(float baseY);
 void GenerateKeys(float baseY);
 void GenerateLavaSkirtsFromMask(float baseY);

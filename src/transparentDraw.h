@@ -24,7 +24,7 @@ struct BillboardDrawRequest {
     Vector3 position;
     Texture2D texture;
     Rectangle sourceRect;
-    float size;
+    Vector2 size;
     Color tint;
     float distanceToCamera;
     float rotationY;
@@ -44,5 +44,6 @@ void GatherEnemies(Camera& camera);
 void GatherDungeonFires(Camera& camera, float deltaTime);
 void GatherWebs(Camera& camera);
 void GatherDecals(Camera& camera, const std::vector<Decal>& decals);
+
 void GatherPortals(Camera& camera, const std::vector<Portal>& portals);
 float GetAdjustedBillboardSize(float baseSize, float distance);

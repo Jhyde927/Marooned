@@ -79,7 +79,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 
 
         DrawDungeonGeometry(camera, 20000);
-
+        DrawPowerUps(player, camera, dt);
         DrawDungeonPillars();
         DrawDungeonBarrels();
         DrawLaunchers();
@@ -209,7 +209,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         DrawEnemyShadows();
         DrawBullets(camera);
         DrawCollectableWeapons(player, dt);
-
+        DrawPowerUps(player, camera, dt);
+        //DrawPotions();
         // transparency last
 
         DrawTransparentDrawRequests(camera);

@@ -371,6 +371,15 @@ void WeaponDip(){
 
 void HandleKeyboardInput(Camera& camera) {
 
+    player.runSpeed = player.haste ? 1400.0f : 850.0f;
+    player.walkSpeed = player.haste ? 1000.0f : 500.0f;
+
+    if (IsKeyPressed(KEY_ENTER) && player.currentPowerUp != PowerUpType::None){
+        if (player.currentPowerUp != PowerUpType::None){
+            ActivatePowerUp();
+        }
+    }
+
     // Right mouse state //blocking
     const bool rmb = IsMouseButtonDown(MOUSE_RIGHT_BUTTON) || (IsGamepadAvailable(0) && GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_TRIGGER) > 0.1f);
 
@@ -498,7 +507,7 @@ void HandleKeyboardInput(Camera& camera) {
         //use health potion
         if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
-            if (player.currentHealth < player.maxHealth){ //don't use pot when full health
+            if (player.currentHealth < 100.0f){ //don't use pot when full health, or if you have overhealth powerup
                 player.currentHealth = player.maxHealth;
                 player.inventory.UseItem("HealthPotion");
                 SoundManager::GetInstance().Play("gulp");
@@ -801,14 +810,38 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     UpdateMeleeHitbox(camera);
     UpdateFootsteps(deltaTime);
 
+    if (player.currentHealth < 100.0f) player.maxHealth = 100.0f;
+
     UpdateBlockHitbox(player, 250, 300, 100);
     if (player.state == PlayerState::Frozen){
         vignetteFade += deltaTime * 0.25; //keep vignette for longer if frozen
+    }else if (player.quadDamage){
+        vignetteMode = 2;
+        vignetteIntensity = 1.0f;
+        vignetteFade = 0.0f;
+    }else if (player.haste){
+        vignetteMode = 3;
+        vignetteIntensity = 0.5f;
+        vignetteFade = 0.0f;
     }else{
         vignetteFade += deltaTime * 2.0f; 
     }
 
     vignetteIntensity = Clamp(1.0f - vignetteFade, 0.0f, 1.0f);
+
+    //PowerUPs
+    if (player.powerUpTimer > 0.0f){
+        player.powerUpTimer -= deltaTime;
+    }else{
+        player.powerUpTimer = 0.0f;
+        if (player.quadDamage){
+            player.quadDamage = false;
+        }
+
+        if (player.haste){
+            player.haste = false;
+        }
+    }
     
     //FOV punch on hit
     if (player.hitTimer > 0.0f){

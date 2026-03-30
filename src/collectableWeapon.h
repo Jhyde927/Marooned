@@ -20,3 +20,4 @@ struct CollectableWeapon {
 };
 
 void DrawCollectableWeapons(Player& player, float deltaTime);
+void UpdateCollectableWeapons(float deltaTime);

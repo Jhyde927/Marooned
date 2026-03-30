@@ -320,8 +320,8 @@ void DrawMagicIcon(){
         currentTexture = R.GetTexture("iceIcon");
     }
 
-    int targetSize = 64;
-    int marginX = 378; // distance from right screen edge
+    int targetSize = 32;
+    int marginX = 718; // distance from right screen edge
     int marginY = GetScreenHeight() - targetSize - 16;
     // Source rect: crop entire original texture
     Rectangle src = { 0.0f, 0.0f, (float)currentTexture.width, (float)currentTexture.height };
@@ -449,6 +449,19 @@ void DrawHUDBars(const Player& player) {
     snapClose(hpDisp,   hpTarget,   0.1f);
     snapClose(manaDisp, manaTarget, 0.1f);
     snapClose(stamDisp, stamTarget, 0.1f);
+    //Color overHealthYellow = { 255, 220, 60, 160 };
+    //OverHealth
+    BarStyle overHealth;
+    overHealth.width   = 300.0f;
+    overHealth.height  = 18.0f;         
+    overHealth.slant   = 14.0f;
+    overHealth.slantSide = SlantSide::Right;
+    overHealth.back = {0, 0, 0, 0};
+    overHealth.lowColor  = { 255, 220, 60, 160 };
+    overHealth.highColor = { 255, 220, 60, 160 };
+    overHealth.pulseWhenLow = true;
+    overHealth.outlineThickness = 2.0f;
+    overHealth.outline = YELLOW;
 
     // Health (full height)
     BarStyle hp;
@@ -503,9 +516,26 @@ void DrawHUDBars(const Player& player) {
     hp.lowColor  = ColorLerpFast(hp.lowColor,  RED, flash);
     hp.highColor = ColorLerpFast(hp.highColor, RED, flash);
 
-    DrawTrapezoidBar(leftX(hp.width),   yHP,   hpDisp,   (float)player.maxHealth, hp);
+
+    float displayedHealth = hpDisp; // your lerped display value
+
+    float baseHealth = std::min(displayedHealth, 100.0f);
+    DrawTrapezoidBar(leftX(hp.width), yHP, baseHealth, 100.0f, hp);
+
+    if (displayedHealth > 100.0f) {
+        float bonusHealth = displayedHealth - 100.0f;
+        DrawTrapezoidBar(leftX(hp.width), yHP, bonusHealth, 100.0f, overHealth);
+    }
+
+    // if (player.currentHealth > 100.0f){
+    //     DrawTrapezoidBar(leftX(hp.width),   yHP,   hpDisp,   (float)player.maxHealth, overHealth);
+    // }else{
+    //     DrawTrapezoidBar(leftX(hp.width),   yHP,   hpDisp,   (float)player.maxHealth, hp);
+    // }
+
+
     DrawTrapezoidBar(leftX(manaBar.width), yMana, manaDisp, manaMax,manaBar);
-    DrawTrapezoidBar(leftX(stam.width), yStam, stamDisp, staminaMax,stam);  
+    DrawTrapezoidBar(leftX(stam.width), yStam, stamDisp, staminaMax,stam);
 }
 
 
@@ -573,7 +603,7 @@ void DrawTimer(float ElapsedTime){
 static void LayoutWeaponBar()
 {
     // keep your original X
-    gWeaponBar.position = { 444.0f, (float)GetScreenHeight() - 80.0f };
+    gWeaponBar.position = { 476.0f, (float)GetScreenHeight() - 80.0f };
 }
 
 void InitWeaponBar()
@@ -654,7 +684,7 @@ void DrawUI(){
     std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);
     DrawTextEx(pieces, goldText.c_str(), { 22.0f, 100.f }, 30.0f, 1.0f, GOLD);
     player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, 
-        player.hasGoldKey, player.hasSilverKey, player.hasSkeletonKey); //this is pretty dumb
+        player.hasGoldKey, player.hasSilverKey, player.hasSkeletonKey, player.currentPowerUp); //this is pretty dumb
     DrawHints();
     if (dialogManager.IsActive()) dialogManager.Draw();
     float yOffset = 100.0f;

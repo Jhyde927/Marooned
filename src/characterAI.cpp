@@ -2519,7 +2519,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         case CharacterState::Attack:
         {
             if (hasFired && stateTimer < 1.5f){
-                //wait for half a second before switching states after firing. 
+                //wait before switching states after firing. 
                 break;
             }
 
