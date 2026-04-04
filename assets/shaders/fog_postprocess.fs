@@ -37,7 +37,7 @@ void main()
     if (vignetteMode == 1) {
         vignetteColor = vec3(0.2, 0.6, 1.0); // icy blue Frozen
     }else if (vignetteMode == 2){
-        vignetteColor = vec3(1.0, 0.5, 0.0); //orange QuadDamage
+        vignetteColor = vec3(1.0, 0.25, 0.0); //orange QuadDamage
     }else if (vignetteMode == 3){
         vignetteColor = vec3(1.0, 0.9, 0.0); //yellow Haste
     }

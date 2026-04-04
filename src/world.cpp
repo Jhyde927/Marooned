@@ -1051,6 +1051,7 @@ void ActivatePowerUp(){
         player.currentPowerUp = PowerUpType::None;
         player.maxHealth = 200.0f;
         player.currentHealth = player.maxHealth;
+        SoundManager::GetInstance().Play("overHealth");
         break;
     
     default:

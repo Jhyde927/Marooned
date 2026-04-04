@@ -449,7 +449,7 @@ void DrawHUDBars(const Player& player) {
     snapClose(hpDisp,   hpTarget,   0.1f);
     snapClose(manaDisp, manaTarget, 0.1f);
     snapClose(stamDisp, stamTarget, 0.1f);
-    //Color overHealthYellow = { 255, 220, 60, 160 };
+
     //OverHealth
     BarStyle overHealth;
     overHealth.width   = 300.0f;
@@ -459,7 +459,7 @@ void DrawHUDBars(const Player& player) {
     overHealth.back = {0, 0, 0, 0};
     overHealth.lowColor  = { 255, 220, 60, 160 };
     overHealth.highColor = { 255, 220, 60, 160 };
-    overHealth.pulseWhenLow = true;
+    overHealth.pulseWhenLow = false;
     overHealth.outlineThickness = 2.0f;
     overHealth.outline = YELLOW;
 

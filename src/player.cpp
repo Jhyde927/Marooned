@@ -299,6 +299,7 @@ void HandlePlayerMovement(float deltaTime){
     player.running = ShouldRun(wish, player.canRun);//IsKeyDown(KEY_LEFT_SHIFT) && player.canRun;
     const float maxSpeed = player.running ? player.runSpeed : player.walkSpeed;
 
+
     Vector3 desiredVel = {0,0,0};
     if (wish.x != 0 || wish.y != 0) {
         float yaw = DEG2RAD * player.rotation.y;
@@ -328,6 +329,13 @@ void HandlePlayerMovement(float deltaTime){
     player.velocity.z = approach(player.velocity.z, desiredVel.z, (fabsf(desiredVel.z) > 0.001f) ? accel : decel, dt);
 
     const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
+    float halfHeight = (player.height * 0.5);
+    float headY = player.position.y + halfHeight;
+    float actualCeilingHeight = ceilingHeight + 100.0f;
+
+    if (player.velocity.y > 0.0f && headY > actualCeilingHeight){
+        player.position.y = actualCeilingHeight - halfHeight;
+    }
 
     // --- gravity
     if (player.state != PlayerState::Grappling){
@@ -799,7 +807,31 @@ constexpr float VOID_SNAP_REENABLE_Y = 200.0f;  // how close to a floor you must
 constexpr float VOID_COMMIT_FALL = 200.0f;      // how far below the "expected floor" before we commit to void fall
 constexpr float VOID_SNAP_MAX_UP = 200.0f;      // max upward snap allowed (prevents big teleports)
 
+void HandleVignette(Player& player, float deltaTime){
+    float baseVignette = 1.0f;
+    if (player.state == PlayerState::Frozen){
+        vignetteFade += deltaTime * 0.25; //keep vignette for longer if frozen
+    }else if (player.quadDamage){
+        vignetteMode = 2;
+        float pulseSpeed = 4.0f;     // how fast it pulses
+        float pulseAmount = 1.0f;   // how strong the pulse is
+        float pulse = (sinf(GetTime() * pulseSpeed) + 1.0f) * 0.5f; // 0 to 1
+        vignetteIntensity = baseVignette + pulse * pulseAmount;
+        vignetteFade = 0.0f;
 
+    }else if (player.haste){
+        vignetteMode = 3;
+        vignetteIntensity = 0.5f;
+        vignetteFade = 0.0f;
+    }else{
+        //normal fade out. clamp to 1.
+        vignetteFade += deltaTime * 2.0f; 
+        vignetteIntensity = Clamp(1.0f - vignetteFade, 0.0f, 1.0f);
+    }
+
+
+
+}
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     HandleGamepadLook(deltaTime);
@@ -813,21 +845,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     if (player.currentHealth < 100.0f) player.maxHealth = 100.0f;
 
     UpdateBlockHitbox(player, 250, 300, 100);
-    if (player.state == PlayerState::Frozen){
-        vignetteFade += deltaTime * 0.25; //keep vignette for longer if frozen
-    }else if (player.quadDamage){
-        vignetteMode = 2;
-        vignetteIntensity = 1.0f;
-        vignetteFade = 0.0f;
-    }else if (player.haste){
-        vignetteMode = 3;
-        vignetteIntensity = 0.5f;
-        vignetteFade = 0.0f;
-    }else{
-        vignetteFade += deltaTime * 2.0f; 
-    }
-
-    vignetteIntensity = Clamp(1.0f - vignetteFade, 0.0f, 1.0f);
+    HandleVignette(player, deltaTime);
 
     //PowerUPs
     if (player.powerUpTimer > 0.0f){

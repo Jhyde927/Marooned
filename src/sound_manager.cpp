@@ -329,6 +329,7 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("squish",         "assets/sounds/squish.ogg");
     SoundManager::GetInstance().LoadSound("crossbowFire",   "assets/sounds/crossbowFire.ogg");
     SoundManager::GetInstance().LoadSound("crossbowReload", "assets/sounds/crossbowReload.ogg");
+    SoundManager::GetInstance().LoadSound("overHealth",     "assets/sounds/healthUp.ogg");
 
 
     //speech
