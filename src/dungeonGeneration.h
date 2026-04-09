@@ -349,7 +349,8 @@ void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
 // void GenerateSwitches(float baseY);
 void GenerateHermitFromImage(float baseY);
-
+void GenerateTencalesFromImage(float baseY);
+void GenerateKrakenFromImage(float baseY);
 void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();

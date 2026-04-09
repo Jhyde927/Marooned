@@ -26,8 +26,6 @@
 #include "raft.h"
 
 
-
-
 GameState currentGameState = GameState::Menu;
 MainMenu::State gMenu;
 //global variables, clean these up somehow. 
@@ -35,7 +33,7 @@ MainMenu::State gMenu;
 Image heightmap;
 Vector3 terrainScale = {16000.0f, 200.0f, 16000.0f}; //very large x and z, 
 HeightmapNavGrid gIslandNav;
-
+Kraken gKraken;
 TreeShadowMask gTreeShadowMask;
 int levelIndex = 0; //current level, levels[levelIndex]
 int previousLevelIndex = 0;
@@ -268,9 +266,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         InitNPCs();
     }
 
-    if (level.name == "Ship"){
-        InitTentacle();
-    }
+
 
 
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
@@ -304,10 +300,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
-        BindSecretWallsToRuns(); //assign wallrun index, 
-    
-        //UpdateVoidMaskTextureFromCPU();   // pushes it to GPU
-        
+        BindSecretWallsToRuns(); //assign wallrun index,     
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);
@@ -329,6 +322,13 @@ void InitLevel(LevelData& level, Camera& camera) {
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
 
         GenerateHermitFromImage(floorHeight);
+
+        if (level.name == "Ship"){
+            //InitTentacle();
+            GenerateTencalesFromImage(0.0f);
+            GenerateKrakenFromImage(0.0f);
+            
+        }
 
         //generate enemies.
         GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
@@ -602,6 +602,12 @@ void MovePlayerToFreeCam(){
 
 }
 
+void UpdateSlashEffects(float deltaTime){
+    RemoveSlashEffects();
+    for (SlashEffect& s : gSlashEffects){
+        UpdateSwordSlash(s, deltaTime);
+    }
+}
 
 
 void HandleWaves(Camera& camera){
@@ -919,13 +925,30 @@ void EraseBullets() {
     );
 }
 
-void DrawPotions(){
-    for (Collectable c : collectables){
-        if (c.type == CollectableType::HealthPotion){
-            DrawModel(R.GetModel("healthPotion"), c.position, 100.0f, WHITE);
-        }
+// void DrawPotions(){
+//     for (Collectable c : collectables){
+//         if (c.type == CollectableType::HealthPotion){
+//             DrawModel(R.GetModel("healthPotion"), c.position, 100.0f, WHITE);
+//         }
+//     }
+// }
+
+void UpdateKraken(float deltaTime){
+    gKraken.Update(deltaTime, player);
+
+    for (Tentacle& t : tentacles){
+        t.Update(deltaTime, Vector3{0}, player);
     }
 }
+
+void DrawKraken(){
+    gKraken.Draw();
+
+    for (Tentacle& t : tentacles){
+        t.Draw();
+    }
+}
+
 
 
 void UpdateCollectables(float deltaTime) { 
@@ -1057,6 +1080,13 @@ void ActivatePowerUp(){
     default:
         break;
     }
+}
+
+void SpawnTentacle(Vector3 startPos){
+    Tentacle tentacle;
+    tentacle.undersideOffset = { -15.0f, -8.0f,  0.0f };
+    tentacle.Init(startPos, 8, 150.0f);
+    tentacles.push_back(tentacle);
 }
 
 void InitTentacle()

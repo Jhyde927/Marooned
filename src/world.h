@@ -21,6 +21,7 @@
 #include "raft.h"
 #include "tentacle.h"
 #include "powerUps.h"
+#include "kraken.h"
 
 enum class GameState {
     Menu,
@@ -33,7 +34,7 @@ enum class GameState {
 enum class FadePhase { Idle, FadingOut, Swapping, FadingIn };
 
 extern Image heightmap;
-
+extern Kraken gKraken;
 extern Vector3 terrainScale;
 
 //gobal vars
@@ -166,3 +167,7 @@ void DrawWaterPlane();
 void InitTentacle();
 void ActivatePowerUp();
 void DrawPotions();
+void UpdateSlashEffects(float deltaTime);
+void UpdateKraken(float deltaTime);
+void DrawKraken();
+void SpawnTentacle(Vector3 startPos);

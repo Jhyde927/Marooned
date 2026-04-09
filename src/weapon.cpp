@@ -470,7 +470,12 @@ void MeleeWeapon::EndBlock() {
 void MeleeWeapon::StartSwing(Camera& camera) {
     if (timeSinceLastSwing >= cooldown && !blocking) {
         PlaySwipe();
-        PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
+        //PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
+
+        //player swipe with code triggers here. 
+        Vector2 basePos = { GetScreenWidth() * 0.60f, GetScreenHeight() * 0.70f };
+        SpawnSwordSlash(basePos);
+        
         player.attackId++; //for unique id each attack, so eggs are only damaged once. 
         swinging = true;
         swingTimer = 0.0f;
@@ -558,6 +563,9 @@ void MagicStaff::StartSwing(Camera& camera) {
     hitboxActive = false;
     hitboxTriggered = false;
     timeSinceLastSwing = 0.0f;
+    //spawn slash effect
+    Vector2 basePos = { GetScreenWidth() * 0.70f, GetScreenHeight() * 0.50f };
+    SpawnSwordSlash(basePos);
 
     // Apply initial swing offsets
     swingOffset = -swingAmount;

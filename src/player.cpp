@@ -82,8 +82,13 @@ void UpdateBoxInteraction(Player& player, float deltaTime)
     // 2) If carrying: only update the carried box
     if (player.isCarrying && player.carriedBox)
     {
+        //if the player falls into void carrying a box. The box teleports to it's saved starting position. 
+        if (player.isFallingIntoVoid) player.carriedBox->DropToTileCenter(player.carriedBox->startPosition);
+        
         if (ePressed) player.dropPressed = true;
         if (player.dying && player.isCarrying) player.dropPressed = true;
+
+
 
         // Compute the tile center you want to drop onto (your grid math)
         Vector2 tilePos = WorldToImageCoords(player.carriedBox->position);

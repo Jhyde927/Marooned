@@ -505,7 +505,9 @@ void DrawTransparentDrawRequests(Camera& camera) {
             case Billboard_FacingCamera: //use draw billboard for both decals, and enemies. 
             case Billboard_Decal:
                 SetPortalShaderColor(req.pallet.colorA, req.pallet.colorB);
-                if (req.isPortal) BeginShaderMode(R.GetShader("portalShader")); 
+                if (req.isPortal) BeginShaderMode(R.GetShader("portalShader"));
+                rlDisableDepthMask(); //DepthMask off...We are going back to manual sorting but with alpha cut out as well. 
+                //This fixes explosion texture occlusion problem, and doesn't break anything else. I think.
                 DrawBillboardRec(
                     camera,
                     (req.texture),
@@ -515,6 +517,7 @@ void DrawTransparentDrawRequests(Camera& camera) {
                     req.tint
                 );
                 EndShaderMode();
+                rlEnableDepthMask();
                 break;
             case Billboard_FixedFlat: //special case for webs
                 DrawFlatWeb(

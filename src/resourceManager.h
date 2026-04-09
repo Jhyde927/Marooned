@@ -19,8 +19,9 @@ public:
     Model&      LoadModel(const std::string& name, const std::string& path);
     //Model&      LoadModelFromMesh(const std::string& name, const Mesh& mesh);
     Model&      AddModelFromMesh(const std::string& name, Mesh mesh); 
-    Model&      GetModel(const std::string& name) const;
 
+    Model&      GetModel(const std::string& name);
+    const Model& GetModel(const std::string& name) const ;
     // Shader
     Shader&     LoadShader(const std::string& name, const std::string& vsPath, const std::string& fsPath);
     Shader&     GetShader(const std::string& name) const;

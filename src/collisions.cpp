@@ -462,7 +462,6 @@ void HandleMeleeHitboxCollision(Camera& camera) {
         int tileY = GetDungeonImageY(barrel.position.z, tileSize, dungeonHeight);
 
         if (CheckCollisionBoxes(barrel.bounds, player.meleeHitbox)){
-            PlayerSwipeDecal(camera); //swipe decal on hit. 
             barrel.destroyed = true;
             walkable[tileX][tileY] = true; //tile is now walkable for enemies
             walkableBat[tileX][tileY] = true;

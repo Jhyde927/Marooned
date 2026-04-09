@@ -6,8 +6,22 @@
 #include <array>
 #include "NPC.h"
 
+struct SlashEffect
+{
+    bool active = false;
 
+    Vector2 pos = { 0, 0 };       // head of the slash
+    Vector2 velocity = { 0, 0 };  // how the slash moves across screen
 
+    float timer = 0.0f;
+    float lifetime = 0.9f;
+
+    float length = 400.0f;
+    float thickness = 12.0f;
+    float arcAmount = 28.0f;
+
+    Color color = { 255, 90, 90, 255 };
+};
 
 // ui.h
 struct WeaponSlot
@@ -33,6 +47,9 @@ enum class SlantSide { Right, Left };
 
 extern bool gHermitIntroDone; //tell NPC convo is done. There is a better way. 
 extern bool gHermitFollowing;   // optional: whether follow is currently enabled
+
+extern std::vector<SlashEffect> gSlashEffects;
+
 // ---------- customizable style ----------
 struct BarStyle {
     // geometry
@@ -78,6 +95,9 @@ void DrawTrapezoidFill(Vector2 TL, Vector2 TR, Vector2 BR, Vector2 BL, float t, 
 void DrawTrapezoidBar(float x, float y, float value, float maxValue, const BarStyle& style);
 void DrawHUDBars(const Player& player);
 void UpdateHintManager(float deltaTime);
+void SpawnSwordSlash(Vector2 startPos);
+void DrawSwordSlash(SlashEffect& slash);
+void UpdateSwordSlash(SlashEffect& slash, float dt);
 void DrawHints();
 void TutorialSetup();
 void InitWeaponBar();
@@ -85,3 +105,4 @@ void UpdateWeaponBarLayoutOnResize();
 void DrawUI();
 void UpdateInteractionNPC();
 int FindHermitIndex(const std::vector<NPC>& npcs);
+void RemoveSlashEffects();

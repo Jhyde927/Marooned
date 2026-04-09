@@ -12,8 +12,11 @@
 #include "main_menu.h"
 #include "dialogManager.h"
 #include "sound_manager.h"
+#include "algorithm"
 
 WeaponBar gWeaponBar;
+std::vector<SlashEffect> gSlashEffects;
+
 static HintManager hints;   // one global-ish instance, private to UI.cpp
 static DialogManager dialogManager;
 
@@ -597,6 +600,112 @@ void DrawTimer(float ElapsedTime){
     sprintf(buffer, "Time: %02d:%02d", minutes, seconds);
 
     DrawText(buffer, GetScreenWidth()-150, 15, 20, WHITE); 
+}
+
+void SpawnSwordSlash(Vector2 startPos)
+{
+    SlashEffect slash;
+    slash.active = true;
+    slash.pos = startPos;
+
+    // Moves down and left across the screen
+    slash.velocity = { -260.0f, 180.0f };
+
+    slash.timer = 0.0f;
+    slash.lifetime = 0.40f;
+
+    slash.length = 650.0f;
+    slash.thickness = 12.0f;
+    slash.arcAmount = 28.0f;
+
+    slash.color = { 255, 255, 255, 100 };  //90 90
+
+    gSlashEffects.push_back(slash);
+
+}
+
+void RemoveSlashEffects(){
+    gSlashEffects.erase(
+        std::remove_if(gSlashEffects.begin(), gSlashEffects.end(),
+            [](const SlashEffect& s) { return !s.active; }),
+        gSlashEffects.end()
+    );
+}
+
+static Vector2 QuadBezier(Vector2 a, Vector2 b, Vector2 c, float t)
+{
+    float u = 1.0f - t;
+
+    return {
+        u*u*a.x + 2.0f*u*t*b.x + t*t*c.x,
+        u*u*a.y + 2.0f*u*t*b.y + t*t*c.y
+    };
+}
+
+void UpdateSwordSlash(SlashEffect& slash, float dt)
+{
+    if (!slash.active) return;
+
+    slash.timer += dt;
+    
+
+    if (slash.timer >= slash.lifetime)
+    {
+        slash.active = false;
+        return;
+    }
+
+    slash.pos.x += slash.velocity.x * dt;
+    slash.pos.y += slash.velocity.y * dt;
+
+
+}
+
+void DrawSwordSlash(SlashEffect& slash)
+{
+    if (!slash.active) return;
+
+    float lifeT = slash.timer / slash.lifetime;
+    float lifeAlpha = 1.0f - lifeT;
+
+    // Optional: fade a little softer
+    lifeAlpha *= lifeAlpha;
+
+    Vector2 head = slash.pos;
+
+    // Tail is down-left from the head
+    Vector2 tail = {
+        slash.pos.x + slash.length,
+        slash.pos.y - slash.length * 0.65f
+    };
+
+    // Midpoint bends the line into a curve
+    Vector2 mid = {
+        (head.x + tail.x) * 0.5f - slash.arcAmount,
+        (head.y + tail.y) * 0.5f - slash.arcAmount
+    };
+
+    const int segments = 16;
+    Vector2 prev = head;
+
+    for (int i = 1; i <= segments; i++)
+    {
+        float t = (float)i / (float)segments;
+        Vector2 cur = QuadBezier(head, mid, tail, t);
+
+        // Brighter near the moving head, dimmer toward the tail
+        float headFade = 1.0f - t;
+
+        // Thick in middle, thin at ends
+        float widthShape = sinf(t * PI);
+        float thick = 2.0f + (slash.thickness - 2.0f) * widthShape;
+
+        Color c = slash.color;
+        c.a = (unsigned char)(255.0f * lifeAlpha * headFade);
+
+        DrawLineEx(prev, cur, thick, c);
+        prev = cur;
+    }
 }
 
 

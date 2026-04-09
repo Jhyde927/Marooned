@@ -187,12 +187,15 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonChests();
             DrawDungeonPillars();
             DrawBoxes();
+            Vector3 squidPos = Vector3{4679, 100, 4695};
+            //DrawModel(R.GetModel("squidHead"), squidPos, 100.0f, WHITE);
+            //DrawModelEx(R.GetModel("squidHead"), squidPos, Vector3 {0, 1, 0}, 180.0f, Vector3 {100, 100, 100}, GRAY);
 
             if (levels[gCurrentLevelIndex].name == "Ship"){
-                DrawWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly. 
-                for (Tentacle& t : tentacles){
-                    t.Draw();
-                }
+                DrawWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly.
+                
+                DrawKraken();
+
             }
 
 
@@ -275,6 +278,12 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
             //draw mini map
             if (isDungeon) miniMap.DrawMiniMap();
+
+            //draw sword slash
+            for (SlashEffect& s : gSlashEffects){
+                DrawSwordSlash(s);
+
+            }
 
             if (debugInfo) { //Press ~ for debug mode. 
                 DrawTimer(ElapsedTime);

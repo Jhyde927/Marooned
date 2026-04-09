@@ -390,6 +390,22 @@ std::vector<LevelData> levels = {
         false,// ceiling
     },
 
+        {
+        "Dungeon17", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/dungeon17.png",
+        {5475.0f, 300.0f, -5665.0f}, //original player start position
+        0.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
+        17, 
+        18, //exit to middle island
+        {}, 
+        false,// ceiling
+    },
+
 
         {
         "Ship", 
@@ -401,8 +417,8 @@ std::vector<LevelData> levels = {
         0, 
         true, //ship is technically a dungeon
         {},
-        17, 
-        18,
+        18, 
+        19,
         {}, 
         false,// ceiling
     },
@@ -417,7 +433,7 @@ std::vector<LevelData> levels = {
         5,//raptor count
         false,
         {entranceToDungeon24},
-        18, 
+        19, 
         0,
         {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
         false, //ceiling

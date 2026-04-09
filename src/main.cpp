@@ -29,9 +29,11 @@ int main() {
     int screenHeight = squareRes ? 1024 : 900;
     //normally start 1600x900 window, toggle fullscreen to fit to monitor.
 
-    //SetConfigFlags(FLAG_VSYNC_HINT);
+
     //we stopped targeting 60 FPS, so frame rate is uncapped. 
     //Before making a new build, enable vsync so it maches the users monitor.
+    SetConfigFlags(FLAG_VSYNC_HINT);
+
     InitWindow(screenWidth, screenHeight, "Marooned");
 
     InitAudioDevice();
@@ -155,12 +157,13 @@ int main() {
             UpdateEnemies(deltaTime);
             //tentacle.Update(deltaTime, Vector3 {3526.0f, 100.0f, 3290.0f}, player.position);
 
-            for (Tentacle& t : tentacles){
-                t.Update(deltaTime, Vector3{0}, player);
-            }
 
-
+            
+            UpdateKraken(deltaTime);
+            
             UpdateNPCs(deltaTime);
+
+            UpdateSlashEffects(deltaTime);
             UpdateBullets(camera, deltaTime);
             GatherFrameLights();
             EraseBullets();

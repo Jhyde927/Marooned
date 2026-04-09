@@ -79,6 +79,8 @@ enum class Code {
     quadDamage,               // (50, 100, 255) light blue
     haste,                    // (229, 229, 15) yellowish. 
     overHealth,               // (200, 17, 17) redish
+    tentacle,                 // (100, 0, 100) purplish
+    kraken,                   // (142, 69, 133) Plum
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -159,6 +161,9 @@ constexpr Color ColorOf(Code c) {
         case Code::quadDamage:             return Make(50, 100, 255);
         case Code::haste:                  return Make(229, 229, 15);
         case Code::overHealth:             return Make(200, 17, 17);
+        case Code::tentacle:               return Make(100, 0, 100);
+        case Code::kraken:                 return Make(142, 69, 133);
+        
 
 
     }

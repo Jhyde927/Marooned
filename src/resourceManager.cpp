@@ -82,10 +82,16 @@ Model& ResourceManager::AddModelFromMesh(const std::string& name, Mesh mesh)   /
     return insertIt->second;
 }
 
-Model& ResourceManager::GetModel(const std::string& name) const {
+Model& ResourceManager::GetModel(const std::string& name) {
     auto it = _models.find(name);
     if (it == _models.end()) throw std::runtime_error("Model not found: " + name);
-    return const_cast<Model&>(it->second);
+    return it->second;
+}
+
+const Model& ResourceManager::GetModel(const std::string& name) const {
+    auto it = _models.find(name);
+    if (it == _models.end()) throw std::runtime_error("Model not found: " + name);
+    return it->second;
 }
 
 // Shader
@@ -329,6 +335,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("woodWallHalf",           "assets/Models/woodWallHalf.glb");
     R.LoadModel("woodFloor",              "assets/Models/floorTileWood.glb");
     R.LoadModel("shipMast",               "assets/Models/shipMast.glb");
+    R.LoadModel("squidHead",              "assets/Models/squidHead.glb");
 
     //generated models
 

@@ -576,6 +576,16 @@ void GenerateFloorTiles(float baseY)
                 continue;
             }
 
+            if (EqualsRGB(pixel, ColorOf(Code::tentacle))){
+                //skip tentacle tiles for ship level. 
+                continue;
+            }
+
+            if (EqualsRGB(pixel, ColorOf(Code::kraken))){
+                //skip kraken tile
+                continue;
+            }
+
             if (EqualsRGB(pixel, ColorOf(Code::LavaTile))) {
                 FloorTile lavaTile;
                 Vector3 offset = {0, -lavaOffsetY, 0};
@@ -2018,6 +2028,34 @@ void GenerateWizardsFromImage(float baseY) {
             }
         }
     }
+
+}
+
+void GenerateKrakenFromImage(float baseY){
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            if (EqualsRGB(current, ColorOf(Code::kraken))){
+                //spawn kraken
+                gKraken.Init(GetDungeonWorldPos(x, y, tileSize, baseY), 0.0f, 100.0f);
+            }
+        }
+    }
+
+
+}
+
+void GenerateTencalesFromImage(float baseY){
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            if (EqualsRGB(current, ColorOf(Code::tentacle))){
+                SpawnTentacle(GetDungeonWorldPos(x, y, tileSize, baseY));
+                std::cout << "spawning tentacle\n";
+            }
+        }
+    }
+
 
 }
 
