@@ -410,7 +410,7 @@ std::vector<LevelData> levels = {
         {
         "Ship", 
         "assets/heightmaps/blank.png",
-        "assets/maps/Ship.png",
+        "assets/maps/bigShip.png",
         {5475.0f, 300.0f, -5665.0f}, //original player start position
         -90.0f,
         {0.0f, 0.0f, 0.0f},

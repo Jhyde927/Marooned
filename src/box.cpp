@@ -227,4 +227,8 @@ void Box::UpdateBounds()
         position.y + (150.0f * scale), //stop player from stepping over the box. 
         position.z + half
     };
+
+    if (type == BoxType::CannonBall) bounds = {};
+
+
 }

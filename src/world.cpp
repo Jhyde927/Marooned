@@ -102,6 +102,8 @@ std::vector<Character> enemies;
 std::vector<Character*> enemyPtrs;
 std::vector<NPC> gNPCs;
 std::vector<Tentacle> tentacles;
+std::vector<Cannon> cannons;
+std::vector<CannonballPile> cannonballPiles;
 std::vector<DungeonEntrance> dungeonEntrances;
 std::vector<PreviewInfo> levelPreviews;
 
@@ -203,6 +205,7 @@ void UpdateShadersPerFrame(float deltaTime,float ElapsedTime, Camera& camera){
 }
 
 
+
 void InitLevel(LevelData& level, Camera& camera) {
     //Make sure we end texture mode, was causing problems with terrain.
     EndTextureMode();
@@ -285,6 +288,11 @@ void InitLevel(LevelData& level, Camera& camera) {
        
         //CreateVoidMaskTexture(dungeonWidth, dungeonHeight);
         PortalSystem::GenerateFromDungeon(dungeonImg, dungeonWidth, dungeonHeight, tileSize, floorHeight);
+
+        PortalSystem::InitPortalRender(512, 512);
+        PortalSystem::SetTestRenderPairFromGroup(0); // or whichever group has 2 portals
+
+
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
 
@@ -297,14 +305,12 @@ void InitLevel(LevelData& level, Camera& camera) {
         }
 
         UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
-
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index,     
         GenerateInvisibleWalls(floorHeight);
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
         GenerateLavaSkirtsFromMask(floorHeight);
-        //GenerateCeilingTiles(ceilingHeight);//400
         GenerateBarrels(floorHeight);
         GenerateLaunchers(floorHeight);
         GenerateSpiderWebs(floorHeight);
@@ -317,35 +323,17 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateWeapons(200);
         GenerateGrapplePoints(floorHeight);
         GenerateBoxesFromImage(floorHeight);
-        GenerateShipProps(floorHeight);
-
-        OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
 
         GenerateHermitFromImage(floorHeight);
-
         if (level.name == "Ship"){
-            //InitTentacle();
-            GenerateTencalesFromImage(0.0f);
-            GenerateKrakenFromImage(0.0f);
-            
-        }
+            GenerateShipLevel();
 
+        } 
         //generate enemies.
-        GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
-        GenerateZombiesFromImage(dungeonEnemyHeight);
-        GeneratePiratesFromImage(dungeonEnemyHeight);
-        GenerateWizardsFromImage(dungeonEnemyHeight);
-        GenerateSpiderFromImage(dungeonEnemyHeight);
-        GenerateBatsFromImage(dungeonEnemyHeight);
-        GenerateGhostsFromImage(dungeonEnemyHeight);
-        GenerateGiantSpiderFromImage(dungeonEnemyHeight);
-        GenerateSpiderEggFromImage(dungeonEnemyHeight);
-
-
+        GenerateEnemiesFromImage(dungeonEnemyHeight);
+        OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
 
         if (levelIndex == 4) levels[0].startPosition = {-5484.34, 180, -5910.67}; //exit dungeon 3 to dungeon enterance 2 position.
-
-        //R.SetLavaShaderValues();
         
 
         //XZ dynamic lightmap + shader lighting with occlusion
@@ -375,8 +363,6 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     StartFadeInFromBlack();
     levelLoaded = true;
-
-
 }
 
 static float fadeValue = 0.0;   // 0 = clear, 1 = black
@@ -508,7 +494,7 @@ void InitRaftCollectables(){
                 Collectable sail = {CollectableType::raftSail, sailPos, R.GetTexture("raftSail"), 100.0f};
 
                 collectables.push_back(sail);
-                std::cout << "init raft sail\n";
+
             }
         }
 
@@ -529,6 +515,16 @@ void InitDungeonLights(){
 
 }
 
+void DrawCannons(){
+    for (Cannon& c : cannons){
+        c.Draw();
+    }
+
+    for (CannonballPile& pile : cannonballPiles){
+        pile.Draw();
+    }   
+}
+
 
 void DrawWaterPlane(){
     if (levels[gCurrentLevelIndex].name == "Ship"){
@@ -537,7 +533,7 @@ void DrawWaterPlane(){
 
         Vector3 dungeonCenter = {
             dungeonWorldWidth  * 0.5f,
-            30.0f,
+            -200.0f,
             dungeonWorldHeight * 0.5f
         };
 
@@ -900,6 +896,7 @@ void UpdateMuzzleFlashes(float deltaTime) {
 }
 
 void UpdateBullets(Camera& camera, float dt) {
+
     for (Bullet& b : activeBullets) {
         b.Update(camera, dt);
         if (b.exploded){
@@ -933,11 +930,21 @@ void EraseBullets() {
 //     }
 // }
 
+void UpdateCannons(float deltaTime){
+    for (Cannon& c : cannons){
+        c.Update(deltaTime, player);
+    }
+
+    for (CannonballPile& pile : cannonballPiles){
+        pile.Update(player);
+    }
+}
+
 void UpdateKraken(float deltaTime){
     gKraken.Update(deltaTime, player);
 
     for (Tentacle& t : tentacles){
-        t.Update(deltaTime, Vector3{0}, player);
+        t.Update(deltaTime, Vector3{0}, player, enemyPtrs);
     }
 }
 
@@ -1082,30 +1089,31 @@ void ActivatePowerUp(){
     }
 }
 
-void SpawnTentacle(Vector3 startPos){
+void SpawnTentacle(Vector3 startPos, bool onRight){
     Tentacle tentacle;
-    tentacle.undersideOffset = { -15.0f, -8.0f,  0.0f };
-    tentacle.Init(startPos, 8, 150.0f);
+    //offset the underbelly in the opposite direction if onRight is true. 
+    tentacle.undersideOffset = onRight ? Vector3{ 15.0f, -8.0f,  0.0f } : Vector3{ -15.0f, -8.0f,  0.0f };
+    tentacle.Init(startPos, 10, 150.0f);
     tentacles.push_back(tentacle);
 }
 
-void InitTentacle()
-{
-    //1520.04, 219.993, 3299.25)
-    Tentacle tentacle;
-    Tentacle tentacle2;
-    Vector3 rootPos = {4480.0f, 0.0f, 3501.0f};
-    Vector3 rootPos2 = {1520.0f, 0.0f, 3299.0f};
+// void InitTentacle()
+// {
+//     //1520.04, 219.993, 3299.25)
+//     Tentacle tentacle;
+//     Tentacle tentacle2;
+//     Vector3 rootPos = {4480.0f, 0.0f, 3501.0f};
+//     Vector3 rootPos2 = {1520.0f, 0.0f, 3299.0f};
 
-    tentacle.undersideOffset = { -15.0f, -8.0f,  0.0f };
-    tentacle2.undersideOffset = {  15.0f, -8.0f,  0.0f };
-    tentacle.Init(rootPos, 8, 150.0f);
-    tentacle2.Init(rootPos2, 8, 150.0f);
+//     tentacle.undersideOffset = { -15.0f, -8.0f,  0.0f };
+//     tentacle2.undersideOffset = {  15.0f, -8.0f,  0.0f };
+//     tentacle.Init(rootPos, 8, 150.0f);
+//     tentacle2.Init(rootPos2, 8, 150.0f);
 
-    tentacles.push_back(tentacle);
-    tentacles.push_back(tentacle2);
+//     tentacles.push_back(tentacle);
+//     tentacles.push_back(tentacle2);
 
-}
+// }
 
 
 
@@ -1329,6 +1337,7 @@ void ClearLevel() {
     masts.clear();
     tentacles.clear();
     g_powerUps.clear();
+
     
      //unload mesh and heightmap when switching levels. if they exist
     if (heightmap.data != nullptr) UnloadImage(heightmap); 

@@ -330,7 +330,8 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("crossbowFire",   "assets/sounds/crossbowFire.ogg");
     SoundManager::GetInstance().LoadSound("crossbowReload", "assets/sounds/crossbowReload.ogg");
     SoundManager::GetInstance().LoadSound("overHealth",     "assets/sounds/healthUp.ogg");
-
+    SoundManager::GetInstance().LoadSound("CannonShot",     "assets/sounds/CannonShot.ogg");
+    SoundManager::GetInstance().LoadSound("tentacleSlam",   "assets/sounds/tentacleSlam.ogg");
 
     //speech
     SoundManager::GetInstance().LoadSound("hermitTalk1", "assets/sounds/AlienVoice1.ogg");

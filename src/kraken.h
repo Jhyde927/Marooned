@@ -13,7 +13,8 @@ public:
         Hidden,     // Fully submerged / inactive
         Rising,     // Moving up toward exposed height
         Exposed,    // Visible, bobbing, targetable
-        Sinking     // Going back down
+        Sinking,     // Going back down
+        Death
     };
 
     Kraken() = default;
@@ -23,11 +24,10 @@ public:
               float waterY,
               float scale = 1.0f);
 
-    void Unload();
 
     void Update(float dt, Player& player);
     void Draw() const;
-
+    void TakeDamage(float amount);
     // Movement/state control
     void Rise();
     void Sink();
@@ -63,6 +63,13 @@ public:
     bool IsVisible() const;
 
     State GetState() const;
+
+    BoundingBox hitBox;
+    float hitTimer = 0.0f;
+    float maxHealth = 1000.0f;
+    float currentHealth = 1000.0f;
+    bool canTakeDamage = true;
+
 
 private:
     void UpdateState(float dt, Player& player);

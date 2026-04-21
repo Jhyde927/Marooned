@@ -187,15 +187,21 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawDungeonChests();
             DrawDungeonPillars();
             DrawBoxes();
+            PortalSystem::UpdatePortalRenderCamera(CameraSystem::Get().Active());
+            //PortalSystem::RenderPortalView(DrawSceneForPortalTest);
+
+
+
+
             Vector3 squidPos = Vector3{4679, 100, 4695};
             //DrawModel(R.GetModel("squidHead"), squidPos, 100.0f, WHITE);
             //DrawModelEx(R.GetModel("squidHead"), squidPos, Vector3 {0, 1, 0}, 180.0f, Vector3 {100, 100, 100}, GRAY);
 
             if (levels[gCurrentLevelIndex].name == "Ship"){
                 DrawWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly.
-                
                 DrawKraken();
-
+                //DrawModel(R.GetModel("cannon"), Vector3{2655, 210, 1209}, 25.0f, GRAY);
+                DrawCannons();
             }
 
 

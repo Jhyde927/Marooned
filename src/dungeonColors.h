@@ -80,7 +80,11 @@ enum class Code {
     haste,                    // (229, 229, 15) yellowish. 
     overHealth,               // (200, 17, 17) redish
     tentacle,                 // (100, 0, 100) purplish
+    tentacleRight,            // (125, 0, 125) purplishish
     kraken,                   // (142, 69, 133) Plum
+    cannon,                   // (80, 40, 20) //cannon brown
+    cannonBalls,               // (77,77,77) // gray, single cannon ball. 
+    captain,                  // (255, 100, 255) light magenta
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -162,7 +166,11 @@ constexpr Color ColorOf(Code c) {
         case Code::haste:                  return Make(229, 229, 15);
         case Code::overHealth:             return Make(200, 17, 17);
         case Code::tentacle:               return Make(100, 0, 100);
+        case Code::tentacleRight:          return Make(125, 0, 125);
         case Code::kraken:                 return Make(142, 69, 133);
+        case Code::cannon:                 return Make(80, 40, 20);
+        case Code::cannonBalls:            return Make(77,77,77);
+        case Code::captain:                return Make(255, 100, 255); 
         
 
 

@@ -22,6 +22,8 @@
 #include "tentacle.h"
 #include "powerUps.h"
 #include "kraken.h"
+#include "cannon.h"
+#include "cannonballPIle.h"
 
 enum class GameState {
     Menu,
@@ -117,7 +119,8 @@ extern std::vector<Character> enemies;
 extern std::vector<Character*> enemyPtrs;
 extern std::vector<NPC> gNPCs;
 extern std::vector<Tentacle> tentacles;
-
+extern std::vector<Cannon> cannons;
+extern std::vector<CannonballPile> cannonballPiles;
 
 Character* FindEnemyById(int id);
 void ClearLevel();
@@ -145,6 +148,8 @@ void UpdateCollectables(float deltaTime);
 void DrawBullets(Camera& camera);
 void DrawBloodParticles(Camera& camera);
 void DrawOverworldProps();
+void DrawCannons();
+void UpdateCannons(float deltaTime);
 void DrawReticle(WeaponType& weaponType);
 Vector3 ResolveSpawnPoint(const LevelData& level, bool isDungeon, bool first, float floorHeight);
 float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terrainScale);
@@ -164,10 +169,9 @@ void UpdateShadersPerFrame(float deltaTime, float ElapsedTime, Camera& camera);
 void InitNPCs();
 void eraseCharacters();
 void DrawWaterPlane();
-void InitTentacle();
 void ActivatePowerUp();
-void DrawPotions();
+
 void UpdateSlashEffects(float deltaTime);
 void UpdateKraken(float deltaTime);
 void DrawKraken();
-void SpawnTentacle(Vector3 startPos);
+void SpawnTentacle(Vector3 startPos, bool onRight);

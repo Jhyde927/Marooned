@@ -308,6 +308,10 @@ void Bullet::Update(Camera& camera, float deltaTime) {
         fireEmitter.SetEmissionRate(50.0f);
         fireEmitter.SetColor(LIGHTGRAY);
         fireEmitter.UpdateTrail(deltaTime); //smoke trail update
+
+    }else if (type == BulletType::CannonBall){
+        velocity.y -= gravity * deltaTime;
+
     }
 
 
@@ -519,6 +523,7 @@ void Bullet::Draw(Camera& camera) const {
     fireEmitter.Draw(camera); //explosion particles
     sparkEmitter.Draw(camera); //firetrail
 
+
     if (exploded) return;
 
     if (type == BulletType::Fireball){
@@ -538,6 +543,10 @@ void Bullet::Draw(Camera& camera) const {
 
     }else if (type == BulletType::Harpoon){
         DrawHarpoon(*this, camera);
+
+    }else if (type == BulletType::CannonBall){
+        DrawModelEx(R.GetModel("cannonBall"), position, { 0, 1, 0 }, spinAngle, Vector3 {25.0f, 25.0f, 25.0f}, DARKGRAY);
+
 
     } else{ //regular bullets
         float t = Clamp(age / 1.5, 0.0f, 1.0f);
@@ -838,7 +847,16 @@ void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int p
     }
 }
 
-
+void FireCannon(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy){
+    Vector3 direction = Vector3Subtract(target, origin);
+    direction = Vector3Normalize(direction);
+    Vector3 velocity = Vector3Scale(direction, speed);
+    Bullet b = {origin, velocity, lifetime, enemy};
+    b.type = BulletType::CannonBall;
+    b.alive = true;
+    b.id = gBulletCounter++;
+    activeBullets.push_back(b);
+}
 
 void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool hermit) {
     Vector3 direction = Vector3Subtract(target, origin);
@@ -848,7 +866,7 @@ void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, boo
     b.id = gBulletCounter++;
     b.hermit = hermit;
 
-    activeBullets.emplace_back(b);
+    activeBullets.push_back(b);
 }
 
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher, bool wizard) {

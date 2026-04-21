@@ -13,6 +13,7 @@ enum class BulletType {
     Iceball,
     Bolt,
     Harpoon,
+    CannonBall,
    
 };
 
@@ -112,4 +113,5 @@ void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, b
 void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher);
 void FireCrossbow(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);
 void FireCrossbowHarpoon(Vector3 origin, Vector3 forward, float speed, float lifetime, bool enemy);
+void FireCannon(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy = false);
 Vector3 GetHarpoonAnchor(const Camera& cam);

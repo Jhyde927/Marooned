@@ -824,6 +824,15 @@ void CheckBulletHits(Camera& camera) {
             }
         }
 
+        //kraken
+        if (CheckCollisionBoxSphere(gKraken.hitBox, b.position, b.radius)){
+            if (b.type == BulletType::CannonBall){
+                b.Explode(camera);
+                gKraken.TakeDamage(500.0f);
+                break;
+            }
+        }
+
 
         for (SpiderEgg& egg : eggs){ //should you be able to harpoon eggs?
             if (CheckCollisionBoxSphere(egg.collider, b.position, b.radius) && egg.state != SpiderEggState::Destroyed){
@@ -962,6 +971,7 @@ void CheckBulletHits(Camera& camera) {
                     b.Explode(camera);
                     break;
                 }else{ //normal bullets
+                    
                     Vector3 n = AABBHitNormal(box.bounds, b.position);
                     b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
                     break;

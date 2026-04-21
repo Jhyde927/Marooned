@@ -2,6 +2,17 @@
 #include "raylib.h"
 #include <vector>
 
+struct PortalRenderState
+{
+    Camera3D camera{};
+    RenderTexture2D target{};
+    int sourcePortalIndex = -1;
+    int destPortalIndex = -1;
+    int groupID = -1;
+    bool initialized = false;
+    bool enabled = false;
+};
+
 // A single portal tile in the dungeon
 struct Portal
 {
@@ -33,4 +44,12 @@ namespace PortalSystem
 
     // Clear all portals (when unloading dungeon)
     void Clear();
+
+    // Portal render proof-of-concept
+    void InitPortalRender(int width = 512, int height = 512);
+    void ShutdownPortalRender();
+    bool SetTestRenderPairFromGroup(int groupID);
+    void UpdatePortalRenderCamera(const Camera3D& mainCamera);
+    void RenderPortalView(void (*drawSceneFunc)(const Camera3D&));
+    const PortalRenderState& GetRenderState();
 }

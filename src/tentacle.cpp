@@ -2,6 +2,9 @@
 #include <iostream>
 #include "raylib.h"
 #include "raymath.h"
+#include "cfloat"
+#include "sound_manager.h"
+#include "pathfinding.h"
 
 
 Color krakenPurple = { 60, 25, 70, 255 };
@@ -14,7 +17,7 @@ Tentacle::Tentacle()
     , state(TentacleState::Hidden)
     , stateTimer(0.0f)
     , attackTarget{3526.0, 0.0, 3290.0}
-    , attackRange(1600.0f)
+    , attackRange(3000.0f)
     , playerInRange(false)
 {
 }
@@ -136,7 +139,7 @@ void Tentacle::Init(const Vector3& rootPosition, int segmentCount, float newSegm
     hiddenRootPos = rootPosition;
     hiddenRootPos.y -= totalLength;
     rootPos = hiddenRootPos;
-
+    slamSoundPlayed = false;
     attackTarget = tipTarget;
     state = TentacleState::Hidden;
     visibleSegments = 0;
@@ -153,7 +156,7 @@ void Tentacle::ChangeState(TentacleState newState)
     {
         slamStartTip = joints.back();
         canHit = true;
-
+        slamSoundPlayed = false;
         if (playerInRange)
         {
             slamTarget = attackTarget;
@@ -161,23 +164,65 @@ void Tentacle::ChangeState(TentacleState newState)
     }
 }
 
-void Tentacle::Update(float dt, const Vector3& target, Player& player)
+
+void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vector<Character*> pirates)
 {
-    Vector3 playerPos = player.position;
     stateTimer += dt;
-    attackTarget = playerInRange ? playerPos : target;
+    pirateInRange = false;
+    playerInRange = false;
+
+    attackTarget = target;
+
+    float bestDistSq = FLT_MAX;
+    float attackRangeSq = attackRange * attackRange;
+
+    // Check player
+    float playerDistSq = Vector3DistanceSqr(rootPos, player.position);
+    if (playerDistSq <= attackRangeSq)
+    {
+        bestDistSq = playerDistSq;
+        attackTarget = player.position;
+        playerInRange = true;
+    }
+
+    // Check pirates
+    for (Character* pirate : pirates)
+    {
+        if (pirate == nullptr) continue;
+        Vector3 offsetPos = rootPos + Vector3{0, 500, 0};
+        if (!HasWorldLineOfSight(offsetPos, pirate->position, 0.1f)) continue; 
+        if (pirate->isDead) continue;   // add if you have these
+
+        float distSq = Vector3DistanceSqr(rootPos, pirate->position);
+        if (distSq > attackRangeSq) continue;
+
+        if (distSq < bestDistSq)
+        {
+            bestDistSq = distSq;
+            attackTarget = pirate->position;
+            pirateInRange = true;
+            playerInRange = false; // pirate is closer than player
+        }
+    }
+
     tipHitActive = (state == TentacleState::Slam);
-
-
-    float dist = Vector3Distance(rootPos, playerPos);
-    playerInRange = (dist <= attackRange);
 
     if (state == TentacleState::Slam && stateTimer > 0.2f && canHit){
         if (CheckCollisionBoxSphere(player.GetBoundingBox(), tipHitCenter, tipHitRadius)){
             player.TakeDamage(50);
             canHit = false;
+            
+        }
+
+        for (Character* pirate : pirates){
+            if (CheckCollisionBoxSphere(pirate->GetBoundingBox(), tipHitCenter, tipHitRadius)){
+                pirate->TakeDamage(200);
+                canHit = false;
+            }
         }
     }
+
+    
 
 
     if (joints.size() < 2)
@@ -211,7 +256,7 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player)
 
         case TentacleState::Slam:
         {
-            UpdateSlam(dt);
+            UpdateSlam(dt, player);
 
             if (stateTimer > 1.0f)
             {
@@ -230,7 +275,7 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player)
 
         case TentacleState::Emerging:
         {
-            UpdateEmerging(dt);
+            UpdateEmerging(dt, player);
                 //ChangeState(TentacleState::Idle);
             break;
         }
@@ -261,7 +306,7 @@ void Tentacle::UpdateHidden(float dt)
     }
 }
 
-void Tentacle::UpdateEmerging(float dt)
+void Tentacle::UpdateEmerging(float dt, Player& player)
 {
     rootPos = Vector3Lerp(rootPos, surfaceRootPos, dt * 3.0f);
 
@@ -282,6 +327,15 @@ void Tentacle::UpdateEmerging(float dt)
         visibleSegments = (int)joints.size() - 1;
         ChangeState(TentacleState::Idle);
     }
+
+    Vector3 toPlayer = {
+        player.position.x - rootPos.x,
+        0.0f,
+        player.position.z - rootPos.z
+    };
+
+    baseYaw = atan2f(toPlayer.x, toPlayer.z);
+
 }
 
 void Tentacle::UpdateIdle(float dt)
@@ -311,6 +365,10 @@ void Tentacle::UpdateIdle(float dt)
         ChangeState(TentacleState::Windup);
     }
 
+    if (pirateInRange && stateTimer > 1.0f){
+        ChangeState(TentacleState::Windup);
+    }
+
     if (stateTimer > 10.0f && !playerInRange){
         ChangeState(TentacleState::Withdraw);
     }
@@ -335,7 +393,7 @@ void Tentacle::UpdateWindup(float dt)
 }
 
 
-void Tentacle::UpdateSlam(float dt)
+void Tentacle::UpdateSlam(float dt, Player& player)
 {
     (void)dt;
 
@@ -351,6 +409,13 @@ void Tentacle::UpdateSlam(float dt)
     // Prevent stabbing through deck
     if (desiredTip.y < deckHeight)
         desiredTip.y = deckHeight;
+
+
+    if (!slamSoundPlayed && desiredTip.y <= deckHeight + 50.0f)
+    {
+        slamSoundPlayed = true;
+        SoundManager::GetInstance().PlaySoundAtPosition("tentacleSlam", joints.back(), player.position, 0.0f, 4000.0f);
+    }
 
     joints.back() = desiredTip;
 

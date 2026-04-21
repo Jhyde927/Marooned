@@ -462,6 +462,7 @@ void Character::Update(float deltaTime, Player& player ) {
     spriteHeight = frameHeight * scale;
     if (!isDungeon && type != CharacterType::Pterodactyl) ApplyGroundSnap();
 
+
     float groundY = GetHeightAtWorldPosition(position, heightmap, terrainScale); //get groundY from heightmap
     if (type == CharacterType::Pterodactyl){
         if (GetFeetPos().y < groundY) SetFeetPos(Vector3 {position.x, groundY, position.z}); //prevent dactyls from going underground
@@ -950,6 +951,7 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 default:                     return {0, 7, 0.2f, true};
             }
 
+        case CharacterType::Captain:
         case CharacterType::Pirate:
           
             switch (state) {

@@ -26,6 +26,9 @@ Texture2D ceilingMaskTex;
 std::vector<uint8_t> voidMask;
 std::vector<uint8_t> ceilingMask; 
 std::vector<uint8_t> lavaMask; // width*height, 1 = lava, 0 = not
+// 1 = ship wall/hull tile, 0 = not hull
+std::vector<uint8_t> shipWallMask;
+
 
 std::vector<LightSample> frameLights;
 std::vector<LauncherTrap> launchers;
@@ -576,13 +579,15 @@ void GenerateFloorTiles(float baseY)
                 continue;
             }
 
-            if (EqualsRGB(pixel, ColorOf(Code::tentacle))){
+            if (EqualsRGB(pixel, ColorOf(Code::tentacle)) || EqualsRGB(pixel, ColorOf(Code::tentacleRight))){
                 //skip tentacle tiles for ship level. 
+                voidMask[Idx(x,y)] = 255;
                 continue;
             }
 
             if (EqualsRGB(pixel, ColorOf(Code::kraken))){
                 //skip kraken tile
+                voidMask[Idx(x,y)] = 255;
                 continue;
             }
 
@@ -1189,6 +1194,142 @@ void AddLavaSkirtEdge(int x, int y, int dir, float baseY) {
     wallRunColliders.push_back({ /*start*/skirt.position, /*end*/skirt.position, 0.0f, bb }); //add colliders to skirts. 
     
 }
+
+bool IsShipWall(int x, int y)
+{
+    if (!InBounds(x, y, dungeonWidth, dungeonHeight)) return false;
+    return shipWallMask[Idx(x, y)] != 0;
+}
+
+void AddShipSkirtEdge(int x, int y, int dir, float baseY)
+{
+    Vector3 a, b;
+
+    switch (dir)
+    {
+        case 0: // solid ship tile is to the east of this void tile
+            a = GetDungeonWorldPos(x,     y, tileSize, baseY);
+            a.x += tileSize * 0.5f;
+            a.z -= tileSize * 0.5f;
+
+            b = GetDungeonWorldPos(x + 1, y, tileSize, baseY);
+            b.x -= tileSize * 0.5f;
+            b.z += tileSize * 0.5f;
+            break;
+
+        case 1: // solid ship tile is to the west
+            a = GetDungeonWorldPos(x - 1, y, tileSize, baseY);
+            a.x += tileSize * 0.5f;
+            a.z += tileSize * 0.5f;
+
+            b = GetDungeonWorldPos(x,     y, tileSize, baseY);
+            b.x -= tileSize * 0.5f;
+            b.z -= tileSize * 0.5f;
+            break;
+
+        case 2: // solid ship tile is to the south
+            a = GetDungeonWorldPos(x, y,     tileSize, baseY);
+            a.x += tileSize * 0.5f;
+            a.z += tileSize * 0.5f;
+
+            b = GetDungeonWorldPos(x, y + 1, tileSize, baseY);
+            b.x -= tileSize * 0.5f;
+            b.z -= tileSize * 0.5f;
+            break;
+
+        default: // solid ship tile is to the north
+            a = GetDungeonWorldPos(x, y - 1, tileSize, baseY);
+            a.x -= tileSize * 0.5f;
+            a.z += tileSize * 0.5f;
+
+            b = GetDungeonWorldPos(x, y,     tileSize, baseY);
+            b.x += tileSize * 0.5f;
+            b.z -= tileSize * 0.5f;
+            break;
+    }
+
+    const float topY = baseY + 20.0f;
+    const float waterY = baseY - 260.0f;
+    const float height = topY - waterY;
+    const float WALL_MODEL_HEIGHT = 400.0f;
+
+    if (height <= 0.0f) return;
+
+    Vector3 mid = Vector3Lerp(a, b, 0.5f);
+    mid.y = waterY + 0.5f * height;
+
+    float rotY = (dir < 2) ? 0.0f : 90.0f;
+
+    WallInstance skirt{};
+    skirt.rotationY = rotY;
+    skirt.tint = WHITE;
+
+    const float lipTowardShip = tileSize * 0.10f;
+    const float extraThick = tileSize * 0.20f;
+    const float WALL_MODEL_THICKNESS = 50.0f;
+
+    // direction from void toward ship
+    Vector3 towardShip = {0, 0, 0};
+    switch (dir)
+    {
+        case 0: towardShip = { +1, 0,  0 }; break; // ship is east
+        case 1: towardShip = { -1, 0,  0 }; break; // ship is west
+        case 2: towardShip = {  0, 0, +1 }; break; // ship is south
+        default:towardShip = {  0, 0, -1 }; break; // ship is north
+    }
+
+    mid = Vector3Add(mid, Vector3Scale(towardShip, lipTowardShip));
+
+    float thicknessScale = (WALL_MODEL_THICKNESS + extraThick) / WALL_MODEL_THICKNESS;
+
+    if (dir < 2)
+    {
+        // edge runs along Z, so thickness is X
+        skirt.scale = { thicknessScale, height / WALL_MODEL_HEIGHT, 1.0f };
+    }
+    else
+    {
+        // edge runs along X, so thickness is Z
+        skirt.scale = { 1.0f, height / WALL_MODEL_HEIGHT, thicknessScale };
+    }
+
+    skirt.position = mid;
+    skirt.type = WallType::Wood;
+    wallInstances.push_back(skirt);
+
+    //No collision with skirts. 
+    // BoundingBox bb = MakeAABBFromSkirt(skirt, dir);
+    // wallRunColliders.push_back({ skirt.position, skirt.position, 0.0f, bb });
+}
+
+void GenerateShipSkirtsFromVoidMask(float baseY)
+{
+    for (int y = 0; y < dungeonHeight; ++y)
+    {
+        for (int x = 0; x < dungeonWidth; ++x)
+        {
+            if (!IsVoid(x, y)) continue; // only build outward from void/water tiles
+
+            // East: void tile has solid ship tile to the right
+            if (InBounds(x + 1, y, dungeonWidth, dungeonHeight) && !IsVoid(x + 1, y))
+                AddShipSkirtEdge(x, y, 0, baseY);
+
+            // West: void tile has solid ship tile to the left
+            if (InBounds(x - 1, y, dungeonWidth, dungeonHeight) && !IsVoid(x - 1, y))
+                AddShipSkirtEdge(x, y, 1, baseY);
+
+            // South: void tile has solid ship tile below
+            if (InBounds(x, y + 1, dungeonWidth, dungeonHeight) && !IsVoid(x, y + 1))
+                AddShipSkirtEdge(x, y, 2, baseY);
+
+            // North: void tile has solid ship tile above
+            if (InBounds(x, y - 1, dungeonWidth, dungeonHeight) && !IsVoid(x, y - 1))
+                AddShipSkirtEdge(x, y, 3, baseY);
+        }
+    }
+}
+
+
 
 // --- main pass: walk mask edges and place skirts ---
 // lavaMask[y*w + x] == 1 means lava there (you already fill this)
@@ -1992,6 +2133,29 @@ void GeneratePiratesFromImage(float baseY) {
                 enemyPtrs.push_back(&enemies.back()); 
 
             }
+
+            if (EqualsRGB(current, ColorOf(Code::captain))){
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+                Character captain(
+                    spawnPos,
+                    R.GetTexture("pirateSheet"), 
+                    200, 200,         // frame width, height 
+                    1,                // max frames, set when setting animations
+                    0.5f, 1.0f,       // scale, speed
+                    0,                // initial animation frame
+                    CharacterType::Captain
+                );
+
+                captain.maxHealth = 1000.0f;
+                captain.currentHealth = 1000.0f;
+
+                captain.id = gEnemyCounter++;
+                enemies.push_back(captain);
+                enemyPtrs.push_back(&enemies.back()); // is this neseccary when we update the Ptrs every frame?
+
+
+            }
         }
     }
 
@@ -2031,13 +2195,55 @@ void GenerateWizardsFromImage(float baseY) {
 
 }
 
+void GenerateCannonBallsFromImage(float baseY){
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            if (EqualsRGB(current, ColorOf(Code::cannonBalls))){
+                CannonballPile pile;
+                Vector3 pilePos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                pile.Init(pilePos);
+                cannonballPiles.push_back(pile);
+            }
+        }
+    }
+}
+
+void GenerateCannonFromImage(float baseY){
+    int cannonCount = 0;
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            if (EqualsRGB(current, ColorOf(Code::cannon))){
+                //spawn cannon
+                
+                Vector3 cannonPos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                Cannon cannon;
+
+                float yaw = 0.0f;
+                if (cannonCount == 0)
+                    yaw = 180.0f;
+                else
+                    yaw = 0.0f;
+
+                cannon.Init(cannonPos, yaw);
+                cannons.push_back(cannon);
+                cannonCount++;
+
+               
+            }
+        }
+    }
+
+}
+
 void GenerateKrakenFromImage(float baseY){
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
             if (EqualsRGB(current, ColorOf(Code::kraken))){
                 //spawn kraken
-                gKraken.Init(GetDungeonWorldPos(x, y, tileSize, baseY), 0.0f, 100.0f);
+                gKraken.Init(GetDungeonWorldPos(x, y, tileSize, baseY), 0.0f, 200.0f);
             }
         }
     }
@@ -2050,8 +2256,12 @@ void GenerateTencalesFromImage(float baseY){
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
             if (EqualsRGB(current, ColorOf(Code::tentacle))){
-                SpawnTentacle(GetDungeonWorldPos(x, y, tileSize, baseY));
-                std::cout << "spawning tentacle\n";
+                SpawnTentacle(GetDungeonWorldPos(x, y, tileSize, -200.0f), false);
+            }
+
+            if (EqualsRGB(current, ColorOf(Code::tentacleRight))){
+                SpawnTentacle(GetDungeonWorldPos(x, y, tileSize, -200.0f), true);
+                
             }
         }
     }
@@ -2169,6 +2379,35 @@ void GenerateBoxesFromImage(float baseY) {
 
     }
 }
+
+void GenerateEnemiesFromImage(float dungeonEnemyHeight){
+    GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
+    GenerateZombiesFromImage(dungeonEnemyHeight);
+    GeneratePiratesFromImage(dungeonEnemyHeight);
+    GenerateWizardsFromImage(dungeonEnemyHeight);
+    GenerateSpiderFromImage(dungeonEnemyHeight);
+    GenerateBatsFromImage(dungeonEnemyHeight);
+    GenerateGhostsFromImage(dungeonEnemyHeight);
+    GenerateGiantSpiderFromImage(dungeonEnemyHeight);
+    GenerateSpiderEggFromImage(dungeonEnemyHeight);
+
+}
+
+void GenerateShipLevel(){
+    GenerateTencalesFromImage(0.0f);
+    GenerateKrakenFromImage(0.0f);
+    GenerateCannonFromImage(180.0f);
+    GenerateCannonBallsFromImage(115.0f);
+
+    GenerateShipSkirtsFromVoidMask(floorHeight-75);
+    GenerateShipProps(floorHeight);
+
+    
+}
+
+
+
+
 // Returns true if world point is inside the dungeon bounds.
 // world → image grid (with your X/Z flips baked in)
 inline bool WorldToGrid(const Vector3& worldPos,
@@ -2354,8 +2593,13 @@ void DrawDungeonBarrels() {
 
 void DrawBoxes(){
     for (const Box& box : boxes){
-        Vector3 offsetPos = {box.position.x, box.position.y + 20, box.position.z}; //move the barrel up a bit
-        DrawModelEx(R.GetModel("box"), offsetPos, Vector3{0, 1, 0}, 0.0f, Vector3{40.0f, 40.0f, 40.0f}, WHITE); //scaled half size
+        Vector3 offsetPos = {box.position.x, box.position.y + 20, box.position.z}; 
+        if (box.type == BoxType::CannonBall){
+            DrawModelEx(R.GetModel("cannonBall"), offsetPos, Vector3{0,1,0}, 0.0f, Vector3{25, 25, 25}, DARKGRAY);
+        }else{
+            DrawModelEx(R.GetModel("box"), offsetPos, Vector3{0, 1, 0}, 0.0f, Vector3{40.0f, 40.0f, 40.0f}, WHITE); //scaled half size
+        }
+
 
     }
 }

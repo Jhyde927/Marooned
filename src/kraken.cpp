@@ -29,7 +29,7 @@ void Kraken::Init(Vector3 spawnPosition,
     currentYawDeg = baseYawDeg;
     idleTiltDeg = 0.0f;
 
-    hiddenOffset = -350.0f;
+    hiddenOffset = -850.0f;
     exposedOffset = 0.0f;
 
     currentHeightOffset = hiddenOffset;
@@ -39,15 +39,24 @@ void Kraken::Init(Vector3 spawnPosition,
     rockTime = 0.0f;
     characterTime = 0.0f;
 
+    hitBox = {
+        { basePosition.x - 200.0f, basePosition.y - 100.0f, basePosition.z - 200.0f },
+        { basePosition.x + 200.0f, basePosition.y + 500.0f, basePosition.z + 200.0f }
+    };
+
     UpdateTransform();
 }
 
-void Kraken::Unload()
-{
-    if (modelLoaded)
-    {
-        UnloadModel(model);
-        modelLoaded = false;
+void Kraken::TakeDamage(float amount){
+    if (canTakeDamage){
+        canTakeDamage = false;
+        currentHealth -= amount;
+        hitTimer = 0.5f;
+        std::cout << "Damage: " << amount << "\n";
+        if (currentHealth < 0.0f){
+            state = State::Death;
+            //squid death sound effect.
+        }
     }
 }
 
@@ -55,6 +64,12 @@ void Kraken::Update(float dt, Player& player)
 {
     if (!modelLoaded || !visible)
         return;
+
+    if (hitTimer >= 0.0f){
+        hitTimer -= dt;
+    }else{
+        canTakeDamage = true;
+    }
 
     UpdateState(dt, player);
     UpdateIdleMotion(dt, player);
@@ -66,6 +81,12 @@ void Kraken::Draw() const
     if (!modelLoaded || !visible)
         return;
 
+    Color tintColor = WHITE;
+
+    if (hitTimer > 0.0f){
+        tintColor = RED;
+    }
+
     // Rotation axis is Y-up
     DrawModelEx(
         model,
@@ -73,8 +94,10 @@ void Kraken::Draw() const
         Vector3{0.0f, 1.0f, 0.0f},
         currentYawDeg,
         Vector3{scale, scale, scale},
-        WHITE
+        tintColor
     );
+
+    DrawBoundingBox(hitBox, tintColor);
 }
 
 void Kraken::Rise()
@@ -234,9 +257,12 @@ void Kraken::UpdateState(float dt, Player& player)
         case State::Hidden:
             if (dist < 2000.0f){
                 Rise();
-
                 break;
             }
+            break;
+
+        case State::Death:
+            Sink();
             break;
             
         default:
@@ -266,14 +292,26 @@ void Kraken::UpdateIdleMotion(float dt, Player& player)
         rockYaw = std::sinf(rockTime * rockSpeed) * rockAmplitudeDeg;
     }
 
-    currentYawDeg = baseYawDeg + rockYaw;
-    idleTiltDeg = bobOffset;
+    Vector3 toPlayer = {
+        player.position.x - basePosition.x,
+        0.0f,
+        player.position.z - basePosition.z
+    };
+
+    // Optional: avoid jitter if player is exactly on top of the kraken
+    float lenSq = toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z;
+    if (lenSq > 0.001f)
+    {
+        float yawRad = atan2f(toPlayer.x, toPlayer.z);
+        currentYawDeg = (yawRad * RAD2DEG) - 30.0f + rockYaw;
+    }
+
+    idleTiltDeg = 0.0f;
 }
 
 void Kraken::UpdateTransform()
 {
     drawPosition = basePosition;
-
     // Put the boss relative to the water plane, not terrain
     drawPosition.y = waterY + currentHeightOffset + idleTiltDeg;
 }

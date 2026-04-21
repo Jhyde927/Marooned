@@ -30,7 +30,8 @@ void InitPlayer(Player& player, Vector3 startPosition) {
     player.startPosition = startPosition;
     std:: cout << "player position: \n";
     DebugPrintVector(player.position);
-    player.rotation.y = levels[levelIndex].startingRotationY;
+    player.startRotationY = levels[levelIndex].startingRotationY; //save facing direction as well. 
+    player.rotation.y = player.startRotationY; 
     if (levelIndex == 0 && unlockEntrances) player.rotation.y = 90.0f; //face opposite direction when leaving dungeon. 
     player.velocity = {0, 0, 0};
     player.grounded = false;
@@ -54,9 +55,6 @@ void InitPlayer(Player& player, Vector3 startPosition) {
     
 }
 
-
-
-
 static inline Vector3 FootSample(const Player& p, float offX, float offZ)
 {
     Vector3 s = p.position;
@@ -65,6 +63,36 @@ static inline Vector3 FootSample(const Player& p, float offX, float offZ)
     s.z += offZ;
     // y not needed for tile lookup; keep it for completeness
     return s;
+}
+
+void RemoveCarriedBox(Player& player, std::vector<Box>& boxes)
+{
+    if (!player.carriedBox) return;
+
+    for (size_t i = 0; i < boxes.size(); ++i)
+    {
+        if (&boxes[i] == player.carriedBox)
+        {
+            boxes.erase(boxes.begin() + i);
+            player.carriedBox = nullptr;
+            player.isCarrying = false;
+            return;
+        }
+    }
+
+    // fallback in case pointer was already bad somehow
+    player.carriedBox = nullptr;
+    player.isCarrying = false;
+}
+
+void Player::SpawnBoxInHand(Player& player, Vector3 pilePosition){
+
+    if (IsFacingTarget2D(player.position, player.forward, pilePosition, 0.45)){
+        Box box = {BoxType::CannonBall, pilePosition};
+        box.state = BoxState::OnGround;
+        boxes.push_back(box);
+        //Player will automatically pick up the box, because we spawn it in front of him when he's pressing E.
+    }
 }
 
 void UpdateBoxInteraction(Player& player, float deltaTime)
@@ -937,6 +965,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     if (player.dead) {
         // Reset position and state
         player.position = player.startPosition + Vector3 {0, 100, 0}; //high off ground 
+        player.rotation.y = player.startRotationY;
         player.velocity = {}; 
         player.currentHealth = player.maxHealth;
         player.dead = false;

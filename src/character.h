@@ -19,6 +19,7 @@ enum class CharacterType {
     Wizard,
     Bat,
     Zombie,
+    Captain
    
 };
 

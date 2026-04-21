@@ -30,6 +30,7 @@ struct Player {
     Vector2 rotation;
     Vector3 forward;
     Vector3 startPosition;
+    float startRotationY;
     Vector3 previousPosition;
     BoundingBox meleeHitbox;
     BoundingBox blockHitbox;
@@ -139,6 +140,7 @@ struct Player {
     void PlayFootstepSound();
     void TakeDamage(int amount);
     void EquipNextWeapon();
+    void SpawnBoxInHand(Player& player, Vector3 pilePosition);
 };
 
 // Initializes the player at a given position
@@ -153,6 +155,7 @@ void InitSword(MeleeWeapon& sword);
 void InitBlunderbuss(Weapon& blunderbuss);
 void InitMagicStaff(MagicStaff& magicStaff);
 void InitCrossbow();
+void RemoveCarriedBox(Player& player, std::vector<Box>& boxes);
 void HandleJumpButton(float timeNow);
 void OnGroundCheck(bool groundedNow, float timeNow);
 void DrawWeapons(const Player& player, Camera& camera);

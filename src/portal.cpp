@@ -16,6 +16,8 @@ static std::vector<Portal> portalsGroup4; // has portalID pixel to the top
 static std::vector<Portal> portalsGroup5; // has portalID pixel to the bottom
 static std::vector<Portal> portalsGroup6; // has portalID pixel to the top and bottom
 
+static PortalRenderState gPortalRender{};
+
 
 // Simple anti-bounce
 static float gTeleportCooldown = 0.0f;
@@ -30,6 +32,22 @@ static int gPendingGroupIndex = -1;
 // Optional: remember which portal we teleported FROM (extra safety)
 static int gLastPortalIndex = -1;
 
+
+static std::vector<Portal>* GetPortalGroupByID(int groupID)
+{
+    switch (groupID)
+    {
+        case 0: return &portalsGroup0;
+        case 1: return &portalsGroup1;
+        case 2: return &portalsGroup2;
+        case 3: return &portalsGroup3;
+        case 4: return &portalsGroup4;
+        case 5: return &portalsGroup5;
+        case 6: return &portalsGroup6;
+        default: return nullptr;
+    }
+}
+
 void PortalSystem::Clear()
 {
     gTeleportCooldown = 0.0f;
@@ -43,6 +61,92 @@ void PortalSystem::Clear()
     portalsGroup5.clear();
     portalsGroup6.clear();
 
+    gPortalRender.sourcePortalIndex = -1;
+    gPortalRender.destPortalIndex = -1;
+    gPortalRender.groupID = -1;
+    gPortalRender.enabled = false;
+
+}
+
+void PortalSystem::InitPortalRender(int width, int height)
+{
+    if (gPortalRender.initialized)
+    {
+        UnloadRenderTexture(gPortalRender.target);
+        gPortalRender = {};
+    }
+
+    gPortalRender.target = LoadRenderTexture(width, height);
+    gPortalRender.initialized = true;
+    gPortalRender.enabled = false;
+
+    gPortalRender.camera.position = { 0.0f, 200.0f, 0.0f };
+    gPortalRender.camera.target = { 0.0f, 200.0f, 1.0f };
+    gPortalRender.camera.up = { 0.0f, 1.0f, 0.0f };
+    gPortalRender.camera.fovy = 60.0f;
+    gPortalRender.camera.projection = CAMERA_PERSPECTIVE;
+}
+
+bool PortalSystem::SetTestRenderPairFromGroup(int groupID)
+{
+    std::vector<Portal>* group = GetPortalGroupByID(groupID);
+    if (!group || group->size() < 2)
+    {
+        gPortalRender.enabled = false;
+        gPortalRender.sourcePortalIndex = -1;
+        gPortalRender.destPortalIndex = -1;
+        gPortalRender.groupID = groupID;
+        return false;
+    }
+
+    gPortalRender.sourcePortalIndex = 0;
+    gPortalRender.destPortalIndex = 1;
+    gPortalRender.enabled = true;
+    return true;
+}
+
+void PortalSystem::UpdatePortalRenderCamera(const Camera3D& mainCamera)
+{
+    if (!gPortalRender.enabled)
+        return;
+
+    // For proof-of-concept, assume the test pair is in group 0.
+    // Later this should remember which group was selected.
+    std::vector<Portal>* group = GetPortalGroupByID(0);
+    if (!group)
+        return;
+
+    if (gPortalRender.destPortalIndex < 0 || gPortalRender.destPortalIndex >= (int)group->size())
+        return;
+
+    const Portal& dest = (*group)[gPortalRender.destPortalIndex];
+
+    // Fake forward direction for now
+    Vector3 portalForward = { 0.0f, 0.0f, 1.0f };
+
+    Vector3 eye = Vector3Add(dest.position, Vector3{ 0.0f, 80.0f, 0.0f });
+    eye = Vector3Add(eye, Vector3Scale(portalForward, 60.0f));
+
+    gPortalRender.camera.position = eye;
+    gPortalRender.camera.target = Vector3Add(eye, Vector3Scale(portalForward, 500.0f));
+    gPortalRender.camera.up = { 0.0f, 1.0f, 0.0f };
+    gPortalRender.camera.fovy = mainCamera.fovy;
+    gPortalRender.camera.projection = CAMERA_PERSPECTIVE;
+}
+
+void PortalSystem::ShutdownPortalRender()
+{
+    if (gPortalRender.initialized)
+    {
+        UnloadRenderTexture(gPortalRender.target);
+    }
+
+    gPortalRender = {};
+}
+
+const PortalRenderState& PortalSystem::GetRenderState()
+{
+    return gPortalRender;
 }
 
 void PortalSystem::GenerateFromDungeon(
@@ -296,6 +400,20 @@ void PortalSystem::Update(Vector3& playerPos, float playerRadius, float dt)
     {
         return;
     }
+}
+
+void PortalSystem::RenderPortalView(void (*drawSceneFunc)(const Camera3D&))
+{
+    if (!gPortalRender.initialized || !gPortalRender.enabled || !drawSceneFunc)
+        return;
+
+    BeginTextureMode(gPortalRender.target);
+        ClearBackground(BLACK);
+
+        BeginMode3D(gPortalRender.camera);
+            drawSceneFunc(gPortalRender.camera);
+        EndMode3D();
+    EndTextureMode();
 }
 
 

@@ -38,6 +38,7 @@ void Character::UpdateAI(float deltaTime, Player& player) {
             UpdateBatAI(deltaTime, player);//distsq check
             break;
             
+        case CharacterType::Captain:
         case CharacterType::Pirate:
             UpdatePirateAI(deltaTime, player); //distsq check  
             break;
@@ -101,7 +102,7 @@ void Character::UpdateTargeting(float dt, Player& player, const std::vector<Char
     // Default: no target
     target = nullptr;
 
-    if (type == CharacterType::Pirate)
+    if (type == CharacterType::Pirate || type == CharacterType::Captain)
     {
         // Pirates pick closest zombie within some radius
         target = FindClosestOfType(position, enemyPtrs, CharacterType::Zombie, this, 6000.0f);
@@ -2430,7 +2431,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             bool    chaseCanSee   = canSee;     // your existing LOS-to-player
             bool    chasingZombie = false;
 
-            if (type == CharacterType::Pirate && target && !target->isDead)
+            if ((type == CharacterType::Pirate || type == CharacterType::Captain) && target && !target->isDead)
             {
                 chasingZombie = true;
                 chasePos    = target->position;
@@ -2529,7 +2530,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             float   dist   = distanceSq; // existing distance to player
             bool    los    = canSee;
 
-            if (type == CharacterType::Pirate && target)
+            if (target)
             {
                 aimPos = target->position;
                 dist   = targetDist;
@@ -2597,7 +2598,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             bool    attackingZombie = false;
             Character* victim = nullptr;
 
-            if (type == CharacterType::Pirate && target && !target->isDead && target->type == CharacterType::Zombie)
+            if (target && !target->isDead && target->type == CharacterType::Zombie)
             {
                 attackingZombie = true;
                 victim = target;
@@ -3144,6 +3145,7 @@ bool Character::MoveAlongPath(std::vector<Vector3>& path,
 
     //Don't snap bats to target.y, they bob up and down in update
     if (type != CharacterType::Bat) pos.y = target.y;
+    if (type == CharacterType::Captain) pos.y = 220.0f;
 
     return false;
 }

@@ -6,8 +6,7 @@
 enum class BoxType
 {
     WoodenCrate,
-    HeavyCrate,
-    ExplosiveCrate   // future
+    CannonBall,
 };
 
 enum class BoxState

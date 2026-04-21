@@ -155,14 +155,9 @@ int main() {
             miniMap.Update(deltaTime, player.position);
             PortalSystem::Update(player.position, player.radius, deltaTime);
             UpdateEnemies(deltaTime);
-            //tentacle.Update(deltaTime, Vector3 {3526.0f, 100.0f, 3290.0f}, player.position);
-
-
-            
+            UpdateCannons(deltaTime);
             UpdateKraken(deltaTime);
-            
             UpdateNPCs(deltaTime);
-
             UpdateSlashEffects(deltaTime);
             UpdateBullets(camera, deltaTime);
             GatherFrameLights();
@@ -188,6 +183,7 @@ int main() {
             HandleDoorInteraction(camera);
             eraseCharacters(); //clean up dead enemies
             HandleWeaponTints();
+
             if (isDungeon){
                 if (!debugInfo) drawCeiling = levels[levelIndex].hasCeiling;
                 HandleDungeonTints();
