@@ -25,6 +25,8 @@ namespace ShaderSetup
         int loc_rings         = -1;
         int loc_glowBoost     = -1;
 
+        int portalOpenLoc     = -1;
+
         // Optional: keep defaults here so you can re-apply them easily (hot reload, reset, etc.)
         float speed         = 1.4f;
         float swirlStrength = 1.2f;
@@ -32,6 +34,8 @@ namespace ShaderSetup
         float edgeFeather   = 0.08f;
         float rings         = 0.7f;
         float glowBoost     = 0.8f;
+
+  
 
         // Vector3 colorA = { 0.5f, 0.5f, 0.5f }; //gray
         // Vector3 colorB = { 0.1f, 0.1f, 0.1f };

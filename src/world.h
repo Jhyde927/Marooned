@@ -150,6 +150,7 @@ void DrawBloodParticles(Camera& camera);
 void DrawOverworldProps();
 void DrawCannons();
 void UpdateCannons(float deltaTime);
+void EventLockAllDoors(bool lock);
 void DrawReticle(WeaponType& weaponType);
 Vector3 ResolveSpawnPoint(const LevelData& level, bool isDungeon, bool first, float floorHeight);
 float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terrainScale);

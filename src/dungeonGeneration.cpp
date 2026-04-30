@@ -20,6 +20,7 @@
 #include "box.h"
 #include "switch_tile.h"
 #include "powerUps.h"
+#include "spawn_manager.h"
 
 Texture2D ceilingVoidMaskTex;
 Texture2D ceilingMaskTex;
@@ -1536,6 +1537,24 @@ void GenerateShipProps(float baseY) {
     }
 }
 
+void GenerateSpawners(float baseY){
+    int spawnerCount = 0;
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];  
+            if (EqualsRGB(current, ColorOf(Code::spawner))){
+
+                Spawner spawner;
+                spawner.position = GetDungeonWorldPos(x, y, tileSize, baseY);
+                spawner.type = (spawnerCount % 2 == 0) ? SpawnerType::Pirate : SpawnerType::Skeleton;
+                SpawnManager::spawners.push_back(spawner);
+
+                spawnerCount++;
+            }
+        }
+    }
+
+}
 
 
 
@@ -2237,18 +2256,33 @@ void GenerateCannonFromImage(float baseY){
 
 }
 
-void GenerateKrakenFromImage(float baseY){
-    for (int y = 0; y < dungeonHeight; y++) {
-        for (int x = 0; x < dungeonWidth; x++) {
+void GenerateKrakenFromImage(float baseY)
+{
+    int spawnCount = 0;
+
+    for (int y = 0; y < dungeonHeight; y++)
+    {
+        for (int x = 0; x < dungeonWidth; x++)
+        {
             Color current = dungeonPixels[y * dungeonWidth + x];
-            if (EqualsRGB(current, ColorOf(Code::kraken))){
-                //spawn kraken
-                gKraken.Init(GetDungeonWorldPos(x, y, tileSize, baseY), 0.0f, 200.0f);
+
+            if (!EqualsRGB(current, ColorOf(Code::kraken)))
+                continue;
+
+            Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+            if (spawnCount == 0)
+            {
+                gKraken.Init(pos, 0.0f, 200.0f);
             }
+            else if (spawnCount == 1)
+            {
+                gKraken.repPos = pos;
+            }
+
+            spawnCount++;
         }
     }
-
-
 }
 
 void GenerateTencalesFromImage(float baseY){
@@ -2398,7 +2432,7 @@ void GenerateShipLevel(){
     GenerateKrakenFromImage(0.0f);
     GenerateCannonFromImage(180.0f);
     GenerateCannonBallsFromImage(115.0f);
-
+    GenerateSpawners(dungeonEnemyHeight);
     GenerateShipSkirtsFromVoidMask(floorHeight-75);
     GenerateShipProps(floorHeight);
 

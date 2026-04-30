@@ -354,6 +354,7 @@ void GenerateTencalesFromImage(float baseY);
 void GenerateKrakenFromImage(float baseY);
 void GenerateCannonFromImage(float baseY);
 void GenerateCannonBallsFromImage(float baseY);
+void GenerateSpawners(float baseY);
 void GenerateEnemiesFromImage(float dungeonEnemyHeight);
 void GenerateShipLevel();
 void GenerateShipSkirtsFromVoidMask(float baseY);
@@ -361,6 +362,7 @@ void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
+
 int Idx(int x, int y); 
 //void CreateVoidMaskTexture(int w, int h);
 //void UpdateVoidMaskTextureFromCPU();

@@ -62,13 +62,24 @@ public:
     void SetVisible(bool visible);
     bool IsVisible() const;
 
+    Vector3 GetHeadPosition() const;
+    void UpdateHitBox();
+
     State GetState() const;
 
     BoundingBox hitBox;
+    Vector3 repPos;
+    Vector3 startPos;
     float hitTimer = 0.0f;
-    float maxHealth = 1000.0f;
-    float currentHealth = 1000.0f;
+    float maxHealth = 2000.0f;
+    float currentHealth = 2000.0f;
     bool canTakeDamage = true;
+    bool playerInRange = false;
+    bool repositionAfterSink = false;
+    bool isDead = false;
+    bool didHalfHealthReposition = false;
+    bool didQuarterHealthReposition = false;
+
 
 
 private:

@@ -22,9 +22,14 @@ public:
 
     Tentacle();
 
+    Vector3 undersideOffset;
+    bool playerInRange; 
+    bool isDead;
+    bool canDie;
+
     // Setup
     void Init(const Vector3& rootPosition, int segmentCount, float segmentLength);
-    Vector3 undersideOffset;
+
     // Game loop
     void Update(float dt, const Vector3& target, Player& player, std::vector<Character*> pirates);
     void Draw() const;
@@ -66,8 +71,9 @@ private:
     Vector3 attackTarget;
     Vector3 slamStartTip;
     Vector3 slamTarget;
+    bool slamTargetLocked = false;
     float attackRange;
-    bool playerInRange;
+
     bool pirateInRange;
 
     //Ermerge

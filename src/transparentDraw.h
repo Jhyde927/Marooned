@@ -4,6 +4,7 @@
 #include "decal.h"
 #include "weapon.h"
 #include "portal.h"
+#include "spawn_manager.h"
 
 struct PortalPalette
 {
@@ -32,6 +33,7 @@ struct BillboardDrawRequest {
     bool isPortal;
     bool isOpen;
     PortalPalette pallet;
+    float openAmount;
 };
 
 extern std::vector<BillboardDrawRequest> billboardRequests;
@@ -44,6 +46,6 @@ void GatherEnemies(Camera& camera);
 void GatherDungeonFires(Camera& camera, float deltaTime);
 void GatherWebs(Camera& camera);
 void GatherDecals(Camera& camera, const std::vector<Decal>& decals);
-
+void GatherSpawnPortals(Camera& camera);
 void GatherPortals(Camera& camera, const std::vector<Portal>& portals);
 float GetAdjustedBillboardSize(float baseSize, float distance);

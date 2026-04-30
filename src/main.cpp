@@ -17,6 +17,7 @@
 #include "miniMap.h"
 #include "shaderSetup.h"
 #include "portal.h"
+#include "spawn_manager.h"
 
 
 //As above, so below.
@@ -170,6 +171,7 @@ int main() {
             UpdatePowerUps(player, deltaTime);
             UpdateLauncherTraps(deltaTime);
             UpdateMonsterDoors(deltaTime);
+            SpawnManager::Update(deltaTime);
             UpdateDungeonChests();
             raft.Update(deltaTime);
             UpdateDoorDelayedActions(deltaTime);

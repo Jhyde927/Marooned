@@ -116,6 +116,8 @@ void Tentacle::Init(const Vector3& rootPosition, int segmentCount, float newSegm
     tipHitCenter = rootPos;
     tipHitRadius = 100.0f;
     canHit = true;
+    isDead = false;
+    canDie = true;
 
     joints.clear();
     joints.reserve(segmentCount);
@@ -157,6 +159,7 @@ void Tentacle::ChangeState(TentacleState newState)
         slamStartTip = joints.back();
         canHit = true;
         slamSoundPlayed = false;
+        slamTargetLocked = false;
         if (playerInRange)
         {
             slamTarget = attackTarget;
@@ -167,6 +170,10 @@ void Tentacle::ChangeState(TentacleState newState)
 
 void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vector<Character*> pirates)
 {
+    if (canDie && isDead){
+        canDie = false;
+        state = TentacleState::Windup; //windup before dying for dramatic effect. 
+    } 
     stateTimer += dt;
     pirateInRange = false;
     playerInRange = false;
@@ -183,6 +190,8 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vect
         bestDistSq = playerDistSq;
         attackTarget = player.position;
         playerInRange = true;
+
+        
     }
 
     // Check pirates
@@ -205,11 +214,11 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vect
         }
     }
 
-    tipHitActive = (state == TentacleState::Slam);
+    tipHitActive = (state == TentacleState::Windup);
 
     if (state == TentacleState::Slam && stateTimer > 0.2f && canHit){
         if (CheckCollisionBoxSphere(player.GetBoundingBox(), tipHitCenter, tipHitRadius)){
-            player.TakeDamage(50);
+            player.TakeDamage(15);
             canHit = false;
             
         }
@@ -233,6 +242,10 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vect
 
         case TentacleState::Hidden:
         {
+            if (isDead){
+                //stayHidden
+                 break;
+            }
             UpdateHidden(dt);
             break;
         }
@@ -245,10 +258,17 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vect
 
         case TentacleState::Windup:
         {
+
             UpdateWindup(dt);
 
-            if (stateTimer > 0.5f)
+            if (isDead && stateTimer > 2.0f){
+                state = TentacleState::Withdraw;
+                break;
+            }
+
+            if (stateTimer > 0.5f && !isDead)
             {
+
                 ChangeState(TentacleState::Slam);
             }
             break;
@@ -397,29 +417,67 @@ void Tentacle::UpdateSlam(float dt, Player& player)
 {
     (void)dt;
 
-    float slamDuration = 0.35f;
+    const float slamDuration = 0.35f;
+    const float lockTime = 0.50f; // halfway through slam
     float t = stateTimer / slamDuration;
     t = Clamp(t, 0.0f, 1.0f);
 
-    Vector3 desiredTip = Vector3Lerp(slamStartTip, attackTarget, t);
+    // Track target during early slam, then lock it.
+    if (!slamTargetLocked)
+    {
+        slamTarget = attackTarget;
 
-    float lift = (1.0f - t) * (1.0f - t) * 350.0f;
-    desiredTip.y += lift;
+        if (t >= lockTime)
+        {
+            slamTargetLocked = true;
+        }
+    }
 
-    // Prevent stabbing through deck
+    // Target the enemy's feet / deck position, not their body center.
+    Vector3 feetTarget = { slamTarget.x, deckHeight, slamTarget.z };
+
+    // Ease the horizontal travel slightly so it doesn't feel perfectly linear.
+    float moveT = t * t * (3.0f - 2.0f * t); // smoothstep
+
+    Vector3 desiredTip = Vector3Lerp(slamStartTip, feetTarget, moveT);
+
+    // Big early lift that collapses quickly near the end.
+    const float liftHeight = 350.0f;
+    float arc = sinf(t * PI);              // rises then falls
+    float slamBias = powf(t, 2.5f);        // makes the end drop harder
+
+    desiredTip.y += arc * liftHeight * (1.0f - slamBias);
+
+    // Tiny overshoot near impact, then clamp back to deck.
+    // This helps it read like it hit the floor instead of politely stopping.
+    const float overshootDepth = 45.0f;
+
+    if (t > 0.85f)
+    {
+        float impactT = (t - 0.85f) / 0.15f;
+        impactT = Clamp(impactT, 0.0f, 1.0f);
+
+        desiredTip.y = Lerp(desiredTip.y, deckHeight - overshootDepth, impactT);
+    }
+
+    // Final physical clamp.
     if (desiredTip.y < deckHeight)
         desiredTip.y = deckHeight;
 
-
-    if (!slamSoundPlayed && desiredTip.y <= deckHeight + 50.0f)
+    // Play slam sound once when the tip reaches the deck.
+    if (!slamSoundPlayed && t >= 0.95f)
     {
         slamSoundPlayed = true;
-        SoundManager::GetInstance().PlaySoundAtPosition("tentacleSlam", joints.back(), player.position, 0.0f, 4000.0f);
+        SoundManager::GetInstance().PlaySoundAtPosition(
+            "tentacleSlam",
+            desiredTip,
+            player.position,
+            0.0f,
+            4000.0f
+        );
     }
 
     joints.back() = desiredTip;
-
-
 }
 
 void Tentacle::UpdateRecover(float dt)

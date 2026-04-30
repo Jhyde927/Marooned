@@ -28,6 +28,8 @@ namespace ShaderSetup
         ps.loc_edgeFeather   = GetShaderLocation(sh, "u_edgeFeather");
         ps.loc_rings         = GetShaderLocation(sh, "u_rings");
         ps.loc_glowBoost     = GetShaderLocation(sh, "u_glowBoost");
+        ps.portalOpenLoc =    GetShaderLocation(sh, "u_openAmount");
+    
     }
 
     void ApplyPortalDefaults(PortalShader& ps)
@@ -368,10 +370,12 @@ namespace ShaderSetup
     }
 
     void UpdatePortalShader(PortalShader& ps, float t){
-        
+        Shader& portalShader = R.GetShader("portalShader");
         int loc_time_p = GetShaderLocation(R.GetShader("portalShader"), "u_time");
         //portal
-        SetShaderValue(R.GetShader("portalShader"), loc_time_p, &t, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(portalShader, loc_time_p, &t, SHADER_UNIFORM_FLOAT);
+
+        //need spawners
 
     }
 

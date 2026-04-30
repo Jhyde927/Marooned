@@ -13,6 +13,8 @@
 #include "NPC.h"
 #include "portal.h"
 #include "utilities.h"
+#include "shaderSetup.h"
+
 
 std::vector<BillboardDrawRequest> billboardRequests;
 
@@ -171,7 +173,58 @@ void GatherNPCs(Camera& camera)
     }
 }
 
+float GetSpawnerPortalOpenAmount(const Spawner& s)
+{
+    constexpr float warningTime = 2.0f;
+    constexpr float winkTime = 0.5f;
 
+    float timeUntilSpawn = s.cooldown - s.timer;
+
+    // Opening during first part of the 2 second warning
+    if (timeUntilSpawn <= warningTime && timeUntilSpawn > 0.0f)
+    {
+        float t = warningTime - timeUntilSpawn;
+        return Clamp(t / winkTime, 0.0f, 1.0f);
+    }
+
+    // Closing after spawn
+    if (s.portalTimer > 0.0f)
+    {
+        return Clamp(s.portalTimer / winkTime, 0.0f, 1.0f);
+    }
+
+    return 0.0f;
+}
+
+void GatherSpawnPortals(Camera& camera){
+     for (Spawner& sp : SpawnManager::spawners){
+        //if (!sp.showPortal) continue;
+        float dist = Vector3Distance(camera.position, sp.position);
+        Texture2D& pTex = R.GetTexture("whiteGradient");
+        Vector3 portalPos = {sp.position.x, sp.position.y + 50.0f, sp.position.z};
+        PortalPalette palette = GetPortalPalette(3);
+        float openAmount = GetSpawnerPortalOpenAmount(sp);
+
+        if (openAmount <= 0.0f) continue;
+        
+
+        billboardRequests.push_back({
+            Billboard_FacingCamera, 
+            portalPos,
+            pTex,
+            Rectangle{0, 0, (float)pTex.width, (float)pTex.height},
+            Vector2{100, 100},
+            WHITE, //tint
+            dist,
+            0.0f,
+            false,
+            true,
+            false,
+            palette,
+            openAmount
+        });
+     }
+}
 
 void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
     for (const Portal& p : portals) {
@@ -192,7 +245,8 @@ void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
             false,
             true,
             false,
-            palette
+            palette,
+            1.0f //portal open amount fully open for normal portals. 
         });
     }
 }
@@ -461,6 +515,8 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
     GatherSpiderEggDrawRequests(camera);
     GatherGrapplePoint(camera);
     GatherPortals(camera, portals);
+    GatherSpawnPortals(camera);
+   
 }
 
 void SetPortalShaderColor(Vector3 colorA, Vector3 colorB){
@@ -498,7 +554,7 @@ void DrawTransparentDrawRequests(Camera& camera) {
         if (req.flipX) {
             src.width = -src.width; // negative width flips UVs
         }
-
+        SetShaderValue(R.GetShader("portalShader"), ShaderSetup::gPortal.portalOpenLoc, &req.openAmount, SHADER_UNIFORM_FLOAT);
 
                 
         switch (req.type) {

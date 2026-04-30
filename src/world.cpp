@@ -872,8 +872,12 @@ void UpdateNPCs(float deltaTime){
 
 void UpdateEnemies(float deltaTime) {
     if (isLoadingLevel) return;
-    for (Character& e : enemies){
-        e.Update(deltaTime, player);
+    // for (Character& e : enemies){
+    //     e.Update(deltaTime, player);
+    // }
+
+    for (Character* e : enemyPtrs){
+        e->Update(deltaTime, player);
     }
 
 
@@ -942,9 +946,17 @@ void UpdateCannons(float deltaTime){
 
 void UpdateKraken(float deltaTime){
     gKraken.Update(deltaTime, player);
+    if (gKraken.isDead){
+        EventLockAllDoors(false);
+    }
 
     for (Tentacle& t : tentacles){
+        if (gKraken.isDead){
+            t.isDead = true;
+        }
         t.Update(deltaTime, Vector3{0}, player, enemyPtrs);
+
+        
     }
 }
 
@@ -1093,27 +1105,21 @@ void SpawnTentacle(Vector3 startPos, bool onRight){
     Tentacle tentacle;
     //offset the underbelly in the opposite direction if onRight is true. 
     tentacle.undersideOffset = onRight ? Vector3{ 15.0f, -8.0f,  0.0f } : Vector3{ -15.0f, -8.0f,  0.0f };
-    tentacle.Init(startPos, 10, 150.0f);
+    tentacle.Init(startPos, 13, 150.0f); //13, 150.0f
     tentacles.push_back(tentacle);
 }
 
-// void InitTentacle()
-// {
-//     //1520.04, 219.993, 3299.25)
-//     Tentacle tentacle;
-//     Tentacle tentacle2;
-//     Vector3 rootPos = {4480.0f, 0.0f, 3501.0f};
-//     Vector3 rootPos2 = {1520.0f, 0.0f, 3299.0f};
-
-//     tentacle.undersideOffset = { -15.0f, -8.0f,  0.0f };
-//     tentacle2.undersideOffset = {  15.0f, -8.0f,  0.0f };
-//     tentacle.Init(rootPos, 8, 150.0f);
-//     tentacle2.Init(rootPos2, 8, 150.0f);
-
-//     tentacles.push_back(tentacle);
-//     tentacles.push_back(tentacle2);
-
-// }
+void EventLockAllDoors(bool lock){
+    //specifically for ship level, but could be reused for other boss fights. 
+    for (Door& door : doors){
+        if (lock){
+            door.isOpen = false; //closes all doors. I guess that's ok. 
+            door.eventLocked = true;
+        }else{
+            door.eventLocked = false;
+        }
+    }
+}
 
 
 
@@ -1313,6 +1319,9 @@ void UpdateWorldFrame(float dt, Player& player) {
 
 void eraseCharacters() {
     // Remove dead enemies
+
+    // IMPORTANT: enemies is a vector → pointers invalid after erase or reallocation
+    // Always rebuild enemyPtrs after modifying this container
     enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
         [](const Character& e) {
             return e.isDead && e.deathTimer > 5.0f; //is dead AND deathtimer > 5

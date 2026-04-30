@@ -210,38 +210,7 @@ void ResolvePlayerEnemyMutualCollision(Character* enemy, Player* player) {
     }
 }
 
-void AgroAllSkeletons(){
-    for (Character& e : enemies){
-        if (e.type == CharacterType::Skeleton){
-            e.playerVisible = true;
-            e.canSee = true;
-            e.ChangeState(CharacterState::Chase);
-        }
-    }
 
-}
-
-void AgroAllPirates(){
-    for (Character& e : enemies){
-        if (e.type == CharacterType::Pirate){
-            e.playerVisible = true;
-            e.canSee = true;
-            e.ChangeState(CharacterState::Chase);
-        }
-    }
-
-}
-
-void AgroAllGiantSpiders(){
-    for (Character& e : enemies){
-        if (e.type == CharacterType::GiantSpider){
-            e.playerVisible = true;
-            e.canSee = true;
-            e.ChangeState(CharacterState::Chase);
-        }
-    }
-
-}
 
 
 void SwitchCollision()
@@ -1066,7 +1035,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             }
             else if (barrel.containsMana)
             {
-                Collectable c = {CollectableType::HealthPotion, dropPos,R.GetTexture("manaPotion"), 40};
+                Collectable c = {CollectableType::ManaPotion, dropPos,R.GetTexture("manaPotion"), 40};
                 c.baseY = barrel.position.y + 100.0f;
                 collectables.emplace_back(c);
             }

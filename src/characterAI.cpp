@@ -880,7 +880,7 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                     }
                 }
 
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500);
+                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 200);
                 float speed = 5.0f;
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
             }
@@ -3057,25 +3057,47 @@ Vector3 Character::ComputeRepulsionForce(const std::vector<Character*>& allRapto
 }
 
 
-void Character::AlertNearbySkeletons(Vector3 alertOrigin, float radius) {
-    //*nearby enemies
+void Character::AlertNearbySkeletons(const Vector3& alertOrigin, float radius)
+{
     Vector2 originTile = WorldToImageCoords(alertOrigin);
+    float radiusSq = radius * radius;
 
-    for (Character& other : enemies) {
-        if (&other == this) continue; // Don't alert yourself
-        if (other.isDead || other.state == CharacterState::Chase) continue;
+    for (Character* other : enemyPtrs)
+    {
+        if (other == nullptr) continue;
+        if (other == this) continue;  // Don't alert yourself
+        if (other->isDead) continue;
+        if (other->state == CharacterState::Chase) continue;
 
-        float distSqr = Vector3DistanceSqr(alertOrigin, other.position);
-        if (distSqr > radius * radius) continue;
+        float distSq = Vector3DistanceSqr(alertOrigin, other->position);
+        if (distSq > radiusSq) continue;
 
-        Vector2 targetTile = WorldToImageCoords(other.position);
-        if (!LineOfSightRaycast(originTile, targetTile, dungeonImg, 60, 0.0f)) continue;
+        Vector2 targetTile = WorldToImageCoords(other->position);
 
-        // Passed all checks → alert the skeleton
-        other.ChangeState(CharacterState::Chase); //chase player regardless of LOS
-
+        if (!HasWorldLineOfSight(alertOrigin, other->position)) continue;
+        other->ChangeState(CharacterState::Chase);
     }
 }
+
+// void Character::AlertNearbySkeletons(Vector3 alertOrigin, float radius) {
+//     //*nearby enemies
+//     Vector2 originTile = WorldToImageCoords(alertOrigin);
+
+//     for (Character& other : enemies) {
+//         if (&other == this) continue; // Don't alert yourself
+//         if (other.isDead || other.state == CharacterState::Chase) continue;
+
+//         float distSqr = Vector3DistanceSqr(alertOrigin, other.position);
+//         if (distSqr > radius * radius) continue;
+
+//         Vector2 targetTile = WorldToImageCoords(other.position);
+//         if (!LineOfSightRaycast(originTile, targetTile, dungeonImg, 60, 0.0f)) continue;
+
+//         // Passed all checks → alert the skeleton
+//         other.ChangeState(CharacterState::Chase); //chase player regardless of LOS
+
+//     }
+// }
 
 
 

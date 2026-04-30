@@ -3,6 +3,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include "pathfinding.h"
 
 void Kraken::Init(Vector3 spawnPosition,
                   float inWaterY,
@@ -18,6 +19,7 @@ void Kraken::Init(Vector3 spawnPosition,
     modelLoaded = true;
 
     basePosition = spawnPosition;
+    startPos = spawnPosition;
     waterY = inWaterY;
     scale = inScale;
 
@@ -47,16 +49,56 @@ void Kraken::Init(Vector3 spawnPosition,
     UpdateTransform();
 }
 
-void Kraken::TakeDamage(float amount){
-    if (canTakeDamage){
-        canTakeDamage = false;
-        currentHealth -= amount;
-        hitTimer = 0.5f;
-        std::cout << "Damage: " << amount << "\n";
-        if (currentHealth < 0.0f){
-            state = State::Death;
-            //squid death sound effect.
-        }
+Vector3 Kraken::GetHeadPosition() const
+{
+    return {
+        basePosition.x,
+        basePosition.y + currentHeightOffset,
+        basePosition.z
+    };
+}
+
+void Kraken::UpdateHitBox()
+{
+    Vector3 p = GetHeadPosition();
+
+    hitBox = {
+        { p.x - 200.0f, p.y - 100.0f, p.z - 200.0f },
+        { p.x + 200.0f, p.y + 500.0f, p.z + 200.0f }
+    };
+}
+
+void Kraken::TakeDamage(float amount)
+{
+    if (!canTakeDamage) return;
+
+    canTakeDamage = false;
+    currentHealth -= amount;
+    hitTimer = 0.5f;
+
+    if (!didHalfHealthReposition && currentHealth <= maxHealth * 0.5f)
+    {
+        repositionAfterSink = true;
+        didHalfHealthReposition = true;
+        Sink();
+
+        return;
+    }
+
+    if (!didQuarterHealthReposition && currentHealth <= maxHealth * 0.25f)
+    {
+        didQuarterHealthReposition = true;
+        repositionAfterSink = true;
+        Sink();
+        //Reposition(startPos); // or original basePosition saved at Init
+        return;
+    }
+
+    if (currentHealth <= 0.0f)
+    {
+        isDead = true;
+        state = State::Death;
+        // squid death sound effect
     }
 }
 
@@ -74,6 +116,7 @@ void Kraken::Update(float dt, Player& player)
     UpdateState(dt, player);
     UpdateIdleMotion(dt, player);
     UpdateTransform();
+    UpdateHitBox();
 }
 
 void Kraken::Draw() const
@@ -104,12 +147,17 @@ void Kraken::Rise()
 {
     state = State::Rising;
     targetHeightOffset = exposedOffset;
+    playerInRange = true;
+    
 }
 
 void Kraken::Sink()
 {
     state = State::Sinking;
     targetHeightOffset = hiddenOffset;
+    playerInRange = false;
+
+
 }
 
 void Kraken::HideImmediately()
@@ -136,6 +184,7 @@ void Kraken::TeleportTo(Vector3 newBasePosition)
 
 void Kraken::Reposition(Vector3 newBasePosition)
 {
+    if (state != State::Hidden) return;
     // Simple version:
     // only really makes sense to call while submerged
     basePosition = newBasePosition;
@@ -224,6 +273,7 @@ void Kraken::UpdateState(float dt, Player& player)
 {
     float speed = 0.0f;
     float dist = Vector3Distance(basePosition, player.position);
+    bool hasLOS = HasWorldLineOfSight(basePosition, player.position);
     switch (state)
     {
         case State::Rising:
@@ -248,14 +298,31 @@ void Kraken::UpdateState(float dt, Player& player)
 
         case State::Exposed:
 
-            if (dist > 2000.0f){
+            if (dist > 3000.0f && hasLOS){
                 Sink();
                 break;
             }
 
             break;
         case State::Hidden:
-            if (dist < 2000.0f){
+            if (currentHealth <= 0.0f){
+                //stay hidden
+                break;
+            }
+
+            if (repositionAfterSink){
+                repositionAfterSink = false;
+                if (basePosition == repPos){
+                    Reposition(startPos);
+                }else{
+                    Reposition(repPos);
+                }
+
+
+                break;
+            }
+
+            if (dist < 3000.0f && hasLOS && !repositionAfterSink){
                 Rise();
                 break;
             }

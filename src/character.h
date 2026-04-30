@@ -38,6 +38,11 @@ enum class CharacterState {
     Death,
 };
 
+enum class SpawnSource {
+    Map,
+    Spawner
+};
+
 struct AnimDesc {
     int row;
     int frames;
@@ -168,7 +173,7 @@ public:
 
     FacingMode facingMode = FacingMode::Approaching;
     CharacterType type;
-
+    SpawnSource spawnSource = SpawnSource::Map;
     std::vector<Vector2> currentPath;
     std::vector<Vector3> currentWorldPath;
 
@@ -194,7 +199,8 @@ public:
     void UpdateWizardAI(float deltaTime, Player& player);
     void UpdatePlayerVisibility(const Vector3& playerPos, float dt, float epsilon);
     bool FindRepositionTarget(const Player& player, const Vector3& selfPos, Vector3& outTarget);
-    void AlertNearbySkeletons(Vector3 alertOrigin, float radius);
+    //void AlertNearbySkeletons(Vector3 alertOrigin, float radius);
+    void AlertNearbySkeletons(const Vector3& alertOrigin, float radius);
     void UpdateRaptorVisibility(const Player& player, float dt);
     void UpdatePatrolSteering(float dt);
     void UpdateChaseSteering(float dt);
