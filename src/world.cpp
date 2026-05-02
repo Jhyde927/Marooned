@@ -960,8 +960,8 @@ void UpdateKraken(float deltaTime){
     }
 }
 
-void DrawKraken(){
-    gKraken.Draw();
+void DrawKraken(Camera& camera){
+    gKraken.Draw(camera);
 
     for (Tentacle& t : tentacles){
         t.Draw();

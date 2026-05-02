@@ -4,6 +4,7 @@
 #include "raymath.h"
 #include <string>
 #include "player.h"
+#include "emitter.h"
 
 class Kraken
 {
@@ -26,7 +27,7 @@ public:
 
 
     void Update(float dt, Player& player);
-    void Draw() const;
+    void Draw(Camera& camera) const;
     void TakeDamage(float amount);
     // Movement/state control
     void Rise();
@@ -66,7 +67,7 @@ public:
     void UpdateHitBox();
 
     State GetState() const;
-
+    Emitter bloodEmitter;
     BoundingBox hitBox;
     Vector3 repPos;
     Vector3 startPos;

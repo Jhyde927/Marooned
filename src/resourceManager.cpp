@@ -335,7 +335,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("woodWallHalf",           "assets/Models/woodWallHalf.glb");
     R.LoadModel("woodFloor",              "assets/Models/floorTileWood.glb");
     R.LoadModel("shipMast",               "assets/Models/cartoonMast.glb");
-    R.LoadModel("squidHead",              "assets/Models/squidHead.glb");
+    R.LoadModel("squidHead",              "assets/Models/squidHead2.glb");
     R.LoadModel("cannon",                 "assets/Models/cannon.glb");
     R.LoadModel("cannonBall",             "assets/Models/cannonBall.glb");
     R.LoadModel("cannonBalls",            "assets/Models/cannonBalls.glb");

@@ -133,6 +133,16 @@ void Emitter::CreateParticle(Particle& p) {
             };
             break;
 
+        case ParticleType::Squid:
+            p.color = PURPLE;
+            p.gravity = 980.0f;
+            p.velocity = {
+                RandomFloat(-1000, 1000),
+                RandomFloat(-1000, 3000),
+                RandomFloat(-1000, 1000)
+            };
+            break;
+
         case ParticleType::FireTrail:
         {
             p.color = ORANGE;
@@ -237,6 +247,7 @@ void Emitter::CreateParticle(Particle& p) {
 void Emitter::Draw(Camera3D& camera) const{
     for (const auto& p : particles) {
         p.Draw(camera);
+
         
     }
 }

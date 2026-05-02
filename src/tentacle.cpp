@@ -225,7 +225,7 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vect
 
         for (Character* pirate : pirates){
             if (CheckCollisionBoxSphere(pirate->GetBoundingBox(), tipHitCenter, tipHitRadius)){
-                pirate->TakeDamage(200);
+                pirate->TakeDamage(400); // one shot pirates
                 canHit = false;
             }
         }

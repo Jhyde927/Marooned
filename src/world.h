@@ -174,5 +174,5 @@ void ActivatePowerUp();
 
 void UpdateSlashEffects(float deltaTime);
 void UpdateKraken(float deltaTime);
-void DrawKraken();
+void DrawKraken(Camera& camera);
 void SpawnTentacle(Vector3 startPos, bool onRight);

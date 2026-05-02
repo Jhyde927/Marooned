@@ -12,6 +12,7 @@ enum class ParticleType {
     FireTrail,
     Impact,
     BoltTrail,
+    Squid,
 
 };
 

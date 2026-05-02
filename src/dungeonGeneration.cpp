@@ -2273,7 +2273,7 @@ void GenerateKrakenFromImage(float baseY)
 
             if (spawnCount == 0)
             {
-                gKraken.Init(pos, 0.0f, 200.0f);
+                gKraken.Init(pos, 0.0f, 150.0f);
             }
             else if (spawnCount == 1)
             {

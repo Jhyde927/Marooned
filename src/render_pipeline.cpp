@@ -199,7 +199,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
             if (levels[gCurrentLevelIndex].name == "Ship"){
                 DrawWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly.
-                DrawKraken();
+                DrawKraken(camera);
                 //DrawModel(R.GetModel("cannon"), Vector3{2655, 210, 1209}, 25.0f, GRAY);
                 DrawCannons();
             }

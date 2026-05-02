@@ -1,6 +1,7 @@
 #include "spawn_manager.h"
 #include "world.h"
 #include "resourceManager.h"
+#include "sound_manager.h"
 
 namespace SpawnManager
 {
@@ -58,7 +59,6 @@ namespace SpawnManager
             if (spawner.portalTimer > 0.0f)
             {
                 spawner.portalTimer -= dt;
-                std::cout << "portalTimer = " << spawner.portalTimer << "\n";
             }
 
 
@@ -71,6 +71,8 @@ namespace SpawnManager
             {
                 
                 spawner.timer = 0.0f;
+                SoundManager::GetInstance().PlaySoundAtPosition("portal", spawner.position, player.position, 0.0f, 3000.0f);
+
                 switch (spawner.type)
                 {
                     case SpawnerType::Skeleton:
