@@ -197,12 +197,12 @@ float GetSpawnerPortalOpenAmount(const Spawner& s)
 }
 
 void GatherSpawnPortals(Camera& camera){
-     for (Spawner& sp : SpawnManager::spawners){
-        //if (!sp.showPortal) continue;
+     if (gKraken.isDead) return;
+    for (Spawner& sp : SpawnManager::spawners){
         float dist = Vector3Distance(camera.position, sp.position);
         Texture2D& pTex = R.GetTexture("whiteGradient");
         Vector3 portalPos = {sp.position.x, sp.position.y + 50.0f, sp.position.z};
-        PortalPalette palette = GetPortalPalette(3);
+        PortalPalette palette = GetPortalPalette(0);
         float openAmount = GetSpawnerPortalOpenAmount(sp);
 
         if (openAmount <= 0.0f) continue;
@@ -223,7 +223,7 @@ void GatherSpawnPortals(Camera& camera){
             palette,
             openAmount
         });
-     }
+    }
 }
 
 void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {

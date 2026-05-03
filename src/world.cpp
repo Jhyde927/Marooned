@@ -1061,6 +1061,8 @@ void DrawBloodParticles(Camera& camera){
     for (SpiderEgg& egg : eggs){
         egg.gooEmitter.Draw(camera);
     }
+    gKraken.bloodEmitter.Draw(camera);
+    
 }
 
 void DrawBullets(Camera& camera) {

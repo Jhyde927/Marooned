@@ -311,6 +311,12 @@ void Bullet::Update(Camera& camera, float deltaTime) {
 
     }else if (type == BulletType::CannonBall){
         velocity.y -= gravity * deltaTime;
+        fireEmitter.SetParticleType(ParticleType::Smoke);
+        sparkEmitter.SetParticleType(ParticleType::FireTrail);
+        fireEmitter.SetPosition(position);
+        sparkEmitter.SetPosition(position);
+        sparkEmitter.UpdateTrail(deltaTime);
+        fireEmitter.UpdateTrail(deltaTime);
 
     }
 

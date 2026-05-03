@@ -28,7 +28,7 @@ void Kraken::Init(Vector3 spawnPosition,
     bobEnabled = true;
 
     bloodEmitter.SetPosition(basePosition);
-    bloodEmitter.SetParticleSize(10.0f);
+    bloodEmitter.SetParticleSize(100.0f);
     bloodEmitter.SetParticleType(ParticleType::Squid);
 
 
@@ -81,8 +81,8 @@ void Kraken::TakeDamage(float amount)
     currentHealth -= amount;
     hitTimer = 0.5f;
     Vector3 bloodPos = {basePosition.x, basePosition.y + 500.0f, basePosition.z};
-    bloodEmitter.EmitBlood(bloodPos, 500, PURPLE);
 
+    bloodEmitter.EmitBurst(bloodPos, 100, ParticleType::Squid);
     if (!didHalfHealthReposition && currentHealth <= maxHealth * 0.5f)
     {
         repositionAfterSink = true;
@@ -118,9 +118,12 @@ void Kraken::Update(float dt, Player& player)
         hitTimer -= dt;
     }else{
         canTakeDamage = true;
+        bloodEmitter.SetCanBurst(true);
     }
+    bloodEmitter.SetPosition(basePosition);
 
-    bloodEmitter.UpdateBlood(dt);
+
+    bloodEmitter.Update(dt);
     UpdateState(dt, player);
     UpdateIdleMotion(dt, player);
     UpdateTransform();
@@ -144,10 +147,9 @@ void Kraken::Draw(Camera& camera) const
         drawPosition,
         Vector3{0.0f, 1.0f, 0.0f},
         currentYawDeg,
-        Vector3{scale, scale, scale},
+        Vector3{scale, scale, scale}, //scale passed to init from world. 150.
         tintColor
     );
-    bloodEmitter.Draw(camera);
     //DrawBoundingBox(hitBox, tintColor);
 }
 

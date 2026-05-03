@@ -64,14 +64,25 @@ void Cannon::Update(float dt, Player& player)
 
 void Cannon::Draw() const
 {
-
-    // Optional: small fake recoil by shifting backward while recoilTimer is active
     Vector3 drawPos = position;
+
+    const float recoilDuration = 0.20f;
+    const float recoilDistance = 18.0f;
 
     if (recoilTimer > 0.0f)
     {
+        float t = recoilTimer / recoilDuration;
+        t = Clamp(t, 0.0f, 1.0f);
+
+        // 1 when recoil starts, 0 when finished
+        // Smooth it so it eases back into place
+        float recoilAmount = t * t * (3.0f - 2.0f * t);
+
         Vector3 forward = GetForward();
-        drawPos = Vector3Subtract(drawPos, Vector3Scale(forward, 12.0f));
+        drawPos = Vector3Subtract(
+            position,
+            Vector3Scale(forward, recoilDistance * recoilAmount)
+        );
     }
 
     DrawModelEx(
@@ -82,8 +93,6 @@ void Cannon::Draw() const
         Vector3{ 25.0f, 25.0f, 25.0f },
         GRAY
     );
-    
-
 }
 
 bool Cannon::IsPlayerInRange(const Player& player, float extraRange) const

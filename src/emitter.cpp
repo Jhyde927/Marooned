@@ -20,6 +20,10 @@ void Emitter::SetColor(Color c){
     color = c;
 }
 
+void Emitter::SetCanBurst(bool value){
+    canBurst = value;
+}
+
 void Emitter::SetParticleSize(float p_size){
     size = p_size;
 }
@@ -64,6 +68,7 @@ void Emitter::EmitBurst(Vector3 pos, int count, ParticleType t) {
         SetPosition(pos);
         SetParticleType(t);
         EmitParticles(count);
+        std::cout << "emitting burst\n";
         
     }
 }
@@ -124,6 +129,7 @@ void Emitter::CreateParticle(Particle& p) {
 
     switch (particleType) {
         case ParticleType::Sparks:
+
             p.color = ORANGE;
             p.gravity = 980.0f;
             p.velocity = {
@@ -134,11 +140,12 @@ void Emitter::CreateParticle(Particle& p) {
             break;
 
         case ParticleType::Squid:
-            p.color = PURPLE;
+
+            p.color = DARKPURPLE;
             p.gravity = 980.0f;
             p.velocity = {
                 RandomFloat(-1000, 1000),
-                RandomFloat(-1000, 3000),
+                RandomFloat(0, 3000),
                 RandomFloat(-1000, 1000)
             };
             break;

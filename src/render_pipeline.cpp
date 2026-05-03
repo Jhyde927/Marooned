@@ -143,6 +143,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         ClearBackground(SKYBLUE);
         float farClip = isDungeon ? 50000.0f : 100000.0f;
         float nearclip = 30.0f;
+
         CameraSystem::Get().BeginCustom3D(camera, nearclip, farClip);
 
         //skybox
@@ -225,7 +226,9 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         DrawTransparentDrawRequests(camera);
         rlDisableDepthMask();
         DrawBloodParticles(camera);
+
         rlEnableDepthMask();
+
 
 
         EndBlendMode();

@@ -32,6 +32,7 @@ public:
     void SetParticleSize(float p_size);
     void SetEmissionRate(float emRate);
     void SetVelocity(Vector3 vel);
+    void SetCanBurst(bool value);
     void SetParticleType(ParticleType type) { particleType = type; }
     void UpdateTrail(float dt);
 
