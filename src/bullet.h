@@ -44,7 +44,7 @@ public:
     bool fireball = false;
     float age;
     float maxLifetime;
-    float lifeTime = 1.5f;
+    float lifeTime;
     float timeSinceImpact = 0.0f;
     float timer;
     float gravity = 300.0f;

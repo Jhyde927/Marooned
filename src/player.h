@@ -22,6 +22,14 @@ struct GroundHit
     float groundY;   // what Y you'd snap to if solid
 };
 
+struct MeleeHitVolume
+{
+    bool active = false;
+    int attackId = 0;
+
+    std::vector<BoundingBox> boxes;
+};
+
 
 
 struct Player {
@@ -32,8 +40,11 @@ struct Player {
     Vector3 startPosition;
     float startRotationY;
     Vector3 previousPosition;
+    
     BoundingBox meleeHitbox;
     BoundingBox blockHitbox;
+    MeleeHitVolume meleeVolume;
+
     Inventory inventory;
 
     

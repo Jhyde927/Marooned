@@ -60,9 +60,9 @@ TreeType RandomTreeType()
 
 
 void generateVegetation(){
-
-    float treeSpacing = (levels[gCurrentLevelIndex].name == "Swamp") ? 150 : 150; // higher spacing for swamp
-    float minTreeSpacing = (levels[gCurrentLevelIndex].name == "Swamp") ? 50 : 50;
+    bool isSwamp = CurrentLevelIs("Swamp");
+    float treeSpacing = isSwamp ? 150 : 150; // higher spacing for swamp
+    float minTreeSpacing = isSwamp ? 50 : 50;
 
     float treeHeightThreshold = terrainScale.y * 0.8f;
     float bushHeightThreshold = terrainScale.y * 0.9f;
@@ -439,7 +439,7 @@ void DrawTrees(const std::vector<TreeInstance>& trees, Camera& camera){
         float scale = tree->useAltModel ? 80.0f : 150.0f;
         if (dist < cullDist){
 
-            if (levels[gCurrentLevelIndex].name == "Swamp"){
+            if (CurrentLevelIs("Swamp")){
                 DrawModelEx(swampTree, pos, { 0, 1, 0 }, tree->rotationY, { scale, scale, scale }, WHITE);
             }else{
                 DrawModelEx(treeModel, pos, { 0, 1, 0 }, tree->rotationY, { tree->scale, tree->scale, tree->scale }, WHITE);

@@ -689,33 +689,139 @@ void UpdateSwimSounds(float deltaTime){
 
 }
 
-void UpdateMeleeHitbox(Camera& camera){
-    if (meleeWeapon.hitboxActive || magicStaff.hitboxActive) {
-        Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-        //Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, { 0, 1, 0 }));
 
-        Vector3 hitboxCenter = Vector3Add(player.position, Vector3Scale(forward, 200.0f));
-        hitboxCenter.y += 0.0f; 
+void UpdateMeleeHitbox(Camera& camera)
+{
+    const bool active = meleeWeapon.hitboxActive || magicStaff.hitboxActive;
 
-        Vector3 boxSize = {100.0f, 100.0f, 100.0f};
+    player.meleeVolume.active = active;
+    player.meleeVolume.boxes.clear();
 
-        Vector3 min = {
-            hitboxCenter.x - boxSize.x * 0.5f,
-            hitboxCenter.y - boxSize.y * 0.5f,
-            hitboxCenter.z - boxSize.z * 0.5f
-        };
-        Vector3 max = {
-            hitboxCenter.x + boxSize.x * 0.5f,
-            hitboxCenter.y + boxSize.y * 0.5f,
-            hitboxCenter.z + boxSize.z * 0.5f
-        };
-
-        player.meleeHitbox = { min, max };
-    } else {
-        // Collapse the hitbox to prevent accidental damage
+    if (!active)
+    {
+        // Collapse old single hitbox for safety
         player.meleeHitbox = { player.position, player.position };
+        return;
     }
+
+    Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+
+    // Flatten forward so the melee arc stays horizontal.
+    forward.y = 0.0f;
+
+    if (Vector3LengthSqr(forward) < 0.001f)
+    {
+        forward = player.forward;
+    }
+
+    forward = Vector3Normalize(forward);
+
+    Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, { 0.0f, 1.0f, 0.0f }));
+
+    // Arc settings.
+    // Tune these while drawing debug boxes.
+    const int boxCount = 5;
+    const float range = 200.0f;
+    const float arcWidth = 220.0f;
+    const float closeRange = 70.0f;
+
+    const Vector3 boxSize = { 45.0f, 60.0f, 45.0f };
+
+    for (int i = 0; i < boxCount; ++i)
+    {
+        float t = 0.0f;
+
+        if (boxCount > 1)
+            t = (float)i / (float)(boxCount - 1);
+
+        // -1 left, 0 center, +1 right
+        float side = (t * 2.0f) - 1.0f;
+
+        // Makes the center boxes farther forward and side boxes slightly closer,
+        // giving it a curved/fan shape instead of a flat line.
+        float forwardDist = range - fabsf(side) * 50.0f;
+
+        Vector3 center = player.position;
+        center = Vector3Add(center, Vector3Scale(forward, forwardDist));
+        center = Vector3Add(center, Vector3Scale(right, side * arcWidth * 0.5f));
+
+        // Put the hitboxes roughly at chest/weapon height.
+        center.y += 0.0f;
+
+        BoundingBox box;
+        box.min = {
+            center.x - boxSize.x * 0.5f,
+            center.y - boxSize.y * 0.5f,
+            center.z - boxSize.z * 0.5f
+        };
+
+        box.max = {
+            center.x + boxSize.x * 0.5f,
+            center.y + boxSize.y * 0.5f,
+            center.z + boxSize.z * 0.5f
+        };
+
+        player.meleeVolume.boxes.push_back(box);
+    }
+
+    // Add one forgiving close box so face-hugging webs/barrels/enemies still get hit.
+    // {
+    //     Vector3 center = Vector3Add(player.position, Vector3Scale(forward, closeRange));
+    //     center.y += 20.0f;
+
+    //     Vector3 closeBoxSize = { 140.0f, 130.0f, 140.0f };
+
+    //     BoundingBox closeBox;
+    //     closeBox.min = {
+    //         center.x - closeBoxSize.x * 0.5f,
+    //         center.y - closeBoxSize.y * 0.5f,
+    //         center.z - closeBoxSize.z * 0.5f
+    //     };
+
+    //     closeBox.max = {
+    //         center.x + closeBoxSize.x * 0.5f,
+    //         center.y + closeBoxSize.y * 0.5f,
+    //         center.z + closeBoxSize.z * 0.5f
+    //     };
+
+    //     player.meleeVolume.boxes.push_back(closeBox);
+    // }
+
+    // Compatibility: old systems that only check player.meleeHitbox
+    // will at least use the center-ish box.
+    // if (!player.meleeVolume.boxes.empty())
+    // {
+    //     player.meleeHitbox = player.meleeVolume.boxes[player.meleeVolume.boxes.size() / 2];
+    // }
 }
+
+// void UpdateMeleeHitbox(Camera& camera){
+//     if (meleeWeapon.hitboxActive || magicStaff.hitboxActive) {
+//         Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+//         //Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, { 0, 1, 0 }));
+
+//         Vector3 hitboxCenter = Vector3Add(player.position, Vector3Scale(forward, 200.0f));
+//         hitboxCenter.y += 0.0f; 
+
+//         Vector3 boxSize = {100.0f, 100.0f, 100.0f};
+
+//         Vector3 min = {
+//             hitboxCenter.x - boxSize.x * 0.5f,
+//             hitboxCenter.y - boxSize.y * 0.5f,
+//             hitboxCenter.z - boxSize.z * 0.5f
+//         };
+//         Vector3 max = {
+//             hitboxCenter.x + boxSize.x * 0.5f,
+//             hitboxCenter.y + boxSize.y * 0.5f,
+//             hitboxCenter.z + boxSize.z * 0.5f
+//         };
+
+//         player.meleeHitbox = { min, max };
+//     } else {
+//         // Collapse the hitbox to prevent accidental damage
+//         player.meleeHitbox = { player.position, player.position };
+//     }
+// }
 
 void InitSword(MeleeWeapon& meleeWeapon){
     //init sword
@@ -1234,6 +1340,17 @@ void DrawWeapons(const Player& player, Camera& camera) {
 
 }
 
+void DrawMeleeVolumeDebug(const MeleeHitVolume& volume)
+{
+    if (!volume.active)
+        return;
+
+    for (const BoundingBox& box : volume.boxes)
+    {
+        DrawBoundingBox(box, RED);
+    }
+}
+
 void DrawPlayer(const Player& player, Camera& camera) {
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
@@ -1276,6 +1393,7 @@ void DrawPlayer(const Player& player, Camera& camera) {
         }
     }
 
+    //DrawMeleeVolumeDebug(player.meleeVolume);
     //DrawBoundingBox(player.meleeHitbox, WHITE);
  
 

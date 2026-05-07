@@ -521,9 +521,12 @@ void Tentacle::UpdateWithdraw(float dt)
     }
 }
 
+
 void Tentacle::Draw() const
 {
-    if (joints.size() < 2)
+    const size_t jointCount = joints.size();
+
+    if (jointCount < 2)
         return;
 
     if (visibleSegments <= 0)
@@ -534,21 +537,20 @@ void Tentacle::Draw() const
 
     const float gap = 2.0f;
 
-    const size_t bodySegmentCount = joints.size() - 2;
+    const size_t tipStartIndex = jointCount - 2;
+    const size_t tipEndIndex   = jointCount - 1;
+    const size_t bodySegmentCount = jointCount - 2;
 
-    // visibleSegments includes the tip, so body gets one less
     int visibleBodySegments = visibleSegments - 1;
     if (visibleBodySegments < 0)
         visibleBodySegments = 0;
 
-    size_t firstVisibleBodyIndex = bodySegmentCount;
-    if ((size_t)visibleBodySegments < bodySegmentCount)
-        firstVisibleBodyIndex = bodySegmentCount - visibleBodySegments;
-    else
-        firstVisibleBodyIndex = 0;
+    size_t firstVisibleBodyIndex = 0;
 
-    // Draw visible body segments only
-    for (size_t i = firstVisibleBodyIndex; i < joints.size() - 2; ++i)
+    if ((size_t)visibleBodySegments < bodySegmentCount)
+        firstVisibleBodyIndex = bodySegmentCount - (size_t)visibleBodySegments;
+
+    for (size_t i = firstVisibleBodyIndex; i < tipStartIndex; ++i)
     {
         Vector3 start = joints[i];
         Vector3 end   = joints[i + 1];
@@ -561,10 +563,10 @@ void Tentacle::Draw() const
         Vector3 dir = Vector3Scale(diff, 1.0f / len);
 
         Vector3 newStart = Vector3Add(start, Vector3Scale(dir, gap));
-        Vector3 newEnd   = Vector3Subtract(end,   Vector3Scale(dir, gap));
+        Vector3 newEnd   = Vector3Subtract(end, Vector3Scale(dir, gap));
 
-        float t0 = powf((float)i / (float)(joints.size() - 1), 1.8f);
-        float t1 = powf((float)(i + 1) / (float)(joints.size() - 1), 1.8f);
+        float t0 = powf((float)i / (float)(jointCount - 1), 1.8f);
+        float t1 = powf((float)(i + 1) / (float)(jointCount - 1), 1.8f);
 
         float radiusStart = Lerp(baseRadius, tipRadius, t0);
         float radiusEnd   = Lerp(baseRadius, tipRadius, t1);
@@ -583,25 +585,103 @@ void Tentacle::Draw() const
         );
     }
 
-    // Draw tip only if at least 1 visible segment
-    if (visibleSegments >= 1)
+    Vector3 start = joints[tipStartIndex];
+    Vector3 end   = joints[tipEndIndex];
+
+    Vector3 diff = Vector3Subtract(end, start);
+    float len = Vector3Length(diff);
+
+    if (len > gap * 2.0f)
     {
-        Vector3 start = joints[joints.size() - 2];
-        Vector3 end   = joints[joints.size() - 1];
+        Vector3 dir = Vector3Scale(diff, 1.0f / len);
 
-        Vector3 diff = Vector3Subtract(end, start);
-        float len = Vector3Length(diff);
+        Vector3 newStart = Vector3Add(start, Vector3Scale(dir, gap));
+        Vector3 newEnd   = Vector3Subtract(end, Vector3Scale(dir, gap));
 
-        if (len > gap * 2.0f)
-        {
-            Vector3 dir = Vector3Scale(diff, 1.0f / len);
-
-            Vector3 newStart = Vector3Add(start, Vector3Scale(dir, gap));
-            Vector3 newEnd   = Vector3Subtract(end,   Vector3Scale(dir, gap));
-
-            DrawCylinderEx(newStart, newEnd, 14.0f, 2.0f, 8, krakenPurple);
-
-            //DrawSphereWires(tipHitCenter, tipHitRadius, 8, 8, RED);  //debug hitbox
-        }
+        DrawCylinderEx(newStart, newEnd, 14.0f, 2.0f, 8, krakenPurple);
     }
 }
+// void Tentacle::Draw() const
+// {
+//     if (joints.size() < 2)
+//         return;
+
+//     if (visibleSegments <= 0)
+//         return;
+
+//     float baseRadius = 40.0f;
+//     float tipRadius  = 8.0f;
+
+//     const float gap = 2.0f;
+
+//     const size_t bodySegmentCount = joints.size() - 2;
+
+//     // visibleSegments includes the tip, so body gets one less
+//     int visibleBodySegments = visibleSegments - 1;
+//     if (visibleBodySegments < 0)
+//         visibleBodySegments = 0;
+
+//     size_t firstVisibleBodyIndex = bodySegmentCount;
+//     if ((size_t)visibleBodySegments < bodySegmentCount)
+//         firstVisibleBodyIndex = bodySegmentCount - visibleBodySegments;
+//     else
+//         firstVisibleBodyIndex = 0;
+
+//     // Draw visible body segments only
+//     for (size_t i = firstVisibleBodyIndex; i < joints.size() - 2; ++i)
+//     {
+//         Vector3 start = joints[i];
+//         Vector3 end   = joints[i + 1];
+
+//         Vector3 diff = Vector3Subtract(end, start);
+//         float len = Vector3Length(diff);
+//         if (len <= gap * 2.0f)
+//             continue;
+
+//         Vector3 dir = Vector3Scale(diff, 1.0f / len);
+
+//         Vector3 newStart = Vector3Add(start, Vector3Scale(dir, gap));
+//         Vector3 newEnd   = Vector3Subtract(end,   Vector3Scale(dir, gap));
+
+//         float t0 = powf((float)i / (float)(joints.size() - 1), 1.8f);
+//         float t1 = powf((float)(i + 1) / (float)(joints.size() - 1), 1.8f);
+
+//         float radiusStart = Lerp(baseRadius, tipRadius, t0);
+//         float radiusEnd   = Lerp(baseRadius, tipRadius, t1);
+
+//         Vector3 pinkOffset = undersideOffset;
+
+//         DrawCylinderEx(newStart, newEnd, radiusStart, radiusEnd, 8, krakenPurple);
+
+//         DrawCylinderEx(
+//             Vector3Add(newStart, pinkOffset),
+//             Vector3Add(newEnd, pinkOffset),
+//             radiusStart * 0.85f,
+//             radiusEnd * 0.85f,
+//             8,
+//             suckerPink
+//         );
+//     }
+
+//     // Draw tip only if at least 1 visible segment
+//     if (visibleSegments >= 1)
+//     {
+//         Vector3 start = joints[joints.size() - 2];
+//         Vector3 end   = joints[joints.size() - 1];
+
+//         Vector3 diff = Vector3Subtract(end, start);
+//         float len = Vector3Length(diff);
+
+//         if (len > gap * 2.0f)
+//         {
+//             Vector3 dir = Vector3Scale(diff, 1.0f / len);
+
+//             Vector3 newStart = Vector3Add(start, Vector3Scale(dir, gap));
+//             Vector3 newEnd   = Vector3Subtract(end,   Vector3Scale(dir, gap));
+
+//             DrawCylinderEx(newStart, newEnd, 14.0f, 2.0f, 8, krakenPurple);
+
+//             //DrawSphereWires(tipHitCenter, tipHitRadius, 8, 8, RED);  //debug hitbox
+//         }
+//     }
+// }

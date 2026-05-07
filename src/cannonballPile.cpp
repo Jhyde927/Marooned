@@ -3,8 +3,23 @@
 #include "raymath.h"
 #include "resourceManager.h"
 #include "iostream"
-
+#include "dungeonGeneration.h"
 // assuming you have a global resource manager like R
+
+const int kMaxLooseCannonBalls = 5;
+
+int CountLooseCannonBalls()
+{
+    int count = 0;
+
+    for (const Box& box : boxes)
+    {
+        if (box.type == BoxType::CannonBall)
+            count++;
+    }
+
+    return count;
+}
 
 void CannonballPile::Init(const Vector3& pos)
 {
@@ -28,7 +43,7 @@ void CannonballPile::Update(Player& player)
 
     if (IsKeyPressed(KEY_E))
     {
-        if (!player.isCarrying)
+        if (!player.isCarrying && CountLooseCannonBalls() < kMaxLooseCannonBalls)
         {
             player.SpawnBoxInHand(player, position); //spawn box at piles position, player automatically picks it up on pressing E.
         }

@@ -34,6 +34,7 @@ namespace SpawnManager
 
     void Update(float dt)
     {   
+        if (!CurrentLevelIs("Ship")) return;
         if (gKraken.isDead) return;
 
 

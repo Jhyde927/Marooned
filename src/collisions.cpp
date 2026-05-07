@@ -367,6 +367,10 @@ void pillarCollision() {
         for (Character* enemy : enemyPtrs){
             ResolveBoxSphereCollision(pillar.bounds, enemy->position, enemy->radius);
         }
+
+        for (Box& box : boxes){
+            ResolveBoxBoxCollisionXZ(box.bounds, pillar.bounds, box.position);
+        }
     }
 
 
@@ -417,6 +421,20 @@ void EnemyWallCollision(){
     // }
 }
 
+bool CheckMeleeVolumeCollision(const MeleeHitVolume& volume, const BoundingBox& targetBox)
+{
+    if (!volume.active)
+        return false;
+
+    for (const BoundingBox& box : volume.boxes)
+    {
+        if (CheckCollisionBoxes(box, targetBox))
+            return true;
+    }
+
+    return false;
+}
+
 
 void HandleMeleeHitboxCollision(Camera& camera) {
     //if (player.activeWeapon != WeaponType::Sword  && player.activeWeapon != WeaponType::MagicStaff) return;
@@ -430,7 +448,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
         int tileX = GetDungeonImageX(barrel.position.x, tileSize, dungeonWidth);
         int tileY = GetDungeonImageY(barrel.position.z, tileSize, dungeonHeight);
 
-        if (CheckCollisionBoxes(barrel.bounds, player.meleeHitbox)){
+        if (CheckMeleeVolumeCollision(player.meleeVolume, barrel.bounds)){
             barrel.destroyed = true;
             walkable[tileX][tileY] = true; //tile is now walkable for enemies
             walkableBat[tileX][tileY] = true;
@@ -464,7 +482,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
         if (enemy->isDead) continue;
 
 
-        if (CheckCollisionBoxes(enemy->GetBoundingBox(), player.meleeHitbox) && enemy->lastAttackid != player.attackId){
+        if (CheckMeleeVolumeCollision(player.meleeVolume, enemy->GetBoundingBox()) && enemy->lastAttackid != player.attackId){
             if (swordActive || staffActive){
                 meleeWeapon.hitboxActive = false;
                 magicStaff.hitboxActive = false;
@@ -485,7 +503,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
     }
 
     for (SpiderWebInstance& web : spiderWebs){
-        if (!web.destroyed && CheckCollisionBoxes(web.bounds, player.meleeHitbox)){
+        if (!web.destroyed && CheckMeleeVolumeCollision(player.meleeVolume, web.bounds)){
             web.destroyed = true;
             PlayerSwipeDecal(camera);
             //play a sound
@@ -493,7 +511,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
     }
 
     for (SpiderEgg& egg : eggs){
-        if (CheckCollisionBoxes(egg.collider, player.meleeHitbox) && egg.state != SpiderEggState::Destroyed){
+        if (CheckMeleeVolumeCollision(player.meleeVolume, egg.collider) && egg.state != SpiderEggState::Destroyed){
             if (egg.lastAttackId != player.attackId){ //each melee attack as a unique id incremented each swing. 
                 egg.lastAttackId = player.attackId;// a more robust way a limiting damage once per swing. Consider using this for enemies
                 DamageSpiderEgg(egg, 50.0f, player.position);

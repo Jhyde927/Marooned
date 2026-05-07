@@ -132,6 +132,7 @@ void Kraken::Update(float dt, Player& player)
 
 void Kraken::Draw(Camera& camera) const
 {
+    if (isDead && state == State::Hidden) return;
     if (!modelLoaded || !visible)
         return;
 

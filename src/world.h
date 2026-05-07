@@ -171,7 +171,8 @@ void InitNPCs();
 void eraseCharacters();
 void DrawWaterPlane();
 void ActivatePowerUp();
-
+bool HasLoadedLevel();
+bool CurrentLevelIs(const std::string& name);
 void UpdateSlashEffects(float deltaTime);
 void UpdateKraken(float deltaTime);
 void DrawKraken(Camera& camera);

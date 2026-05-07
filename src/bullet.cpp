@@ -21,7 +21,7 @@ Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletTyp
       velocity(vel),
       alive(true),
       age(0.0f),
-      maxLifetime(lifetime),
+      lifeTime(lifetime),
       enemy(en),
       type(t),
       fireEmitter(startPos),
@@ -149,10 +149,10 @@ void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
     }
 
     // Lifetime kill
-    age += deltaTime;
-    if (age >= maxLifetime && type == BulletType::Default) {
-        kill(camera);
-    }
+    // age += deltaTime;
+    // if (age >= maxLifetime && type == BulletType::Default) {
+    //     kill(camera);
+    // }
 
 
 
@@ -213,7 +213,13 @@ void Bullet::HandleBulletWorldCollision(Camera& camera){
 void Bullet::Update(Camera& camera, float deltaTime) {
     fireEmitter.Update(deltaTime);
     sparkEmitter.Update(deltaTime); 
-    lifeTime -= deltaTime;
+
+    if (lifeTime > 0){
+
+        lifeTime -= deltaTime;
+    }
+
+
 
     if (!alive){
         timeSinceImpact += deltaTime;
@@ -337,7 +343,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
     age += deltaTime;
 
-    if (age >= maxLifetime && !exploded) alive = false;
+
     if (type == BulletType::Harpoon && stuck && lifeTime <= 0.0f){
         alive = false;
         exploded = true;
@@ -576,10 +582,11 @@ void Bullet::Draw(Camera& camera) const {
 bool Bullet::IsDone() 
 {
 
-    if (alive) return false; //keep updating and drawing particles
+    if (!alive && exploded) return true; //will this break everyting
+
         
     if (type == BulletType::Fireball || type == BulletType::Iceball){ //we may not be removing fireballs, I think lifetiem maybe set to 999 or something when explosion happens. 
-        if (lifeTime <= 0){//if not alive and lifetime <= 0, what if it is alive and lifetime is <= 0
+        if (lifeTime <= 0){
             return true;
         }else{
             return false;
@@ -878,6 +885,7 @@ void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, boo
 void FireFireball(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool launcher, bool wizard) {
     Vector3 direction = Vector3Normalize(Vector3Subtract(target, origin));
     Vector3 velocity = Vector3Scale(direction, speed);
+
 
     Bullet& b = activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Fireball, 20.0f, launcher);
 

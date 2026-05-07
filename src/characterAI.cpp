@@ -154,6 +154,10 @@ void Character::UpdateChaseSound(float deltaTime, Player& player){
                 sn = (GetRandomValue(0,1) > 0) ? "zombieMoan1" : "zombieMoan2";
                 break;
 
+            case CharacterType::Spider:
+                sn = (GetRandomValue(0,1) > 0) ? "spiderChase" : "spiderChase2";
+                break;
+
             default:
                 break;
         }

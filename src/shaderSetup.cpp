@@ -128,7 +128,7 @@ namespace ShaderSetup
         //water shader needs cameraPos for reasons. 
         SetShaderValue(sh, ws.loc_cameraPos, &camPos, SHADER_UNIFORM_VEC3);
         SetShaderValue(sh, GetShaderLocation(sh, "time"), &elapsedTime, SHADER_UNIFORM_FLOAT);
-        int isSwamp = (levels[gCurrentLevelIndex].name == "Swamp") ? 1 : 0;
+        int isSwamp = CurrentLevelIs("Swamp") ? 1 : 0;
         SetShaderValue(sh, ws.loc_isSwamp, &isSwamp, RL_SHADER_UNIFORM_INT);
 
     }
@@ -344,10 +344,10 @@ namespace ShaderSetup
         BindSkyShaderToModel(skyModel, shader);
         CacheSkyLocations(out);
         //set isSwamp on init
-        int isSwamp = (levels[gCurrentLevelIndex].name == "Swamp") ? 1 : 0;
+        int isSwamp = CurrentLevelIs("swamp") ? 1 : 0;
         int Dungeon = isDungeon ? 1 : 0;
 
-        if (levels[gCurrentLevelIndex].name == "Ship") Dungeon = 0;
+        if (CurrentLevelIs("Ship")) Dungeon = 0; // set dungeon to false for ship level so we render blue sky not stars. 
 
         out.isSwamp = isSwamp ? 1 : 0;
         out.isDungeon = Dungeon;

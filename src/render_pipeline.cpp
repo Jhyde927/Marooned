@@ -175,7 +175,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //DrawDungeonDoorways();          
             DrawDungeonGeometry(camera, 10000);
             DrawOverworldProps();
-            if (levels[gCurrentLevelIndex].name == "MiddleIsland") raft.Draw();
+            if (CurrentLevelIs("MiddleIsland")) raft.Draw();
 
             
 
@@ -198,7 +198,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //DrawModel(R.GetModel("squidHead"), squidPos, 100.0f, WHITE);
             //DrawModelEx(R.GetModel("squidHead"), squidPos, Vector3 {0, 1, 0}, 180.0f, Vector3 {100, 100, 100}, GRAY);
 
-            if (levels[gCurrentLevelIndex].name == "Ship"){
+            if (CurrentLevelIs("Ship")){
                 DrawWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly.
                 DrawKraken(camera);
                 //DrawModel(R.GetModel("cannon"), Vector3{2655, 210, 1209}, 25.0f, GRAY);

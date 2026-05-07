@@ -174,6 +174,19 @@ Vector3 DirFromYawDeg(float yawDeg) {
     return { sinf(r), 0.0f, cosf(r) }; // 0° -> +Z, 90° -> +X
 }
 
+float DirectionToYawDeg(Vector3 dir)
+{
+    dir.y = 0.0f;
+
+    if (Vector3LengthSqr(dir) <= 0.0001f)
+        return 0.0f;
+
+    dir = Vector3Normalize(dir);
+
+    // Use this if model faces +Z at yaw 0
+    return atan2f(dir.x, dir.z) * RAD2DEG;
+}
+
 Vector3 AddLightHeadroom(Vector3 base, Vector3 lightColor, float intensity) {
     //stops over tinting floor tiles that was making them muddy green. 
     Vector3 c = Vector3Scale(lightColor, intensity); // per-channel contribution

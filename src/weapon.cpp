@@ -480,7 +480,7 @@ void MeleeWeapon::StartSwing(Camera& camera) {
         swinging = true;
         swingTimer = 0.0f;
         timeSinceLastSwing = 0.0f;
-
+        player.meleeVolume.attackId = player.attackId;
         hitboxActive = false;
         hitboxTimer = 0.0f;
         hitboxTriggered = false;
@@ -530,9 +530,9 @@ void MagicStaff::Fire(const Camera& camera) {
     Vector3 targetPoint = Vector3Add(camera.position, Vector3Scale(camForward, 1000.0f));
     
     if (magicType == MagicType::Fireball){
-        FireFireball(muzzlePos, targetPoint, 2000, 10, false, false, false);
+        FireFireball(muzzlePos, targetPoint, 2000, 10.0f, false, false, false);
     }else{
-        FireIceball(muzzlePos, targetPoint, 2000, 10, false, false);
+        FireIceball(muzzlePos, targetPoint, 2000, 10.0f, false, false);
     }
     
     

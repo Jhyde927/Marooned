@@ -227,7 +227,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
-    if (levels[gCurrentLevelIndex].name != "Ship"){ //this fixes a crash, I don't know why it crashes. 
+    if (!CurrentLevelIs("Ship")){  
         terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
     }
 
@@ -472,7 +472,7 @@ void InitOverworldWeapons(){
 
 void InitRaftCollectables(){
 
-    if (unlockEntrances && levels[gCurrentLevelIndex].name == "MiddleIsland"){
+    if (unlockEntrances && CurrentLevelIs("MiddleIsland")){
         Vector3 bpos = {-3444.0f, 150.0f, -4640.0f};//{5956.0f, 250.0, -4910.0f};
         Collectable p = {CollectableType::raftBody, bpos, R.GetTexture("raftBody"), 100.0f}; 
         collectables.push_back(p);
@@ -525,25 +525,34 @@ void DrawCannons(){
     }   
 }
 
+bool HasLoadedLevel()
+{
+    return gCurrentLevelIndex >= 0 &&
+           gCurrentLevelIndex < (int)levels.size();
+}
 
-void DrawWaterPlane(){
-    if (levels[gCurrentLevelIndex].name == "Ship"){
-        float dungeonWorldWidth  = dungeonWidth  * tileSize;
-        float dungeonWorldHeight = dungeonHeight * tileSize;
+bool CurrentLevelIs(const std::string& name)
+{
+    return HasLoadedLevel() &&
+           levels[gCurrentLevelIndex].name == name;
+}
 
-        Vector3 dungeonCenter = {
-            dungeonWorldWidth  * 0.5f,
-            -200.0f,
-            dungeonWorldHeight * 0.5f
-        };
 
-        //rlDisableDepthMask();  
-        DrawModel(R.GetModel("waterModel"), dungeonCenter, 1.0f, WHITE);
-        //rlEnableDepthMask();
+void DrawWaterPlane()
+{
+    if (!CurrentLevelIs("Ship"))
+        return;
 
-        
-    }
+    float dungeonWorldWidth  = dungeonWidth  * tileSize;
+    float dungeonWorldHeight = dungeonHeight * tileSize;
 
+    Vector3 dungeonCenter = {
+        dungeonWorldWidth  * 0.5f,
+        -200.0f,
+        dungeonWorldHeight * 0.5f
+    };
+
+    DrawModel(R.GetModel("waterModel"), dungeonCenter, 1.0f, WHITE);
 }
 
 
@@ -790,7 +799,7 @@ void generateDactyls(int amount, Vector3 centerPos, float radius) {
         dactyl.scale = 0.4;
         dactyl.maxHealth = 100; //one harpoon shot will kill it. otherwise we would have to figure out 3d grapple pull
         dactyl.currentHealth = dactyl.maxHealth;
-        dactyl.state == CharacterState::Idle;
+        dactyl.state = CharacterState::Idle;
         enemies.push_back(dactyl);
         enemyPtrs.push_back(&enemies.back()); 
         ++spawned;
@@ -1177,7 +1186,7 @@ void InitNPCs() //spawn hermit on island.
     Vector3 hermitFarIsland = {-5815.0f, 304.0f, 6359.0f};
 
     Vector3 newHermitPos = hermitStart;
-    if (levels[gCurrentLevelIndex].name == "River"){
+    if (levels[levelIndex].name == "River"){
         newHermitPos = Vector3{5531.0f, 320.0f, -4990.0f};
     }
 
@@ -1348,6 +1357,8 @@ void ClearLevel() {
     masts.clear();
     tentacles.clear();
     g_powerUps.clear();
+    SpawnManager::Clear();
+    EventLockAllDoors(false);
 
     
      //unload mesh and heightmap when switching levels. if they exist

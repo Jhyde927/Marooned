@@ -198,7 +198,7 @@ void Character::PlayDeathSound() {
 
     case CharacterType::Spider:
 
-        SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath", position, player.position, 0.0f, 3000);
+        SoundManager::GetInstance().PlaySoundAtPosition("spiderDeath2", position, player.position, 0.0f, 3000);
         break;
 
     case CharacterType::Pirate:

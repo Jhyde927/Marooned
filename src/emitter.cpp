@@ -68,7 +68,7 @@ void Emitter::EmitBurst(Vector3 pos, int count, ParticleType t) {
         SetPosition(pos);
         SetParticleType(t);
         EmitParticles(count);
-        std::cout << "emitting burst\n";
+
         
     }
 }

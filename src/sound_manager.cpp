@@ -283,6 +283,9 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("spiderBite1", "assets/sounds/spiderBite1.ogg");
     SoundManager::GetInstance().LoadSound("spiderBite2", "assets/sounds/spiderBite2.ogg");
     SoundManager::GetInstance().LoadSound("spiderDeath", "assets/sounds/spiderDeath.ogg");
+    SoundManager::GetInstance().LoadSound("spiderDeath2", "assets/sounds/spiderDeath2.ogg");
+    SoundManager::GetInstance().LoadSound("spiderChase", "assets/sounds/spiderChase.ogg");
+    SoundManager::GetInstance().LoadSound("spiderChase2", "assets/sounds/spiderChase2.ogg");
     SoundManager::GetInstance().LoadSound("flame1", "assets/sounds/flame1.ogg");
     SoundManager::GetInstance().LoadSound("flame2", "assets/sounds/flame2.ogg");
     SoundManager::GetInstance().LoadSound("explosion", "assets/sounds/explosion.ogg");

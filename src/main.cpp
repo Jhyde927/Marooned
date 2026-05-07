@@ -114,7 +114,7 @@ int main() {
             drawCeiling = false; 
             UpdateMenu(camera, deltaTime);//lives in UI.cpp calls main_menu
 
-            if (levels[gCurrentLevelIndex].name == "Ship"){
+            if (levels[levelIndex].name == "Ship"){
                 UpdateMusicStream(SoundManager::GetInstance().GetMusic("oceanAmbience")); 
             }else{
                 UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));
@@ -126,12 +126,12 @@ int main() {
         
             continue; // skip the rest of the game loop
         }
-        if (currentGameState == GameState::Playing){
+        if (currentGameState == GameState::Playing){ 
             //play the game
-            if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu) currentGameState = GameState::Menu;
+            if (IsKeyPressed(KEY_ESCAPE) && currentGameState != GameState::Menu && gFadePhase == FadePhase::Idle) currentGameState = GameState::Menu;
+                //dont allow escaping to menu while fading. 
 
-
-            if (levels[gCurrentLevelIndex].name == "Ship"){
+            if (CurrentLevelIs("Ship")){
                 UpdateMusicStream(SoundManager::GetInstance().GetMusic("oceanAmbience")); 
             }else{
                 UpdateMusicStream(SoundManager::GetInstance().GetMusic(isDungeon ? "dungeonAir" : "jungleAmbience"));

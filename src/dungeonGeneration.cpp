@@ -2545,8 +2545,12 @@ void ApplyEnemyLavaDPS(){
 
 void UpdateLauncherTraps(float dt){
     const float SPEED    = 900.0f;
-    const float LIFE     = 5.0f;
+    const float LIFE     = 10.0f;
     const float AHEAD    = 1500.0f;
+
+    if (CurrentLevelIs("Ship") && !gKraken.isDead){ //don't start firing until the kraken is dead. 
+        return;
+    }
 
     for (LauncherTrap& L : launchers){
         L.cooldown -= dt;
@@ -2607,13 +2611,36 @@ void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height,
 
 void DrawLaunchers() {
     for (const LauncherTrap& launcher : launchers) {
+        float offsetY = CurrentLevelIs("Ship") ? 75.0f : 20.0f;
+        Vector3 offsetPos = {
+            launcher.position.x,
+            launcher.position.y + offsetY,
+            launcher.position.z
+        };
 
-        Vector3 offsetPos = {launcher.position.x, launcher.position.y + 20, launcher.position.z}; 
-        DrawModelEx(R.GetModel("stonePillar"), offsetPos, Vector3{0,1,0}, 0.0f, Vector3{100, 100, 100}, WHITE);
+        if (CurrentLevelIs("Ship")) {
+            float yawDeg = DirectionToYawDeg(launcher.direction) + 90.0f;
+
+            DrawModelEx(
+                R.GetModel("cannon"),
+                offsetPos,
+                Vector3{0, 1, 0},
+                yawDeg,
+                Vector3{25, 25, 25},
+                GRAY
+            );
+        } else {
+            DrawModelEx(
+                R.GetModel("stonePillar"),
+                offsetPos,
+                Vector3{0, 1, 0},
+                0.0f,
+                Vector3{100, 100, 100},
+                WHITE
+            );
+        }
     }
-
 }
-
 
 
 void DrawDungeonBarrels() {
@@ -2750,7 +2777,7 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
                 tileTint = DARKGRAY;
             }
         }
-        if (levels[gCurrentLevelIndex].name == "Ship"){ //Draw wooden floor tiles on ship level. 
+        if (CurrentLevelIs("Ship")){ //Draw wooden floor tiles on ship level. 
             DrawModelEx(R.GetModel("woodFloor"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint); 
         }else{
             DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint);  

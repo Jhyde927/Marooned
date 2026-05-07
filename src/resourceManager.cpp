@@ -416,7 +416,7 @@ void ResourceManager::SetShaderValues(){
 
     //regular black vignette
     vignetteStrengthValue = isDungeon ? 0.8 : 0.25f; //less of vignette outdoors.
-    if (levels[gCurrentLevelIndex].name == "Ship") vignetteStrengthValue = 0.0f; // no vignette on ship level
+    if (CurrentLevelIs("Ship")) vignetteStrengthValue = 0.0f; // no vignette on ship level
     SetShaderValue(fogShader, GetShaderLocation(fogShader, "baseVignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
 
     // Shadow shadows beneath enemies. 
@@ -452,7 +452,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     //
     Vector3 oceanColor = {0.25, 0.60, 1.0};
     Vector3 swampColor = {0.32, 0.45, 0.30};//{0.32, 0.45, 0.35};
-    Vector3 waterColor = (levels[gCurrentLevelIndex].name == "Swamp") ? swampColor : oceanColor;
+    Vector3 waterColor = (CurrentLevelIs("Swamp")) ? swampColor : oceanColor;
 
     int waterColorLoc = GetShaderLocation(sh, "u_waterColor");
     SetShaderValue(sh, waterColorLoc, &waterColor, SHADER_UNIFORM_VEC3);
@@ -466,9 +466,9 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     Texture2D grass = R.GetTexture("grassTexture");
     Texture2D sand  = R.GetTexture("sandTexture");
 
-    //ternary opterator
-    grass = (levels[gCurrentLevelIndex].name == "Swamp") ? R.GetTexture("swampGrass") : R.GetTexture("grassTexture");
-    sand = (levels[gCurrentLevelIndex].name == "Swamp") ?  R.GetTexture("swampMud") : R.GetTexture("sandTexture");
+
+    grass = CurrentLevelIs("Swamp") ? R.GetTexture("swampGrass") : R.GetTexture("grassTexture");
+    sand  = CurrentLevelIs("Swamp") ? R.GetTexture("swampMud")   : R.GetTexture("sandTexture");
 
     GenTextureMipmaps(&grass);
     GenTextureMipmaps(&sand);
