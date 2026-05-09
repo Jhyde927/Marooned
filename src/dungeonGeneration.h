@@ -197,6 +197,10 @@ struct LauncherTrap {
     float fireIntervalSec;
     float   cooldown;     // time until next shot
     BoundingBox bounds;
+
+    float recoilTimer = 0.0f;
+    float recoilDuration = 0.2f;
+    bool bossLauncher = false;
 };
 
 struct WindowWall

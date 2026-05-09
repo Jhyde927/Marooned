@@ -2,6 +2,19 @@
 #include <iostream>
 #include "raymath.h"
 
+
+void SoundManager::InitMusic()
+{
+    SoundManager& sounds = SoundManager::GetInstance();
+
+    sounds.PlayMusic("dungeonAir");
+    sounds.PlayMusic("jungleAmbience");
+    sounds.PlayMusic("oceanAmbience");
+
+    SetMusicVolume(sounds.GetMusic("jungleAmbience"), 0.5f);
+
+}
+
 int SoundManager::PickRandomIndexNoRepeat(int count, int lastIndex)
 {
     if (count <= 1) return 0;
@@ -302,6 +315,7 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("portal2", "assets/sounds/portal2.ogg");
     SoundManager::GetInstance().LoadSound("floorSwitch", "assets/sounds/floorSwitch.ogg");
     SoundManager::GetInstance().LoadSound("floorSwitchUnpress", "assets/sounds/floorSwitchUnpress.ogg");
+    SoundManager::GetInstance().LoadSound("woodThud", "assets/sounds/woodThud.ogg");
 
     SoundManager::GetInstance().LoadSound("skeletonGrunt", "assets/sounds/skeletonGrunt.ogg");
     SoundManager::GetInstance().LoadSound("skeletonGrunt2", "assets/sounds/skeletonGrunt2.ogg");

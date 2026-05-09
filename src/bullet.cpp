@@ -694,7 +694,7 @@ void Bullet::Explode(Camera& camera) {
         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
         Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 100.0f));
 
-        if (type == BulletType::Fireball){
+        if (type == BulletType::Fireball || type == BulletType::CannonBall){
             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
             fireEmitter.EmitBurst(position, 200, ParticleType::Sparks);
             Vector3 forward = Vector3Negate(Vector3Normalize(velocity));
@@ -869,6 +869,8 @@ void FireCannon(Vector3 origin, Vector3 target, float speed, float lifetime, boo
     b.alive = true;
     b.id = gBulletCounter++;
     activeBullets.push_back(b);
+
+    SoundManager::GetInstance().PlaySoundAtPosition("CannonShot", origin, player.position, 0.0f, 3000.0f);
 }
 
 void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool hermit) {

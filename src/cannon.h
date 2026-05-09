@@ -44,6 +44,7 @@ public:
     float recoilDuration = 0.2f;
 
 
+
 private:
     float cooldownTimer = 0.0f;
 

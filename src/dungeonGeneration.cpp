@@ -2540,35 +2540,115 @@ void ApplyEnemyLavaDPS(){
     }
 }
 
+void UpdateLauncherTraps(float dt)
+{
+    const float SPEED = 900.0f;
+    const float LIFE  = 10.0f;
+    const float AHEAD = 1500.0f;
 
 
-
-void UpdateLauncherTraps(float dt){
-    const float SPEED    = 900.0f;
-    const float LIFE     = 10.0f;
-    const float AHEAD    = 1500.0f;
-
-    if (CurrentLevelIs("Ship") && !gKraken.isDead){ //don't start firing until the kraken is dead. 
-        return;
-    }
-
-    for (LauncherTrap& L : launchers){
-        L.cooldown -= dt;
-        if (L.cooldown > 0.0f) continue;
-
-        Vector3 origin = { L.position.x, L.position.y + 100.0f, L.position.z };
-        Vector3 target = Vector3Add(origin, Vector3Scale(L.direction, AHEAD));
-        if (L.type == TrapType::fireball){
-            FireFireball(origin, target, SPEED, LIFE, /*enemy=*/true, /*launcher=*/true, false);
-            L.cooldown = std::max(0.01f, L.fireIntervalSec);
-
-        }else if (L.type == TrapType::iceball){
-            FireIceball(origin, target, SPEED, LIFE,true, true);
-            L.cooldown = std::max(0.01f, L.fireIntervalSec);
+    for (LauncherTrap& L : launchers)
+    {
+        
+        if (L.bossLauncher && !gKraken.isDead){ //dont fire boss launcher until kraken is dead. 
+            return;
+        }
+        // Visual timers should update no matter what.
+        if (L.recoilTimer > 0.0f)
+        {
+            L.recoilTimer -= dt;
+            if (L.recoilTimer < 0.0f)
+                L.recoilTimer = 0.0f;
         }
 
+        // Gameplay cooldown
+        L.cooldown -= dt;
+        if (L.cooldown > 0.0f)
+            continue;
+
+        float muzzleOffset = CurrentLevelIs("Ship") ? 125.0f : 100.0f;
+
+        Vector3 origin = {
+            L.position.x,
+            L.position.y + muzzleOffset,
+            L.position.z
+        };
+
+        Vector3 target = Vector3Add(origin, Vector3Scale(L.direction, AHEAD));
+
+        if (L.type == TrapType::fireball)
+        {
+            if (CurrentLevelIs("Ship"))
+            {
+                L.recoilTimer = L.recoilDuration;
+
+                FireCannon(origin, target, 3500.0f, 5.0f, true);
+
+                L.cooldown = std::max(0.01f, L.fireIntervalSec);
+            }
+            else
+            {
+                FireFireball(origin, target, SPEED, LIFE, true, true, false);
+
+                L.cooldown = std::max(0.01f, L.fireIntervalSec);
+            }
+        }
+        else if (L.type == TrapType::iceball)
+        {
+            FireIceball(origin, target, SPEED, LIFE, true, true);
+
+            L.cooldown = std::max(0.01f, L.fireIntervalSec);
+        }
     }
 }
+
+
+// void UpdateLauncherTraps(float dt){
+//     const float SPEED    = 900.0f;
+//     const float LIFE     = 10.0f;
+//     const float AHEAD    = 1500.0f;
+
+//     if (CurrentLevelIs("Ship") && !gKraken.isDead){ //don't start firing until the kraken is dead. 
+//         return;
+//     }
+
+
+
+//     for (LauncherTrap& L : launchers){
+//         L.cooldown -= dt;
+//         if (L.cooldown > 0.0f) continue;
+
+
+//         if (L.recoilTimer > 0.0f)
+//         {
+//             L.recoilTimer -= dt;
+//             if (L.recoilTimer < 0.0f)
+//                 L.recoilTimer = 0.0f;
+//         }
+//         float muzzleOffset = CurrentLevelIs("Ship") ? 125.0f : 100.0f;
+//         Vector3 origin = { L.position.x, L.position.y + muzzleOffset, L.position.z };
+//         Vector3 target = Vector3Add(origin, Vector3Scale(L.direction, AHEAD));
+//         if (L.type == TrapType::fireball){
+
+//             if (CurrentLevelIs("Ship")){
+
+//                 L.recoilTimer = L.recoilDuration;
+//                 FireCannon(origin, target, 3500.0f, 5.0f, true);
+//                 L.cooldown = std::max(0.01f, L.fireIntervalSec);
+//             }else{
+//                 FireFireball(origin, target, SPEED, LIFE, /*enemy=*/true, /*launcher=*/true, false);
+//                 L.cooldown = std::max(0.01f, L.fireIntervalSec);
+
+//             }
+
+
+//         }else if (L.type == TrapType::iceball){
+//             FireIceball(origin, target, SPEED, LIFE,true, true);
+//             L.cooldown = std::max(0.01f, L.fireIntervalSec);
+//         }
+
+//     }
+// }
 
 void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height, float rotationY, Color tint)
 {
@@ -2608,28 +2688,49 @@ void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height,
 }
 
 
-
-void DrawLaunchers() {
-    for (const LauncherTrap& launcher : launchers) {
+void DrawLaunchers()
+{
+    for (const LauncherTrap& launcher : launchers)
+    {
         float offsetY = CurrentLevelIs("Ship") ? 75.0f : 20.0f;
+
         Vector3 offsetPos = {
             launcher.position.x,
             launcher.position.y + offsetY,
             launcher.position.z
         };
 
-        if (CurrentLevelIs("Ship")) {
+        if (CurrentLevelIs("Ship"))
+        {
             float yawDeg = DirectionToYawDeg(launcher.direction) + 90.0f;
+
+            Vector3 drawPos = offsetPos;
+
+            if (launcher.recoilTimer > 0.0f)
+            {
+                float t = launcher.recoilTimer / launcher.recoilDuration;
+
+                // Optional: makes recoil return smoother
+                t = t * t;
+
+                float recoilAmount = 30.0f * t;
+
+                // Move cannon backward, opposite of firing direction
+                Vector3 recoilOffset = Vector3Scale(launcher.direction, -recoilAmount);
+                drawPos = Vector3Add(drawPos, recoilOffset);
+            }
 
             DrawModelEx(
                 R.GetModel("cannon"),
-                offsetPos,
+                drawPos,
                 Vector3{0, 1, 0},
                 yawDeg,
                 Vector3{25, 25, 25},
                 GRAY
             );
-        } else {
+        }
+        else
+        {
             DrawModelEx(
                 R.GetModel("stonePillar"),
                 offsetPos,
@@ -2641,6 +2742,39 @@ void DrawLaunchers() {
         }
     }
 }
+
+// void DrawLaunchers() {
+//     for (const LauncherTrap& launcher : launchers) {
+//         float offsetY = CurrentLevelIs("Ship") ? 75.0f : 20.0f;
+//         Vector3 offsetPos = {
+//             launcher.position.x,
+//             launcher.position.y + offsetY,
+//             launcher.position.z
+//         };
+
+//         if (CurrentLevelIs("Ship")) {
+//             float yawDeg = DirectionToYawDeg(launcher.direction) + 90.0f;
+
+//             DrawModelEx(
+//                 R.GetModel("cannon"),
+//                 offsetPos,
+//                 Vector3{0, 1, 0},
+//                 yawDeg,
+//                 Vector3{25, 25, 25},
+//                 GRAY
+//             );
+//         } else {
+//             DrawModelEx(
+//                 R.GetModel("stonePillar"),
+//                 offsetPos,
+//                 Vector3{0, 1, 0},
+//                 0.0f,
+//                 Vector3{100, 100, 100},
+//                 WHITE
+//             );
+//         }
+//     }
+// }
 
 
 void DrawDungeonBarrels() {

@@ -368,9 +368,6 @@ void pillarCollision() {
             ResolveBoxSphereCollision(pillar.bounds, enemy->position, enemy->radius);
         }
 
-        for (Box& box : boxes){
-            ResolveBoxBoxCollisionXZ(box.bounds, pillar.bounds, box.position);
-        }
     }
 
 
@@ -699,7 +696,12 @@ void CheckBulletHits(Camera& camera) {
                 continue;
             }
 
-            if (b.IsEnemy()) {
+            if (b.type == BulletType::CannonBall){
+                player.TakeDamage(25);
+                continue;
+            }
+
+            if (b.IsEnemy() && b.type == BulletType::Default) {
 
                 b.BulletHole(camera); //show bullet whole decal infront of player. 
                 player.TakeDamage(25);
@@ -802,6 +804,10 @@ void CheckBulletHits(Camera& camera) {
                     break;
 
                     
+                }else if (b.type == BulletType::CannonBall){
+                    enemy->TakeDamage(100);
+                    break;
+
                 } else if (b.IsEnemy() && (isSkeleton || isZombie)) { // friendly fire vs skeletons and zombies
                     enemy->TakeDamage(150); //higher damage for higher chance of death by enemy bullet. 1 sword swipe plus friendly fire = death
                     BulletParticleBounce(b, LIGHTGRAY);
@@ -904,7 +910,9 @@ void CheckBulletHits(Camera& camera) {
                 if (b.type == BulletType::Fireball || b.type == BulletType::Iceball) {
                     b.Explode(camera);
                     break;
-                }else if (b.type == BulletType::Harpoon){
+                }else if (b.type == BulletType::CannonBall){
+                    b.Explode(camera);
+                } else if (b.type == BulletType::Harpoon){
                     b.kill(camera);
                     break;
                 }

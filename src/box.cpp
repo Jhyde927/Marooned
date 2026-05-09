@@ -5,6 +5,7 @@
 #include "dungeonGeneration.h"
 #include "pathfinding.h"
 #include "utilities.h"
+#include "sound_manager.h"
 
 
 static float ClampAxisAgainstWalls(
@@ -210,6 +211,7 @@ void Box::DropToTileCenter(Vector3 tileCenter)
     state    = BoxState::OnGround;
     Vector2 tilePos = WorldToImageCoords(position);
     SetTileUnwalkable(tilePos.x, tilePos.y, false);
+    SoundManager::GetInstance().Play("woodThud");
 }
 
 void Box::UpdateBounds()

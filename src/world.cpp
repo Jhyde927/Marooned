@@ -85,6 +85,8 @@ bool hasIslandNav = false;
 int gEnemyCounter = 0;
 float lavaOffsetY = 250.0f;
 bool enteredDungeon1 = false;
+bool squareRes = false;
+bool showTutorial = true;
 
 int gCurrentLevelIndex = -1;
 
@@ -946,6 +948,7 @@ void EraseBullets() {
 void UpdateCannons(float deltaTime){
     for (Cannon& c : cannons){
         c.Update(deltaTime, player);
+
     }
 
     for (CannonballPile& pile : cannonballPiles){

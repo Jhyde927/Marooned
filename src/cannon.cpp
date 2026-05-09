@@ -5,11 +5,6 @@
 #include "raymath.h"
 #include "sound_manager.h"
 
-// Include whatever header has your fireBullet function.
-// Example:
-// #include "bullet.h"
-// #include "world.h"
-// #include "resources.h"
 
 namespace
 {
@@ -36,12 +31,10 @@ void Cannon::Init(const Vector3& pos, float yaw)
     recoilTimer = 0.0f;
 }
 
+
 void Cannon::Update(float dt, Player& player)
 {
     UpdateTimers(dt);
-
-
-
     // Minimal interact example:
     // If player is close and presses E, fire if loaded.
     // Loading itself can be triggered elsewhere when a cannonball box is dropped nearby.
@@ -133,7 +126,7 @@ void Cannon::Fire()
     Vector3 target = Vector3Add(muzzlePos, Vector3Scale(dir, 200.0f));
 
     FireCannon(muzzlePos, target, 2000.0f, 5.0f, false);
-    SoundManager::GetInstance().PlaySoundAtPosition("CannonShot", muzzlePos, player.position, 0.0f, 3000.0f);
+
     
     isLoaded = false;
     isCoolingDown = true;
@@ -201,4 +194,6 @@ void Cannon::UpdateTimers(float dt)
             recoilTimer = 0.0f;
         }
     }
+
+    
 }

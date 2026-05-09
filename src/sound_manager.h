@@ -26,6 +26,7 @@ public:
     void StartSpeech(int npcId, const std::string& bankName, float durationSec, bool extend = true);
     void StopSpeech(int npcId);
     bool IsSpeaking(int npcId) const;
+    void InitMusic();
 
 private:
     std::map<std::string, Sound> sounds;
