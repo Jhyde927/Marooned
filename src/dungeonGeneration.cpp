@@ -2546,11 +2546,10 @@ void UpdateLauncherTraps(float dt)
     const float LIFE  = 10.0f;
     const float AHEAD = 1500.0f;
 
-
     for (LauncherTrap& L : launchers)
     {
         
-        if (L.bossLauncher && !gKraken.isDead){ //dont fire boss launcher until kraken is dead. 
+        if (!gKraken.isDead){ //dont fire boss launcher until kraken is dead. 
             return;
         }
         // Visual timers should update no matter what.

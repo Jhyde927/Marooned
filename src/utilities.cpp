@@ -1,6 +1,12 @@
 #include "utilities.h"
 #include <iostream> 
 
+float SmoothStep01(float t)
+{
+    t = Clamp01(t);
+    return t * t * (3.0f - 2.0f * t);
+}
+
 bool InBounds(int x, int y, int w, int h) {
     return (x >= 0 && y >= 0 && x < w && y < h);
 }

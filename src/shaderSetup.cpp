@@ -13,6 +13,8 @@ namespace ShaderSetup
     TreeShader   gTree;
     SkyShader    gSky;
 
+    SkyCycle gSkyCycle;
+
     //Portal
     static void CachePortalLocations(PortalShader& ps)
     {
@@ -327,6 +329,7 @@ namespace ShaderSetup
         ss.loc_time      = GetShaderLocation(sh, "time");
         ss.loc_isSwamp =   GetShaderLocation(sh, "isSwamp");
         ss.loc_isDungeon = GetShaderLocation(sh, "isDungeon");
+        ss.skyTransitionLoc = GetShaderLocation(sh, "skyTransition");
     }
 
     static void BindSkyShaderToModel(Model& skyModel, Shader& sh)
@@ -347,12 +350,13 @@ namespace ShaderSetup
         int isSwamp = CurrentLevelIs("swamp") ? 1 : 0;
         int Dungeon = isDungeon ? 1 : 0;
 
-        if (CurrentLevelIs("Ship")) Dungeon = 0; // set dungeon to false for ship level so we render blue sky not stars. 
+        //if (CurrentLevelIs("Ship")) Dungeon = 0; // set dungeon to false for ship level so we render blue sky not stars. 
 
         out.isSwamp = isSwamp ? 1 : 0;
         out.isDungeon = Dungeon;
         SetShaderValue(shader, out.loc_isSwamp, &out.isSwamp, SHADER_UNIFORM_INT);
         SetShaderValue(shader, out.loc_isDungeon, &out.isDungeon, SHADER_UNIFORM_INT);
+    
 
         // (Time is updated per-frame, so no need to set here)
     }
@@ -395,10 +399,98 @@ namespace ShaderSetup
         assert(ss.shader && "SkyShader must be initialized");
         Shader& sh = *ss.shader;
 
+        //ss.skyTransition = 0.5f + 0.5f * sinf(GetTime() * 0.25f);
         ss.timeSec = timeSeconds;
         SetShaderValue(sh, ss.loc_time, &ss.timeSec, SHADER_UNIFORM_FLOAT);
 
+        SetShaderValue(
+            sh,
+            ss.skyTransitionLoc,
+            &ss.skyTransition,
+            SHADER_UNIFORM_FLOAT
+        );
 
+
+    }
+
+    void StopSkyCycle()
+    {
+        gSkyCycle.active = false;
+        gSkyCycle.timer = 0.0f;
+    }
+
+    void StartSkyCycle(float dayHold, float nightHold, float transitionDuration, float nightAmount)
+    {
+        gSkyCycle.active = true;
+        gSkyCycle.phase = SkyCyclePhase::DayHold;
+        gSkyCycle.timer = 0.0f;
+
+        gSkyCycle.dayAmount = 0.0f;
+        gSkyCycle.nightAmount = nightAmount;
+
+        gSkyCycle.dayHoldDuration = dayHold;
+        gSkyCycle.nightHoldDuration = nightHold;
+        gSkyCycle.transitionDuration = transitionDuration;
+
+        //gSky.skyTransition = gSkyCycle.dayAmount;
+    }
+
+
+    void UpdateSkyCycle(float dt)
+    {
+        if (!gSkyCycle.active)
+            return;
+
+        gSkyCycle.timer += dt;
+
+        switch (gSkyCycle.phase)
+        {
+            case SkyCyclePhase::DayHold:
+            {
+                if (gSkyCycle.timer >= gSkyCycle.dayHoldDuration)
+                {
+                    gSkyCycle.timer = 0.0f;
+                    gSkyCycle.phase = SkyCyclePhase::ToNight;
+
+                    StartSkyTransition(
+                        gSkyCycle.nightAmount,
+                        gSkyCycle.transitionDuration
+                    );
+                }
+            } break;
+
+            case SkyCyclePhase::ToNight:
+            {
+                if (gSkyCycle.timer >= gSkyCycle.transitionDuration)
+                {
+                    gSkyCycle.timer = 0.0f;
+                    gSkyCycle.phase = SkyCyclePhase::NightHold;
+                }
+            } break;
+
+            case SkyCyclePhase::NightHold:
+            {
+                if (gSkyCycle.timer >= gSkyCycle.nightHoldDuration)
+                {
+                    gSkyCycle.timer = 0.0f;
+                    gSkyCycle.phase = SkyCyclePhase::ToDay;
+
+                    StartSkyTransition(
+                        gSkyCycle.dayAmount,
+                        gSkyCycle.transitionDuration
+                    );
+                }
+            } break;
+
+            case SkyCyclePhase::ToDay:
+            {
+                if (gSkyCycle.timer >= gSkyCycle.transitionDuration)
+                {
+                    gSkyCycle.timer = 0.0f;
+                    gSkyCycle.phase = SkyCyclePhase::DayHold;
+                }
+            } break;
+        }
     }
 
 }

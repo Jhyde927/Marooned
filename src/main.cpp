@@ -63,6 +63,8 @@ int main() {
     InitMenuLevel(levels[0]);
     enemies.reserve(100); 
 
+
+
     //main game loop
     while (!WindowShouldClose()) {
         float rawDt = GetFrameTime();
@@ -93,6 +95,7 @@ int main() {
         if (currentGameState == GameState::Playing) {
             UpdatePlayingFrame(camera, player, deltaTime, ElapsedTime);
             RenderFrame(camera, player, deltaTime);
+
         }
 
         if (currentGameState == GameState::Quit)

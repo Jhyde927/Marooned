@@ -686,6 +686,8 @@ void ResourceManager::SetLightingShaderValues()
 void ResourceManager::UpdateShaders(Camera& camera){
     //SetWaterShaderValues(camera); //update water every frame
     //runs every frame, updates all shaders
+    
+
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     Shader& waterShader = R.GetShader("waterShader");
     //Shader& skyShader = R.GetShader("skyShader");

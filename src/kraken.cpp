@@ -80,7 +80,7 @@ void Kraken::TakeDamage(float amount)
     canTakeDamage = false;
     currentHealth -= amount;
     hitTimer = 0.5f;
-    Vector3 bloodPos = {basePosition.x, basePosition.y + 500.0f, basePosition.z};
+    Vector3 bloodPos = {basePosition.x, basePosition.y + 200.0f, basePosition.z};
 
     bloodEmitter.EmitBurst(bloodPos, 100, ParticleType::Squid);
     if (!didHalfHealthReposition && currentHealth <= maxHealth * 0.5f)
@@ -132,7 +132,7 @@ void Kraken::Update(float dt, Player& player)
 
 void Kraken::Draw(Camera& camera) const
 {
-    if (isDead && state == State::Hidden) return;
+    if (state == State::Hidden) return; // don't render kraken if he's underwater. 
     if (!modelLoaded || !visible)
         return;
 

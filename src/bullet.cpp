@@ -870,7 +870,7 @@ void FireCannon(Vector3 origin, Vector3 target, float speed, float lifetime, boo
     b.id = gBulletCounter++;
     activeBullets.push_back(b);
 
-    SoundManager::GetInstance().PlaySoundAtPosition("CannonShot", origin, player.position, 0.0f, 3000.0f);
+    SoundManager::GetInstance().PlaySoundAtPosition("CannonShot", b.position, player.position, 0.0f, 10000.0f);
 }
 
 void FireBullet(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy, bool hermit) {

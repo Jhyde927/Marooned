@@ -13,6 +13,7 @@
 #include "dialogManager.h"
 #include "sound_manager.h"
 #include "algorithm"
+#include "shaderSetup.h"
 
 WeaponBar gWeaponBar;
 std::vector<SlashEffect> gSlashEffects;
@@ -552,7 +553,10 @@ void UpdateMenu(Camera& camera, float dt)
     {
         DisableCursor();
         currentGameState = GameState::Playing;
+        
         CameraSystem::Get().StopCinematic();
+        // ShaderSetup::StopSkyCycle();
+        // ApplyLevelDefaultSky();
         return;
     }
 

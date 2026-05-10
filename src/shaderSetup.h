@@ -9,6 +9,14 @@
 namespace ShaderSetup
 {
 
+    enum class SkyCyclePhase
+    {
+        DayHold,
+        ToNight,
+        NightHold,
+        ToDay
+    };
+
     struct PortalShader
     {
         // Non-owning pointer to the shader stored inside ResourceManager.
@@ -155,12 +163,35 @@ namespace ShaderSetup
         int loc_time      = -1;
         int loc_isSwamp   = -1;
         int loc_isDungeon = -1;
+        int skyTransitionLoc = -1;
 
         // Stored params
         int   isSwamp = 0;   // 0/1
         int   isDungeon = 0;
+        float skyTransition = 0.0f; // 0 = day, 1 = night
+
+        bool  gSkyTransitionActive = false;
+        float gSkyTransitionStart = 0.0f;
+        float gSkyTransitionTarget = 0.0f;
+        float gSkyTransitionTimer = 0.0f;
+        float gSkyTransitionDuration = 1.0f;
 
         float timeSec   = 0.0f;
+    };
+
+    struct SkyCycle
+    {
+        bool active = false;
+
+        SkyCyclePhase phase = SkyCyclePhase::DayHold;
+        float timer = 0.0f;
+
+        float dayAmount = 0.0f;
+        float nightAmount = 0.8f;
+
+        float dayHoldDuration = 120.0f;
+        float nightHoldDuration = 120.0f;
+        float transitionDuration = 30.0f;
     };
 
 
@@ -202,4 +233,8 @@ namespace ShaderSetup
     //WaterShader
     void InitWaterShader(Shader& shader, WaterShader& out, Vector3 terrainScale);
     void UpdateWaterShaderPerFrame(WaterShader& ws, float elapsedTime, const Camera& camera);
+
+    void UpdateSkyCycle(float dt);
+    void StartSkyCycle(float dayHold, float nightHold, float transitionDuration, float nightAmount);
+    void StopSkyCycle();
 }

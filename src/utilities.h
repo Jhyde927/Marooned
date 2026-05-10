@@ -35,7 +35,7 @@ inline float Rand01() { return (float)GetRandomValue(0, 1000) / 1000.0f; }
 Vector3 DirFromYawDeg(float yawDeg);
 float DirectionToYawDeg(Vector3 dir);
 float DistSq(const Vector3& a, const Vector3& b);
-
+float SmoothStep01(float t);
 //launchers
 bool IsDirPixel(Color c);
 bool IsTimingPixel(Color c);

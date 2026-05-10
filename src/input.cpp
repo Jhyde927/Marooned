@@ -12,7 +12,6 @@
 
 
 InputMode currentInputMode = InputMode::KeyboardMouse;
-//TODO: add controller support 
 
 void debugControls(Camera& camera, float deltaTime){
 
@@ -21,6 +20,10 @@ void debugControls(Camera& camera, float deltaTime){
     }
 
     if (debugInfo){
+
+        if (IsKeyPressed(KEY_U)){
+            ToggleSkyTransition(5.0f);
+        }
 
         if (IsKeyPressed(KEY_J)){
             raft.AddBody();

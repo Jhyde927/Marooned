@@ -31,6 +31,7 @@ namespace SpawnManager
     extern std::vector<Spawner> spawners;
     extern int maxAlive;
     extern bool startSpawning;
+
     int CountAliveSpawnedByType(CharacterType type);
     void Clear();
     void Update(float dt);

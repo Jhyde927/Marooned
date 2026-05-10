@@ -11,6 +11,8 @@
 #include "spiderEgg.h"
 #include "input.h"
 #include "render_pipeline.h"
+#include "shaderSetup.h"
+
 
 
 void UpdateLevelMusic(){
@@ -35,6 +37,10 @@ void UpdateMenuState(Camera3D& camera, Player& player, float deltaTime, float el
 
     R.UpdateShaders(camera);
     UpdateShadersPerFrame(deltaTime, elapsedTime, camera);
+
+    UpdateSkyTransition(deltaTime);
+    ShaderSetup::UpdateSkyCycle(deltaTime);
+    
 
     drawCeiling = false;
 
@@ -168,6 +174,9 @@ void UpdatePlayingFrame(Camera3D& camera, Player& player, float dt, float elapse
     debugControls(camera, dt);
 
     R.UpdateShaders(camera);
+    UpdateSkyTransition(dt);
+    if (!isDungeon) ShaderSetup::UpdateSkyCycle(dt); //day night cycle on island maps only. 
+    
     UpdateShadersPerFrame(dt, elapsedTime, camera);
 
     UpdateGameplaySystems(camera, player, dt);

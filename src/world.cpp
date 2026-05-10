@@ -24,6 +24,7 @@
 #include "portal.h"
 #include "switch_tile.h"
 #include "raft.h"
+#include "shaderSetup.h"
 
 
 GameState currentGameState = GameState::Menu;
@@ -124,6 +125,17 @@ void EnterMenu() {
     cd.height        = 2000.0f;
     cd.lookSmooth    = 6.0f;
     cd.posSmooth     = 1.5f;
+    // ShaderSetup::StopSkyCycle();
+    // StopSkyTransition();
+    // StopSkyTransition();
+    // ApplyLevelDefaultSky();
+
+    // ShaderSetup::StartSkyCycle(
+    //     120.0f, // day hold
+    //     120.0f, // night hold
+    //     30.0f,  // transition
+    //     0.8f    // twilight/night amount
+    // );
 
     if (isDungeon) {
         // 32 tiles * 200 = 6400. Center is (3200,0,3200)
@@ -131,11 +143,14 @@ void EnterMenu() {
         cd.focus  = { worldSize * 0.5f, 0.0f, worldSize * 0.5f };
         cd.radius = worldSize * 0.7f;                // bigger than half (half=3200)
         cd.startAngleDeg = 180.0f;                   // starts on -Z side
+        //if (!CurrentLevelIs("Ship")) ShaderSetup::gSky.skyTransition = 1.0f;
     } else {
         cd.focus  = { 0.0f, 0.0f, 0.0f };            // set to your island center
         cd.radius = 12000.0f;
         cd.height = 3500.0f;
         cd.startAngleDeg = 180.0f;
+
+
     }
 
     CameraSystem::Get().StartCinematic(cd);
@@ -166,6 +181,15 @@ void InitMenuLevel(LevelData& level){
     cd.lookSmooth = 6.0f;
     
     CameraSystem::Get().StartCinematic(cd);
+
+    //ApplyLevelDefaultSky();
+
+    if (!isDungeon) ShaderSetup::StartSkyCycle(
+        60.0f, // day hold
+        60.0f, // night hold
+        30.0f,  // transition
+        0.8f    // outdoor night/twilight amount
+    );
 }
 
 void InitShaders(){
@@ -271,9 +295,6 @@ void InitLevel(LevelData& level, Camera& camera) {
         InitNPCs();
     }
 
-
-
-
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
 
 
@@ -281,6 +302,21 @@ void InitLevel(LevelData& level, Camera& camera) {
     InitOverworldWeapons();
     TutorialSetup();
     InitDialogs();
+
+    //ShaderSetup::gSky.skyTransition = 0.0f;
+    ApplyLevelDefaultSky();
+
+    if (CurrentLevelIs("MiddleIsland") && !isDungeon)
+    {
+        ShaderSetup::StartSkyCycle(
+            120.0f, // day hold
+            120.0f, // night hold
+            30.0f,  // transition
+            0.8f    // outdoor night/twilight amount
+        );
+    }
+
+    
 
     if (level.isDungeon){
         isDungeon = true;
@@ -294,7 +330,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         PortalSystem::InitPortalRender(512, 512);
         PortalSystem::SetTestRenderPairFromGroup(0); // or whichever group has 2 portals
 
-
+        if (!CurrentLevelIs("Ship")) ShaderSetup::gSky.skyTransition = 1.0f;
         GenerateLightSources(floorHeight);
         GenerateFloorTiles(floorHeight);
 
@@ -937,13 +973,100 @@ void EraseBullets() {
     );
 }
 
-// void DrawPotions(){
-//     for (Collectable c : collectables){
-//         if (c.type == CollectableType::HealthPotion){
-//             DrawModel(R.GetModel("healthPotion"), c.position, 100.0f, WHITE);
-//         }
-//     }
-// }
+
+
+void SetSkyInstant(float value)
+{
+    ShaderSetup::SkyShader& ss = ShaderSetup::gSky;
+
+    value = Clamp01(value);
+
+    ss.skyTransition = value;
+
+    ss.gSkyTransitionActive = false;
+    ss.gSkyTransitionTimer = 0.0f;
+    ss.gSkyTransitionStart = value;
+    ss.gSkyTransitionTarget = value;
+}
+
+void StopSkyTransition()
+{
+    ShaderSetup::SkyShader& ss = ShaderSetup::gSky;
+
+    ss.gSkyTransitionActive = false;
+    ss.gSkyTransitionTimer = 0.0f;
+    ss.gSkyTransitionStart = ss.skyTransition;
+    ss.gSkyTransitionTarget = ss.skyTransition;
+}
+
+void ToggleSkyTransition(float duration)
+{
+    float nightTarget = isDungeon ? 1.0f : 0.8f; //don't go full night time on island levels. 
+    float target = (ShaderSetup::gSky.skyTransition < 0.5f) ? nightTarget : 0.0f;
+    StartSkyTransition(target, duration);
+}
+
+void StartSkyTransition(float targetValue, float duration)
+{
+    ShaderSetup::SkyShader& ss = ShaderSetup::gSky;
+    ss.gSkyTransitionStart = ss.skyTransition;
+    ss.gSkyTransitionTarget = Clamp01(targetValue);
+
+    ss.gSkyTransitionTimer = 0.0f;
+    ss.gSkyTransitionDuration = duration;
+
+    if (ss.gSkyTransitionDuration <= 0.0f)
+    {
+        ss.skyTransition = ss.gSkyTransitionTarget;
+        ss.gSkyTransitionActive = false;
+        return;
+    }
+
+    ss.gSkyTransitionActive = true;
+}
+
+void UpdateSkyTransition(float dt)
+{
+    
+    ShaderSetup::SkyShader& ss = ShaderSetup::gSky;
+    if (!ss.gSkyTransitionActive)
+        return;
+
+    ss.gSkyTransitionTimer += dt;
+
+    float t = ss.gSkyTransitionTimer / ss.gSkyTransitionDuration;
+    t = SmoothStep01(t);
+
+    ss.skyTransition =
+        ss.gSkyTransitionStart +
+        (ss.gSkyTransitionTarget - ss.gSkyTransitionStart) * t;
+
+    if (ss.gSkyTransitionTimer >= ss.gSkyTransitionDuration)
+    {
+        ss.skyTransition = ss.gSkyTransitionTarget;
+        ss.gSkyTransitionActive = false;
+    }
+}
+
+
+void ApplyLevelDefaultSky()
+{
+
+    StopSkyTransition();
+
+    if (CurrentLevelIs("Ship"))
+    {
+        SetSkyInstant(0.0f); // ship starts day
+    }
+    else if (isDungeon)
+    {
+        SetSkyInstant(1.0f); // normal dungeons start night
+    }
+    else
+    {
+        SetSkyInstant(0.0f); // islands start day
+    }
+}
 
 void UpdateCannons(float deltaTime){
     for (Cannon& c : cannons){
