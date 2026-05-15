@@ -569,7 +569,7 @@ void UpdateMenu(Camera& camera, float dt)
 
     MainMenu::Layout layout = gMenu.showOptions ? MainMenu::ComputeOptionsLayout(menuX, baseY, gapY, btnW, btnH) : 
     MainMenu::ComputeLayout(menuX, baseY, gapY, btnW, btnH);
-    int oCount = gMenu.showOptions ? 1 : 5;
+    int oCount = gMenu.showOptions ? 3 : 5;
     MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, oCount, levelIndex, (int)levels.size(), layout);
 
     if (a == MainMenu::Action::StartGame)

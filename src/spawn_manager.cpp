@@ -43,7 +43,7 @@ namespace SpawnManager
         // if player is in range and has LOS of kraken head, start spawning and lock the doors.
         if (gKraken.playerInRange && !startSpawning){  
             startSpawning = true;
-            ShaderSetup::StartSkyTransition(0.8, 30.0f);
+            ShaderSetup::StartSkyTransition(0.95, 30.0f); //30 seconds too long? 
             EventLockAllDoors(true);
             
             player.startPosition = Vector3{3585.0f, 220.0f, 3062.0f}; //move respawn location to just outside of boss arena. 

@@ -62,6 +62,8 @@ float vignetteFade = 0.0f;
 int vignetteMode = 0;
 float vignetteStrengthValue = 0.2;
 float bloomStrengthValue = 0.0;
+float maxDrawDist = 15000.0f;
+float menuDrawDist = 50000.0f;
 
 float fadeSpeed = 1.0f; // units per second
 
@@ -118,6 +120,7 @@ MiniMap miniMap;
 using namespace dungeon;
 
 void EnterMenu() {
+    bool isShip = CurrentLevelIs("Ship");
     EnableCursor();
     CinematicDesc cd{};
     cd.snapOnStart   = true;
@@ -131,14 +134,13 @@ void EnterMenu() {
         float worldSize = dungeonWidth * tileSize;   // or just 6400.0f if fixed
         cd.focus  = { worldSize * 0.5f, 0.0f, worldSize * 0.5f };
         cd.radius = worldSize * 0.7f;                // bigger than half (half=3200)
-        cd.startAngleDeg = 180.0f;                   // starts on -Z side
+        cd.startAngleDeg = isShip ? 90.0 : 180.0f;
 
     } else {
         cd.focus  = { 0.0f, 0.0f, 0.0f };            // set to your island center
         cd.radius = 12000.0f;
         cd.height = 3500.0f;
-        cd.startAngleDeg = 180.0f;
-
+        cd.startAngleDeg = 180.0f;                   // starts on -Z side
 
     }
 
@@ -197,6 +199,7 @@ void InitShaders(){
     Model& doorwayModel   = R.GetModel("doorWayGray");
     Model& swampTree      = R.GetModel("swampTree");
     Model& skyModel       = R.GetModel("skyModel");
+    Model& campFire       = R.GetModel("campFire");
 
     
     ShaderSetup::InitSkyShader(R.GetShader("skyShader"), ShaderSetup::gSky, skyModel, isDungeon);
@@ -207,7 +210,8 @@ void InitShaders(){
         &smallTreeModel,
         &bushModel,
         &doorwayModel,
-        &swampTree
+        &swampTree,
+        &campFire
     });
 }
 

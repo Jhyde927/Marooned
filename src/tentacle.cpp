@@ -182,16 +182,15 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vect
 
     float bestDistSq = FLT_MAX;
     float attackRangeSq = attackRange * attackRange;
-
+    bool hasLOS = HasWorldLineOfSight(rootPos, player.position, 0.1);
     // Check player
     float playerDistSq = Vector3DistanceSqr(rootPos, player.position);
-    if (playerDistSq <= attackRangeSq)
+    if (playerDistSq <= attackRangeSq && hasLOS)
     {
         bestDistSq = playerDistSq;
         attackTarget = player.position;
         playerInRange = true;
 
-        
     }
 
     // Check pirates

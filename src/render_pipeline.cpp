@@ -61,9 +61,10 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         rlEnableDepthMask(); rlEnableDepthTest();
         BeginBlendMode(BLEND_ALPHA);
         DrawWaterPlane();
+        
         if (!isDungeon){
-            float maxDrawDist = 50000.0f; //Higher for menu cam
-            DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
+
+            DrawTerrainGrid(terrain, camera, menuDrawDist); //draw the chunks
 
             DrawBoat(player_boat);
             HandleWaves(camera); //update water plane bob. 
@@ -155,7 +156,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
         if (!isDungeon) {
 
-            float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
+            //float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
 
             DrawTerrainGrid(terrain, camera, maxDrawDist); //draw the chunks
 

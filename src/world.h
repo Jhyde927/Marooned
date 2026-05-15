@@ -73,6 +73,8 @@ extern float waterHeightY;
 extern float ceilingHeight;
 extern bool switchFromMenu;
 extern float tileSize;
+extern float maxDrawDist;
+extern float menuDrawDist;
 
 extern bool first;
 extern float dungeonEnemyHeight;

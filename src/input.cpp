@@ -10,6 +10,7 @@
 #include "vegetation.h"
 #include "dungeonGeneration.h"
 #include "shaderSetup.h"
+#include "game_settings.h"
 
 
 InputMode currentInputMode = InputMode::KeyboardMouse;
@@ -121,19 +122,31 @@ void debugControls(Camera& camera, float deltaTime){
     }
 }
 
-void HandleMouseLook(float deltaTime){
+void HandleMouseLook(float deltaTime)
+{
     Vector2 mouseDelta = GetMouseDelta();
-    float mouseSensitivity = 0.05f;
-    player.rotation.y -= mouseDelta.x * mouseSensitivity;
-    player.rotation.x -= mouseDelta.y * mouseSensitivity;
+
+    player.rotation.y -= mouseDelta.x * GameSettings::mouseSensitivity;
+    player.rotation.x -= mouseDelta.y * GameSettings::mouseSensitivity;
     player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
 
-
-    // --- ALWAYS recompute forward from yaw ---
     float yaw = DEG2RAD * player.rotation.y;
     player.forward = Vector3Normalize({ sinf(yaw), 0.0f, cosf(yaw) });
-    
 }
+
+// void HandleMouseLook(float deltaTime){
+//     Vector2 mouseDelta = GetMouseDelta();
+//     float mouseSensitivity = 0.05f;
+//     player.rotation.y -= mouseDelta.x * mouseSensitivity;
+//     player.rotation.x -= mouseDelta.y * mouseSensitivity;
+//     player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
+
+
+//     // --- ALWAYS recompute forward from yaw ---
+//     float yaw = DEG2RAD * player.rotation.y;
+//     player.forward = Vector3Normalize({ sinf(yaw), 0.0f, cosf(yaw) });
+    
+// }
 
 float Expo(float x)
 {

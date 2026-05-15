@@ -48,6 +48,7 @@ namespace MainMenu
 
     // Call once if you want to reset selection when entering menu
     inline void Reset(State& s) { s.selectedOption = 0; }
+
     Layout ComputeOptionsLayout(float menuX, float baseY, float gapY, float btnW, float btnH);
     Layout ComputeLayout(float menuX,
                          float baseY,

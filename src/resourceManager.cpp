@@ -719,7 +719,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     //Move this to ShaderSetup
 
     float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
-    int useFog = (currentGameState == GameState::Menu) ? 0 : 1; //dont render fog in menu. 
+    int useFog = 1;//(currentGameState == GameState::Menu) ? 0 : 1; //dont render fog in menu. 
 
     SetShaderValue( terrainShader, useFogLoc, &useFog, SHADER_UNIFORM_INT);
 

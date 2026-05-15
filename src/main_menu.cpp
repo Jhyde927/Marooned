@@ -6,6 +6,31 @@
 #include "fullscreen_toggle.h"
 #include "raylib.h"
 #include "rlgl.h"
+#include "game_settings.h"
+
+static float Normalize01(float value, float minValue, float maxValue)
+{
+    return (value - minValue) / (maxValue - minValue);
+}
+
+static float Denormalize01(float t, float minValue, float maxValue)
+{
+    return minValue + t * (maxValue - minValue);
+}
+
+static void HandleSliderMouse(Rectangle r, float& value, float minValue, float maxValue)
+{
+    Vector2 m = GetMousePosition();
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(m, r))
+    {
+        float t = (m.x - r.x) / r.width;
+        t = Clamp(t, 0.0f, 1.0f);
+        value = Denormalize01(t, minValue, maxValue);
+    }
+}
+
+
 
 
 static inline void DrawControlsText(Font font, Rectangle r)
@@ -149,10 +174,39 @@ MainMenu::Layout MainMenu::ComputeOptionsLayout(float menuX, float baseY, float 
     float cx = menuX + btnW * 0.5f;
 
     Layout L{};
-    L.selectable[0] = MakeButtonRect(cx, baseY + gapY*5.0f, btnW, btnH); // Back
+
+    float sliderW = btnW;
+    float sliderH = 44.0f;
+
+    L.selectable[0] = MakeButtonRect(cx, baseY + 75.0f, sliderW, sliderH); // Mouse Sensitivity
+    L.selectable[1] = MakeButtonRect(cx, baseY + 175.0f, sliderW, sliderH); // Draw Distance
+
+    L.selectable[2] = MakeButtonRect(cx, baseY + 390.0f, btnW, btnH);       // Back
 
     return L;
 }
+
+// MainMenu::Layout MainMenu::ComputeOptionsLayout(float menuX, float baseY, float gapY, float btnW, float btnH)
+// {
+//     float cx = menuX + btnW * 0.5f;
+
+//     Layout L{};
+//     L.selectable[0] = MakeButtonRect(cx, baseY + gapY, btnW, btnH); // Mouse Sensitivity
+//     L.selectable[1] = MakeButtonRect(cx, baseY + gapY, btnW, btnH); // Draw Distance
+//     L.selectable[1] = MakeButtonRect(cx, baseY + gapY*5.0f, btnW, btnH); // Back
+
+//     return L;
+// }
+
+// MainMenu::Layout MainMenu::ComputeOptionsLayout(float menuX, float baseY, float gapY, float btnW, float btnH)
+// {
+//     float cx = menuX + btnW * 0.5f;
+
+//     Layout L{};
+//     L.selectable[0] = MakeButtonRect(cx, baseY + gapY*5.0f, btnW, btnH); // Back
+
+//     return L;
+// }
 
 
 static inline void DrawMenuButtonRounded(Rectangle r, bool selected, float alphaMul = 1.0f, bool title = false)
@@ -540,6 +594,62 @@ static int StickNavStep(float stickY, float dt)
     return 0;
 }
 
+static void DrawSlider(Font font, Rectangle r, const char* label, float value, float minValue, float maxValue, bool selected, bool showValue = true)
+{
+    // Label centered above
+    Rectangle labelRect = {
+        r.x,
+        r.y - 58.0f,
+        r.width,
+        34.0f
+    };
+
+    DrawCarvedText(font, label, labelRect, 34.0f, 1.0f, false, selected);
+
+    // Value centered below label / above slider
+    if (showValue)
+    {
+        Rectangle valueRect = {
+            r.x,
+            r.y - 28.0f,
+            r.width,
+            26.0f
+        };
+
+        char valueText[32];
+        snprintf(valueText, sizeof(valueText), "%.3f", value);
+
+        DrawCarvedText(font, valueText, valueRect, 24.0f, 1.0f, false, selected);
+    }
+
+    // Track
+    Rectangle track = {
+        r.x + 18.0f,
+        r.y + r.height * 0.5f - 5.0f,
+        r.width - 36.0f,
+        10.0f
+    };
+
+    DrawRectangleRounded(track, 0.5f, 12, {80, 55, 35, 220});
+
+    float t = Normalize01(value, minValue, maxValue);
+    t = Clamp(t, 0.0f, 1.0f);
+
+    float knobX = track.x + track.width * t;
+
+    Rectangle knob = {
+        knobX - 12.0f,
+        track.y - 10.0f,
+        24.0f,
+        30.0f
+    };
+
+    DrawRectangleRounded(knob, 0.35f, 12, selected ? Color{242, 212, 164, 255}
+                                                   : Color{214, 182, 132, 255});
+
+    DrawRectangleRoundedLines(knob, 0.35f, 12, {100, 70, 40, 255});
+}
+
 
 
 
@@ -627,9 +737,22 @@ namespace MainMenu
 
         auto ActivateSelected = [&]() -> Action
         {
-            if (s.showOptions){
-                return Action::Back;
-            } 
+            if (s.showOptions)
+            {
+                switch (s.selectedOption)
+                {
+                    case 0:
+                        return Action::None; // mouse sensitivity slider
+
+                    case 1:
+                        return Action::None; // draw distance slider
+
+                    case 2:
+                        return Action::Back;
+                }
+
+                return Action::None;
+            }
 
             switch (s.selectedOption)
             {
@@ -669,7 +792,7 @@ namespace MainMenu
         Vector2 m = GetMousePosition();
 
         int hovered = -1;
-        for (int i = 0; i < 5; ++i)
+        for (int i = 0; i < optionsCount; ++i)
         {
             if (CheckCollisionPointRec(m, L.selectable[i]))
             {
@@ -732,6 +855,73 @@ namespace MainMenu
 
 
             
+        }
+
+        if (s.showOptions)
+        {
+            // selectedOption 0 is mouse sensitivity slider
+            Rectangle sliderRect = L.selectable[0];
+
+            HandleSliderMouse(
+                sliderRect,
+                GameSettings::mouseSensitivity,
+                GameSettings::minMouseSensitivity,
+                GameSettings::maxMouseSensitivity
+            );
+
+            HandleSliderMouse(
+                L.selectable[1],
+                maxDrawDist,
+                GameSettings::minDrawDist,
+                GameSettings::maxDrawDistLimit
+            );
+
+            bool leftPressed =
+                IsKeyPressed(KEY_LEFT) ||
+                (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT));
+
+            bool rightPressed =
+                IsKeyPressed(KEY_RIGHT) ||
+                (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT));
+
+            // Keyboard/gamepad left-right adjustment while slider row is selected
+            if (s.selectedOption == 0)
+            {
+                float step = 0.0025f;
+
+                if (leftPressed)
+                {
+                    GameSettings::mouseSensitivity -= step;
+                }
+
+                if (rightPressed)
+                {
+                    GameSettings::mouseSensitivity += step;
+                }
+
+                GameSettings::mouseSensitivity = Clamp(
+                    GameSettings::mouseSensitivity,
+                    GameSettings::minMouseSensitivity,
+                    GameSettings::maxMouseSensitivity
+                );
+            }
+            if (s.selectedOption == 1)
+            {
+                float step = 1000.0f;
+
+                if (leftPressed)
+                    maxDrawDist -= step;
+
+                if (rightPressed)
+                    maxDrawDist += step;
+
+                maxDrawDist = Clamp(
+                    maxDrawDist,
+                    GameSettings::minDrawDist,
+                    GameSettings::maxDrawDistLimit
+                );
+            }
+
         }
 
 
@@ -878,19 +1068,50 @@ namespace MainMenu
         float maxRight  = (float)GetScreenWidth() - 20.0f;
         if (rightEdge > maxRight) panel.rect.x -= (rightEdge - maxRight);
 
-        if (s.showOptions){
-
-            //background panel
+        if (s.showOptions)
+        {
             Rectangle oPanel = ComputeOptionsPanelRect(rStart, rQuit);
             DrawOptionsPanelAsButton(oPanel, false);
-            DrawMenuButtonRounded(rMenu, selMenu);
-            DrawCarvedText(pieces, lblMenu, rMenu, menuFontSizeF, menuSpacing, false, selMenu);
 
-            //controls panel
+            // Recreate the same options layout for drawing
+            Layout optL = ComputeOptionsLayout(menuX - btnW * 0.5f, baseY, gapY, btnW, btnH);
+
+            Rectangle rSensitivity = optL.selectable[0];
+            Rectangle rDrawDist    = optL.selectable[1];
+            Rectangle rBack        = optL.selectable[2];
+
+            bool selSensitivity = (s.selectedOption == 0);
+            bool selDrawDist    = (s.selectedOption == 1);
+            bool selBack        = (s.selectedOption == 2);
+
+            DrawSlider(
+                pieces,
+                rSensitivity,
+                "Mouse Sensitivity",
+                GameSettings::mouseSensitivity,
+                GameSettings::minMouseSensitivity,
+                GameSettings::maxMouseSensitivity,
+                selSensitivity
+            );
+
+            DrawSlider(
+                pieces,
+                rDrawDist,
+                "Draw Distance",
+                maxDrawDist,
+                GameSettings::minDrawDist,
+                GameSettings::maxDrawDistLimit,
+                selDrawDist,
+                false
+            );
+
+            DrawMenuButtonRounded(rBack, selBack);
+            DrawCarvedText(pieces, "Back", rBack, menuFontSizeF, menuSpacing, false, selBack);
+
+            // Optional controls panel on the side
             Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
-            DrawControlsPanelAsButton(rPanel, false);     // background uses your button style
-            DrawControlsText(R.GetFont("Pieces"), rPanel);   // text inside
-
+            DrawControlsPanelAsButton(rPanel, false);
+            DrawControlsText(R.GetFont("Pieces"), rPanel);
         }
 
         if (s.showPreview) {
@@ -932,5 +1153,7 @@ namespace MainMenu
         }
     }
 }
+
+
 
 
