@@ -295,14 +295,6 @@ struct DoorDelayedAction
     float t         = 0.0f;   // seconds remaining
 };
 
-struct InstancingDebugTest {
-    Mesh mesh = { 0 };
-    Shader shader = { 0 };
-    Material material = { 0 };
-    std::vector<Matrix> transforms;
-    bool initialized = false;
-};
-
 struct FloorInstancing {
     Mesh mesh = { 0 };
     Shader shader = { 0 };
@@ -311,9 +303,18 @@ struct FloorInstancing {
     bool initialized = false;
 };
 
-extern FloorInstancing gFloorInstancing;
+struct FloorInstanceSource {
+    Vector3 position;
+    Matrix transform;
+    FloorType floorType;
+    bool isWood = false;
+};
 
-extern InstancingDebugTest gInstancingDebug;
+extern std::vector<FloorInstanceSource> gFloorInstanceSources;
+
+extern FloorInstancing gGrayFloorInstancing;
+extern FloorInstancing gWoodFloorInstancing;
+
 
 extern std::vector<Matrix> grayFloorTransforms;
 extern std::vector<Matrix> woodFloorTransforms;
@@ -391,12 +392,9 @@ void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
 
-//delete me
-void InitInstancingDebugTest();
-void UpdateInstancingDebugTest();
-
 void InitFloorInstancing();
-void BuildFloorTileInstanceTransforms();
+void InitFloorInstancingBatch( FloorInstancing& batch, const char* modelKey);
+void AddFloorInstanceSource(const FloorTile& tile);
 
 int Idx(int x, int y); 
 

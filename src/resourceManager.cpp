@@ -11,6 +11,7 @@
 #include "shaderSetup.h"
 
 
+
 ResourceManager* ResourceManager::_instance = nullptr;
 
 void ResourceManager::ensureFallback_() const {
@@ -359,8 +360,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("portalShader",   "assets/shaders/portal.vs",             "assets/shaders/portal.fs");
     R.LoadShader("ceilingShader",  "assets/shaders/ceiling.vs",            "assets/shaders/ceiling.fs");
     R.LoadShader("ghostShader",    "assets/shaders/ghost_raft.vs",         "assets/shaders/ghost_raft.fs");
-
-    R.LoadShader("debugInstancingShader", "assets/shaders/debug_instancing.vs", "assets/shaders/debug_instancing.fs");
     R.LoadShader("floorInstancedLightingShader", "assets/shaders/floor_instanced_lighting.vs", "assets/shaders/floor_instanced_lighting.fs");
 
 
@@ -628,9 +627,11 @@ void ResourceManager::SetCeilingShaderValues()
     if (locTiling >= 0) SetShaderValue(sh, locTiling, &tiling, SHADER_UNIFORM_VEC2);
 }
 
-void ResourceManager::SetFloorInstancedLightingShaderValues()
+void ResourceManager::SetFloorInstancedLightingShaderValues(FloorInstancing& batch)
 {
-    Shader& sh = gFloorInstancing.material.shader;
+    if (!batch.initialized) return;
+
+    Shader& sh = batch.material.shader;
 
     sh.locs[SHADER_LOC_MATRIX_MVP] =
         GetShaderLocation(sh, "mvp");
@@ -644,23 +645,9 @@ void ResourceManager::SetFloorInstancedLightingShaderValues()
     sh.locs[SHADER_LOC_MAP_EMISSION] =
         GetShaderLocation(sh, "texture4");
 
-    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced mvp loc = %i",
-        sh.locs[SHADER_LOC_MATRIX_MVP]);
-
-    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced instanceTransform attrib loc = %i",
-        sh.locs[SHADER_LOC_MATRIX_MODEL]);
-
-    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced texture0 loc = %i",
-        sh.locs[SHADER_LOC_MAP_DIFFUSE]);
-
-    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced texture4 loc = %i",
-        sh.locs[SHADER_LOC_MAP_EMISSION]);
-
-    Model& floorModel = GetModel("floorTileGray");
-
-    gFloorInstancing.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
-    
-
+    // Only override runtime texture slot.
+    // Do NOT overwrite MATERIAL_MAP_DIFFUSE here.
+    batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
 
     int locGrid   = GetShaderLocation(sh, "gridBounds");
     int locDynStr = GetShaderLocation(sh, "dynStrength");
@@ -685,6 +672,7 @@ void ResourceManager::SetFloorInstancedLightingShaderValues()
     if (locAmb >= 0)
         SetShaderValue(sh, locAmb, &ambientBoost, SHADER_UNIFORM_FLOAT);
 }
+
 
 
 void ResourceManager::SetLightingShaderValues()

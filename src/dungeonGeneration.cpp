@@ -22,12 +22,14 @@
 #include "powerUps.h"
 #include "spawn_manager.h"
 
-std::vector<Matrix> grayFloorTransforms;
-std::vector<Matrix> woodFloorTransforms;
+// std::vector<Matrix> grayFloorTransforms;
+// std::vector<Matrix> woodFloorTransforms;
 
-FloorInstancing gFloorInstancing;
+FloorInstancing gGrayFloorInstancing;
+FloorInstancing gWoodFloorInstancing;
 
-InstancingDebugTest gInstancingDebug;
+// FloorInstancing gFloorInstancing;
+std::vector<FloorInstanceSource> gFloorInstanceSources;
 
 Texture2D ceilingVoidMaskTex;
 Texture2D ceilingMaskTex;
@@ -79,322 +81,136 @@ using namespace dungeon;
 // Epsilon for float compares
 static inline bool NearlyEq(float a, float b, float eps = 1e-4f) { return fabsf(a - b) < eps; }
 
-void InitInstancingDebugTest()
+static Matrix MakeFloorTransform(const Vector3& pos)
 {
-    if (gInstancingDebug.initialized) return;
+    const Vector3 baseScale = { 700, 700, 700 };
 
-    gInstancingDebug.shader = R.GetShader("debugInstancingShader");
+    Matrix transform = MatrixScale(baseScale.x, baseScale.y, baseScale.z);
+    transform.m12 = pos.x;
+    transform.m13 = pos.y;
+    transform.m14 = pos.z;
 
-    // MVP uniform
-    gInstancingDebug.shader.locs[SHADER_LOC_MATRIX_MVP] =
-        GetShaderLocation(gInstancingDebug.shader, "mvp");
-
-    // Older raylib instancing path uses MATRIX_MODEL slot
-    // to store the instanceTransform ATTRIBUTE location.
-    gInstancingDebug.shader.locs[SHADER_LOC_MATRIX_MODEL] =
-        GetShaderLocationAttrib(gInstancingDebug.shader, "instanceTransform");
-
-    TraceLog(LOG_INFO, "debug instancing mvp loc = %i",
-        gInstancingDebug.shader.locs[SHADER_LOC_MATRIX_MVP]);
-
-    TraceLog(LOG_INFO, "debug instancing instanceTransform attrib loc = %i",
-        gInstancingDebug.shader.locs[SHADER_LOC_MATRIX_MODEL]);
-
-    gInstancingDebug.mesh = GenMeshCube(100.0f, 100.0f, 100.0f);
-
-    gInstancingDebug.material = LoadMaterialDefault();
-    gInstancingDebug.material.shader = gInstancingDebug.shader;
-    gInstancingDebug.material.maps[MATERIAL_MAP_DIFFUSE].color = RED;
-
-    gInstancingDebug.transforms.reserve(2);
-
-    gInstancingDebug.initialized = true;
+    return transform;
 }
 
-void UpdateInstancingDebugTest()
+void AddFloorInstanceSource(const FloorTile& tile)
 {
-    if (!gInstancingDebug.initialized) return;
+    if (tile.floorType != FloorType::Normal) return;
 
-    gInstancingDebug.transforms.clear();
+    FloorInstanceSource src;
+    src.position = tile.position;
+    src.transform = MakeFloorTransform(tile.position);
+    src.floorType = tile.floorType;
+    src.isWood = CurrentLevelIs("Ship");
 
-    Vector3 p = player.position;
-
-    gInstancingDebug.transforms.push_back(MatrixTranslate(
-        p.x + 200.0f,
-        p.y + 100.0f,
-        p.z
-    ));
-
-    gInstancingDebug.transforms.push_back(MatrixTranslate(
-        p.x - 200.0f,
-        p.y + 100.0f,
-        p.z
-    ));
+    gFloorInstanceSources.push_back(src);
 }
 
-// void InitFloorInstancing()
-// {
-//     if (gFloorInstancing.initialized) return;
-
-//     gFloorInstancing.shader = R.GetShader("floorInstancedLightingShader");
-
-//     gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MVP] =
-//         GetShaderLocation(gFloorInstancing.shader, "mvp");
-
-//     gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MODEL] =
-//         GetShaderLocationAttrib(gFloorInstancing.shader, "instanceTransform");
-
-//     // TEMP: generated cube test
-//     // gFloorInstancing.mesh = GenMeshCube(200.0f, 20.0f, 200.0f);
-
-//     // REAL: use the mesh from your actual floor tile model
-//     Model& floorModel = R.GetModel("floorTileGray"); // change key to your actual resource key
-
-//     gFloorInstancing.mesh = floorModel.meshes[0];
-
-//     // Copy the material from the floor model
-//     gFloorInstancing.material = floorModel.materials[0];
-
-//     // Override shader for instancing
-//     gFloorInstancing.material.shader = gFloorInstancing.shader;
-
-//     // Debug color if needed
-//     gFloorInstancing.material.maps[MATERIAL_MAP_DIFFUSE].color = MAGENTA;
-
-//     gFloorInstancing.transforms.reserve(4096);
-
-//     gFloorInstancing.initialized = true;
-// }
-
-// void InitFloorInstancing()
-// {
-//     if (gFloorInstancing.initialized) return;
-
-//     gFloorInstancing.shader = R.GetShader("floorInstancedLightingShader");
-
-//     gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MVP] =
-//         GetShaderLocation(gFloorInstancing.shader, "mvp");
-
-//     gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MODEL] =
-//         GetShaderLocationAttrib(gFloorInstancing.shader, "instanceTransform");
-
-//     TraceLog(LOG_INFO, "floor shader id = %u", gFloorInstancing.shader.id);
-//     TraceLog(LOG_INFO, "vertexPosition loc = %i",
-//         GetShaderLocationAttrib(gFloorInstancing.shader, "vertexPosition"));
-//     TraceLog(LOG_INFO, "instanceTransform loc = %i",
-//         gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MODEL]);
-//     TraceLog(LOG_INFO, "mvp loc = %i",
-//         gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MVP]);
-
-//     // TEMP TEST: use a generated cube, like the debug test
-//     gFloorInstancing.mesh = GenMeshCube(200.0f, 20.0f, 200.0f);
-
-//     gFloorInstancing.material = LoadMaterialDefault();
-//     gFloorInstancing.material.shader = gFloorInstancing.shader;
-//     gFloorInstancing.material.maps[MATERIAL_MAP_DIFFUSE].color = MAGENTA;
-
-//     gFloorInstancing.transforms.reserve(4096);
-
-//     gFloorInstancing.initialized = true;
-// }
-
-void InitFloorInstancing()
+void InitFloorInstancingBatch(FloorInstancing& batch, const char* modelKey)
 {
-    if (gFloorInstancing.initialized) return;
+    if (batch.initialized) return;
 
-    gFloorInstancing.shader = R.GetShader("floorInstancedLightingShader");
+    batch.shader = R.GetShader("floorInstancedLightingShader");
 
-    TraceLog(LOG_INFO, "floor shader id = %u", gFloorInstancing.shader.id);
+    batch.shader.locs[SHADER_LOC_MATRIX_MVP] =
+        GetShaderLocation(batch.shader, "mvp");
 
-    gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MVP] =
-        GetShaderLocation(gFloorInstancing.shader, "mvp");
+    batch.shader.locs[SHADER_LOC_MATRIX_MODEL] =
+        GetShaderLocationAttrib(batch.shader, "instanceTransform");
 
-    gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MODEL] =
-        GetShaderLocationAttrib(gFloorInstancing.shader, "instanceTransform");
-
-    TraceLog(LOG_INFO, "vertexPosition loc = %i",
-        GetShaderLocationAttrib(gFloorInstancing.shader, "vertexPosition"));
-
-    TraceLog(LOG_INFO, "vertexTexCoord loc = %i",
-        GetShaderLocationAttrib(gFloorInstancing.shader, "vertexTexCoord"));
-
-    TraceLog(LOG_INFO, "vertexNormal loc = %i",
-        GetShaderLocationAttrib(gFloorInstancing.shader, "vertexNormal"));
-
-    TraceLog(LOG_INFO, "vertexColor loc = %i",
-        GetShaderLocationAttrib(gFloorInstancing.shader, "vertexColor"));
-
-    TraceLog(LOG_INFO, "instanceTransform loc = %i",
-        gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MODEL]);
-
-    TraceLog(LOG_INFO, "mvp loc = %i",
-        gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MVP]);
-
-
-    if (gFloorInstancing.shader.locs[SHADER_LOC_MATRIX_MODEL] < 0) {
-        TraceLog(LOG_ERROR, "Missing instanceTransform");
-        gFloorInstancing.initialized = false;
+    if (batch.shader.locs[SHADER_LOC_MATRIX_MODEL] < 0) {
+        TraceLog(LOG_ERROR, "Missing instanceTransform for %s", modelKey);
+        batch.initialized = false;
         return;
     }
 
-    Model& floorModel = R.GetModel("floorTileGray");
+    Model& model = R.GetModel(modelKey);
 
-
-    TraceLog(LOG_INFO, "floorTileGray meshCount = %i", floorModel.meshCount);
-    TraceLog(LOG_INFO, "floorTileGray materialCount = %i", floorModel.materialCount);
-
-    for (int i = 0; i < floorModel.meshCount; ++i)
+    for (int i = 0; i < model.meshCount; ++i)
     {
         int matIndex = 0;
 
-        if (floorModel.meshMaterial != nullptr)
-            matIndex = floorModel.meshMaterial[i];
+        if (model.meshMaterial != nullptr)
+            matIndex = model.meshMaterial[i];
 
         Texture2D diffuseTex = { 0 };
 
-        if (matIndex >= 0 && matIndex < floorModel.materialCount)
+        if (matIndex >= 0 && matIndex < model.materialCount)
         {
-            diffuseTex = floorModel.materials[matIndex]
+            diffuseTex = model.materials[matIndex]
                 .maps[MATERIAL_MAP_DIFFUSE]
                 .texture;
         }
 
-        TraceLog(LOG_INFO,
-            "floor mesh[%i]: vertexCount=%i triangleCount=%i uses material[%i] diffuse/albedo texture id=%u texcoords=%p",
-            i,
-            floorModel.meshes[i].vertexCount,
-            floorModel.meshes[i].triangleCount,
-            matIndex,
-            diffuseTex.id,
-            floorModel.meshes[i].texcoords
-        );
     }
 
-    for (int i = 0; i < floorModel.materialCount; ++i)
-    {
-        Texture2D diffuseTex =
-            floorModel.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture;
-
-        TraceLog(LOG_INFO,
-            "floor material[%i]: diffuse/albedo texture id=%u",
-            i,
-            diffuseTex.id
-        );
-    }
-    
-    // Pick mesh/material pair
     int meshIndex = 0;
     int matIndex = 0;
 
-    if (floorModel.meshMaterial != nullptr)
-        matIndex = floorModel.meshMaterial[meshIndex];
+    if (model.meshMaterial != nullptr)
+        matIndex = model.meshMaterial[meshIndex];
 
-    TraceLog(LOG_INFO, "Using floor mesh[%i] with material[%i]", meshIndex, matIndex);
+    batch.mesh = model.meshes[meshIndex];
+    batch.material = model.materials[matIndex];
 
-    gFloorInstancing.mesh = floorModel.meshes[meshIndex];
-    gFloorInstancing.material = floorModel.materials[matIndex];
+    // Override shader after copying the model's real material/texture.
+    batch.material.shader = batch.shader;
 
-    // Override shader after copying the material
-    gFloorInstancing.material.shader = gFloorInstancing.shader;
+    // Runtime lightmap/emission.
+    batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
 
-    // Keep your dynamic lightmap/emission texture
-    gFloorInstancing.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+    batch.transforms.reserve(4096);
 
-
-    // gFloorInstancing.mesh = floorModel.meshes[0];
-    // gFloorInstancing.material = floorModel.materials[0];
-    // gFloorInstancing.material.shader = gFloorInstancing.shader;
-
-    // gFloorInstancing.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
-    // gFloorInstancing.material.maps[MATERIAL_MAP_DIFFUSE].texture = floorModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture;
-
-    gFloorInstancing.transforms.reserve(4096);
-
-    gFloorInstancing.initialized = true;
-
-    TraceLog(LOG_INFO, "instanced floor diffuse texture id = %u",
-        gFloorInstancing.material.maps[MATERIAL_MAP_DIFFUSE].texture.id);
-
-    TraceLog(LOG_INFO, "instanced floor emission texture id = %u",
-        gFloorInstancing.material.maps[MATERIAL_MAP_EMISSION].texture.id);
-
-    TraceLog(LOG_INFO, "instanced floor shader id = %u",
-        gFloorInstancing.material.shader.id);
-
+    batch.initialized = true;
 
 }
 
-void BuildFloorTileInstanceTransforms()
+void InitFloorInstancing()
 {
-    gFloorInstancing.transforms.clear();
+    InitFloorInstancingBatch(gGrayFloorInstancing, "floorTileGray");
+    InitFloorInstancingBatch(gWoodFloorInstancing, "woodFloor"); // your actual key
 
-    if (CurrentLevelIs("Ship")) {
-        TraceLog(LOG_INFO, "Skipping floor instancing on Ship level");
-        return;
-    }
-
-    gFloorInstancing.transforms.reserve(floorTiles.size());
-
-    const Vector3 baseScale = { 700, 700, 700 };
-
-    for (const FloorTile& tile : floorTiles) {
-        if (tile.floorType != FloorType::Normal) continue;
-
-        Matrix transform = MatrixScale(baseScale.x, baseScale.y, baseScale.z);
-
-        // Directly set translation so matrix multiply order can't screw us.
-        transform.m12 = tile.position.x;
-        transform.m13 = tile.position.y;
-        transform.m14 = tile.position.z;
-
-        if (gFloorInstancing.transforms.empty()) {
-            TraceLog(LOG_INFO, "First floor tile pos: %.2f %.2f %.2f",
-                tile.position.x, tile.position.y, tile.position.z);
-
-            TraceLog(LOG_INFO, "First transform translation: %.2f %.2f %.2f",
-                transform.m12, transform.m13, transform.m14);
-        }
-
-        gFloorInstancing.transforms.push_back(transform);
-    }
-
-    TraceLog(LOG_INFO, "floor instance count = %i",
-        (int)gFloorInstancing.transforms.size());
 }
 
-// void BuildFloorTileInstanceTransforms()
-// {
+void BuildVisibleFloorTileInstanceTransforms(Camera& camera, float maxDrawDist)
+{
+    gGrayFloorInstancing.transforms.clear();
+    gWoodFloorInstancing.transforms.clear();
 
-//     grayFloorTransforms.clear();
-//     woodFloorTransforms.clear();
 
-//     gFloorInstancing.transforms.clear();
+    ViewConeParams vp = MakeViewConeParams(
+        camera,
+        55.0f,
+        maxDrawDist,
+        400.0f
+    );
 
-//     grayFloorTransforms.reserve(floorTiles.size());
-//     woodFloorTransforms.reserve(floorTiles.size());
+    for (const FloorInstanceSource& src : gFloorInstanceSources)
+    {
 
-//     const Vector3 baseScale = {700, 700, 700};
+        if (!IsInViewCone(vp, src.position))
+            continue;
+        
 
-//     for (const FloorTile& tile : floorTiles) {
-//         if (tile.floorType != FloorType::Normal) continue;
+        if (src.isWood)
+            gWoodFloorInstancing.transforms.push_back(src.transform);
+        else
+            gGrayFloorInstancing.transforms.push_back(src.transform);
+    }
+}
 
-//         Matrix scale = MatrixScale(baseScale.x, baseScale.y, baseScale.z);
-//         Matrix translate = MatrixTranslate(
-//             tile.position.x,
-//             tile.position.y,
-//             tile.position.z
-//         );
+static void DrawFloorBatch(FloorInstancing& batch)
+{
+    if (!batch.initialized) return;
+    if (batch.transforms.empty()) return;
 
-//         Matrix transform = MatrixMultiply(scale, translate);
-
-//         if (CurrentLevelIs("Ship")) {
-//             woodFloorTransforms.push_back(transform);
-//         } else {
-//             //grayFloorTransforms.push_back(transform);
-//             gFloorInstancing.transforms.push_back(transform);
-//         }
-//     }
-// }
+    DrawMeshInstanced(
+        batch.mesh,
+        batch.material,
+        batch.transforms.data(),
+        (int)batch.transforms.size()
+    );
+}
 
 
 
@@ -890,6 +706,7 @@ void GenerateFloorTiles(float baseY)
 {
     floorTiles.clear();
     lavaTiles.clear();
+    gFloorInstanceSources.clear();
 
     voidMask.assign(dungeonWidth * dungeonHeight, 0);
     lavaMask.assign(dungeonWidth * dungeonHeight, 0);
@@ -935,6 +752,7 @@ void GenerateFloorTiles(float baseY)
             tile.tint = WHITE;
             tile.floorType = FloorType::Normal;
             floorTiles.push_back(tile);
+            AddFloorInstanceSource(tile);
         }
 
     }
@@ -3183,60 +3001,23 @@ void DrawSwitches(){
 }
 
 
-void DrawModelInstanced(Model& model, const std::vector<Matrix>& transforms)
-{
-    if (transforms.empty()) return;
+// void DrawModelInstanced(Model& model, const std::vector<Matrix>& transforms)
+// {
+//     if (transforms.empty()) return;
 
-    for (int i = 0; i < model.meshCount; i++) {
-        int matIndex = model.meshMaterial[i];
-        Material mat = model.materials[matIndex];
-        DrawMeshInstanced(
-            model.meshes[i],
-            mat,
-            transforms.data(),
-            (int)transforms.size()
-        );
-    }
-}
-
-void DrawInstancingDebugTest()
-{
-    if (!gInstancingDebug.initialized) {
-        return;
-    }
-
-    if (gInstancingDebug.transforms.empty()) {
-        return;
-    }
+//     for (int i = 0; i < model.meshCount; i++) {
+//         int matIndex = model.meshMaterial[i];
+//         Material mat = model.materials[matIndex];
+//         DrawMeshInstanced(
+//             model.meshes[i],
+//             mat,
+//             transforms.data(),
+//             (int)transforms.size()
+//         );
+//     }
+// }
 
 
-    DrawMeshInstanced(
-        gInstancingDebug.mesh,
-        gInstancingDebug.material,
-        gInstancingDebug.transforms.data(),
-        (int)gInstancingDebug.transforms.size()
-    );
-}
-
-void DrawInstancedFloors()
-{
-    if (!gFloorInstancing.initialized) return;
-    if (gFloorInstancing.transforms.empty()) return;
-
-    // TraceLog(LOG_INFO, "Draw floors initialized=%i count=%i",
-    //     gFloorInstancing.initialized,
-    //     (int)gFloorInstancing.transforms.size());
-
-    DrawMeshInstanced(
-        gFloorInstancing.mesh,
-        gFloorInstancing.material,
-        gFloorInstancing.transforms.data(),
-        (int)gFloorInstancing.transforms.size()
-    );
-
-
-
-}
 
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     const Vector3 baseScale   = {700, 700, 700};
@@ -3248,12 +3029,9 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         400.0f    
     );
 
-
-    //DrawInstancingDebugTest();
-
     //Walls
     for (const WallInstance& _wall : wallInstances) {
-        if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue;
+        if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue; //dont cull when in debug mode. 
 
         if (_wall.type == WallType::Wood){
             DrawModelEx(R.GetModel("woodWall"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
@@ -3285,22 +3063,16 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         
     }
 
+    BuildVisibleFloorTileInstanceTransforms(camera, maxDrawDist);
+
+    // TraceLog(LOG_INFO, "visible gray floors = %i / sources = %i",
+    //     (int)gGrayFloorInstancing.transforms.size(),
+    //     (int)gFloorInstanceSources.size());
+
     //Floors
+    DrawFloorBatch(gGrayFloorInstancing);
+    DrawFloorBatch(gWoodFloorInstancing);
 
-    DrawInstancedFloors();
-
-    // for (const FloorTile& tile : floorTiles) {
-    //     if (!IsInViewCone(vp, tile.position) && !debugInfo) continue;
-    //     Color tileTint = WHITE;
-
-    //     if (CurrentLevelIs("Ship")){ //Draw wooden floor tiles on ship level. 
-    //         DrawModelEx(R.GetModel("woodFloor"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint); 
-    //     }else{
-    //         DrawModelEx(R.GetModel("floorTileGray"), tile.position, {0,1,0}, 0.0f, baseScale, tileTint);  
-            
-    //     }
-          
-    // }
 
     //Lava floor
     for (const FloorTile& lavaTile : lavaTiles){

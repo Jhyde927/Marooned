@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include <stdexcept>
 #include <memory>
+#include "dungeonGeneration.h"
 
 
 
@@ -43,7 +44,6 @@ public:
     // Optional: access by name without loading
     Font& GetFont(const std::string& name);
 
-    // Optional: cleanup helpers
     void UnloadAllFonts();
     void LoadAllResources();
     void SetShaderValues();
@@ -52,14 +52,7 @@ public:
     void SetTerrainShaderValues();
     void SetCeilingShaderValues();
     void SetGhostShaderValues();
-    void SetFloorInstancedLightingShaderValues();
-
-
-    //Moved to ShaderSetup
-    //void SetBloomShaderValues();
-    // void SetLavaShaderValues();
-    // void SetPortalShaderValues();
-    // void SetWaterShaderValues(Camera& camera);
+    void SetFloorInstancedLightingShaderValues(FloorInstancing& batch);
 
 
     // Clean-up

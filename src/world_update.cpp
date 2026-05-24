@@ -114,8 +114,6 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateCollectableWeapons(dt);
     UpdatePowerUps(player, dt);
 
-    UpdateInstancingDebugTest();
-
     UpdateLauncherTraps(dt);
     UpdateMonsterDoors(dt);
     SpawnManager::Update(dt);
@@ -138,8 +136,8 @@ static void UpdateGameplayPresentation(Camera3D& camera, Player& player, float d
 
     if (isDungeon)
     {
-        if (!debugInfo)
-            drawCeiling = levels[levelIndex].hasCeiling;
+        // if (!debugInfo)
+        //     drawCeiling = levels[levelIndex].hasCeiling;
 
         HandleDungeonTints();
     }

@@ -412,18 +412,10 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     StartFadeInFromBlack();
     levelLoaded = true;
-    //InitInstancingDebugTest();
+
     InitFloorInstancing();
-
-    BuildFloorTileInstanceTransforms(); //normal floor tiles
-
-    // gFloorInstancing.transforms.clear(); 
-    // gFloorInstancing.transforms.push_back(MatrixTranslate( 
-    //     player.position.x, player.position.y - 120.0f, 
-    //     player.position.z
-    //  ));
-
-    R.SetFloorInstancedLightingShaderValues();
+    R.SetFloorInstancedLightingShaderValues(gGrayFloorInstancing);
+    R.SetFloorInstancedLightingShaderValues(gWoodFloorInstancing);
 
 
     
