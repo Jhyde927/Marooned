@@ -52,6 +52,7 @@ public:
     void SetTerrainShaderValues();
     void SetCeilingShaderValues();
     void SetGhostShaderValues();
+    void SetFloorInstancedLightingShaderValues();
 
 
     //Moved to ShaderSetup

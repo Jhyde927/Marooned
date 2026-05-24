@@ -88,8 +88,8 @@ bool hasIslandNav = false;
 int gEnemyCounter = 0;
 float lavaOffsetY = 250.0f;
 bool enteredDungeon1 = false;
-bool squareRes = false;
-bool showTutorial = true;
+// bool squareRes = false;
+// bool showTutorial = true;
 
 int gCurrentLevelIndex = -1;
 
@@ -159,6 +159,7 @@ void InitMenuLevel(LevelData& level){
 
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     R.SetShaderValues();
+
     //R.SetBloomShaderValues();
     ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
     if (!isDungeon) R.SetTerrainShaderValues();
@@ -234,6 +235,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     
     //Called when starting game and changing level. init the level you pass it. the level is chosen by menu or door's linkedLevelIndex. 
     ClearLevel();//clears everything.
+    enemies.reserve(100); 
 
     CameraSystem::Get().StopCinematic();
     CameraSystem::Get().SetMode(CamMode::Player);
@@ -338,7 +340,8 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         if (!CurrentLevelIs("Ship")) ShaderSetup::gSky.skyTransition = 1.0f;
         GenerateLightSources(floorHeight);
-        GenerateFloorTiles(floorHeight);
+
+
 
         if (ceilingMaskTex.id == 0 ||
             ceilingMaskTex.width  != dungeonWidth ||
@@ -348,6 +351,7 @@ void InitLevel(LevelData& level, Camera& camera) {
             CreateCeilingMaskTexture(dungeonWidth, dungeonHeight);
         }
 
+        GenerateFloorTiles(floorHeight);
         UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
@@ -396,6 +400,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     //R.SetBloomShaderValues();
     R.SetTerrainShaderValues();
 
+
     Vector3 resolvedSpawn = ResolveSpawnPoint(level, isDungeon, first, floorHeight);
     InitPlayer(player, resolvedSpawn); //start at green pixel if there is one. otherwise level.startPos or first startPos
     InitWeaponBar();
@@ -407,6 +412,21 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     StartFadeInFromBlack();
     levelLoaded = true;
+    //InitInstancingDebugTest();
+    InitFloorInstancing();
+
+    BuildFloorTileInstanceTransforms(); //normal floor tiles
+
+    // gFloorInstancing.transforms.clear(); 
+    // gFloorInstancing.transforms.push_back(MatrixTranslate( 
+    //     player.position.x, player.position.y - 120.0f, 
+    //     player.position.z
+    //  ));
+
+    R.SetFloorInstancedLightingShaderValues();
+
+
+    
 }
 
 static float fadeValue = 0.0;   // 0 = clear, 1 = black
@@ -1368,6 +1388,17 @@ void UpdateWorldFrame(float dt, Player& player) {
 
 }
 
+static void RebuildEnemyPtrs()
+{
+    enemyPtrs.clear();
+    enemyPtrs.reserve(enemies.size());
+
+    for (Character& e : enemies)
+    {
+        enemyPtrs.push_back(&e);
+    }
+}
+
 void eraseCharacters() {
     // Remove dead enemies
 
@@ -1380,13 +1411,11 @@ void eraseCharacters() {
         enemies.end());
 
     // Rebuild enemyPtrs
-    enemyPtrs.clear();
-    for (auto& e : enemies) {
-        enemyPtrs.push_back(&e);
-    }
+    RebuildEnemyPtrs();
 }
 
 void ClearLevel() {
+    
     removeAllCharacters();
     ClearDungeon();
     RemoveAllVegetation();

@@ -19,6 +19,7 @@ namespace MainMenu
         bool showPreview = false;
         bool showOptions = false;
         bool showMenu = true;
+        const PreviewInfo* currentPreview = nullptr;
         float pressFlash[4] = { 0,0,0,0 }; // seconds remaining for “push” effect
     };
 
@@ -46,6 +47,9 @@ namespace MainMenu
         float padding = 18.0f;
     };
 
+
+
+
     // Call once if you want to reset selection when entering menu
     inline void Reset(State& s) { s.selectedOption = 0; }
 
@@ -71,5 +75,8 @@ namespace MainMenu
               int levelIndex,
               const LevelData* levels,
               int levelsCount);
-    
+
+
+        
+    void InitLevelPreviewFromSavedLevel();
 }

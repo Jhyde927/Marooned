@@ -274,6 +274,7 @@ void GatherPowerUps(Camera& camera, const std::vector<PowerUpPickup>& powerUps) 
 void GatherCollectables(Camera& camera, const std::vector<Collectable>& collectables) {
     for (const Collectable& c : collectables) {
         float dist = Vector3Distance(camera.position, c.position);
+        
 
         billboardRequests.push_back({
             Billboard_FacingCamera, 

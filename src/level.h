@@ -93,7 +93,5 @@ std::vector<PreviewInfo> BuildLevelPreviews(bool preloadTextures);
 
 // Helper that decides which preview a level should use (and what kind it is).
 PreviewInfo MakePreviewInfoFromLevel(const LevelData& level);
-
-
-
-
+int LoadLastLevel();
+void SaveLastLevel(int levelIndex);

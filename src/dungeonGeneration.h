@@ -277,6 +277,7 @@ struct SecretWall {
     
 };
 
+
 struct InvisibleWall {
     int x = 0;
     int y = 0;
@@ -293,6 +294,29 @@ struct DoorDelayedAction
     bool  relockOnClose = false;  // only used when open == false
     float t         = 0.0f;   // seconds remaining
 };
+
+struct InstancingDebugTest {
+    Mesh mesh = { 0 };
+    Shader shader = { 0 };
+    Material material = { 0 };
+    std::vector<Matrix> transforms;
+    bool initialized = false;
+};
+
+struct FloorInstancing {
+    Mesh mesh = { 0 };
+    Shader shader = { 0 };
+    Material material = { 0 };
+    std::vector<Matrix> transforms;
+    bool initialized = false;
+};
+
+extern FloorInstancing gFloorInstancing;
+
+extern InstancingDebugTest gInstancingDebug;
+
+extern std::vector<Matrix> grayFloorTransforms;
+extern std::vector<Matrix> woodFloorTransforms;
 
 extern Texture2D ceilingMaskTex;
 extern Texture2D ceilingVoidMaskTex;
@@ -367,9 +391,15 @@ void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
 
+//delete me
+void InitInstancingDebugTest();
+void UpdateInstancingDebugTest();
+
+void InitFloorInstancing();
+void BuildFloorTileInstanceTransforms();
+
 int Idx(int x, int y); 
-//void CreateVoidMaskTexture(int w, int h);
-//void UpdateVoidMaskTextureFromCPU();
+
 void CreateCeilingMaskTexture(int w, int h);
 void UpdateCeilingMaskTextureFromCPU();
 bool IsPlatformIslandTile(int x, int y, const std::vector<uint8_t>& voidMaskLocal);

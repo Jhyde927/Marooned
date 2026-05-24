@@ -639,6 +639,8 @@ namespace MainMenu
 
     std::vector<PreviewInfo> gLevelPreviews;
 
+
+
     MainMenu::Action Update(State& s, float dt, bool levelLoaded, int optionsCount, int& levelIndex, int levelsCount, const Layout& L)
     {
 
@@ -812,6 +814,7 @@ namespace MainMenu
                     // back
                     levelIndex = (levelIndex - 1 + levelsCount) % levelsCount;
                     if (!s.showPreview) s.showPreview = true;
+                    gMenu.currentPreview = GetPreviewForSelectionIndex(levelIndex);
                     TriggerPress();
                     return Action::CycleLevel;
                 }
@@ -820,6 +823,7 @@ namespace MainMenu
                     // forward
                     levelIndex = (levelIndex + 1) % levelsCount;
                     if (!s.showPreview) s.showPreview = true;
+                    gMenu.currentPreview = GetPreviewForSelectionIndex(levelIndex);
                     TriggerPress();
                     return Action::CycleLevel;
                 }
@@ -934,6 +938,33 @@ namespace MainMenu
 
         return Action::None;
     }
+
+    void InitLevelPreviewFromSavedLevel()
+    {
+        int savedIndex = LoadLastLevel();
+
+        // Default menu state
+
+
+        // No saved level / first level / invalid value
+        if (savedIndex <= 0)
+            return;
+
+        // Make sure preview list exists before this function is called
+        if (savedIndex >= (int)MainMenu::gLevelPreviews.size())
+            return;
+
+        const PreviewInfo* preview = GetPreviewForSelectionIndex(savedIndex);
+
+        if (!preview)
+            return;
+
+        
+        gMenu.showPreview = true;
+        gMenu.currentPreview = preview;
+
+    }
+
 
 
     void Draw(const State& s,
@@ -1133,11 +1164,15 @@ namespace MainMenu
             DrawControlsText(R.GetFont("Pieces"), rPanel);
         }
 
-        if (s.showPreview) {
-            const PreviewInfo* preview = GetPreviewForSelectionIndex(levelIndex);
-            DrawLevelPreviewPanel(rPanel, preview);
-
+        if (s.showPreview && s.currentPreview)
+        {
+            DrawLevelPreviewPanel(rPanel, s.currentPreview);
         }
+        // if (s.showPreview) {
+        //     const PreviewInfo* preview = GetPreviewForSelectionIndex(levelIndex);
+        //     DrawLevelPreviewPanel(rPanel, preview);
+
+        // }
 
         if (s.showMenu){
 

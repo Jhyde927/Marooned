@@ -19,27 +19,23 @@
 #include "portal.h"
 #include "spawn_manager.h"
 #include "world_update.h"
-
+#include "game_settings.h"
 
 //As above, so below.
 
 int main() { 
-    squareRes = false; // set true for 1280x1024, false for widescreen
-    showTutorial = true;
-
-    int screenWidth = squareRes ? 1024 : 1600;
-    int screenHeight = squareRes ? 1024 : 900;
-    //normally start 1600x900 window, toggle fullscreen to fit to monitor.
-
-    //we stopped targeting 60 FPS, so frame rate is uncapped. 
-    //Before making a new build, enable vsync so it maches the users monitor.
+    //square res and show tutorial are now in game settings. 
 
     //SetConfigFlags(FLAG_VSYNC_HINT); //disable for uncapped frame rate
-    
+
+    int screenWidth = GameSettings::squareRes ? 1024 : 1600;
+    int screenHeight = GameSettings::squareRes ? 1024 : 900;
+    //normally start 1600x900 window, toggle fullscreen to fit to monitor.
+
     InitWindow(screenWidth, screenHeight, "Marooned");
 
     InitAudioDevice();
-    //SetTargetFPS(60); //testing
+    //SetTargetFPS(60); //using vsync instead.
 
     //linux icon
     Image icon = LoadImage("assets/icon.png");
@@ -62,8 +58,13 @@ int main() {
 
     MainMenu::gLevelPreviews = BuildLevelPreviews(true);
     InitMenuLevel(levels[0]);
-    enemies.reserve(100); 
+    //InitLevel(levels[levelIdx], CameraSystem::Get().Active());
+    levelIndex = LoadLastLevel();
+    if (LoadLastLevel() > 0){
+        MainMenu::InitLevelPreviewFromSavedLevel();
+    }
 
+    
 
 
     //main game loop
@@ -104,6 +105,7 @@ int main() {
     }
 
     // Cleanup
+    SaveLastLevel(gCurrentLevelIndex);
     ClearLevel();
     ResourceManager::Get().UnloadAll();
     SoundManager::GetInstance().UnloadAll();

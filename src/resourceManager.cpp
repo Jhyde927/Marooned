@@ -288,11 +288,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("raftBody", "assets/sprites/raftBody.png");
     R.LoadTexture("raftSail", "assets/sprites/raftSail.png");
 
-
-
-
-
-
     // Models (registering with string keys)
     R.LoadModel("palmTree",               "assets/Models/bigPalmTree.glb");
     R.LoadModel("palm2",                  "assets/Models/smallPalmTree.glb");
@@ -365,6 +360,9 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("ceilingShader",  "assets/shaders/ceiling.vs",            "assets/shaders/ceiling.fs");
     R.LoadShader("ghostShader",    "assets/shaders/ghost_raft.vs",         "assets/shaders/ghost_raft.fs");
 
+    R.LoadShader("debugInstancingShader", "assets/shaders/debug_instancing.vs", "assets/shaders/debug_instancing.fs");
+    R.LoadShader("floorInstancedLightingShader", "assets/shaders/floor_instanced_lighting.vs", "assets/shaders/floor_instanced_lighting.fs");
+
 
 
 }
@@ -429,14 +427,13 @@ void ResourceManager::SetGhostShaderValues(){
 
 void ResourceManager::SetShaderValues(){
 
+
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     // set shaders values
     Shader& fogShader = R.GetShader("fogShader");
     Shader& shadowShader = R.GetShader("shadowShader");
 
     SetGhostShaderValues();
-
-
 
     //regular black vignette
     vignetteStrengthValue = isDungeon ? 0.8 : 0.25f; //less of vignette outdoors.
@@ -631,6 +628,65 @@ void ResourceManager::SetCeilingShaderValues()
     if (locTiling >= 0) SetShaderValue(sh, locTiling, &tiling, SHADER_UNIFORM_VEC2);
 }
 
+void ResourceManager::SetFloorInstancedLightingShaderValues()
+{
+    Shader& sh = gFloorInstancing.material.shader;
+
+    sh.locs[SHADER_LOC_MATRIX_MVP] =
+        GetShaderLocation(sh, "mvp");
+
+    sh.locs[SHADER_LOC_MATRIX_MODEL] =
+        GetShaderLocationAttrib(sh, "instanceTransform");
+
+    sh.locs[SHADER_LOC_MAP_DIFFUSE] =
+        GetShaderLocation(sh, "texture0");
+
+    sh.locs[SHADER_LOC_MAP_EMISSION] =
+        GetShaderLocation(sh, "texture4");
+
+    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced mvp loc = %i",
+        sh.locs[SHADER_LOC_MATRIX_MVP]);
+
+    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced instanceTransform attrib loc = %i",
+        sh.locs[SHADER_LOC_MATRIX_MODEL]);
+
+    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced texture0 loc = %i",
+        sh.locs[SHADER_LOC_MAP_DIFFUSE]);
+
+    TraceLog(LOG_INFO, "DRAW MATERIAL floor instanced texture4 loc = %i",
+        sh.locs[SHADER_LOC_MAP_EMISSION]);
+
+    Model& floorModel = GetModel("floorTileGray");
+
+    gFloorInstancing.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+    
+
+
+    int locGrid   = GetShaderLocation(sh, "gridBounds");
+    int locDynStr = GetShaderLocation(sh, "dynStrength");
+    int locAmb    = GetShaderLocation(sh, "ambientBoost");
+
+    float grid[4] = {
+        gDynamic.minX,
+        gDynamic.minZ,
+        gDynamic.sizeX ? 1.0f / gDynamic.sizeX : 0.0f,
+        gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f
+    };
+
+    float dynStrength  = lightConfig.dynStrength;
+    float ambientBoost = lightConfig.ambient;
+
+    if (locGrid >= 0)
+        SetShaderValue(sh, locGrid, grid, SHADER_UNIFORM_VEC4);
+
+    if (locDynStr >= 0)
+        SetShaderValue(sh, locDynStr, &dynStrength, SHADER_UNIFORM_FLOAT);
+
+    if (locAmb >= 0)
+        SetShaderValue(sh, locAmb, &ambientBoost, SHADER_UNIFORM_FLOAT);
+}
+
+
 void ResourceManager::SetLightingShaderValues()
 {
     Shader& lightingShader = R.GetShader("lightingShader");
@@ -656,7 +712,7 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < wallModel.materialCount;    ++i) wallModel.materials[i].shader    = lightingShader;
     for (int i = 0; i < windowModel.materialCount;  ++i) windowModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < doorwayModel.materialCount; ++i) doorwayModel.materials[i].shader = lightingShader;
-    for (int i = 0; i < floorModel.materialCount;   ++i) floorModel.materials[i].shader   = lightingShader;
+    //for (int i = 0; i < floorModel.materialCount;   ++i) floorModel.materials[i].shader   = lightingShader;
     for (int i = 0; i < launcherModel.materialCount;++i) launcherModel.materials[i].shader= lightingShader;
     for (int i = 0; i < barrelModel.materialCount;  ++i) barrelModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < brokeModel.materialCount;   ++i) brokeModel.materials[i].shader   = lightingShader;
@@ -673,7 +729,7 @@ void ResourceManager::SetLightingShaderValues()
         }
     };
 
-    setLightmap(floorModel);
+    //setLightmap(floorModel);
     setLightmap(wallModel);
     setLightmap(windowModel);
     setLightmap(doorwayModel);
@@ -687,7 +743,8 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(woodDoorWay);
 
     // Per-level uniforms for lighting shader
-    Shader& use = floorModel.materials[0].shader;
+    Shader& use = wallModel.materials[0].shader;
+
 
     int locGrid   = GetShaderLocation(use, "gridBounds");
     int locDynStr = GetShaderLocation(use, "dynStrength");
@@ -705,6 +762,9 @@ void ResourceManager::SetLightingShaderValues()
     if (locGrid   >= 0) SetShaderValue(use, locGrid,   grid,        SHADER_UNIFORM_VEC4);
     if (locDynStr >= 0) SetShaderValue(use, locDynStr, &dynStrength,  SHADER_UNIFORM_FLOAT);
     if (locAmb    >= 0) SetShaderValue(use, locAmb,    &ambientBoost, SHADER_UNIFORM_FLOAT);
+
+    
+
 }
 
 
@@ -713,7 +773,6 @@ void ResourceManager::UpdateShaders(Camera& camera){
     //SetWaterShaderValues(camera); //update water every frame
     //runs every frame, updates all shaders
     
-
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     Shader& waterShader = R.GetShader("waterShader");
     //Shader& skyShader = R.GetShader("skyShader");

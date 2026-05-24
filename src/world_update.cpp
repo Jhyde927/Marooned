@@ -12,6 +12,7 @@
 #include "input.h"
 #include "render_pipeline.h"
 #include "shaderSetup.h"
+#include "game_settings.h"
 
 
 
@@ -40,7 +41,12 @@ void UpdateMenuState(Camera3D& camera, Player& player, float deltaTime, float el
     UpdateShadersPerFrame(deltaTime, elapsedTime, camera);
 
     ShaderSetup::UpdateSkyTransition(deltaTime);
-    ShaderSetup::UpdateSkyCycle(deltaTime);
+
+    //ship is a dungeon. 
+    if (CurrentLevelIs("Ship") || !isDungeon){
+        ShaderSetup::UpdateSkyCycle(deltaTime);
+    }
+
 
     drawCeiling = false;
 
@@ -108,6 +114,8 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateCollectableWeapons(dt);
     UpdatePowerUps(player, dt);
 
+    UpdateInstancingDebugTest();
+
     UpdateLauncherTraps(dt);
     UpdateMonsterDoors(dt);
     SpawnManager::Update(dt);
@@ -118,7 +126,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateDungeonTileFlags(player, dt);
     ApplyEnemyLavaDPS();
 
-    if (showTutorial)
+    if (GameSettings::showTutorial)
         UpdateHintManager(dt);
 
     UpdateInteractionNPC();

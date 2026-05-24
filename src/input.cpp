@@ -71,6 +71,16 @@ void debugControls(Camera& camera, float deltaTime){
             DebugOpenAllDoors();
         }
 
+        if (IsKeyPressed(KEY_H)){
+            player.inventory.AddItem("HealthPotion");
+            SoundManager::GetInstance().Play("clink");
+        }
+
+        if (IsKeyPressed(KEY_J)){
+            player.inventory.AddItem("ManaPotion");
+            SoundManager::GetInstance().Play("clink");
+        }
+
         if (IsKeyPressed(KEY_APOSTROPHE)){ //hide ceiling for better screenshots. 
             drawCeiling = !drawCeiling; //maybe just don't draw ceiling ever in free cam. 
         }

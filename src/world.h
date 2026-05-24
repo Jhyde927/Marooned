@@ -99,8 +99,8 @@ extern int gCurrentLevelIndex; //for resuming game
 extern bool quitQued;
 extern float lavaOffsetY;
 extern bool enteredDungeon1;
-extern bool squareRes;
-extern bool showTutorial;
+// extern bool squareRes;
+// extern bool showTutorial;
 //extern float muzzleFlashTimer;
 extern Model oceanModel;
 extern GameState currentGameState;

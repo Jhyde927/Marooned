@@ -2,8 +2,29 @@
 #include "dungeonGeneration.h"
 #include <vector>
 #include "resourceManager.h"
+#include <iostream>
+#include <fstream>
 
 std::vector<PropSpawn> overworldProps;
+
+int LoadLastLevel()
+{
+    std::ifstream file("save.txt");
+
+    int level = 0;
+    if (file >> level)
+    {
+        return level;
+    }
+
+    return 0; // default level if no save exists
+}
+
+void SaveLastLevel(int levelIndex)
+{
+    std::ofstream file("save.txt");
+    file << levelIndex;
+}
 
 
 
@@ -391,22 +412,6 @@ std::vector<LevelData> levels = {
     },
 
         {
-        "Dungeon17", 
-        "assets/heightmaps/blank.png",
-        "assets/maps/dungeon17.png",
-        {5475.0f, 300.0f, -5665.0f}, //original player start position
-        0.0f,
-        {0.0f, 0.0f, 0.0f},
-        0, 
-        true, //isDungeon is true
-        {},
-        17, 
-        18, //exit to middle island
-        {}, 
-        false,// ceiling
-    },
-
-        {
         "Ship", 
         "assets/heightmaps/blank.png",
         "assets/maps/bigShip.png",
@@ -416,8 +421,24 @@ std::vector<LevelData> levels = {
         0, 
         true, //ship is technically a dungeon
         {},
+        17, 
+        18,
+        {}, 
+        false,// ceiling
+    },
+
+        {
+        "Dungeon17", 
+        "assets/heightmaps/blank.png",
+        "assets/maps/dungeon17.png",
+        {5475.0f, 300.0f, -5665.0f}, //original player start position
+        0.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        true, //isDungeon is true
+        {},
         18, 
-        19,
+        0, //exit to middle island
         {}, 
         false,// ceiling
     },

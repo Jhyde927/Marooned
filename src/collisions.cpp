@@ -737,7 +737,6 @@ void CheckBulletHits(Camera& camera) {
 
                 }else if (b.type == BulletType::Bolt){
                     if (b.id != enemy->lastBulletIDHit){
-                        std::cout << "quadDamage = " << player.quadDamage;
                         enemy->TakeDamage(75 * qDamage);
                         enemy->lastBulletIDHit = b.id;
                         break;

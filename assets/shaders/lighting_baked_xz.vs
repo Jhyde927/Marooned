@@ -1,3 +1,57 @@
+// #version 330
+
+// in vec3 vertexPosition;
+// in vec2 vertexTexCoord;
+// in vec3 vertexNormal;
+
+// in mat4 instanceTransform;
+
+// out vec2 vUV;
+// out vec3 vWorldPos;
+// out vec3 vNormal;
+
+// uniform mat4 mvp;
+
+// void main()
+// {
+//     vec4 world = instanceTransform * vec4(vertexPosition, 1.0);
+
+//     vWorldPos = world.xyz;
+//     vUV = vertexTexCoord;
+//     vNormal = normalize(mat3(instanceTransform) * vertexNormal);
+
+//     gl_Position = mvp * instanceTransform * vec4(vertexPosition, 1.0);
+// }
+
+// #version 330
+
+// in vec3 vertexPosition;
+// in vec2 vertexTexCoord;
+// in vec3 vertexNormal;
+// in vec4 vertexColor;
+
+// // This is the per-instance matrix raylib feeds to DrawMeshInstanced
+// in mat4 instanceTransform;
+
+// out vec2 vUV;
+// out vec3 vWorldPos;
+// out vec4 vColor;
+// out vec3 vNormal;
+
+// uniform mat4 mvp;
+
+// void main()
+// {
+//     vec4 world = instanceTransform * vec4(vertexPosition, 1.0);
+
+//     vWorldPos = world.xyz;
+//     vUV       = vertexTexCoord;
+//     vColor    = vertexColor;
+//     vNormal   = normalize(mat3(instanceTransform) * vertexNormal);
+
+//     gl_Position = mvp * instanceTransform * vec4(vertexPosition, 1.0);
+// }
+
 #version 330
 
 // Raylib standard attribute names — let it bind them by location.
