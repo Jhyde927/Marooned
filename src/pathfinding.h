@@ -12,6 +12,7 @@ Vector2 WorldToImageCoords(Vector3 worldPos);
 bool IsWalkable(int x, int y, const Image& dungeonMap);
 void SetTileWalkable(int x, int y, bool batAlso = false);
 void SetTileUnwalkable(int x, int y, bool batAlso = true);
+bool FindFirstWalkableNeighbor(int tileX, int tileY, Vector2& outTile);
 bool IsSeeThroughForLOS(int x, int y);
 bool IsLavaTile(int x, int y);
 bool CanSeeDoorTile(int x0, int y0, int x1, int y1);

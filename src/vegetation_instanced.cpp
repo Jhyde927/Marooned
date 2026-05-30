@@ -14,13 +14,12 @@
 // Each batch = one model drawn with DrawMeshInstanced().
 static VegetationInstanceBatch gPalmTreeBatch;
 static VegetationInstanceBatch gBushBatch;
-// static VegetationInstanceBatch gPalm2Batch;
-// static VegetationInstanceBatch gDeadTreeBatch;
-
 
 // ------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------
+
+
 
 static void ApplyInstancedShaderToModel(Model& model, Shader shader)
 {
@@ -84,14 +83,6 @@ static void DrawBatch(VegetationInstanceBatch& batch, Camera& camera)
             matIndex = 0;
         }
 
-        // TraceLog(LOG_INFO,
-        //     "VEG INST DrawBatch %s total=%i visible=%i meshCount=%i materialCount=%i",
-        //     batch.modelName.c_str(),
-        //     (int)batch.transforms.size(),
-        //     (int)batch.visibleTransforms.size(),
-        //     model.meshCount,
-        //     model.materialCount
-        // );
         DrawMeshInstanced(
             model.meshes[meshIndex],
             model.materials[matIndex],
@@ -116,33 +107,15 @@ namespace VegetationInstanced
     void Generate()
     {
         Clear();
-        TraceLog(LOG_INFO, "VEG INST Generate() START");
 
         gPalmTreeBatch.modelName = "palmTreeInstanced";
         gBushBatch.modelName = "bushInstanced";
 
         generateVegetation();
 
-        TraceLog(LOG_INFO, "VEG INST old trees=%i bushes=%i",
-            (int)trees.size(),
-            (int)bushes.size());
-
-
-
-
         for (const TreeInstance& tree : trees)
         {
-            float finalScale = tree.scale;
-
-            if (tree.useAltModel)
-            {
-                finalScale *= 1.15f;   // bigger palms
-            }
-            else
-            {
-                finalScale *= 0.85f;   // smaller palms
-            }
-
+            float finalScale = tree.scale * tree.randomScale;
            
             Vector3 pos = tree.position;
             pos.x += tree.xOffset;
@@ -161,19 +134,16 @@ namespace VegetationInstanced
 
             PushInstance(gBushBatch, pos, bush.rotationY, bush.scale);
         }
-
-
-        TraceLog(LOG_INFO, "INSTANCED VEG: palms=%i bushes=%i",
-            (int)gPalmTreeBatch.transforms.size(),
-            (int)gBushBatch.transforms.size());
     }
 
     void Draw(Camera& camera)
     {
+        if (showVeg){
+            SetShaderValues(camera);
+            DrawBatch(gPalmTreeBatch, camera);
+            DrawBatch(gBushBatch, camera);
+        }
 
-        SetShaderValues(camera);
-        DrawBatch(gPalmTreeBatch, camera);
-        DrawBatch(gBushBatch, camera);
 
     }
 
@@ -209,11 +179,11 @@ namespace VegetationInstanced
     static int locUseFog = -1;
     static int locModelNightDarkness = -1;
 
+    bool showVeg = true;
+
     void InitShader()
     {
         gShader = R.GetShader("tree_instanced");
-
-        TraceLog(LOG_INFO, "VEG INST shader id=%u", gShader.id);
 
         gShader.locs[SHADER_LOC_MATRIX_MVP] =
             GetShaderLocation(gShader, "mvp");
@@ -236,14 +206,6 @@ namespace VegetationInstanced
         gShader.locs[SHADER_LOC_COLOR_DIFFUSE] =
             GetShaderLocation(gShader, "colDiffuse");
 
-        TraceLog(LOG_INFO,
-            "VEG INST loc mvp=%i instanceTransform/MODEL=%i texture0=%i colDiffuse=%i",
-            gShader.locs[SHADER_LOC_MATRIX_MVP],
-            gShader.locs[SHADER_LOC_MATRIX_MODEL],
-            gShader.locs[SHADER_LOC_MAP_DIFFUSE],
-            gShader.locs[SHADER_LOC_COLOR_DIFFUSE]
-        );
-
         locAlphaCutoff        = GetShaderLocation(gShader, "alphaCutoff");
         locCameraPos          = GetShaderLocation(gShader, "cameraPos");
         locSkyTop             = GetShaderLocation(gShader, "u_SkyColorTop");
@@ -255,24 +217,10 @@ namespace VegetationInstanced
         locUseFog             = GetShaderLocation(gShader, "u_UseFog");
         locModelNightDarkness = GetShaderLocation(gShader, "u_ModelNightDarkness");
 
-        TraceLog(LOG_INFO,
-            "VEG INST uniforms alpha=%i cam=%i skyTop=%i skyHor=%i fogStart=%i fogEnd=%i sea=%i falloff=%i useFog=%i night=%i",
-            locAlphaCutoff,
-            locCameraPos,
-            locSkyTop,
-            locSkyHorizon,
-            locFogStart,
-            locFogEnd,
-            locSeaLevel,
-            locFogHeightFalloff,
-            locUseFog,
-            locModelNightDarkness
-        );
-
         ApplyInstancedShaderToModel(R.GetModel("palmTreeInstanced"), gShader);
         ApplyInstancedShaderToModel(R.GetModel("bushInstanced"), gShader);
 
-        TraceLog(LOG_INFO, "VEG INST shader applied to palmTreeInstanced and bushInstanced");
+       
     }
 }
 
@@ -283,8 +231,8 @@ void VegetationInstanced::SetShaderValues(Camera& camera)
     Vector3 fogHor = ShaderSetup::GetCurrentSkyFogColor();
     float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
     float fogEnd    = 16000.0f;
-    float seaLevel  = 400.0f;
-    float falloff   = 0.002f;
+    float seaLevel  = 400.0f; // Visual fog height base, not literal ocean height
+    float falloff   = 0.001f; // Lower = taller/softer height fog; helps giant tree tops stay fogged
 
     float alphaCutoff = 0.50f;
 

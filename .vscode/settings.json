@@ -1,5 +1,7 @@
 {
     "files.associations": {
+        "*.h": "cpp",
+        "*.hpp": "cpp",
         "bit": "cpp",
         "cmath": "cpp",
         "compare": "cpp",

@@ -94,7 +94,10 @@ inline void BuildTreeShadowMask_Tex(TreeShadowMask& mask,
         // float diameterM = baseDiameterMeters * rel;
         // float diameterPx = diameterM / metersPerTexel;
 
-        float diameterPx = ScaleToDiameterPx(t.scale, p);//fmaxf(diameterPx, 12.0f); 
+        float finalTreeScale = t.scale * t.randomScale;
+        float diameterPx = ScaleToDiameterPx(finalTreeScale, p);
+
+        //float diameterPx = ScaleToDiameterPx(t.scale, p);//fmaxf(diameterPx, 12.0f); 
 
 
         // World → mask pixels

@@ -19,6 +19,35 @@ std::vector<TreeInstance> trees;
 std::vector<BushInstance> bushes;
 std::vector<const TreeInstance*> sortedTrees;
 
+float GetRandomTreeScale()
+{
+    // 0 - 99
+    int roll = GetRandomValue(0, 99);
+
+    // Base scale ranges.
+    // Tweak these numbers until they look right with your palm model.
+    if (roll < 45)
+    {
+        // Small: 45% chance
+        return GetRandomValue(70, 90) / 100.0f;      // 0.70 - 0.90
+    }
+    else if (roll < 80)
+    {
+        // Medium: 35% chance
+        return GetRandomValue(90, 115) / 100.0f;     // 0.90 - 1.15
+    }
+    else if (roll < 97)
+    {
+        // Large: 17% chance
+        return GetRandomValue(115, 145) / 100.0f;    // 1.15 - 1.45
+    }
+    else
+    {
+        // Extra large: 3% chance
+        return GetRandomValue(145, 180) / 100.0f;    // 1.45 - 1.80
+    }
+}
+
 BoundingBox GetTreeAABB(const TreeInstance& t)
 {
     float r = t.colliderRadius;
@@ -159,6 +188,7 @@ std::vector<TreeInstance> GenerateTrees(Image& heightmap, unsigned char* pixels,
                     tree.xOffset = ((float)GetRandomValue(-treeSpacing, treeSpacing));
                     tree.zOffset = ((float)GetRandomValue(-treeSpacing, treeSpacing));
                     tree.useAltModel = GetRandomValue(0, 1);
+                    tree.randomScale = GetRandomTreeScale();
                     TreeType randomType = RandomTreeType();
                     tree.cullFactor = 1.15f; //5 percent higher than tree threshold. 
                     //if (GetRandomValue(1, 4) > 1){

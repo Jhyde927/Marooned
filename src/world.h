@@ -52,7 +52,7 @@ extern Vector3 bottomPos;
 extern MiniMap miniMap;
 extern Raft raft;
 
-
+extern bool showStats;
 extern bool controlPlayer;
 extern bool isDungeon;
 extern float dungeonPlayerHeight; 
@@ -182,5 +182,11 @@ void UpdateSlashEffects(float deltaTime);
 void UpdateKraken(float deltaTime);
 void DrawKraken(Camera& camera);
 void SpawnTentacle(Vector3 startPos, bool onRight);
+void ToggleFreeCam();
+void GiveWeapons();
+void GiveKeys();
+void UnlockAllDoors();
+void KillEnemies();
+void TeleportPlayerToEnd();
 
 void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo);

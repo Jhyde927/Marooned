@@ -13,6 +13,7 @@
 #include "render_pipeline.h"
 #include "shaderSetup.h"
 #include "game_settings.h"
+#include "debug_console.h"
 
 
 
@@ -95,7 +96,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
 {
     miniMap.Update(dt, player.position);
     PortalSystem::Update(player.position, player.radius, dt);
-
+    DebugConsole::Update(dt);
     UpdateEnemies(dt);
     UpdateCannons(dt);
     UpdateKraken(dt);

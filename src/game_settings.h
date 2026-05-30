@@ -20,6 +20,8 @@ namespace GameSettings
     inline constexpr float minDrawDist = 5000.0f;
     inline constexpr float maxDrawDistLimit = 50000.0f;
 
+    inline float maxDungeonDist = 16000;
+
     inline int gVisibleFloorTileCount;
     inline int gTotalFloorTileCount;
 }

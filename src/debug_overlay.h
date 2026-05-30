@@ -7,7 +7,6 @@
 struct DebugOverlayInfo {
     // Core
     float elapsedTime = 0.0f;
-
     bool freeCam = false;
     bool useVsync = false;
     int showCeiling = true;

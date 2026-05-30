@@ -140,6 +140,33 @@ Vector2 WorldToImageCoords(Vector3 worldPos) {
 }
 
 
+bool FindFirstWalkableNeighbor(int tileX, int tileY, Vector2& outTile)
+{
+    // Cardinal directions first.
+    // This checks right, left, down, up.
+    const int offsets[4][2] =
+    {
+        {  1,  0 },
+        { -1,  0 },
+        {  0,  1 },
+        {  0, -1 }
+    };
+
+    for (int i = 0; i < 4; ++i)
+    {
+        int checkX = tileX + offsets[i][0];
+        int checkY = tileY + offsets[i][1];
+
+        if (IsWalkable(checkX, checkY, dungeonImg))
+        {
+            outTile = { (float)checkX, (float)checkY };
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool IsSeeThroughForLOS(int x, int y)
 {
     // Out of bounds = blocks LOS

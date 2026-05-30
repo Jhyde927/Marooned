@@ -27,6 +27,7 @@
 #include "shaderSetup.h"
 #include "game_settings.h"
 #include "vegetation_instanced.h"
+#include "debug_console.h"
 
 
 
@@ -55,6 +56,7 @@ Vector3 waterPos = {0, 0, 0};
 int pendingLevelIndex = -1; //wait to switch level until faded out. UpdateFade() needs to know the next level index. 
 bool unlockEntrances = false; // unlock entrances after levelindex 4
 bool drawCeiling = true;
+bool showStats = false;
 bool levelLoaded = false;
 float waterHeightY = 60;
 Vector3 bottomPos = {0, waterHeightY - 100, 0};
@@ -243,7 +245,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     ClearLevel();//clears everything.
     enemies.reserve(100); 
 
-
+    DebugConsole::Init();
     CameraSystem::Get().StopCinematic();
     CameraSystem::Get().SetMode(CamMode::Player);
     //CameraSystem::Get().SnapAllToPlayer(); //put freecam at player pos
@@ -329,7 +331,7 @@ void InitLevel(LevelData& level, Camera& camera) {
             0.95f    // outdoor night/twilight amount
         );
         
-        ShaderSetup::SetSkyCycleTimer(30.0f); //start night immediatly, but keep day hold hat 30 for later. 
+        ShaderSetup::SetSkyCycleTimer(25.0f); //start night immediatly, but keep day hold at 30 for later. 
       
     }
 
@@ -690,6 +692,13 @@ void HandleWaves(Camera& camera){
     R.GetModel("waterModel").transform = xform;
 
 
+}
+
+void UnlockAllDoors(){
+    for (Door& door : doors){
+        if (door.isLocked) door.isLocked = false;   
+    }
+    SoundManager::GetInstance().Play("unlock");
 }
 
 void OpenEventLockedDoors(){
@@ -1394,16 +1403,55 @@ void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
 
 }
 
+void ToggleFreeCam(){
+    auto m = CameraSystem::Get().GetMode();
+    CameraSystem::Get().SetMode(m == CamMode::Player ? CamMode::Free : CamMode::Player);
+    CameraSystem::Get().SnapAllToPlayer();
+
+}
+
+void GiveKeys(){
+    player.hasGoldKey = true;
+    player.hasSilverKey = true;
+    player.hasSkeletonKey = true;
+    SoundManager::GetInstance().Play("key");
+}
+
+void GiveWeapons(){
+    hasBlunderbuss = true; //just a bool for each weapon simplified things. 
+    hasCrossbow = true;
+    hasHarpoon = true;
+    hasStaff = true;
+    player.activeWeapon = WeaponType::Blunderbuss;
+    SoundManager::GetInstance().Play("reload");
+}
+
+void KillEnemies(){
+    for (Character* enemy : enemyPtrs){
+        enemy->TakeDamage(enemy->maxHealth);
+    }
+}
+
+void TeleportPlayerToEnd(){
+    for (Door& door : doors){
+        if (door.doorType == DoorType::GoToNext){
+            //check neighboring tiles for a valid one. teleport there. 
+            Vector2 doorTile = WorldToImageCoords(door.position);
+            Vector2 teleportTile;
+            if (FindFirstWalkableNeighbor(doorTile.x, doorTile.y, teleportTile)){
+                Vector3 telePos = GetDungeonWorldPos((int)teleportTile.x, (int)teleportTile.y, tileSize, floorHeight);
+                player.position = telePos;
+
+                return; //stop after first valid GoToNext door
+            }else{
+                std::cout << "No Valid Tile\n";
+            }
+
+        }
+    }
+}
 
 void UpdateWorldFrame(float dt, Player& player) {
-    // Toggle mode
-    if (IsKeyPressed(KEY_TAB) && debugInfo) {
-    
-        auto m = CameraSystem::Get().GetMode();
-        CameraSystem::Get().SetMode(m == CamMode::Player ? CamMode::Free : CamMode::Player);
-        CameraSystem::Get().SnapAllToPlayer();
-        
-    }
 
     PlayerView pv{
         player.position,

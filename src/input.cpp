@@ -15,120 +15,41 @@
 
 InputMode currentInputMode = InputMode::KeyboardMouse;
 
+void ControlPlayerWhileFreeCam(float deltaTime){
+    //control player with arrow keys while in free cam. 
+    Vector3 input = {0};
+    if (IsKeyDown(KEY_UP)) input.z += 1;
+    if (IsKeyDown(KEY_DOWN)) input.z -= 1;
+    if (IsKeyDown(KEY_LEFT)) input.x += 1;
+    if (IsKeyDown(KEY_RIGHT)) input.x -= 1;
+
+    player.running = IsKeyDown(KEY_LEFT_SHIFT) && player.canRun;
+    float speed = player.running ? player.runSpeed : player.walkSpeed;
+
+    if (input.x != 0 || input.z != 0) {
+        input = Vector3Normalize(input);
+        float yawRad = DEG2RAD * player.rotation.y;
+        player.isMoving = true;
+        Vector3 forward = { sinf(yawRad), 0, cosf(yawRad) };
+        Vector3 right = { forward.z, 0, -forward.x };
+
+        Vector3 moveDir = {
+            forward.x * input.z + right.x * input.x,
+            0,
+            forward.z * input.z + right.z * input.x
+        };
+
+        moveDir = Vector3Scale(Vector3Normalize(moveDir), speed * deltaTime);
+        player.position = Vector3Add(player.position, moveDir);
+        player.forward = forward;
+    }
+}
+
 void debugControls(Camera& camera, float deltaTime){
+    //use console. 
 
-    if (IsKeyPressed(KEY_GRAVE)){ // ~
-        debugInfo = !debugInfo;
-    }
-
-    if (debugInfo){
-
-        if (IsKeyPressed(KEY_U)){
-            ShaderSetup::ToggleSkyTransition(5.0f);
-        }
-
-        if (IsKeyPressed(KEY_J)){
-            raft.AddBody();
-        }
-
-        if (IsKeyDown(KEY_M)){
-            //M for murder
-            player.TakeDamage(9999);
-        }
-
-        if (IsKeyDown(KEY_K)){
-            player.hasGoldKey = true;
-            player.hasSilverKey = true;
-            player.hasSkeletonKey = true;
-        }
-
-        if (IsKeyPressed(KEY_L)) {
-
-            std::cout << "Player Position: ";
-            DebugPrintVector(player.position);
-
-            //Reloading lights live, now works, still flashes dark for one frame though, so we can't really recalculate for door openings. 
-            // isLoadingLevel = true;
-            // InitDynamicLightmap(dungeonWidth * 4);
-           
-            // BuildStaticLightmapOnce(dungeonLights);
-            // R.SetLightingShaderValues();
-            // isLoadingLevel = false;
-
-        
-        }
-
-        if (IsKeyPressed(KEY_SLASH)){
-            RemoveAllVegetation();
-        }
-
-        if (IsKeyPressed(KEY_P)){
-            //teleport player to free cam pos
-            MovePlayerToFreeCam();
-        }
-
-        if (IsKeyPressed(KEY_O)){
-            DebugOpenAllDoors();
-        }
-
-        if (IsKeyPressed(KEY_H)){
-            player.inventory.AddItem("HealthPotion");
-            SoundManager::GetInstance().Play("clink");
-        }
-
-        if (IsKeyPressed(KEY_J)){
-            player.inventory.AddItem("ManaPotion");
-            SoundManager::GetInstance().Play("clink");
-        }
-
-        if (IsKeyPressed(KEY_APOSTROPHE)){ //hide ceiling for better screenshots. 
-            drawCeiling = !drawCeiling; //maybe just don't draw ceiling ever in free cam. 
-        }
-        //control player with arrow keys while in free cam. 
-        Vector3 input = {0};
-        if (IsKeyDown(KEY_UP)) input.z += 1;
-        if (IsKeyDown(KEY_DOWN)) input.z -= 1;
-        if (IsKeyDown(KEY_LEFT)) input.x += 1;
-        if (IsKeyDown(KEY_RIGHT)) input.x -= 1;
-
-        player.running = IsKeyDown(KEY_LEFT_SHIFT) && player.canRun;
-        float speed = player.running ? player.runSpeed : player.walkSpeed;
-
-        if (input.x != 0 || input.z != 0) {
-            input = Vector3Normalize(input);
-            float yawRad = DEG2RAD * player.rotation.y;
-            player.isMoving = true;
-            Vector3 forward = { sinf(yawRad), 0, cosf(yawRad) };
-            Vector3 right = { forward.z, 0, -forward.x };
-
-            Vector3 moveDir = {
-                forward.x * input.z + right.x * input.x,
-                0,
-                forward.z * input.z + right.z * input.x
-            };
-
-            moveDir = Vector3Scale(Vector3Normalize(moveDir), speed * deltaTime);
-            player.position = Vector3Add(player.position, moveDir);
-            player.forward = forward;
-        }
-
-    }
-
-
-    //give all weapons
-    if (IsKeyPressed(KEY_SEMICOLON) && debugInfo) {
-        if (player.collectedWeapons.size() <= 1) {
-            // player.collectedWeapons.push_back(WeaponType::Crossbow);
-            // player.collectedWeapons.push_back(WeaponType::Blunderbuss);
-            // player.collectedWeapons.push_back(WeaponType::MagicStaff); //we no longer use collectedWeapons vector, but we still have it becuase we might need it maybe. 
-
-            hasBlunderbuss = true; //just a bool for each weapon simplified things. 
-            hasCrossbow = true;
-            hasHarpoon = true;
-            hasStaff = true;
-            player.activeWeapon = WeaponType::Blunderbuss;
-        }
-
+    if (CameraSystem::Get().GetMode() == CamMode::Free){
+        ControlPlayerWhileFreeCam(deltaTime); //move the player around with the arrow keys while controlling free cam. 
     }
 }
 
@@ -144,19 +65,6 @@ void HandleMouseLook(float deltaTime)
     player.forward = Vector3Normalize({ sinf(yaw), 0.0f, cosf(yaw) });
 }
 
-// void HandleMouseLook(float deltaTime){
-//     Vector2 mouseDelta = GetMouseDelta();
-//     float mouseSensitivity = 0.05f;
-//     player.rotation.y -= mouseDelta.x * mouseSensitivity;
-//     player.rotation.x -= mouseDelta.y * mouseSensitivity;
-//     player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
-
-
-//     // --- ALWAYS recompute forward from yaw ---
-//     float yaw = DEG2RAD * player.rotation.y;
-//     player.forward = Vector3Normalize({ sinf(yaw), 0.0f, cosf(yaw) });
-    
-// }
 
 float Expo(float x)
 {

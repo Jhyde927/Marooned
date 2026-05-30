@@ -20,6 +20,7 @@
 #include "debug_overlay.h"
 #include "shaderSetup.h"
 #include "vegetation_instanced.h"
+#include "debug_console.h"
 
 
 static int lastW = 0;
@@ -85,7 +86,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         DrawWaterPlane();
         rlEnableDepthMask();
         rlEnableDepthTest();
-        DrawDungeonGeometry(camera, 20000);
+        DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
         DrawPowerUps(player, camera, dt);
         DrawDungeonPillars();
         DrawDungeonBarrels();
@@ -181,14 +182,14 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
 
             //DrawDungeonDoorways();          
-            DrawDungeonGeometry(camera, 10000);
+            DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
             DrawOverworldProps();
             if (CurrentLevelIs("MiddleIsland")) raft.Draw();
 
 
         } else {
             //draw the dungeon
-            DrawDungeonGeometry(camera, 8000);
+            DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
             DrawDungeonBarrels();
             DrawLaunchers();
             DrawDungeonChests();
@@ -284,6 +285,9 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawText("Loading...", GetScreenWidth()/2 - MeasureText("Loading...", 20)/2,
                      GetScreenHeight()/2, 20, WHITE);
         } else {
+
+
+
             //health mana stam bars UI
             if (controlPlayer) DrawUI();
 
@@ -296,12 +300,16 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
             }
 
-            if (debugInfo) {
+            DebugConsole::Draw();
+
+            if (showStats) {
                 DebugOverlayInfo overlayInfo;
                 UpdateOverlayInfo(overlayInfo);
                 DrawDebugOverlay(overlayInfo);
                 
             }
+
+
 
             // if (debugInfo) { //Press ~ for debug mode. 
             //     DrawTimer(ElapsedTime);

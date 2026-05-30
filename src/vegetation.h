@@ -30,6 +30,7 @@ struct TreeInstance {
     float colliderRadius = 80.0f;   // trunk radius
     float colliderHeight = 300.0f;  // height of trunk to base of leaves
     TreeType type;
+    float randomScale = 1.0f;
 
 };
 
@@ -54,6 +55,7 @@ void generateVegetation();
 void RemoveAllVegetation();
 void sortTrees(Camera& camera);
 BoundingBox GetTreeAABB(const TreeInstance& t);
+float GetRandomTreeScale();
 
 std::vector<TreeInstance> GenerateTrees(Image& heightmap, unsigned char* pixels, Vector3 terrainScale,
                                         float treeSpacing, float minTreeSpacing, float treeHeightThreshold);

@@ -5,6 +5,7 @@
 #include "rlgl.h"
 #include "utilities.h"
 #include "game_settings.h"
+#include "debug_console.h"
 
 DeathCamState deathCam;
 
@@ -159,14 +160,16 @@ void CameraSystem::UpdatePlayerCam(float dt)
     playerRig.yaw   = pv.yawDeg;
     playerRig.pitch = pv.pitchDeg;
 
-    if (debugInfo){
-        SetFarClip(isDungeon ? 100000.0f : 100000.0f);
-    }else{
-        SetFarClip(isDungeon ? 50000.0f : 100000.0f);
-    }
+    // if (debugInfo){
+    //     SetFarClip(isDungeon ? 100000.0f : 100000.0f);
+    // }else{
+    //     SetFarClip(isDungeon ? 50000.0f : 100000.0f);
+    // }
 }
 
 void CameraSystem::UpdateFreeCam(float dt) {
+    if (DebugConsole::IsOpen()) return;
+
     const float speed = (IsKeyDown(KEY_LEFT_SHIFT) ? 1500.f : 900.f);
     Vector3 f = Vector3Normalize(Vector3Subtract(freeRig.cam.target, freeRig.cam.position));
     Vector3 r = Vector3Normalize(Vector3CrossProduct(f, {0,1,0}));
@@ -202,11 +205,11 @@ void CameraSystem::UpdateFreeCam(float dt) {
     freeRig.cam.target = Vector3Add(freeRig.cam.position, dir);
     freeRig.cam.fovy   = freeRig.fov;
 
-    if (debugInfo){
-        SetFarClip(isDungeon ? 100000.0f : 100000.0f);
-    }else{
-        SetFarClip(isDungeon ? 50000.0f : 100000.0f);
-    }
+    // if (debugInfo){
+    //     SetFarClip(isDungeon ? 100000.0f : 100000.0f);
+    // }else{
+    //     SetFarClip(isDungeon ? 50000.0f : 100000.0f);
+    // }
 }
 
 
@@ -418,11 +421,11 @@ void CameraSystem::UpdateCinematicCam(float dt) {
     cinematicRig.cam.up   = {0,1,0};
     cinematicRig.cam.fovy = cinematicRig.fov;
 
-    if (debugInfo){
-        SetFarClip(isDungeon ? 50000.0f : 50000.0f);
-    }else{
-        SetFarClip(isDungeon ? 16000.0f : 50000.0f);
-    }
+    // if (debugInfo){
+    //     SetFarClip(isDungeon ? 50000.0f : 50000.0f);
+    // }else{
+    //     SetFarClip(isDungeon ? 16000.0f : 50000.0f);
+    // }
     
 }
 

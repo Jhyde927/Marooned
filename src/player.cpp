@@ -16,6 +16,7 @@
 #include "pathfinding.h"
 #include "box.h"
 #include "utilities.h"
+#include "debug_console.h"
 
 Weapon weapon;
 MeleeWeapon meleeWeapon;
@@ -312,6 +313,8 @@ bool ShouldRun(const Vector2& wish, bool canRun)
 void HandlePlayerMovement(float deltaTime){
     float dt = deltaTime;
     if (!player.canMove) return;
+    if (DebugConsole::IsOpen()) return;
+
 
     // --- build desired direction in local space 
     Vector2 wish = {0,0};
@@ -1024,7 +1027,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     player.displayedGold += (player.gold - player.displayedGold) * goldLerpSpeed * deltaTime;
 
     if (player.running && player.isMoving && player.stamina > 0.0f) {
-        if (!debugInfo) player.stamina -= deltaTime * 15.0f; //20.0f drain rate
+        if (!player.infiniteStam) player.stamina -= deltaTime * 15.0f; //20.0f drain rate
         if (player.stamina <= 0.0f) {
             player.stamina = 0.0f;
             player.canRun = false; // forced stop

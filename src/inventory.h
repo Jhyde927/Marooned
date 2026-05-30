@@ -12,6 +12,7 @@ extern std::map<std::string, Texture2D> itemTextures;
 class Inventory {
 public:
     void AddItem(const std::string& itemId);
+    void AddItemAmount(const std::string& itemId, int amount = 1);
     bool UseItem(const std::string& itemId); // Returns true if successful
     bool HasItem(const std::string& itemId) const;
     int GetItemCount(const std::string& itemId) const;

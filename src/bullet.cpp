@@ -219,7 +219,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
         lifeTime -= deltaTime;
     }
 
-    if (lifeTime <= 0 && type != BulletType::Fireball){ //fireball laucnher fireball need to live longer. 
+    if (lifeTime <= 0 && type != BulletType::Fireball && type != BulletType::Harpoon){ //fireball laucnher fireball need to live longer. 
         exploded = true;
         alive = false;
     }
@@ -355,7 +355,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
        retracting = true;
        retractTip = position;
        velocity = {0,0,0};
-       //lifeTime = 9999.0f; // keep it alive while retracting
+       lifeTime = 9999.0f; // keep it alive while retracting
        if (Vector3Distance(position, player.position) < 100 ){ //what if harpoon never reaches player position
             alive = false;
             exploded = true;

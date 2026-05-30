@@ -18,6 +18,8 @@ struct VegetationInstanceBatch
     // Same positions as transforms, used for CPU culling
     std::vector<Vector3> positions;
 
+
+
     void Clear()
     {
         transforms.clear();
@@ -28,6 +30,7 @@ struct VegetationInstanceBatch
 
 namespace VegetationInstanced
 {
+    extern bool showVeg;
 
     //void Init();
     // Call after normal vegetation generation, or let this call generation itself.

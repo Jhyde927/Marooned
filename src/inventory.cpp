@@ -28,6 +28,10 @@ void Inventory::AddItem(const std::string& itemId) {
     items[itemId]++;
 }
 
+void Inventory::AddItemAmount(const std::string& itemId, int amount){
+    items[itemId] += amount;
+}
+
 bool Inventory::UseItem(const std::string& itemId) {
     auto it = items.find(itemId);
     if (it != items.end() && it->second > 0) {
