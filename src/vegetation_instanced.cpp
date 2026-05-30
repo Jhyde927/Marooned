@@ -19,8 +19,6 @@ static VegetationInstanceBatch gBushBatch;
 // Helpers
 // ------------------------------------------------------------
 
-
-
 static void ApplyInstancedShaderToModel(Model& model, Shader shader)
 {
     for (int i = 0; i < model.materialCount; ++i)
