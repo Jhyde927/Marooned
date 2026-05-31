@@ -6,7 +6,7 @@
 void Raft::Update(float dt)
 {
     // Optional future bobbing
-    position.y += sinf(GetTime()) * 0.1f;
+    position.y += sin(GetTime()) * 0.1f;
 }
 
 void Raft::Draw()

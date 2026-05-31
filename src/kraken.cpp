@@ -360,14 +360,15 @@ void Kraken::UpdateIdleMotion(float dt, Player& player)
     float bobOffset = 0.0f;
     if (bobEnabled && state == State::Exposed)
     {
-        bobOffset = std::sinf(bobTime * bobSpeed) * bobAmplitude;
+        bobOffset = std::sin(bobTime * bobSpeed) * bobAmplitude;
+
     }
 
     // Gentle side-to-side yaw rocking while exposed
     float rockYaw = 0.0f;
     if (state == State::Exposed)
     {
-        rockYaw = std::sinf(rockTime * rockSpeed) * rockAmplitudeDeg;
+        rockYaw = std::sin(rockTime * rockSpeed) * rockAmplitudeDeg;
     }
 
     Vector3 toPlayer = {
