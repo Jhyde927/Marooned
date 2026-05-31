@@ -4,7 +4,7 @@ namespace GameSettings
 {
     inline bool squareRes = false; // set true for 1024x1024, false for widescreen
     inline bool showTutorial = true;
-    inline bool useVsync = false;
+    inline bool useVsync = true;
 
     inline float mouseSensitivity = 0.05f;
 
