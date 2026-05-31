@@ -35,6 +35,16 @@ namespace DebugConsole
     // Helpers
     // ------------------------------------------------------------
 
+    static void ClearTextInputQueue()
+    {
+        int key = GetCharPressed();
+
+        while (key > 0)
+        {
+            key = GetCharPressed();
+        }
+    }
+
     static std::string PadRight(const std::string& text, int width)
     {
         if ((int)text.length() >= width)
@@ -49,7 +59,8 @@ namespace DebugConsole
         const std::string& a,
         const std::string& b,
         const std::string& c,
-        const std::string& d
+        const std::string& d,
+        const std::string& e
     )
     {
         std::string line;
@@ -58,7 +69,7 @@ namespace DebugConsole
         line += PadRight(b, 16);
         line += PadRight(c, 16);
         line += PadRight(d, 16);
-
+        line += PadRight(e, 16);
         Log(line);
     }
 
@@ -210,6 +221,17 @@ namespace DebugConsole
         {
             CommandDoors();
         }
+        else if (command == "quad")
+        {
+            CommandQuadDamage();
+        }
+        else if (command == "overhealth")
+        {
+            CommandOverHealth();
+        }
+        else if (command == "haste"){
+            CommandHaste();
+        }
         else if (command == "stamina")
         {
             CommandStamina();
@@ -263,11 +285,12 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:");
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina");
-            LogCommandRow("Enemies",    "Start",           "End",           "Kill");
-            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling");
-            LogCommandRow("Weapons",    "Clear",            "Exit",             "");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky",    "Clear");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina", "Exit");
+            LogCommandRow("Enemies",    "Start",           "End",           "Kill",        "");
+            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",     "");
+            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",  "");
+
         }
         else
         {
@@ -319,7 +342,7 @@ namespace DebugConsole
         if (!gHasBooted)
         {
             gHasBooted = true;
-            Log("Marooned debug console online.");
+            Log("Marooned debug console online. Type help for command list");
         }
     }
 
@@ -356,6 +379,10 @@ namespace DebugConsole
         {
 
             Toggle();
+
+            // Linux may also queue the grave key as typed text.
+            // Drain it so it doesn't appear in the console input.
+            ClearTextInputQueue();
             return;
         }
 
@@ -535,6 +562,21 @@ namespace DebugConsole
     void CommandGod(){
         Log("Toggle God Mode");
         player.godMode = !player.godMode;
+    }
+
+    void CommandQuadDamage(){
+        Log("Powerup Quad Damage");
+        player.currentPowerUp = PowerUpType::QuadDamage;
+    }
+
+    void CommandHaste(){
+        Log("Powerup Haste");
+        player.currentPowerUp = PowerUpType::Haste;
+    }
+
+    void CommandOverHealth(){
+        Log("Powerup Over Health");
+        player.currentPowerUp = PowerUpType::OverHealth;
     }
 
     void CommandStamina(){

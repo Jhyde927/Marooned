@@ -429,7 +429,7 @@ void HandleKeyboardInput(Camera& camera) {
     player.runSpeed = player.haste ? 1400.0f : 850.0f;
     player.walkSpeed = player.haste ? 1000.0f : 500.0f;
 
-    if (IsKeyPressed(KEY_ENTER) && player.currentPowerUp != PowerUpType::None){
+    if (IsKeyPressed(KEY_ENTER) && player.currentPowerUp != PowerUpType::None && !DebugConsole::IsOpen()){
         if (player.currentPowerUp != PowerUpType::None){
             ActivatePowerUp();
         }
@@ -473,7 +473,7 @@ void HandleKeyboardInput(Camera& camera) {
         WeaponDip();
     }
 
-    if (IsKeyPressed(KEY_Q))
+    if (IsKeyPressed(KEY_Q) && !DebugConsole::IsOpen())
     {
         meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean"); //wipe off the blood on sword
         // Swap weapons
@@ -532,7 +532,7 @@ void HandleKeyboardInput(Camera& camera) {
         player.position = Vector3Add(player_boat.position, {0, 200.0f, 0});
     }
 
-    if (IsKeyPressed(KEY_ONE) && player.activeWeapon != WeaponType::Sword ){
+    if (IsKeyPressed(KEY_ONE) && player.activeWeapon != WeaponType::Sword && !DebugConsole::IsOpen()){
         meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean");
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Sword;
@@ -540,19 +540,19 @@ void HandleKeyboardInput(Camera& camera) {
         
     }
 
-    if (IsKeyPressed(KEY_TWO) && hasCrossbow && player.activeWeapon != WeaponType::Crossbow ){
+    if (IsKeyPressed(KEY_TWO) && hasCrossbow && player.activeWeapon != WeaponType::Crossbow && !DebugConsole::IsOpen()){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Crossbow;
         crossbow.reloadDip = 40;
     }
 
-    if (IsKeyPressed(KEY_THREE) && hasBlunderbuss && player.activeWeapon != WeaponType::Blunderbuss ){
+    if (IsKeyPressed(KEY_THREE) && hasBlunderbuss && player.activeWeapon != WeaponType::Blunderbuss && !DebugConsole::IsOpen()){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Blunderbuss;
         weapon.reloadDip = 40;
     }
 
-    if (IsKeyPressed(KEY_FOUR) && hasStaff && player.activeWeapon != WeaponType::MagicStaff){
+    if (IsKeyPressed(KEY_FOUR) && hasStaff && player.activeWeapon != WeaponType::MagicStaff && !DebugConsole::IsOpen()){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::MagicStaff;
         magicStaff.equipDip = 50;
@@ -562,7 +562,7 @@ void HandleKeyboardInput(Camera& camera) {
         //use health potion
         if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
-            if (player.currentHealth < 100.0f){ //don't use pot when full health, or if you have overhealth powerup
+            if (player.currentHealth < player.maxHealth){ //don't use pot when full health, or if you have overhealth powerup
                 player.currentHealth = player.maxHealth;
                 player.inventory.UseItem("HealthPotion");
                 SoundManager::GetInstance().Play("gulp");

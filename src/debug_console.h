@@ -35,6 +35,10 @@ namespace DebugConsole
     void CommandEnd();
     void CommandKill();
     void CommandKeys();
+    void CommandQuadDamage();
+
+    void CommandHaste();
+    void CommandOverHealth();
     void CommandStats();
     void CommandFreecam();
     void CommandCeiling();
