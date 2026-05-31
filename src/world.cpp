@@ -482,7 +482,7 @@ void UpdateFade(Camera& camera, float deltaTime) {
             
             //it didn't print 0.99 it never reaches 1, clamp? 
             if (fadeValue >= 0.98) {
-                pendingLevelIndex = levelIndex;
+                //pendingLevelIndex = levelIndex; //causing bug?
                 gFadePhase = FadePhase::Swapping;
                 break;
             }

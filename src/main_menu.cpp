@@ -742,6 +742,7 @@ namespace MainMenu
             {
                 case 0:
                     if (playerInit && levelIndex == gCurrentLevelIndex) return Action::Resume;
+
                     return Action::StartGame;
                 case 1:
                     //Handled below. Special case for splitting button into 3. 
