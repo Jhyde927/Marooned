@@ -283,7 +283,12 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("quadDamage",         "assets/sprites/quadDamage.png");
     R.LoadTexture("haste",              "assets/sprites/haste.png");
     R.LoadTexture("overHealth",         "assets/sprites/overHealth.png");
+    R.LoadTexture("grassCard",          "assets/textures/grassCard1.png");
+    R.LoadTexture("grassCard2",          "assets/textures/grassCard2.png");
+    R.LoadTexture("grassCard3",          "assets/textures/grassCard3.png");
+    R.LoadTexture("grassCard4",          "assets/textures/grassCard4.png");
 
+    
     R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
     R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
 

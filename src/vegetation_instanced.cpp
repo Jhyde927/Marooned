@@ -7,6 +7,7 @@
 #include "shadows.h"
 #include "utilities.h"
 #include "shaderSetup.h"
+#include "viewCone.h"
 
 #include <algorithm>
 
@@ -58,14 +59,26 @@ static void DrawBatch(VegetationInstanceBatch& batch, Camera& camera)
     const float cullDist = GameSettings::maxDrawDist;
     const float cullDistSq = cullDist * cullDist;
 
+    ViewConeParams vp = MakeViewConeParams(
+        camera,
+        55.0f,      // cone half-angle or whatever your function expects
+        cullDist,
+        400.0f      // non-cull radius around player/camera
+    );
+
     for (int i = 0; i < (int)batch.transforms.size(); ++i)
     {
-        float distSq = Vector3DistanceSqr(camera.position, batch.positions[i]);
+        const Vector3& pos = batch.positions[i];
 
-        if (distSq < cullDistSq)
-        {
-            batch.visibleTransforms.push_back(batch.transforms[i]);
-        }
+        float distSq = Vector3DistanceSqr(camera.position, pos);
+
+        if (distSq > cullDistSq)
+            continue;
+
+        if (!IsInViewCone(vp, pos))
+            continue;
+
+        batch.visibleTransforms.push_back(batch.transforms[i]);
     }
 
     if (batch.visibleTransforms.empty()) return;
@@ -123,15 +136,17 @@ namespace VegetationInstanced
             PushInstance(gPalmTreeBatch, pos, tree.rotationY, finalScale);
         }
 
-        for (const BushInstance& bush : bushes)
-        {
-            Vector3 pos = bush.position;
-            pos.x += bush.xOffset;
-            pos.y += bush.yOffset;
-            pos.z += bush.zOffset;
+        //No 3d bushes for now. 
 
-            PushInstance(gBushBatch, pos, bush.rotationY, bush.scale);
-        }
+        // for (const BushInstance& bush : bushes)
+        // {
+        //     Vector3 pos = bush.position;
+        //     pos.x += bush.xOffset;
+        //     pos.y += bush.yOffset;
+        //     pos.z += bush.zOffset;
+
+        //     PushInstance(gBushBatch, pos, bush.rotationY, bush.scale);
+        // }
     }
 
     void Draw(Camera& camera)
@@ -139,7 +154,7 @@ namespace VegetationInstanced
         if (showVeg){
             SetShaderValues(camera);
             DrawBatch(gPalmTreeBatch, camera);
-            DrawBatch(gBushBatch, camera);
+            //DrawBatch(gBushBatch, camera);
         }
 
 

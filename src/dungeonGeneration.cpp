@@ -2808,6 +2808,7 @@ void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height,
     Vector3 p4 = {-width/2,  height/2, 0};
 
     // Apply Y-axis rotation
+    //Matrix rot = MatrixRotateY(rotationY * DEG2RAD);
     Matrix rot = MatrixRotateY(rotationY);
     p1 = Vector3Transform(p1, rot);
     p2 = Vector3Transform(p2, rot);
@@ -2826,10 +2827,10 @@ void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height,
     rlBegin(RL_QUADS);
         rlColor4ub(tint.r, tint.g, tint.b, tint.a);
 
-        rlTexCoord2f(0, 0); rlVertex3f(p1.x, p1.y, p1.z);
-        rlTexCoord2f(1, 0); rlVertex3f(p2.x, p2.y, p2.z);
-        rlTexCoord2f(1, 1); rlVertex3f(p3.x, p3.y, p3.z);
-        rlTexCoord2f(0, 1); rlVertex3f(p4.x, p4.y, p4.z);
+        rlTexCoord2f(0, 1); rlVertex3f(p1.x, p1.y, p1.z);
+        rlTexCoord2f(1, 1); rlVertex3f(p2.x, p2.y, p2.z);
+        rlTexCoord2f(1, 0); rlVertex3f(p3.x, p3.y, p3.z);
+        rlTexCoord2f(0, 0); rlVertex3f(p4.x, p4.y, p4.z);
 
     rlEnd();
 

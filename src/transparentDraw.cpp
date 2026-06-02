@@ -14,6 +14,7 @@
 #include "portal.h"
 #include "utilities.h"
 #include "shaderSetup.h"
+#include "grass.h"
 
 
 std::vector<BillboardDrawRequest> billboardRequests;
@@ -56,8 +57,8 @@ float GetAdjustedBillboardSize(float baseSize, float distance) {
 
 void GatherGrapplePoint(Camera& camera) {
     for (GrapplePoint& g : grapplePoints){
-        float dist = Vector3Distance(camera.position, g.position);
-
+        //float dist = Vector3Distance(camera.position, g.position);
+        float dist = Vector3DistanceSqr(camera.position, g.position);
         billboardRequests.push_back({
             Billboard_FacingCamera, 
             g.position,
@@ -78,7 +79,8 @@ void GatherEnemies(Camera& camera) {
     for (Character* enemy : enemyPtrs) {
         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
 
-        float dist = Vector3Distance(camera.position, enemy->position);
+        //float dist = Vector3Distance(camera.position, enemy->position);
+        //float dist = Vector3DistanceSqr(camera.position, enemy->position);
 
         Rectangle sourceRect = {
             (float)(enemy->currentFrame * enemy->frameWidth),
@@ -101,7 +103,17 @@ void GatherEnemies(Camera& camera) {
         if (enemy->hitTimer > 0.0f) flipX = false; //dont flipX when taking damage. 
 
         // offset to prevent z-fighting
-        Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, enemy->position));
+        // Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, enemy->position));
+        // Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, 10.0f));
+
+        // float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
+
+        Vector3 camToEnemy = Vector3Subtract(camera.position, enemy->position);
+
+        float distSqr = Vector3LengthSqr(camToEnemy);
+        float dist = sqrtf(distSqr); // only needed because billboard size uses real distance
+
+        Vector3 camDir = Vector3Normalize(camToEnemy);
         Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, 10.0f));
 
         float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
@@ -117,7 +129,7 @@ void GatherEnemies(Camera& camera) {
             sourceRect,
             Vector2 {billboardSize, billboardSize},
             finalTint,
-            dist,
+            distSqr,
             0.0f,
             flipX,     // <----- added
             false,
@@ -132,8 +144,8 @@ void GatherNPCs(Camera& camera)
     {
         if (!npc.isActive) continue;
 
-        float dist = Vector3Distance(camera.position, npc.position);
-
+        //float dist = Vector3Distance(camera.position, npc.position);
+        //float dist = Vector3DistanceSqr(camera.position, npc.position);
         Rectangle sourceRect = {
             (float)(npc.currentFrame * npc.frameWidth),
             (float)(npc.rowIndex     * npc.frameHeight),
@@ -142,7 +154,12 @@ void GatherNPCs(Camera& camera)
         };
 
         // Optional: same tiny offset to reduce z-fighting with floor decals/shadows
-        Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, npc.position));
+        Vector3 camToEnemy = Vector3Subtract(camera.position, npc.position);
+
+        float distSqr = Vector3LengthSqr(camToEnemy);
+        float dist = sqrtf(distSqr); // only needed because billboard size uses real distance
+
+        Vector3 camDir = Vector3Normalize(camToEnemy);
         Vector3 offsetPos = Vector3Add(npc.position, Vector3Scale(camDir, 10.0f));
 
         float billboardSize = GetAdjustedBillboardSize(npc.frameWidth * npc.scale, dist);
@@ -164,7 +181,7 @@ void GatherNPCs(Camera& camera)
             sourceRect,
             Vector2{billboardSize,billboardSize},
             finalTint,
-            dist,
+            distSqr,
             0.0f,
             npc.flipX,   // flipX
             false,
@@ -199,7 +216,7 @@ float GetSpawnerPortalOpenAmount(const Spawner& s)
 void GatherSpawnPortals(Camera& camera){
      if (gKraken.isDead) return;
     for (Spawner& sp : SpawnManager::spawners){
-        float dist = Vector3Distance(camera.position, sp.position);
+        float dist = Vector3DistanceSqr(camera.position, sp.position);
         Texture2D& pTex = R.GetTexture("whiteGradient");
         Vector3 portalPos = {sp.position.x, sp.position.y + 50.0f, sp.position.z};
         PortalPalette palette = GetPortalPalette(0);
@@ -228,7 +245,8 @@ void GatherSpawnPortals(Camera& camera){
 
 void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
     for (const Portal& p : portals) {
-        float dist = Vector3Distance(camera.position, p.position);
+        //float dist = Vector3Distance(camera.position, p.position);
+        float dist = Vector3DistanceSqr(camera.position, p.position);
         Texture2D& pTex = R.GetTexture("whiteGradient");
         Vector3 portalPos = {p.position.x, p.position.y+125.0f, p.position.z};
         PortalPalette palette = GetPortalPalette(p.groupID);
@@ -254,7 +272,7 @@ void GatherPortals(Camera& camera, const std::vector<Portal>& portals) {
 void GatherPowerUps(Camera& camera, const std::vector<PowerUpPickup>& powerUps) {
     for (const PowerUpPickup& p : powerUps){
         if (p.isCollected) continue;
-        float dist = Vector3Distance(camera.position, p.position);
+        float dist = Vector3DistanceSqr(camera.position, p.position);
         billboardRequests.push_back({
             Billboard_FacingCamera,
             p.position,
@@ -273,7 +291,7 @@ void GatherPowerUps(Camera& camera, const std::vector<PowerUpPickup>& powerUps) 
 
 void GatherCollectables(Camera& camera, const std::vector<Collectable>& collectables) {
     for (const Collectable& c : collectables) {
-        float dist = Vector3Distance(camera.position, c.position);
+        float dist = Vector3DistanceSqr(camera.position, c.position);
         
 
         billboardRequests.push_back({
@@ -295,7 +313,7 @@ void GatherCollectables(Camera& camera, const std::vector<Collectable>& collecta
 void GatherSpiderEggDrawRequests(Camera& camera)
 {
     for (SpiderEgg& egg : eggs) {
-        float dist = Vector3Distance(camera.position, egg.position);
+        float dist = Vector3DistanceSqr(camera.position, egg.position);
         Rectangle src {
             (float)(egg.currentFrame * egg.frameWidth),
             (float)(egg.currentRow   * egg.frameHeight),
@@ -347,7 +365,7 @@ void GatherDungeonFires(Camera& camera, float deltaTime) {
         firePos.y += 130;
 
         // Add to billboard requests
-        float dist = Vector3Distance(camera.position, firePos);
+        float dist = Vector3DistanceSqr(camera.position, firePos);
         billboardRequests.push_back({
             Billboard_FacingCamera,
             firePos,
@@ -370,7 +388,7 @@ void GatherWebs(Camera& camera) {
         //if (web.destroyed && !web.showBrokeWebTexture) continue;
 
         Texture2D tex = web.destroyed ? R.GetTexture("brokeWebTexture") : R.GetTexture("spiderWebTexture");
-
+        float dist = Vector3DistanceSqr(camera.position, web.position);
         billboardRequests.push_back({
             Billboard_FixedFlat,
             web.position,
@@ -378,7 +396,7 @@ void GatherWebs(Camera& camera) {
             Rectangle{0, 0, (float)tex.width, (float)tex.height},
             Vector2{400.0f, 400.0f},
             WHITE,
-            Vector3Distance(camera.position, web.position),
+            dist,
             web.rotationY,
             false,
             false,
@@ -404,6 +422,8 @@ void GatherDoors(Camera& camera) {
         // bottom-left corner in CLOSED pose: center − right * halfWidth
         Vector3 bottomLeftClosed = Vector3Add(center, Vector3Scale(rightClosed, -halfW));
         PortalPalette palette = GetPortalPalette(-1); // -1 return default portal palette
+
+        float dist = Vector3DistanceSqr(camera.position, door.position);
         billboardRequests.push_back({
             Billboard_Door,
             bottomLeftClosed,   // <-- store the *hinge corner*
@@ -411,7 +431,7 @@ void GatherDoors(Camera& camera) {
             Rectangle{ 0, 0, (float)door.doorTexture.width, (float)door.doorTexture.height },
             Vector2{width,width},              // size: treat this as world width
             door.tint,
-            Vector3Distance(camera.position, bottomLeftClosed),
+            dist,
             door.rotationY,     // closed yaw (radians)
             false, //flipx
             door.isPortal,
@@ -428,7 +448,7 @@ void GatherDecals(Camera& camera, const std::vector<Decal>& decals) {
     for (const Decal& decal : decals) {
         if (!decal.alive) continue;
 
-        float dist = Vector3Distance(camera.position, decal.position);
+        float dist = Vector3DistanceSqr(camera.position, decal.position);
 
         Rectangle sourceRect;
 
@@ -483,7 +503,7 @@ void GatherDecals(Camera& camera, const std::vector<Decal>& decals) {
 
 void GatherMuzzleFlashes(Camera& camera, const std::vector<MuzzleFlash>& flashes) {
     for (const auto& flash : flashes) {
-        float dist = Vector3Distance(camera.position, flash.position);
+        float dist = Vector3DistanceSqr(camera.position, flash.position);
         
         billboardRequests.push_back({
             Billboard_FacingCamera,
@@ -517,6 +537,13 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
     GatherGrapplePoint(camera);
     GatherPortals(camera, portals);
     GatherSpawnPortals(camera);
+
+    if (!isDungeon && !CurrentLevelIs("Ship"))
+    {
+        Grass::Gather(camera);
+    }
+
+    
    
 }
 
@@ -557,6 +584,10 @@ void DrawTransparentDrawRequests(Camera& camera) {
         }
         SetShaderValue(R.GetShader("portalShader"), ShaderSetup::gPortal.portalOpenLoc, &req.openAmount, SHADER_UNIFORM_FLOAT);
 
+        Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+
+        Vector3 testPos = Vector3Add(camera.position, Vector3Scale(forward, 500.0f));
+        testPos.y = camera.position.y;
                 
         switch (req.type) {
             case Billboard_FacingCamera: //use draw billboard for both decals, and enemies. 
@@ -577,6 +608,8 @@ void DrawTransparentDrawRequests(Camera& camera) {
                 rlEnableDepthMask();
                 break;
             case Billboard_FixedFlat: //special case for webs
+
+
                 DrawFlatWeb(
                     (req.texture),
                     req.position,
@@ -585,7 +618,9 @@ void DrawTransparentDrawRequests(Camera& camera) {
                     req.rotationY,
                     req.tint
                 );
+
                 break;
+                
 
             case Billboard_Door:
                 

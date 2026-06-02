@@ -14,6 +14,8 @@
 #include "shaderSetup.h"
 #include "game_settings.h"
 #include "debug_console.h"
+#include "grass.h"
+#include "transparentDraw.h"
 
 
 
@@ -46,6 +48,7 @@ void UpdateMenuState(Camera3D& camera, Player& player, float deltaTime, float el
     //ship is a dungeon. 
     if (CurrentLevelIs("Ship") || !isDungeon){
         ShaderSetup::UpdateSkyCycle(deltaTime);
+        GatherTransparentDrawRequests(camera, deltaTime);
     }
 
 

@@ -629,11 +629,11 @@ static void DrawCheckbox(Font font,
     DrawCarvedText(font, label, labelRect, 34.0f, 1.0f, false, selected);
 
     // Checkbox square
-    Color border = selected ? Color{90, 55, 25, 255}
-                            : Color{100, 70, 40, 255};
+    // Color border = selected ? Color{90, 55, 25, 255}
+    //                         : Color{100, 70, 40, 255};
 
-    Color fill = checked ? Color{80, 55, 35, 255}
-                         : Color{214, 182, 132, 255};
+    // Color fill = checked ? Color{80, 55, 35, 255}
+    //                      : Color{214, 182, 132, 255};
 
     Color brown = {80, 55, 35, 255};
 

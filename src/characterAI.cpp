@@ -190,6 +190,14 @@ void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime
     }
 }
 
+void Character::AddSwordDecal(){
+    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
+    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
+
+    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
+    SoundManager::GetInstance().Play(rand() % 2 ? "swordBlock" : "swordBlock2");
+}
+
 
 
 
@@ -333,11 +341,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
                     // Blocked!
                 if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
-                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-                    SoundManager::GetInstance().Play(rand() % 2 ? "swordBlock" : "swordBlock2");
+                    AddSwordDecal();
 
       
                 } else  {
@@ -624,11 +628,7 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
                     // Blocked!
                 if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
-                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-                    SoundManager::GetInstance().Play(rand() % 2 ? "swordBlock" : "swordBlock2");
+                    AddSwordDecal();
 
       
                 } else  {
@@ -1243,11 +1243,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
                     // Blocked!
                 if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
-                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-                    SoundManager::GetInstance().Play(rand() % 2 ? "swordBlock" : "swordBlock2");
+                    AddSwordDecal();
 
       
                 } else  {
@@ -1660,13 +1656,7 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
                 // Damage the player
                 if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
                     // Blocked!
-
-                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-                    
-                    SoundManager::GetInstance().Play(rand()%2 ? "swordBlock" : "swordBlock2");
+                    AddSwordDecal();
         
                 } else  {
                     // Player takes damage
@@ -1873,12 +1863,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
                 if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
                     // Blocked!
 
-                    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-                    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-                    decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-                    
-                    SoundManager::GetInstance().Play(rand()%2 ? "swordBlock" : "swordBlock2");
+                    AddSwordDecal();
         
                 } else  {
                     // Player takes damage
@@ -2172,11 +2157,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                     if (CheckCollisionBoxes(GetBoundingBox(), player.blockHitbox) && player.blocking) {
                         // Blocked!
 
-                        Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
-                        Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-                        decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("blockSheet"), 4, 0.4f, 0.1f, 50.0f);
-                        SoundManager::GetInstance().Play(rand()%2 ? "swordBlock" : "swordBlock2");
+                        AddSwordDecal();
 
                     } else {
                         // Direct hit

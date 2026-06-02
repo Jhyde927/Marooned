@@ -21,6 +21,7 @@
 #include "shaderSetup.h"
 #include "vegetation_instanced.h"
 #include "debug_console.h"
+#include "grass.h"
 
 
 static int lastW = 0;
@@ -74,6 +75,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
             DrawBoat(player_boat);
             HandleWaves(camera); //update water plane bob. 
             VegetationInstanced::Draw(camera);
+
             //DrawTrees(trees, camera); 
             //DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
             DrawOverworldProps();

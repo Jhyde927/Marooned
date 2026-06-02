@@ -230,5 +230,6 @@ public:
     AnimDesc GetAnimFor(CharacterType type, CharacterState state);
     void UpdateTargeting(float dt, Player& player, const std::vector<Character*>& enemyPtrs);
     void UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos);
+    void AddSwordDecal();
 };
 

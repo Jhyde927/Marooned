@@ -28,7 +28,7 @@
 #include "game_settings.h"
 #include "vegetation_instanced.h"
 #include "debug_console.h"
-
+#include "grass.h"
 
 
 
@@ -160,6 +160,13 @@ void InitMenuLevel(LevelData& level){
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls.
+    Grass::GenerateFromHeightmap(
+        heightmap,
+        terrainScale,
+        80.0f,
+        100.0f,
+        2000
+    );  
     GenerateEntrances();
     VegetationInstanced::Generate();
     VegetationInstanced::InitShader();
@@ -255,10 +262,21 @@ void InitLevel(LevelData& level, Camera& camera) {
     gCurrentLevelIndex = levelIndex; //save current level globally so we can tell if we are changing levels or resuming. 
 
 
+
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     if (!CurrentLevelIs("Ship")){  
         terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
+
+        Grass::GenerateFromHeightmap(
+            heightmap,
+            terrainScale,
+            80.0f,
+            100.0f,
+            2000
+        );
+    }else{
+        Grass::Clear();
     }
 
 
@@ -288,6 +306,10 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     VegetationInstanced::InitShader();
     VegetationInstanced::Generate();
+    // Vector3 grassOffset = {player.position.x, player.position.y + 200.0f, player.position.z};
+    // Grass::GenerateTestPatch(grassOffset, 500);
+
+    //Grass::GenerateTestPatch({ 0.0f, 100.0f, 0.0f }, 500);
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
 
     if (level.name == "River" || level.name == "Swamp"){
