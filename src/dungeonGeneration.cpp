@@ -22,7 +22,7 @@
 #include "powerUps.h"
 #include "spawn_manager.h"
 #include "game_settings.h"
-
+#include "dungeon_props.h"
 // std::vector<Matrix> grayFloorTransforms;
 // std::vector<Matrix> woodFloorTransforms;
 
@@ -1517,6 +1517,123 @@ bool IsDoorOpenAt(int x, int y) {
     return true; // If no door is found, assume it's open (or not a real door)
 }
 
+void GenerateAutoCornerProps(float baseY)
+{
+    if (!isDungeon) return;
+    const int spawnChancePercent = 35;
+
+    const float webY = baseY + 50.0f;
+    const float cornerInset = tileSize * 0.6f;
+
+    auto IsSolidWall = [&](Color c)
+    {
+        if (c.a == 0) return false;
+        if (!IsWallColor(c)) return false;
+        if (IsBarrelColor(c)) return false;
+        return true;
+    };
+
+    auto IsOpenForWeb = [&](Color c)
+    {
+        if (c.a == 0) return false;
+        if (IsSolidWall(c)) return false;
+        if (IsBarrelColor(c)) return false;
+
+        // Optional rejects:
+        // if (IsLavaColor(c)) return false;
+        // if (IsDoorColor(c)) return false;
+        // if (IsVoidColor(c)) return false;
+
+        return true;
+    };
+
+    auto GetPixelSafe = [&](int x, int y) -> Color
+    {
+        if (x < 0 || y < 0 || x >= dungeonWidth || y >= dungeonHeight)
+            return { 0, 0, 0, 0 };
+
+        return dungeonPixels[y * dungeonWidth + x];
+    };
+
+    auto TrySpawnWeb = [&](int x, int y, float offsetX, float offsetZ, float rotationY)
+    {
+        if (GetRandomValue(1, 100) > spawnChancePercent) return;
+
+        Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+        pos.x += offsetX;
+        pos.z += offsetZ;
+        pos.y = webY;
+
+        // Replace this with whatever your actual prop/web push looks like.
+
+        DungeonProp prop = MakeDefaultProp(DungeonPropType::SpiderWebCorner, pos, rotationY);
+
+        gDungeonProps.push_back(prop);
+    };
+
+    for (int y = 0; y < dungeonHeight; y++)
+    {
+        for (int x = 0; x < dungeonWidth; x++)
+        {
+            Color center = GetPixelSafe(x, y);
+            if (!IsOpenForWeb(center)) continue;
+
+            bool north = IsSolidWall(GetPixelSafe(x,     y - 1));
+            bool south = IsSolidWall(GetPixelSafe(x,     y + 1));
+            bool west  = IsSolidWall(GetPixelSafe(x - 1, y));
+            bool east  = IsSolidWall(GetPixelSafe(x + 1, y));
+
+            bool nw = IsSolidWall(GetPixelSafe(x - 1, y - 1));
+            bool ne = IsSolidWall(GetPixelSafe(x + 1, y - 1));
+            bool sw = IsSolidWall(GetPixelSafe(x - 1, y + 1));
+            bool se = IsSolidWall(GetPixelSafe(x + 1, y + 1));
+
+            // Northwest inside corner
+            if (north && west && nw)
+            {
+                TrySpawnWeb(
+                    x, y,
+                    cornerInset,   // flipped X  (was -cornerInset)
+                    cornerInset,   // flipped Z  (was -cornerInset)
+                    45.0f
+                );
+            }
+
+            // Northeast inside corner
+            if (north && east && ne)
+            {
+                TrySpawnWeb(
+                    x, y,
+                    -cornerInset,   // flipped X  (was  cornerInset)
+                    cornerInset,   // flipped Z  (was -cornerInset)
+                    -45.0f
+                );
+            }
+
+            // Southwest inside corner
+            if (south && west && sw)
+            {
+                TrySpawnWeb(
+                    x, y,
+                    cornerInset,   // flipped X  (was -cornerInset)
+                    -cornerInset,   // flipped Z  (was  cornerInset)
+                    -45.0f
+                );
+            }
+
+            // Southeast inside corner
+            if (south && east && se)
+            {
+                TrySpawnWeb(
+                    x, y,
+                    -cornerInset,   // flipped X  (was  cornerInset)
+                    -cornerInset,   // flipped Z  (was  cornerInset)
+                    45.0f
+                );
+            }
+        }
+    }
+}
 
 
 
@@ -1761,7 +1878,6 @@ void GenerateBarrels(float baseY) {
         }
     }
 }
-
 
 
 

@@ -225,9 +225,21 @@ void BuildTerrainChunkDrawList(
         1600.0f
     );
 
+    // Tweak this until the square edge disappears.
+    const float circularTerrainRadius = 10000.0f;
+    const Vector3 terrainCenter = { 0.0f, 0.0f, 0.0f };
+    const float circularTerrainRadiusSq = circularTerrainRadius * circularTerrainRadius;
+
     // 1) Collect candidates
     for (const TerrainChunk& c : T.chunks)
     {
+        // Circular world crop.
+        Vector3 toWorldCenter = Vector3Subtract(c.center, terrainCenter);
+        toWorldCenter.y = 0.0f;
+
+        if (Vector3LengthSqr(toWorldCenter) > circularTerrainRadiusSq)
+            continue;
+
         Vector3 toChunk = Vector3Subtract(c.center, cam.position);
         float distSq = Vector3LengthSqr(toChunk);
 
@@ -239,9 +251,8 @@ void BuildTerrainChunkDrawList(
             if (!IsInViewCone(vp, c.center))
                 continue;
 
-            if (c.aabb.max.y < waterHeightY){ //cull underwater chunks
+            if (c.aabb.max.y < waterHeightY) // cull underwater chunks
                 continue;
-            }
         }
 
         outList.push_back({ &c, distSq });

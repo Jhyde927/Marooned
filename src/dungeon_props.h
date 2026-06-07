@@ -12,6 +12,7 @@ enum class DungeonPropType
     SpiderWebCorner,
     HangingWeb,
     WallBanner,
+    TableSet,
 
 };
 
@@ -35,6 +36,8 @@ struct DungeonProp
 
     Vector2 size = { 200.0f, 200.0f };
 
+    Vector3 modelSize = {100.0f, 100.0f, 100.0f};
+
     // Use a string key so ResourceManager owns the texture.
     std::string textureName;
 
@@ -52,6 +55,8 @@ struct DungeonProp
 extern std::vector<DungeonProp> gDungeonProps;
 
 void ClearDungeonProps();
+void  DrawDungeonPropModels();
+void GenerateProps(float baseY);
 
 void SpawnDungeonProp(
     DungeonPropType type,
@@ -67,3 +72,5 @@ void GatherDungeonPropDrawRequests(
     const Vector3& cameraPos,
     std::vector<BillboardDrawRequest>& requests
 );
+
+DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotationY);

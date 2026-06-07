@@ -14,6 +14,7 @@ struct Boat {
     float turnSpeed;
     bool beached;
     bool playerOnBoard;
+    bool showMessage;
 };
 
 extern Boat player_boat;

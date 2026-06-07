@@ -288,7 +288,7 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:");
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky",    "Clear");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",    "Clear");
             LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina", "Exit");
             LogCommandRow("Enemies",    "Start",           "End",           "Kill",        "");
             LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",     "");
@@ -558,8 +558,6 @@ namespace DebugConsole
 
     }
 
-
-
     void CommandEnemies(){
         Log("Killing all enemies");
         KillEnemies();
@@ -597,7 +595,7 @@ namespace DebugConsole
     }
 
     void CommandEnd(){
-        Log("Teleporting to end door");
+        Log("Teleporting to exit door");
         TeleportPlayerToEnd();
     }
 
@@ -617,7 +615,7 @@ namespace DebugConsole
     }
 
     void CommandKeys(){
-        Log("Keys command triggered.");
+        Log("Give Keys.");
         GiveKeys();
 
     }
@@ -642,7 +640,7 @@ namespace DebugConsole
 
     void CommandStats()
     {
-        Log("Stats command triggered.");
+        Log("Toggle Stats.");
 
         showStats = !showStats;
         
@@ -650,21 +648,21 @@ namespace DebugConsole
 
     void CommandFreecam()
     {
-        Log("Freecam command triggered.");
+        Log("Toggle Freecam.");
         ToggleFreeCam();
 
     }
 
     void CommandCeiling()
     {
-        Log("Ceiling command triggered.");
+        Log("Toggle Ceiling");
         drawCeiling = !drawCeiling;
 
     }
 
     void CommandWeapons()
     {
-        Log("Weapons command triggered.");
+        Log("Give All Weapons.");
         GiveWeapons();
 
     }

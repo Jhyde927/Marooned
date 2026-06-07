@@ -412,6 +412,7 @@ void DrawDungeonPillars();
 void DrawBoxes();
 //void DrawFlatDoor(Texture2D tex, Vector3 pos, float width, float height, float rotY, Color tint);
 void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height, float rotationY, Color tint);
+void GenerateAutoCornerProps(float baseY);
 void GenerateWeapons(float Height);
 //void DrawDungeonCeiling(Model ceilingTileModel, float ceilingOffsetY);
 void HandleDungeonTints();

@@ -60,6 +60,22 @@ Color V3ToColor(Vector3 v, float a) {
     };
 }
 
+// darkness in [0..1]: 0 = bright, 1 = very dark
+Color TintFromDarkness(float darkness, Color base)
+{
+    // How strong the darkening feels:
+    const float strength = 0.55f; // raise for more darkening
+    float f = 1.0f - strength * darkness; // clamps to [0..1]
+    if (f < 0.0f) f = 0.0f; else if (f > 1.0f) f = 1.0f;
+
+    return (Color){
+        (unsigned char)(base.r * f),
+        (unsigned char)(base.g * f),
+        (unsigned char)(base.b * f),
+        base.a
+    };
+}
+
 
 Color ColorLerpFast(Color a, Color b, float t) {
     t = Clamp01(t);

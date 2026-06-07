@@ -359,21 +359,7 @@ void Weapon::Update(float deltaTime) {
 
 }
 
-// darkness in [0..1]: 0 = bright, 1 = very dark
-inline Color WeaponTintFromDarkness(float darkness, Color base = {255,255,255,255})
-{
-    // How strong the darkening feels:
-    const float strength = 0.55f; // raise for more darkening
-    float f = 1.0f - strength * darkness; // clamps to [0..1]
-    if (f < 0.0f) f = 0.0f; else if (f > 1.0f) f = 1.0f;
 
-    return (Color){
-        (unsigned char)(base.r * f),
-        (unsigned char)(base.g * f),
-        (unsigned char)(base.b * f),
-        base.a
-    };
-}
 
 
 
@@ -412,7 +398,7 @@ void Weapon::Draw(const Camera& camera) {
 
     // === Muzzle position and drawing ===
     muzzlePos = Vector3Add(gunPos, Vector3Scale(camForward, 40.0f));
-    Color tint = WeaponTintFromDarkness(weaponDarkness);
+    Color tint = TintFromDarkness(weaponDarkness);
 
 
     DrawModelEx(model, gunPos, axis, angleDeg, scale, tint);
@@ -452,7 +438,7 @@ void MeleeWeapon::Draw(const Camera& camera) {
     swordPos = Vector3Add(swordPos, Vector3Scale(camForward, blendedForward));
     swordPos = Vector3Add(swordPos, Vector3Scale(camRight, blendedSide + bobSide));
     swordPos = Vector3Add(swordPos, Vector3Scale(camUp, blendedVertical));
-    Color tint = WeaponTintFromDarkness(weaponDarkness);
+    Color tint = TintFromDarkness(weaponDarkness);
     DrawModelEx(model, swordPos, axis, angleDeg, scale, tint);
 }
 
@@ -666,7 +652,7 @@ void MagicStaff::Draw(const Camera& camera) {
 
 
     muzzlePos = Vector3Add(staffPos, Vector3Scale(camForward, 40.0f));
-    Color tint = WeaponTintFromDarkness(weaponDarkness);
+    Color tint = TintFromDarkness(weaponDarkness);
     DrawModelEx(model, staffPos, axis, angleDeg, scale, tint);
 
 
@@ -718,7 +704,7 @@ void Crossbow::Draw(const Camera& camera) {
     muzzlePos = Vector3Add(weaponPos, muzzleOffsetWorld);
 
 
-    Color tint = WeaponTintFromDarkness(weaponDarkness);
+    Color tint = TintFromDarkness(weaponDarkness);
 
     Model& m = (state == CrossbowState::Loaded) ? loadedModel : restModel;
     DrawModelEx(m, weaponPos, axis, angleDeg, scale, tint);

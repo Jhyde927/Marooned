@@ -25,7 +25,7 @@ LightingConfig lightConfig =
 
     2100.0f,  // staticRadius
     0.6f,     // staticIntensity
-    {0.8f, 0.9f, 1.0f}, // staticColor
+    {0.7f, 0.8f, 1.0f}, // staticColor
 
     400.0f,   // dynamicRange
     0.5f,     // dynamicIntensity
@@ -34,7 +34,7 @@ LightingConfig lightConfig =
 
     {1.0f, 0.8f, 0.2f},   // playerColor
     200.0f,               // playerRadius
-    0.5f,                 // playerIntensity
+    0.1f,                 // playerIntensity
 
     7,        // losNumRays
     0.25f,    // losSpreadFrac

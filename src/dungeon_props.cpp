@@ -2,8 +2,12 @@
 #include "transparentDraw.h"
 #include "resourceManager.h"
 #include "world.h"
+#include "dungeonColors.h"
+#include "weapon.h"
 
 #include <cmath>
+
+using namespace dungeon;
 
 std::vector<DungeonProp> gDungeonProps;
 
@@ -115,7 +119,9 @@ void GatherDungeonPropDrawRequests(
 
             case DungeonPropRenderMode::Model:
             {
+
                 // Later. Models should probably be drawn in a separate DrawDungeonPropModels().
+                DrawDungeonPropModels();
             } break;
         }
     }
@@ -127,7 +133,7 @@ void ClearDungeonProps()
     gDungeonProps.clear();
 }
 
-static DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotationY)
+DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotationY)
 {
 
     DungeonProp prop;
@@ -139,12 +145,29 @@ static DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float
 
     switch (type)
     {
+
+        case DungeonPropType::TableSet:
+        {
+            prop.renderMode = DungeonPropRenderMode::Model;
+            prop.modelName = "TableSet";
+            prop.modelSize = {70.0f, 70.0f, 70.0f};
+            prop.tint = WHITE;
+        } break;
+
+
         case DungeonPropType::SpiderWebCorner:
         {
             prop.renderMode = DungeonPropRenderMode::CrossQuads;
             prop.textureName = "spiderWebTexture"; // whatever key you add to ResourceManager
-            prop.size = { 180.0f, 180.0f };
-            prop.tint = WHITE;
+            prop.size = { 90.0f, 90.0f };
+
+            float darkness = CalculateDarknessFactor(prop.position, dungeonLights);
+            Color tint = TintFromDarkness(darkness);
+
+            prop.tint = tint;
+
+
+
         } break;
 
     
@@ -187,25 +210,45 @@ void SpawnDungeonProp(DungeonPropType type, Vector3 position, float rotationY)
 
 void GenerateDungeonPropsForCurrentLevel()
 {
-    // Vector3(6175, 220, 4225)
-    // Player Tile: 1, 10
-
-
     Vector3 spawnPos = {6175.0f, floorHeight+50.0f, 4225.0f};
-
     DungeonProp prop = MakeDefaultProp(DungeonPropType::SpiderWebCorner, spawnPos, 0.0f);
-
-    // DungeonProp prop;
-    // prop.type = DungeonPropType::SpiderWebCorner;
-    // prop.renderMode = DungeonPropRenderMode::CrossQuads;
-    // prop.textureName = "spiderWebTexture";
-    // prop.position = spawnPos;
-    // prop.rotationY = 0.0f;
-    // prop.size = { 100.0f, 100.0f };
-    // prop.tint = WHITE;
-    // prop.hasCollision = false;
-
     gDungeonProps.push_back(prop);
+
+
 
 }
 
+
+void GenerateProps(float baseY) {
+
+    if (CurrentLevelIs("Dungeon7")){
+        GenerateAutoCornerProps(baseY);
+    }
+
+
+
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            if (EqualsRGB(current, ColorOf(Code::tableSet))) { 
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+                DungeonProp prop = MakeDefaultProp(DungeonPropType::TableSet, pos, 0.0f);
+                gDungeonProps.push_back(prop);
+            }
+        }
+    }
+}
+
+void  DrawDungeonPropModels(){
+    //drawModelEx
+    for (DungeonProp& prop : gDungeonProps){
+
+        if (prop.type == DungeonPropType::TableSet){
+
+            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, LIGHTGRAY);
+        }
+
+
+    }
+}

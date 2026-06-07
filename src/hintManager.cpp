@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <sstream>
 #include "world.h"
+#include "boat.h"
 
 // ------------------------- Utilities -------------------------
 static float clampf(float x, float a, float b) { return (x < a) ? a : (x > b) ? b : x; }
@@ -72,7 +73,7 @@ int HintManager::GetHintCount() const {
 }
 
 void HintManager::Update(float dt) {
-    const bool targetVisible = HasActiveHint();
+    bool targetVisible = HasActiveHint();
     const float target = targetVisible ? 1.0f : 0.0f;
     const float speed = targetVisible ? fadeInSpeed : fadeOutSpeed;
     alpha += (target - alpha) * clampf(speed * dt, 0.0f, 1.0f);
@@ -116,7 +117,8 @@ void HintManager::UpdateTutorial(){
         SetMessage("PRESS F TO USE HEALTH POTION");
     }
 
-    if (player.currentMana < 30 && currentIndex == -1 && player.inventory.HasItem("ManaPotion")){
+    if (player.currentMana < 30 && currentIndex == -1 && player.inventory.HasItem("ManaPotion")){ //low mana check gets in the way. 
+        //do a one time check here. 
         SetMessage("PRESS G TO USE MANA POTION");
         
     }
@@ -147,21 +149,46 @@ void HintManager::UpdateTutorial(){
     }
 
     
-    if (!isDungeon){ // hint e to interact when close to dungeon entrance. -it should disappear when further away.
-        DungeonEntrance& e = dungeonEntrances[0];
-        float distance = Vector3Distance(player.position, e.position);
-        if (distance < 500 && currentIndex < 0){
-            SetMessage("E TO INTERACT");
-        }else if (distance > 600 && currentIndex < 0 ){
-            Clear();
-        }
 
-    }
-
+    //harpoon
     if (!harpoonPickup && hasHarpoon){
         harpoonPickup = true;
         SetMessage("RIGHT CLICK WITH CROSSBOW TO FIRE HARPOON");
     }
+    //boat 
+    float pdist = Vector3Distance(player.position, player_boat.position);
+    if (player_boat.showMessage && pdist < 500.0f){
+        player_boat.showMessage = false;
+        SetMessage("Press E to board boat");
+    }
+    //entrance
+    static bool showingDungeonEntranceHint = false;
+
+    if (!isDungeon && !dungeonEntrances.empty())
+    {
+        DungeonEntrance& e = dungeonEntrances[0];
+        float distance = Vector3Distance(player.position, e.position);
+
+        if (currentIndex < 0)
+        {
+            if (!showingDungeonEntranceHint && distance < 500.0f)
+            {
+                SetMessage("E TO INTERACT");
+                showingDungeonEntranceHint = true;
+            }
+            else if (showingDungeonEntranceHint && distance > 600.0f)
+            {
+                Clear();
+                showingDungeonEntranceHint = false;
+            }
+        }
+        else if (showingDungeonEntranceHint)
+        {
+            Clear();
+            showingDungeonEntranceHint = false;
+        }
+    }
+
 
 
 }

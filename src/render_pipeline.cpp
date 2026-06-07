@@ -22,6 +22,7 @@
 #include "vegetation_instanced.h"
 #include "debug_console.h"
 #include "grass.h"
+#include "dungeon_props.h"
 
 
 static int lastW = 0;
@@ -76,9 +77,8 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
             HandleWaves(camera); //update water plane bob. 
             VegetationInstanced::Draw(camera);
 
-            //DrawTrees(trees, camera); 
-            //DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
             DrawOverworldProps();
+
 
 
 
@@ -93,6 +93,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         DrawDungeonPillars();
         DrawDungeonBarrels();
         DrawLaunchers();
+
         DrawTransparentDrawRequests(camera);
 
         EndBlendMode();
@@ -181,8 +182,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawBoat(player_boat);
 
             VegetationInstanced::Draw(camera);
-            //DrawTrees(trees, camera); 
-            //DrawBushes(bushes); //alpha cuttout bushes as well as tree leaf
 
             //DrawDungeonDoorways();          
             DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
@@ -194,6 +193,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //draw the dungeon
             DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
             DrawDungeonBarrels();
+            DrawDungeonPropModels();
             DrawLaunchers();
             DrawDungeonChests();
             DrawDungeonPillars();

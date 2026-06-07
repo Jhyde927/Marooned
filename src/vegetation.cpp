@@ -14,7 +14,7 @@
 #include "game_settings.h"
 
 
-std::vector<TreeInstance> swampTrees;
+
 std::vector<TreeInstance> trees;
 std::vector<BushInstance> bushes;
 std::vector<const TreeInstance*> sortedTrees;
@@ -465,49 +465,4 @@ void RemoveAllVegetation() {
     bushes.clear();
     sortedTrees.clear();
 
-}
-
-
-void DrawTrees(const std::vector<TreeInstance>& trees, Camera& camera){
-    float cullDist = GameSettings::maxDrawDist;
-    for (const TreeInstance* tree : sortedTrees) {
-        float dist = Vector3Distance(tree->position, camera.position);
-        Vector3 pos = tree->position;
-        pos.y += tree->yOffset;
-        pos.x += tree->xOffset;
-        pos.z += tree->zOffset;
-
-        Model& treeModel = tree->useAltModel ? R.GetModel("palmTree") : R.GetModel("palm2");
-        Model& swampTree = R.GetModel("swampTree");
-        float scale = tree->useAltModel ? 80.0f : 150.0f;
-        if (dist < cullDist){
-
-            if (CurrentLevelIs("Swamp")){
-                DrawModelEx(swampTree, pos, { 0, 1, 0 }, tree->rotationY, { scale, scale, scale }, WHITE);
-            }else{
-                DrawModelEx(treeModel, pos, { 0, 1, 0 }, tree->rotationY, { tree->scale, tree->scale, tree->scale }, WHITE);
-            }
-        }
-
-    }
-
-}
-
-void DrawBushes(const std::vector<BushInstance>& bushes) {
-    float cullDistance = GameSettings::maxDrawDist;
-    for (const auto& bush : bushes) {
-        float distanceTo = Vector3Distance(player.position, bush.position);
-
-        Vector3 pos = bush.position;
-        pos.x += bush.xOffset;
-        pos.y += bush.yOffset-10;
-        pos.z += bush.zOffset;
-        Color customGreen = { 0, 160, 0, 255 };
-        if (distanceTo < cullDistance){
-            DrawModel(bush.model, pos, bush.scale, WHITE);
-
-        }
-
-
-    }
 }

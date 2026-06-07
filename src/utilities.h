@@ -43,3 +43,5 @@ float TimingFromPixel(Color c);
 
 Rectangle FitTextureDest(const Texture2D& tex, int screenW, int screenH, bool cover);
 bool IsFacingTarget2D(Vector3 origin, Vector3 forward, Vector3 targetPos, float minDot);
+
+Color TintFromDarkness(float darkness, Color base = {255,255,255,255});

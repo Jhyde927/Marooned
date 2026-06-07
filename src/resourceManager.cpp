@@ -288,10 +288,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("grassCard3",          "assets/textures/grassCard3.png");
     R.LoadTexture("grassCard4",          "assets/textures/grassCard4.png");
 
-
-    R.LoadTexture("swampGrass",       "assets/textures/swampGrass.png");
-    R.LoadTexture("swampMud",         "assets/textures/swampMud.png");
-
     R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
     R.LoadTexture("raftBody", "assets/sprites/raftBody.png");
     R.LoadTexture("raftSail", "assets/sprites/raftSail.png");
@@ -325,7 +321,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("bolt",                   "assets/Models/bolt.glb");
     R.LoadModel("windowedWall",           "assets/Models/windowedWall.glb");
     R.LoadModel("windowWay",              "assets/Models/windowHoleSquare.glb");
-    R.LoadModel("swampTree",              "assets/Models/palm1.glb");
     R.LoadModel("box",                    "assets/Models/box.glb");
     R.LoadModel("healthPotion",           "assets/Models/healthPotion.glb");
     R.LoadModel("raft",                   "assets/Models/raft.glb");
@@ -348,10 +343,12 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("cannonBall",             "assets/Models/cannonBall.glb");
     R.LoadModel("cannonBalls",            "assets/Models/cannonBalls.glb");
 
-    R.LoadModel("grassCardInstanced",        "assets/Models/grassCard1.glb");
-    R.LoadModel("grassCardInstanced2",        "assets/Models/grassCard2.glb");
-    R.LoadModel("grassCardInstanced3",        "assets/Models/grassCard3.glb");
-    R.LoadModel("grassCardInstanced4",        "assets/Models/grassCard4.glb");
+    R.LoadModel("grassCardInstanced",     "assets/Models/grassCard1.glb");
+    R.LoadModel("grassCardInstanced2",    "assets/Models/grassCard2.glb");
+    R.LoadModel("grassCardInstanced3",    "assets/Models/grassCard3.glb");
+    R.LoadModel("grassCardInstanced4",    "assets/Models/grassCard4.glb");
+
+    R.LoadModel("TableSet",               "assets/Models/TableSet.glb");
 
     //generated models
 
@@ -360,11 +357,9 @@ void ResourceManager::LoadAllResources() {
     R.AddModelFromMesh("waterModel",GenMeshPlane(50000, 50000, 1, 1));
     R.AddModelFromMesh("ceilingPlane", GenMeshPlane(1.0f, 1.0f, 1, 1)); //we can scale it later. 
     R.AddModelFromMesh("shadowQuad",GenMeshPlane(1.0f, 1.0f, 1, 1)); //still used for enemy shadows
-    //R.LoadModelFromMesh("bottomPlane",GenMeshPlane(16000, 160000, 1, 1));
     
     //shaders
     R.LoadShader("terrainShader",  "assets/shaders/height_color.vs",       "assets/shaders/height_color.fs");
-    //R.LoadShader("fogShader",      /*vsPath=*/"",                          "assets/shaders/fog_postprocess.fs"); //delete me
     R.LoadShader("shadowShader",   "assets/shaders/shadow_decal.vs",       "assets/shaders/shadow_decal.fs");
     R.LoadShader("skyShader",      "assets/shaders/skybox.vs",             "assets/shaders/skybox.fs");
     R.LoadShader("waterShader",    "assets/shaders/water.vs",              "assets/shaders/water.fs");
@@ -382,10 +377,8 @@ void ResourceManager::LoadAllResources() {
 
 }
 
-Vector3 MakeTerrainWaterColor(Vector3 skyTopColor, bool isSwamp)
+Vector3 MakeTerrainWaterColor(Vector3 skyTopColor)
 {
-    if (isSwamp)
-        return { 0.32f, 0.45f, 0.30f };
 
     Vector3 oceanBlue = { 0.10f, 0.55f, 1.00f };
 
@@ -515,13 +508,10 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
     Shader& sh = R.GetShader("terrainShader");
     //
-    Vector3 oceanColor = MakeTerrainWaterColor(ShaderSetup::GetCurrentSkyTopFogColor(), false);//{0.25, 0.73, 1.0};
-    //Vector3 oceanColor = {0.42f, 0.64f, 0.86f};
-    Vector3 swampColor = {0.32, 0.45, 0.30};//{0.32, 0.45, 0.35};
-    Vector3 waterColor = (CurrentLevelIs("Swamp")) ? swampColor : oceanColor;
+    Vector3 oceanColor = MakeTerrainWaterColor(ShaderSetup::GetCurrentSkyTopFogColor());//{0.25, 0.73, 1.0};
 
     int waterColorLoc = GetShaderLocation(sh, "u_waterColor");
-    SetShaderValue(sh, waterColorLoc, &waterColor, SHADER_UNIFORM_VEC3);
+    SetShaderValue(sh, waterColorLoc, &oceanColor, SHADER_UNIFORM_VEC3);
 
 
 
@@ -531,10 +521,6 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
     Texture2D grass = R.GetTexture("grassTexture");
     Texture2D sand  = R.GetTexture("sandTexture");
-
-
-    grass = CurrentLevelIs("Swamp") ? R.GetTexture("swampGrass") : R.GetTexture("grassTexture");
-    sand  = CurrentLevelIs("Swamp") ? R.GetTexture("swampMud")   : R.GetTexture("sandTexture");
 
     GenTextureMipmaps(&grass);
     GenTextureMipmaps(&sand);
@@ -844,10 +830,8 @@ void ResourceManager::UpdateShaders(Camera& camera){
     SetShaderValue(treeShader, useFogLocT, &useFog, SHADER_UNIFORM_INT);
 
     //dynamic terrain water color
-    Vector3 oceanColor = MakeTerrainWaterColor(ShaderSetup::GetCurrentSkyTopFogColor(), false);
+    Vector3 oceanColor = MakeTerrainWaterColor(ShaderSetup::GetCurrentSkyTopFogColor());
     int waterColorLoc = GetShaderLocation(terrainShader, "u_waterColor");
-    //if (!CurrentLevelIs("Swamp")) SetShaderValue(terrainShader, waterColorLoc, &oceanColor, SHADER_UNIFORM_VEC3);
-
 
     //SetShaderValue(R.GetShader("treeShader"), fogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
     Vector3 fogColor = ShaderSetup::GetCurrentSkyFogColor();

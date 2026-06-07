@@ -1,5 +1,5 @@
 #include "grass.h"
-
+#include "utilities.h"
 #include <iostream>
 
 namespace Grass
@@ -94,7 +94,7 @@ void GenerateFromHeightmap(
 
                 grass.yawDeg = (float)GetRandomValue(0, 359);
 
-                float randomScale = (float)GetRandomValue(25, 40) / 100.0f;
+                float randomScale = RandomFloat(0.15f, 0.4f);
                 grass.scale = randomScale;
 
                 grass.textureIndex = GetRandomValue(0, 3);

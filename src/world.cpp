@@ -189,7 +189,7 @@ void InitMenuLevel(LevelData& level){
         30.0f, // day hold
         60.0f, // night hold
         30.0f,  // transition
-        0.95f    // outdoor night/twilight amount
+        0.97f    // outdoor night/twilight amount
     );
 }
 
@@ -207,7 +207,6 @@ void InitShaders(){
     Model& smallTreeModel = R.GetModel("palm2");
     Model& bushModel      = R.GetModel("bush");
     Model& doorwayModel   = R.GetModel("doorWayGray");
-    Model& swampTree      = R.GetModel("swampTree");
     Model& skyModel       = R.GetModel("skyModel");
     Model& campFire       = R.GetModel("campFire");
 
@@ -220,7 +219,6 @@ void InitShaders(){
         &smallTreeModel,
         &bushModel,
         &doorwayModel,
-        &swampTree,
         &campFire
     });
 }
@@ -262,7 +260,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     if (!CurrentLevelIs("Ship")){  
         terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
 
-        Grass::GenerateFromHeightmap(heightmap, terrainScale, 40.0f, 0.85f, 5000);
+        Grass::GenerateFromHeightmap(heightmap, terrainScale, 25.0f, 0.80f, 10000);
 
 
 
@@ -331,7 +329,7 @@ void InitLevel(LevelData& level, Camera& camera) {
             30.0f, // day hold
             30.0f, // night hold
             15.0f,  // transition
-            0.95f    // outdoor night/twilight amount
+            0.97f    // outdoor night/twilight amount
         );
     }
 
@@ -341,7 +339,7 @@ void InitLevel(LevelData& level, Camera& camera) {
             30.0f, // day hold
             120.0f, // night hold
             15.0f,  // transition
-            0.95f    // outdoor night/twilight amount
+            0.97f    // outdoor night/twilight amount
         );
         
         ShaderSetup::SetSkyCycleTimer(25.0f); //start night immediatly, but keep day hold at 30 for later. 
@@ -398,7 +396,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateBoxesFromImage(floorHeight);
 
         GenerateHermitFromImage(floorHeight);
-
+        GenerateProps(floorHeight + 20);
 
         if (level.name == "Ship"){
             GenerateShipLevel();
@@ -748,6 +746,9 @@ void removeAllCharacters(){
     gNPCs.clear();
 
 }
+
+
+
 
 // Darkness factor should be in [0.0, 1.0]
 // 0.0 = fully dark, 1.0 = fully lit
@@ -1436,6 +1437,9 @@ void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
 
 void ToggleFreeCam(){
     auto m = CameraSystem::Get().GetMode();
+    if (m == CamMode::Free){
+        player.position = CameraSystem::Get().Active().position; //teleport player to free cam position. 
+    }
     CameraSystem::Get().SetMode(m == CamMode::Player ? CamMode::Free : CamMode::Player);
     CameraSystem::Get().SnapAllToPlayer();
 
