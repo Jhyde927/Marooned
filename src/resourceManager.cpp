@@ -287,6 +287,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("grassCard2",          "assets/textures/grassCard2.png");
     R.LoadTexture("grassCard3",          "assets/textures/grassCard3.png");
     R.LoadTexture("grassCard4",          "assets/textures/grassCard4.png");
+    R.LoadTexture("cratePile",           "assets/textures/cratePile.png");
 
     R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
     R.LoadTexture("raftBody", "assets/sprites/raftBody.png");
@@ -349,6 +350,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("grassCardInstanced4",    "assets/Models/grassCard4.glb");
 
     R.LoadModel("TableSet",               "assets/Models/TableSet.glb");
+    R.LoadModel("cratePile",              "assets/Models/cratePile.glb");
 
     //generated models
 
@@ -373,6 +375,9 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("ghostShader",    "assets/shaders/ghost_raft.vs",         "assets/shaders/ghost_raft.fs");
     R.LoadShader("floorInstancedLightingShader", "assets/shaders/floor_instanced_lighting.vs", "assets/shaders/floor_instanced_lighting.fs");
     R.LoadShader("tree_instanced", "assets/shaders/tree_instanced.vs",     "assets/shaders/tree_instanced.fs");
+
+
+
 
 
 }
@@ -727,11 +732,20 @@ void ResourceManager::SetLightingShaderValues()
     Model& woodWall      = R.GetModel("woodWall");
     Model& woodDoorWay   = R.GetModel("woodDoorWay");
     Model& woodWallHalf  = R.GetModel("woodWallHalf");
+    Model& tableSet      = R.GetModel("TableSet");
+    Model& cratePile      = R.GetModel("cratePile");
+
+
+    //apply texture to cratePile. Find a better place for this. 
+    Texture2D crateTex = R.GetTexture("cratePile");
+    for (int i = 0; i < cratePile.materialCount; i++)
+    {
+        cratePile.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = crateTex;
+    }
 
     for (int i = 0; i < wallModel.materialCount;    ++i) wallModel.materials[i].shader    = lightingShader;
     for (int i = 0; i < windowModel.materialCount;  ++i) windowModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < doorwayModel.materialCount; ++i) doorwayModel.materials[i].shader = lightingShader;
-    //for (int i = 0; i < floorModel.materialCount;   ++i) floorModel.materials[i].shader   = lightingShader;
     for (int i = 0; i < launcherModel.materialCount;++i) launcherModel.materials[i].shader= lightingShader;
     for (int i = 0; i < barrelModel.materialCount;  ++i) barrelModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < brokeModel.materialCount;   ++i) brokeModel.materials[i].shader   = lightingShader;
@@ -740,6 +754,9 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < woodWall.materialCount;   ++i) woodWall.materials[i].shader   = lightingShader;
     for (int i = 0; i < woodWallHalf.materialCount;   ++i) woodWallHalf.materials[i].shader   = lightingShader;
     for (int i = 0; i < woodDoorWay.materialCount;   ++i) woodDoorWay.materials[i].shader   = lightingShader;
+
+    for (int i = 0; i < tableSet.materialCount;   ++i) tableSet.materials[i].shader   = lightingShader;
+    for (int i = 0; i < cratePile.materialCount;   ++i) cratePile.materials[i].shader   = lightingShader;
 
     // Bind the lightmap texture to EMISSION slot for each model material
     auto setLightmap = [&](Model& m){
@@ -760,7 +777,8 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(woodWall);
     setLightmap(woodWallHalf);
     setLightmap(woodDoorWay);
-
+    setLightmap(tableSet);
+    setLightmap(cratePile);
     // Per-level uniforms for lighting shader
     Shader& use = wallModel.materials[0].shader;
 

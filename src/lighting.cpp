@@ -24,15 +24,18 @@ LightingConfig lightConfig =
     0.8f,   // dynStrength
 
     2100.0f,  // staticRadius
-    0.6f,     // staticIntensity
-    {0.7f, 0.8f, 1.0f}, // staticColor
+    0.4f,     // staticIntensity
+    {1.0f, 0.7f, 0.4f}, // staticColor
+
+    { 0.45f, 0.55f, 1.0f },  // cold blue outer falloff
+    { 1.0f, 0.55f, 0.25f },  // warm torch center
 
     400.0f,   // dynamicRange
     0.5f,     // dynamicIntensity
     {1.0f, 0.3f, 0.0f},   // dynamicFireColor
     {0.0f, 0.7f, 1.0f},   // dynamicIceColor
 
-    {1.0f, 0.8f, 0.2f},   // playerColor
+    {1.0f, 0.7f, 0.4f},   // playerColor
     200.0f,               // playerRadius
     0.1f,                 // playerIntensity
 
@@ -51,7 +54,9 @@ LightingConfig lightConfig =
 LightSource MakeStaticTorch(Vector3 pos) { //init static light params
     LightSource L;
     L.position  = pos;
-    L.colorTint = lightConfig.staticColor;
+    //L.colorTint = lightConfig.staticColor;
+    L.edgeColor = lightConfig.edgeColor;
+    L.coreColor = lightConfig.coreColor;
     L.intensity = lightConfig.staticIntensity;
     L.range     = lightConfig.staticRadius;
     L.lifeTime  = -1; // infinite
@@ -349,116 +354,179 @@ void SubtileVis2x2(float vis[2][2],
     }
 }
 
-
-
-
-// // --- Static bake: tile-first stamping with 2×2 sub-tile LOS near occluders ---
-void StampLight_StaticBase_Subtile2x2_ToBuffer(std::vector<Color>& outBuf, int bufW, int bufH,
-                                               const Vector3& lightPos, float radius, Color color)
+// --- Static bake: tile-first stamping with 2×2 sub-tile LOS near occluders ---
+void StampLight_StaticBase_Subtile2x2_ToBuffer(
+    std::vector<Color>& outBuf,
+    int bufW,
+    int bufH,
+    const Vector3& lightPos,
+    float radius,
+    Vector3 edgeColor,
+    Vector3 coreColor,
+    float intensity)
 {
-    if ((int)outBuf.size() != bufW*bufH) outBuf.assign((size_t)bufW*bufH, (Color){0,0,0,255});
+    if ((int)outBuf.size() != bufW * bufH)
+    {
+        outBuf.assign((size_t)bufW * bufH, Color{0, 0, 0, 255});
+    }
 
-    const int tppX = bufW / dungeonWidth;            // texels-per-tile (X)
-    const int tppZ = bufH / dungeonHeight;            // texels-per-tile (Z)
+    const int tppX = bufW / dungeonWidth;     // texels-per-tile X
+    const int tppZ = bufH / dungeonHeight;    // texels-per-tile Z
 
     const int lx = (int)floorf((lightPos.x - gDynamic.minX) / tileSize);
     const int lz = (int)floorf((lightPos.z - gDynamic.minZ) / tileSize);
     const int R  = (int)ceilf(radius / tileSize);
-    const float r2 = radius*radius;
 
-    const int tx0 = std::max(0,        lx - R), tx1 = std::min(dungeonWidth-1, lx + R);
-    const int tz0 = std::max(0,        lz - R), tz1 = std::min(dungeonHeight-1, lz + R);
+    const float r2 = radius * radius;
 
-    for (int tz = tz0; tz <= tz1; ++tz) {
-        for (int tx = tx0; tx <= tx1; ++tx) {
-            const float cx = gDynamic.minX + (tx + 0.5f)*tileSize;
-            const float cz = gDynamic.minZ + (tz + 0.5f)*tileSize;
+    const int tx0 = std::max(0, lx - R);
+    const int tx1 = std::min(dungeonWidth - 1, lx + R);
+    const int tz0 = std::max(0, lz - R);
+    const int tz1 = std::min(dungeonHeight - 1, lz + R);
 
-            // quick circle cull (center)
-            const float cdx = cx - lightPos.x, cdz = cz - lightPos.z;
-            if (cdx*cdx + cdz*cdz > (radius + 0.75f*tileSize)*(radius + 0.75f*tileSize)) continue;
+    for (int tz = tz0; tz <= tz1; ++tz)
+    {
+        for (int tx = tx0; tx <= tx1; ++tx)
+        {
+            const float cx = gDynamic.minX + (tx + 0.5f) * tileSize;
+            const float cz = gDynamic.minZ + (tz + 0.5f) * tileSize;
 
-            // Decide visibility model for this tile:
-            // default: uniform vis=1 (fast path)
+            // Quick circle cull using tile center.
+            const float cdx = cx - lightPos.x;
+            const float cdz = cz - lightPos.z;
+
+            const float expandedRadius = radius + 0.75f * tileSize;
+            if (cdx * cdx + cdz * cdz > expandedRadius * expandedRadius)
+            {
+                continue;
+            }
+
+            // Visibility.
             float visUniform = 1.0f;
-            float vis2x2[2][2]; bool useSubtile = false;
+            float vis2x2[2][2];
+            bool useSubtile = false;
 
-            //if (TileNearSolid(tx, tz)) { //dont do this check for better results. 
-                // compute 2×2 sub-tile vis only near occluders
+            // Compute 2×2 sub-tile visibility.
             SubtileVis2x2(vis2x2, lightPos, cx, cz, tileSize, floorHeight);
-            // if all zero, skip whole tile
-            if (vis2x2[0][0]==0 && vis2x2[0][1]==0 && vis2x2[1][0]==0 && vis2x2[1][1]==0) continue;
+
+            // If all blocked, skip whole tile.
+            if (vis2x2[0][0] == 0.0f &&
+                vis2x2[0][1] == 0.0f &&
+                vis2x2[1][0] == 0.0f &&
+                vis2x2[1][1] == 0.0f)
+            {
+                continue;
+            }
+
             useSubtile = true;
-            //}
 
-            // Texel bounds for this tile
-            const int x0 = tx*tppX, x1 = x0 + tppX - 1;
-            const int y0 = tz*tppZ, y1 = y0 + tppZ - 1;
+            // Texel bounds for this tile.
+            const int x0 = tx * tppX;
+            const int x1 = x0 + tppX - 1;
+            const int y0 = tz * tppZ;
+            const int y1 = y0 + tppZ - 1;
 
-            for (int y = y0; y <= y1; ++y) {
-                const float texV = (y + 0.5f)/bufH;
+            for (int y = y0; y <= y1; ++y)
+            {
+                const float texV = (y + 0.5f) / (float)bufH;
                 const float wz   = gDynamic.minZ + texV * gDynamic.sizeZ;
 
-                for (int x = x0; x <= x1; ++x) {
-                    const float texU = (x + 0.5f)/bufW;
+                for (int x = x0; x <= x1; ++x)
+                {
+                    const float texU = (x + 0.5f) / (float)bufW;
                     const float wx   = gDynamic.minX + texU * gDynamic.sizeX;
 
-                    const float dx = wx - lightPos.x, dz = wz - lightPos.z;
-                    const float d2 = dx*dx + dz*dz;
-                    if (d2 > r2) continue;
+                    const float dx = wx - lightPos.x;
+                    const float dz = wz - lightPos.z;
+                    const float d2 = dx * dx + dz * dz;
 
-                    // float t = 1.0f - (d2 / r2);
-                    // float w = t*t*(3.0f - 2.0f*t);   // smoothstep
-                    // w = powf(w, 0.5f);               // <--- NEW: boost center
+                    if (d2 > r2)
+                    {
+                        continue;
+                    }
 
-                    float u = sqrtf(d2) / radius;   // 0..1
-                    if (u > 1.0f) continue;
+                    // u = 0 at light center, 1 at outer radius.
+                    float u = sqrtf(d2) / radius;
+                    if (u > 1.0f)
+                    {
+                        continue;
+                    }
 
-                    // base falloff (your current smoothstep)
-                    float t = 1.0f - u*u;                 // same as 1 - d2/r2
-                    float base = t*t*(3.0f - 2.0f*t);
+                    // Base falloff.
+                    float t = 1.0f - u * u;
+                    float base = t * t * (3.0f - 2.0f * t);
 
-                    // ring parameters (tweakables)
-                    float ringPos   = 0.0f;   // where the ring sits (0..1)
-                    float ringWidth = 0.2f;   // thickness (0..1)
-                    float ringAmp   = 0.7f;    // how strong
+                    // Optional center boost/ring.
+                    // With ringPos = 0.0, this is really a center glow,
+                    // not an outer ring.
+                    float ringPos   = 0.0f;
+                    float ringWidth = 0.2f;
+                    float ringAmp   = 0.7f;
 
-                    // gaussian ring centered at ringPos
-                    float du   = (u - ringPos);
-                    float ring = expf(-(du*du) / (2.0f*ringWidth*ringWidth));
+                    float du   = u - ringPos;
+                    float ring = expf(-(du * du) / (2.0f * ringWidth * ringWidth));
 
-                    // combine
                     float w = base + ringAmp * ring;
 
-                    // optional: keep inside 0..1ish
-                    //w = fminf(w, 1.0f);
-
-                    // apply visibility
+                    // Apply visibility.
                     float vis = visUniform;
-                    if (useSubtile) {
-                        // map texel to sub-tile index (2×2)
-                        int sx = ((x - x0) * 2) / tppX; if (sx < 0) sx = 0; else if (sx > 1) sx = 1;
-                        int sy = ((y - y0) * 2) / tppZ; if (sy < 0) sy = 0; else if (sy > 1) sy = 1;
+
+                    if (useSubtile)
+                    {
+                        int sx = ((x - x0) * 2) / tppX;
+                        if (sx < 0) sx = 0;
+                        else if (sx > 1) sx = 1;
+
+                        int sy = ((y - y0) * 2) / tppZ;
+                        if (sy < 0) sy = 0;
+                        else if (sy > 1) sy = 1;
+
                         vis = vis2x2[sy][sx];
-                        if (vis <= 0.0f) continue;
+
+                        if (vis <= 0.0f)
+                        {
+                            continue;
+                        }
                     }
 
                     w *= vis;
-                    if (w <= 0.0f) continue;
 
-                    Color& p = outBuf[y*bufW + x];
-                    int r = p.r + (int)(color.r * w);
-                    int g = p.g + (int)(color.g * w);
-                    int b = p.b + (int)(color.b * w);
+                    if (w <= 0.0f)
+                    {
+                        continue;
+                    }
+
+                    // ----------------------------------------------------
+                    // Color gradient:
+                    // edgeColor at outer falloff, coreColor near center.
+                    // ----------------------------------------------------
+
+                    float centerAmount = 1.0f - u;
+
+                    float corePower = 2.0f; // lower = wider orange, higher = tighter orange
+                    float coreT = powf(centerAmount, corePower);
+
+                    Vector3 mixedColor = {
+                        edgeColor.x + (coreColor.x - edgeColor.x) * coreT,
+                        edgeColor.y + (coreColor.y - edgeColor.y) * coreT,
+                        edgeColor.z + (coreColor.z - edgeColor.z) * coreT
+                    };
+
+                    Color& p = outBuf[y * bufW + x];
+
+                    int r = p.r + (int)(mixedColor.x * 255.0f * intensity * w);
+                    int g = p.g + (int)(mixedColor.y * 255.0f * intensity * w);
+                    int b = p.b + (int)(mixedColor.z * 255.0f * intensity * w);
+
                     p.r = (unsigned char)std::min(r, 255);
                     p.g = (unsigned char)std::min(g, 255);
                     p.b = (unsigned char)std::min(b, 255);
+                    p.a = 255;
                 }
             }
         }
     }
 }
-
 
 
 // Compute world-space bounds from dungeon indices & tile size.
@@ -693,26 +761,24 @@ void OnDoorToggled_RebakeStaticLights(const Vector3& doorWorldPos,
 
 void BuildStaticLightmapOnce(const std::vector<LightSource>& dungeonLights)
 {
-    gStaticBase.assign((size_t)gDynamic.w * gDynamic.h, (Color){0,0,0,255});
-    for (const auto& L : dungeonLights) {
-        Color c = {
-            (unsigned char)Clamp(L.colorTint.x * 255.0f * L.intensity, 0.0f, 255.0f),
-            (unsigned char)Clamp(L.colorTint.y * 255.0f * L.intensity, 0.0f, 255.0f),
-            (unsigned char)Clamp(L.colorTint.z * 255.0f * L.intensity, 0.0f, 255.0f),
-            255
-        };
 
-        StampLight_StaticBase_Subtile2x2_ToBuffer(gStaticBase, gDynamic.w, gDynamic.h, L.position, L.range, c);
+    gStaticBase.assign((size_t)gDynamic.w * gDynamic.h, Color{0, 0, 0, 255});
 
+    
+
+    for (const auto& L : dungeonLights)
+    {
+        StampLight_StaticBase_Subtile2x2_ToBuffer(
+            gStaticBase,
+            gDynamic.w,
+            gDynamic.h,
+            L.position,
+            L.range,
+            L.edgeColor, //static lights have a gradiant between two colors. for solid color, make them the same. 
+            L.coreColor,
+            L.intensity
+        );
     }
-
-    // headroom so fireballs add nicely:
-    for (Color& p : gStaticBase) {
-        p.r = (unsigned char)(p.r * 0.65f);
-        p.g = (unsigned char)(p.g * 0.65f);
-        p.b = (unsigned char)(p.b * 0.65f);
-    }
-
         
 }
 
@@ -727,7 +793,7 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
     //Dynamic player light
     const LightSample ls =  {
         player.position,
-        lightConfig.playerColor, 
+        Vector3{1.0, 0.6, 0.3}, 
         600.0f, //hard coded, lightConfig.playerRadius doesn't work?
         lightConfig.playerIntensity,
     };
@@ -757,8 +823,6 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
     }
 
     UpdateTexture(gDynamic.tex, gDynamic.pixels.data());
-
-
 
 }
 

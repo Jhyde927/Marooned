@@ -150,7 +150,9 @@ void EnterMenu() {
 
     }
 
+    MainMenu::SetCurrentPreview(gCurrentLevelIndex);
     CameraSystem::Get().StartCinematic(cd);
+    
 }
 
 void InitMenuLevel(LevelData& level){
@@ -356,7 +358,6 @@ void InitLevel(LevelData& level, Camera& camera) {
        
         //CreateVoidMaskTexture(dungeonWidth, dungeonHeight);
         PortalSystem::GenerateFromDungeon(dungeonImg, dungeonWidth, dungeonHeight, tileSize, floorHeight);
-
         PortalSystem::InitPortalRender(512, 512);
         PortalSystem::SetTestRenderPairFromGroup(0); // or whichever group has 2 portals
 

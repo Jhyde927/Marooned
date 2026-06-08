@@ -154,6 +154,14 @@ DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotati
             prop.tint = WHITE;
         } break;
 
+        case DungeonPropType::CratePile:
+        {
+            prop.renderMode = DungeonPropRenderMode::Model;
+            prop.modelName = "cratePile";
+            prop.modelSize = {50.0f, 50.0f, 50.0f};
+            prop.tint = WHITE;
+        } break;
+
 
         case DungeonPropType::SpiderWebCorner:
         {
@@ -210,8 +218,8 @@ void SpawnDungeonProp(DungeonPropType type, Vector3 position, float rotationY)
 
 void GenerateDungeonPropsForCurrentLevel()
 {
-    Vector3 spawnPos = {6175.0f, floorHeight+50.0f, 4225.0f};
-    DungeonProp prop = MakeDefaultProp(DungeonPropType::SpiderWebCorner, spawnPos, 0.0f);
+    Vector3 spawnPos = {6175.0f, floorHeight+20, 4225.0f};
+    DungeonProp prop = MakeDefaultProp(DungeonPropType::CratePile, spawnPos, 0.0f);
     gDungeonProps.push_back(prop);
 
 
@@ -221,12 +229,9 @@ void GenerateDungeonPropsForCurrentLevel()
 
 void GenerateProps(float baseY) {
 
-    if (CurrentLevelIs("Dungeon7")){
-        GenerateAutoCornerProps(baseY);
-    }
+    GenerateAutoCornerProps(baseY);
 
-
-
+    //generate tables. 
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
@@ -246,7 +251,9 @@ void  DrawDungeonPropModels(){
 
         if (prop.type == DungeonPropType::TableSet){
 
-            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, LIGHTGRAY);
+            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
+        }else if (prop.type == DungeonPropType::CratePile){
+            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
         }
 
 

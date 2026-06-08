@@ -9,10 +9,12 @@ struct BillboardDrawRequest;
 
 enum class DungeonPropType
 {
+    None,
     SpiderWebCorner,
     HangingWeb,
     WallBanner,
     TableSet,
+    CratePile, 
 
 };
 

@@ -1517,12 +1517,79 @@ bool IsDoorOpenAt(int x, int y) {
     return true; // If no door is found, assume it's open (or not a real door)
 }
 
+
+static DungeonProp MakeAutoCornerProp(
+    DungeonPropType type,
+    Vector3 basePos,
+    float baseY,
+    float rotationY)
+{
+    DungeonProp prop = MakeDefaultProp(type, basePos, rotationY);
+
+    switch (type)
+    {
+        case DungeonPropType::SpiderWebCorner:
+        {
+            prop.position.y = baseY + 50.0f;
+            prop.rotationY = rotationY;
+        } break;
+
+        // Later examples:
+        //
+        // case DungeonPropType::BonePile:
+        // {
+        //     prop.position.y = baseY + 5.0f;
+        //     prop.rotationY = (float)GetRandomValue(0, 359);
+        // } break;
+        //
+        // case DungeonPropType::WallSkull:
+        // {
+        //     prop.position.y = baseY + 120.0f;
+        //     prop.rotationY = rotationY;
+        // } break;
+
+        default:
+        {
+            prop.position.y = baseY;
+        } break;
+    }
+
+    return prop;
+}
+
+
+static DungeonPropType PickAutoCornerPropType()
+{
+    // Special case: spider boss / web-heavy level.
+    if (CurrentLevelIs("Dungeon7"))
+    {
+        return DungeonPropType::SpiderWebCorner;
+    }
+
+    // Later you can add more level themes.
+    // if (CurrentLevelIs("ZombieDungeon"))
+    // {
+    //     int roll = GetRandomValue(1, 100);
+    //     if (roll <= 70) return DungeonPropType::BonePile;
+    //     return DungeonPropType::SpiderWebCorner;
+    // }
+
+    int roll = GetRandomValue(1, 100);
+
+    // For now, still all webs.
+    if (roll <= 100)
+    {
+        return DungeonPropType::SpiderWebCorner;
+    }
+
+    return DungeonPropType::None;
+}
+
 void GenerateAutoCornerProps(float baseY)
 {
     if (!isDungeon) return;
-    const int spawnChancePercent = 35;
 
-    const float webY = baseY + 50.0f;
+    const int spawnChancePercent = CurrentLevelIs("Dungeon7") ? 85 : 50;
     const float cornerInset = tileSize * 0.6f;
 
     auto IsSolidWall = [&](Color c)
@@ -1533,16 +1600,13 @@ void GenerateAutoCornerProps(float baseY)
         return true;
     };
 
-    auto IsOpenForWeb = [&](Color c)
+    auto IsOpenForCornerProp = [&](Color c)
     {
         if (c.a == 0) return false;
         if (IsSolidWall(c)) return false;
         if (IsBarrelColor(c)) return false;
 
-        // Optional rejects:
-        // if (IsLavaColor(c)) return false;
-        // if (IsDoorColor(c)) return false;
-        // if (IsVoidColor(c)) return false;
+        if (EqualsRGB(c, ColorOf(Code::LavaTile))) return false;
 
         return true;
     };
@@ -1555,19 +1619,18 @@ void GenerateAutoCornerProps(float baseY)
         return dungeonPixels[y * dungeonWidth + x];
     };
 
-    auto TrySpawnWeb = [&](int x, int y, float offsetX, float offsetZ, float rotationY)
+    auto TrySpawnCornerProp = [&](int x, int y, float offsetX, float offsetZ, float rotationY)
     {
         if (GetRandomValue(1, 100) > spawnChancePercent) return;
+
+        DungeonPropType type = PickAutoCornerPropType();
+        if (type == DungeonPropType::None) return;
 
         Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
         pos.x += offsetX;
         pos.z += offsetZ;
-        pos.y = webY;
 
-        // Replace this with whatever your actual prop/web push looks like.
-
-        DungeonProp prop = MakeDefaultProp(DungeonPropType::SpiderWebCorner, pos, rotationY);
-
+        DungeonProp prop = MakeAutoCornerProp(type, pos, baseY, rotationY);
         gDungeonProps.push_back(prop);
     };
 
@@ -1576,7 +1639,7 @@ void GenerateAutoCornerProps(float baseY)
         for (int x = 0; x < dungeonWidth; x++)
         {
             Color center = GetPixelSafe(x, y);
-            if (!IsOpenForWeb(center)) continue;
+            if (!IsOpenForCornerProp(center)) continue;
 
             bool north = IsSolidWall(GetPixelSafe(x,     y - 1));
             bool south = IsSolidWall(GetPixelSafe(x,     y + 1));
@@ -1588,48 +1651,24 @@ void GenerateAutoCornerProps(float baseY)
             bool sw = IsSolidWall(GetPixelSafe(x - 1, y + 1));
             bool se = IsSolidWall(GetPixelSafe(x + 1, y + 1));
 
-            // Northwest inside corner
             if (north && west && nw)
             {
-                TrySpawnWeb(
-                    x, y,
-                    cornerInset,   // flipped X  (was -cornerInset)
-                    cornerInset,   // flipped Z  (was -cornerInset)
-                    45.0f
-                );
+                TrySpawnCornerProp(x, y,  cornerInset,  cornerInset,  45.0f);
             }
 
-            // Northeast inside corner
             if (north && east && ne)
             {
-                TrySpawnWeb(
-                    x, y,
-                    -cornerInset,   // flipped X  (was  cornerInset)
-                    cornerInset,   // flipped Z  (was -cornerInset)
-                    -45.0f
-                );
+                TrySpawnCornerProp(x, y, -cornerInset,  cornerInset, -45.0f);
             }
 
-            // Southwest inside corner
             if (south && west && sw)
             {
-                TrySpawnWeb(
-                    x, y,
-                    cornerInset,   // flipped X  (was -cornerInset)
-                    -cornerInset,   // flipped Z  (was  cornerInset)
-                    -45.0f
-                );
+                TrySpawnCornerProp(x, y,  cornerInset, -cornerInset, -45.0f);
             }
 
-            // Southeast inside corner
             if (south && east && se)
             {
-                TrySpawnWeb(
-                    x, y,
-                    -cornerInset,   // flipped X  (was  cornerInset)
-                    -cornerInset,   // flipped Z  (was  cornerInset)
-                    45.0f
-                );
+                TrySpawnCornerProp(x, y, -cornerInset, -cornerInset,  45.0f);
             }
         }
     }
@@ -1699,16 +1738,27 @@ void GenerateSpiderWebs(float baseY)
                 // plane spans Z (wide) and Y (tall), thin in X
                 box.min = { pos.x - ht, pos.y - hh, pos.z - hw };
                 box.max = { pos.x + ht, pos.y + hh, pos.z + hw };
-}
+            }   
+
+            float darkness = CalculateDarknessFactor(pos, dungeonLights);
+            Color webTint = TintFromDarkness(darkness);
+            SpiderWebInstance web;
+            web.position = pos;
+            web.tint = webTint;
+            web.bounds = box;
+            web.destroyed = false;
+            web.rotationY = rotationY;
+
+            spiderWebs.push_back(web);
 
             // Add to spiderWebs
-            spiderWebs.push_back({
-                pos,
-                WHITE,
-                box,
-                false,
-                rotationY
-            });
+            // spiderWebs.push_back({
+            //     pos,
+            //     WHITE,
+            //     box,
+            //     false,
+            //     rotationY
+            // });
         }
     }
 }
@@ -2590,13 +2640,17 @@ void GenerateInvisibleLightSources(float baseY){
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
                 L.colorTint = Vector3 {1, 0, 0}; // 0..1
+                L.edgeColor = Vector3 {1, 0, 0};
+                L.coreColor = Vector3 {1, 0, 0};
                 dungeonLights.push_back(L);
             }
 
             if (EqualsRGB(current,ColorOf(Code::BlueLight))){
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
-                L.colorTint = Vector3 {0, 0.5, 1}; // 0..1
+                //L.colorTint = Vector3 {0, 0.5, 1}; // 0..1
+                L.edgeColor = Vector3 {0, 0, 1};
+                L.coreColor = Vector3 {0, 0, 1};
                 dungeonLights.push_back(L);
             }
 
@@ -2604,6 +2658,8 @@ void GenerateInvisibleLightSources(float baseY){
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
                 L.colorTint = Vector3 {0, 1, 0}; // 0..1
+                L.edgeColor = Vector3 {0, 1, 0};
+                L.coreColor = Vector3 {0, 1, 0};
                 dungeonLights.push_back(L);
             }
 
@@ -2611,6 +2667,8 @@ void GenerateInvisibleLightSources(float baseY){
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 LightSource L = MakeStaticTorch(pos);
                 L.colorTint = Vector3 {1, 1, 0}; // 0..1
+                L.edgeColor = Vector3 {1, 1, 0};
+                L.coreColor = Vector3 {1, 1, 0};
                 dungeonLights.push_back(L);
             }
 
@@ -2623,6 +2681,8 @@ void GeneratePortalLights(float baseY) {
     for (Portal& p : portals){
         LightSource L = MakeStaticTorch(p.position);
         L.colorTint = ColorToV3(p.tint);
+        L.edgeColor = ColorToV3(p.tint);
+        L.coreColor = ColorToV3(p.tint);
         L.range = 800.0f; //less range for portal lights
         L.intensity = 0.5;
         dungeonLights.push_back(L);

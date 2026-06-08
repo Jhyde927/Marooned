@@ -29,6 +29,10 @@ struct LightingConfig
     float staticIntensity;
     Vector3 staticColor;
 
+    //static color fade. 
+    Vector3 edgeColor;
+    Vector3 coreColor;
+
     float dynamicRange;
     float dynamicIntensity;
     Vector3 dynamicFireColor;
@@ -73,4 +77,4 @@ void SubtileVis2x2(float vis[2][2],
                           const Vector3& lightPos,
                           float cx, float cz, float tileSize, float floorY);
 
-                          
+                    

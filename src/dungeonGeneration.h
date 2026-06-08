@@ -54,6 +54,9 @@ struct LightSource {
     float   intensity;
     float   range;
 
+    Vector3 edgeColor; //static lights use a gradient between 2 colors. So we can have orange near the light, falls off to blue. 
+    Vector3 coreColor; //for solid colored lights use the same color for both edge and core. 
+
     float   lifeTime;   // dynamic only
     float   age;
 

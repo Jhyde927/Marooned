@@ -1047,6 +1047,11 @@ namespace MainMenu
 
     }
 
+    void SetCurrentPreview(int levelIndex){
+        const PreviewInfo* preview = GetPreviewForSelectionIndex(levelIndex);
+        gMenu.currentPreview = preview;
+    }
+
 
 
     void Draw(const State& s,
@@ -1260,6 +1265,7 @@ namespace MainMenu
 
         if (s.showPreview && s.currentPreview)
         {
+
             DrawLevelPreviewPanel(rPanel, s.currentPreview);
         }
         // if (s.showPreview) {
