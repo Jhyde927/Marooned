@@ -1413,13 +1413,13 @@ void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
     overlayInfo.levelIndex = gCurrentLevelIndex;
     overlayInfo.drawDistance = GameSettings::maxDrawDist;
     overlayInfo.fovY = CameraSystem::Get().Active().fovy;
-    overlayInfo.visibleFloorTiles = GameSettings::gVisibleFloorTileCount;
+    overlayInfo.visibleInstances = GameSettings::gVisibleDungeonInstanceCount;
+    overlayInfo.totalInstances = GameSettings::gTotalDungeonInstanceCount;
     overlayInfo.totalFoliage = VegetationInstanced::GetTotalInstanceCount();
     overlayInfo.visibleFoliage = VegetationInstanced::GetVisibleInstanceCount();
     overlayInfo.totalTerrainChunks = terrainStats.totalChunks;
     overlayInfo.visibleTerrainChunks = terrainStats.visibleChunks;
 
-    overlayInfo.totalFloorTiles = GameSettings::gTotalFloorTileCount;
     overlayInfo.staticLights = dungeonLights.size();
     overlayInfo.dynamicLights = frameLights.size();
     overlayInfo.dungeonWidth  = dungeonWidth;

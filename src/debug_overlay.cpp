@@ -204,10 +204,10 @@ void DrawDebugOverlay(const DebugOverlayInfo& info) {
         buffer,
         sizeof(buffer),
         "%4d / %4d",
-        info.visibleFloorTiles,
-        info.totalFloorTiles
+        info.visibleInstances,
+        info.totalInstances
     );
-    DrawRow("FLOOR", buffer);
+    DrawRow("Geometry", buffer);
 
     std::snprintf(
         buffer,

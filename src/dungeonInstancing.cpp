@@ -20,6 +20,10 @@ std::vector<DungeonInstanceSource> gDungeonInstanceSources;
 DungeonInstancingBatch gGrayFloorInstancing;
 DungeonInstancingBatch gWoodFloorInstancing;
 
+DungeonInstancingBatch gStoneWallInstancing;
+DungeonInstancingBatch gWoodWallInstancing;
+DungeonInstancingBatch gWoodHalfWallInstancing;
+
 void UpdateDungeonInstancingDebugCounts()
 {
     int totalFloors = 0;
@@ -33,11 +37,17 @@ void UpdateDungeonInstancingDebugCounts()
         }
     }
 
-    GameSettings::gTotalFloorTileCount = totalFloors;
+    GameSettings::gTotalDungeonInstanceCount =
+        (int)gDungeonInstanceSources.size();
 
-    GameSettings::gVisibleFloorTileCount =
-        (int)(gGrayFloorInstancing.transforms.size() +
-              gWoodFloorInstancing.transforms.size());
+    GameSettings::gVisibleDungeonInstanceCount =
+        (int)(
+            gGrayFloorInstancing.transforms.size() +
+            gWoodFloorInstancing.transforms.size() +
+            gStoneWallInstancing.transforms.size() +
+            gWoodWallInstancing.transforms.size() +
+            gWoodHalfWallInstancing.transforms.size()
+        );
 }
 
 static void SetDungeonInstancingShaderValues(DungeonInstancingBatch& batch)
@@ -89,6 +99,24 @@ static void SetDungeonInstancingShaderValues(DungeonInstancingBatch& batch)
 // ------------------------------------------------------------
 // Generic helpers
 // ------------------------------------------------------------
+
+
+
+static Matrix MakeWallTransform(const Vector3& pos, float rotationY)
+{
+    const Vector3 baseScale = { 700.0f, 700.0f, 700.0f };
+
+    Matrix scale = MatrixScale(baseScale.x, baseScale.y, baseScale.z);
+    Matrix rot   = MatrixRotateY(rotationY * DEG2RAD);
+
+    Matrix transform = MatrixMultiply(scale, rot);
+
+    transform.m12 = pos.x;
+    transform.m13 = pos.y;
+    transform.m14 = pos.z;
+
+    return transform;
+}
 
 static Matrix MakeDungeonInstanceTransform(
     const Vector3& pos,
@@ -195,6 +223,19 @@ static void PushVisibleTransformToCorrectBatch(const DungeonInstanceSource& src)
         case DungeonInstanceKind::FloorWood:
             gWoodFloorInstancing.transforms.push_back(src.transform);
             break;
+
+
+        case DungeonInstanceKind::WallStone:
+            gStoneWallInstancing.transforms.push_back(src.transform);
+            break;
+
+        case DungeonInstanceKind::WallWood:
+            gWoodWallInstancing.transforms.push_back(src.transform);
+            break;
+
+        case DungeonInstanceKind::WallWoodHalf:
+            gWoodHalfWallInstancing.transforms.push_back(src.transform);
+            break;
     }
 }
 
@@ -241,6 +282,48 @@ void InitDungeonInstancing()
         "woodFloor",
         "floorInstancedLightingShader"
     );
+
+    InitDungeonInstancingBatch(
+        gStoneWallInstancing,
+        "wallSegment",
+        "floorInstancedLightingShader"
+    );
+
+    InitDungeonInstancingBatch(
+        gWoodWallInstancing,
+        "woodWall",
+        "floorInstancedLightingShader"
+    );
+
+    InitDungeonInstancingBatch(
+        gWoodHalfWallInstancing,
+        "woodWallHalf",
+        "floorInstancedLightingShader"
+    );
+}
+
+void AddWallInstanceSource(const WallInstance& wall)
+{
+    DungeonInstanceSource src;
+    src.position = wall.position;
+    src.transform = MakeWallTransform(wall.position, wall.rotationY);
+
+    switch (wall.type)
+    {
+        case WallType::Wood:
+            src.kind = DungeonInstanceKind::WallWood;
+            break;
+
+        case WallType::WoodHalf:
+            src.kind = DungeonInstanceKind::WallWoodHalf;
+            break;
+
+        default:
+            src.kind = DungeonInstanceKind::WallStone;
+            break;
+    }
+
+    gDungeonInstanceSources.push_back(src);
 }
 
 void AddFloorInstanceSource(const FloorTile& tile)
@@ -262,6 +345,10 @@ void BuildVisibleDungeonInstanceTransforms(Camera& camera, float maxDrawDist)
 {
     gGrayFloorInstancing.transforms.clear();
     gWoodFloorInstancing.transforms.clear();
+
+    gStoneWallInstancing.transforms.clear();
+    gWoodWallInstancing.transforms.clear();
+    gWoodHalfWallInstancing.transforms.clear();
 
     ViewConeParams vp = MakeViewConeParams(
         camera,
@@ -285,4 +372,11 @@ void DrawDungeonInstancedFloors()
 {
     DrawDungeonInstancingBatch(gGrayFloorInstancing);
     DrawDungeonInstancingBatch(gWoodFloorInstancing);
+}
+
+void DrawDungeonInstancedWalls()
+{
+    DrawDungeonInstancingBatch(gStoneWallInstancing);
+    DrawDungeonInstancingBatch(gWoodWallInstancing);
+    DrawDungeonInstancingBatch(gWoodHalfWallInstancing);
 }

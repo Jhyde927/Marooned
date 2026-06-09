@@ -29,8 +29,8 @@ struct DebugOverlayInfo {
     float fovY = 0.0f;
 
     // Rendering stats
-    int visibleFloorTiles = 0;
-    int totalFloorTiles = 0;
+    int visibleInstances = 0;
+    int totalInstances = 0;
 
     int visibleFoliage = 0;
     int totalFoliage = 0;

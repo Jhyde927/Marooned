@@ -13,7 +13,11 @@
 enum class DungeonInstanceKind
 {
     FloorGray,
-    FloorWood
+    FloorWood,
+
+    WallStone,
+    WallWood,
+    WallWoodHalf
 };
 
 struct DungeonInstanceSource
@@ -42,13 +46,18 @@ extern std::vector<DungeonInstanceSource> gDungeonInstanceSources;
 extern DungeonInstancingBatch gGrayFloorInstancing;
 extern DungeonInstancingBatch gWoodFloorInstancing;
 
+extern DungeonInstancingBatch gStoneWallInstancing;
+extern DungeonInstancingBatch gWoodWallInstancing;
+extern DungeonInstancingBatch gWoodHalfWallInstancing;
+
 // Public API.
 void ClearDungeonInstancingSources();
 
 void InitDungeonInstancing();
 
 void AddFloorInstanceSource(const FloorTile& tile);
-
+void AddWallInstanceSource(const WallInstance& wall);
 void BuildVisibleDungeonInstanceTransforms(Camera& camera, float maxDrawDist);
 
 void DrawDungeonInstancedFloors();
+void DrawDungeonInstancedWalls();

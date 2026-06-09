@@ -770,6 +770,7 @@ void GenerateWallTiles(float baseY) {
                     wall.rotationY = 90.0f;
                     wall.tint      = WHITE;
                     wallInstances.push_back(wall);
+                    AddWallInstanceSource(wall);
 
                     a.y -= 190.0f;
                     b.y -= 190.0f;
@@ -804,6 +805,7 @@ void GenerateWallTiles(float baseY) {
                     wall.rotationY = 0.0f;
                     wall.tint      = WHITE;
                     wallInstances.push_back(wall);
+                    AddWallInstanceSource(wall);
 
                     a.y -= 190.0f;
                     b.y -= 190.0f;
@@ -3045,19 +3047,20 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         //instanced floors
     BuildVisibleDungeonInstanceTransforms(camera, GameSettings::maxDrawDist);
     DrawDungeonInstancedFloors();
+    DrawDungeonInstancedWalls();
 
     //Walls
-    for (const WallInstance& _wall : wallInstances) {
-        if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue; //dont cull when in debug mode. 
+    // for (const WallInstance& _wall : wallInstances) {
+    //     if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue; //dont cull when in debug mode. 
 
-        if (_wall.type == WallType::Wood){
-            DrawModelEx(R.GetModel("woodWall"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-        }else if (_wall.type == WallType::WoodHalf){
-            DrawModelEx(R.GetModel("woodWallHalf"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-        }  else{
-            DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-        }
-    }
+    //     if (_wall.type == WallType::Wood){
+    //         DrawModelEx(R.GetModel("woodWall"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+    //     }else if (_wall.type == WallType::WoodHalf){
+    //         DrawModelEx(R.GetModel("woodWallHalf"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+    //     }  else{
+    //         DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
+    //     }
+    // }
 
 
     //Doorways

@@ -23,4 +23,7 @@ namespace GameSettings
     inline int gVisibleFloorTileCount;
     inline int gTotalFloorTileCount;
 
+    inline int gVisibleDungeonInstanceCount;
+    inline int gTotalDungeonInstanceCount;
+
 }
