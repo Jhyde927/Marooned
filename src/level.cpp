@@ -7,6 +7,8 @@
 
 std::vector<PropSpawn> overworldProps;
 
+
+
 int LoadLastLevel()
 {
     std::ifstream file("save.txt");

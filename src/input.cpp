@@ -11,6 +11,7 @@
 #include "dungeonGeneration.h"
 #include "shaderSetup.h"
 #include "game_settings.h"
+#include "dungeon_props.h"
 
 
 InputMode currentInputMode = InputMode::KeyboardMouse;
@@ -54,6 +55,10 @@ void debugControls(Camera& camera, float deltaTime){
 
     if (IsKeyPressed(KEY_V)){
         ToggleVSync();
+    }
+
+    if (IsKeyPressed(KEY_F8)){
+        GenerateProps(floorHeight + 20);
     }
 }
 

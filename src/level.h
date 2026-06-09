@@ -48,6 +48,7 @@ struct LevelData {
     std::vector<PropSpawn> overworldProps;   // authored list
     bool hasCeiling;
     std::string id;
+    unsigned int propSeed = 0; // 0 means auto-generate/use hash
     
     
 };

@@ -30,6 +30,7 @@
 #include "debug_console.h"
 #include "grass.h"
 #include "dungeon_props.h"
+#include "dungeonInstancing.h"
 
 
 GameState currentGameState = GameState::Menu;
@@ -121,9 +122,7 @@ std::vector<PreviewInfo> levelPreviews;
 Raft raft;
 MiniMap miniMap;
 
-
-
-using namespace dungeon;
+using namespace dungeonColors;
 
 void EnterMenu() {
     bool isShip = CurrentLevelIs("Ship");
@@ -404,9 +403,8 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         } 
 
-        //generate props.
-        // GenerateDungeonPropsForCurrentLevel();
-        GenerateDungeonPropsForCurrentLevel();
+
+
         //generate enemies.
         GenerateEnemiesFromImage(dungeonEnemyHeight);
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
@@ -418,9 +416,10 @@ void InitLevel(LevelData& level, Camera& camera) {
         InitDungeonLights();
         
         //init lights first then floor instance. 
-        InitFloorInstancing();
-        R.SetFloorInstancedLightingShaderValues(gGrayFloorInstancing);
-        R.SetFloorInstancedLightingShaderValues(gWoodFloorInstancing);
+        //InitFloorInstancing();
+        InitDungeonInstancing();
+        // R.SetFloorInstancedLightingShaderValues(gGrayFloorInstancing);
+        // R.SetFloorInstancedLightingShaderValues(gWoodFloorInstancing);
 
 
         
@@ -1562,9 +1561,11 @@ void ClearLevel() {
     g_powerUps.clear();
     SpawnManager::Clear();
     EventLockAllDoors(false);
-    gFloorInstanceSources.clear();
-    gGrayFloorInstancing.transforms.clear();
-    gWoodFloorInstancing.transforms.clear();
+
+    ClearDungeonInstancingSources();
+    // gFloorInstanceSources.clear();
+    // gGrayFloorInstancing.transforms.clear();
+    // gWoodFloorInstancing.transforms.clear();
     ClearDungeonProps();
 
 

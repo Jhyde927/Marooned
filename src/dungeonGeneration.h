@@ -50,7 +50,7 @@ struct GridCoord { int x; int y; }; // image-space coords used for worldToGrid
 
 struct LightSource {
     Vector3 position;
-    Vector3 colorTint;   // 0..1
+    Vector3 colorTint;   // unused. I think. 
     float   intensity;
     float   range;
 
@@ -298,30 +298,6 @@ struct DoorDelayedAction
     float t         = 0.0f;   // seconds remaining
 };
 
-struct FloorInstancing {
-    Mesh mesh = { 0 };
-    Shader shader = { 0 };
-    Material material = { 0 };
-    std::vector<Matrix> transforms;
-    bool initialized = false;
-};
-
-struct FloorInstanceSource {
-    Vector3 position;
-    Matrix transform;
-    FloorType floorType;
-    bool isWood = false;
-};
-
-extern std::vector<FloorInstanceSource> gFloorInstanceSources;
-
-extern FloorInstancing gGrayFloorInstancing;
-extern FloorInstancing gWoodFloorInstancing;
-
-
-extern std::vector<Matrix> grayFloorTransforms;
-extern std::vector<Matrix> woodFloorTransforms;
-
 extern Texture2D ceilingMaskTex;
 extern Texture2D ceilingVoidMaskTex;
 extern std::vector<uint8_t> lavaMask;
@@ -394,10 +370,6 @@ void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
-
-void InitFloorInstancing();
-void InitFloorInstancingBatch( FloorInstancing& batch, const char* modelKey);
-void AddFloorInstanceSource(const FloorTile& tile);
 
 int Idx(int x, int y); 
 

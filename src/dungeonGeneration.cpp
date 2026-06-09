@@ -23,14 +23,15 @@
 #include "spawn_manager.h"
 #include "game_settings.h"
 #include "dungeon_props.h"
+#include "dungeonInstancing.h"
 // std::vector<Matrix> grayFloorTransforms;
 // std::vector<Matrix> woodFloorTransforms;
 
-FloorInstancing gGrayFloorInstancing;
-FloorInstancing gWoodFloorInstancing;
+// FloorInstancing gGrayFloorInstancing;
+// FloorInstancing gWoodFloorInstancing;
 
 // FloorInstancing gFloorInstancing;
-std::vector<FloorInstanceSource> gFloorInstanceSources;
+//std::vector<FloorInstanceSource> gFloorInstanceSources;
 
 Texture2D ceilingVoidMaskTex;
 Texture2D ceilingMaskTex;
@@ -77,145 +78,10 @@ float tickDamage = 0.5;
 
 size_t gStaticLightCount = 0; 
 
-using namespace dungeon;
+using namespace dungeonColors;
 
 // Epsilon for float compares
 static inline bool NearlyEq(float a, float b, float eps = 1e-4f) { return fabsf(a - b) < eps; }
-
-static Matrix MakeFloorTransform(const Vector3& pos)
-{
-    const Vector3 baseScale = { 700, 700, 700 };
-
-    Matrix transform = MatrixScale(baseScale.x, baseScale.y, baseScale.z);
-    transform.m12 = pos.x;
-    transform.m13 = pos.y;
-    transform.m14 = pos.z;
-
-    return transform;
-}
-
-void AddFloorInstanceSource(const FloorTile& tile)
-{
-    if (tile.floorType != FloorType::Normal) return;
-
-    FloorInstanceSource src;
-    src.position = tile.position;
-    src.transform = MakeFloorTransform(tile.position);
-    src.floorType = tile.floorType;
-    src.isWood = CurrentLevelIs("Ship");
-
-    gFloorInstanceSources.push_back(src);
-}
-
-void InitFloorInstancingBatch(FloorInstancing& batch, const char* modelKey)
-{
-    if (batch.initialized) return;
-
-    batch.shader = R.GetShader("floorInstancedLightingShader");
-
-    batch.shader.locs[SHADER_LOC_MATRIX_MVP] =
-        GetShaderLocation(batch.shader, "mvp");
-
-    batch.shader.locs[SHADER_LOC_MATRIX_MODEL] =
-        GetShaderLocationAttrib(batch.shader, "instanceTransform");
-
-    if (batch.shader.locs[SHADER_LOC_MATRIX_MODEL] < 0) {
-        TraceLog(LOG_ERROR, "Missing instanceTransform for %s", modelKey);
-        batch.initialized = false;
-        return;
-    }
-
-    Model& model = R.GetModel(modelKey);
-
-    for (int i = 0; i < model.meshCount; ++i)
-    {
-        int matIndex = 0;
-
-        if (model.meshMaterial != nullptr)
-            matIndex = model.meshMaterial[i];
-
-        Texture2D diffuseTex = { 0 };
-
-        if (matIndex >= 0 && matIndex < model.materialCount)
-        {
-            diffuseTex = model.materials[matIndex]
-                .maps[MATERIAL_MAP_DIFFUSE]
-                .texture;
-        }
-
-    }
-
-    int meshIndex = 0;
-    int matIndex = 0;
-
-    if (model.meshMaterial != nullptr)
-        matIndex = model.meshMaterial[meshIndex];
-
-    batch.mesh = model.meshes[meshIndex];
-    batch.material = model.materials[matIndex];
-
-    // Override shader after copying the model's real material/texture.
-    batch.material.shader = batch.shader;
-
-    // Runtime lightmap/emission.
-    batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
-
-    batch.transforms.reserve(4096);
-
-    batch.initialized = true;
-
-}
-
-void InitFloorInstancing()
-{
-    InitFloorInstancingBatch(gGrayFloorInstancing, "floorTileGray");
-    InitFloorInstancingBatch(gWoodFloorInstancing, "woodFloor"); // your actual key
-
-}
-
-void BuildVisibleFloorTileInstanceTransforms(Camera& camera, float maxDrawDist)
-{
-    gGrayFloorInstancing.transforms.clear();
-    gWoodFloorInstancing.transforms.clear();
-
-
-    ViewConeParams vp = MakeViewConeParams(
-        camera,
-        55.0f,
-        maxDrawDist,
-        400.0f
-    );
-
-    for (const FloorInstanceSource& src : gFloorInstanceSources)
-    {
-
-        if (!IsInViewCone(vp, src.position))
-            continue;
-        
-
-        if (src.isWood)
-            gWoodFloorInstancing.transforms.push_back(src.transform);
-        else
-            gGrayFloorInstancing.transforms.push_back(src.transform);
-    }
-}
-
-static void DrawFloorBatch(FloorInstancing& batch)
-{
-    if (!batch.initialized) return;
-    if (batch.transforms.empty()) return;
-
-
-
-    DrawMeshInstanced(
-        batch.mesh,
-        batch.material,
-        batch.transforms.data(),
-        (int)batch.transforms.size()
-    );
-}
-
-
 
 void DebugOpenAllDoors(){
     for (Door& door : doors){
@@ -516,34 +382,6 @@ std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired)
 }
 
 
-// std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired)
-// {
-//     std::vector<BoundingBox> out;
-
-//     const float radius     = 400.0f; // 300 + padding
-//     const float radiusSqr  = radius * radius;
-
-//     for (const WallRun& wall : wallRunColliders)
-//     {
-//         // Use center of the wall bounds, not startPos
-//         Vector3 center = {
-//             (wall.bounds.min.x + wall.bounds.max.x) * 0.5f,
-//             (wall.bounds.min.y + wall.bounds.max.y) * 0.5f,
-//             (wall.bounds.min.z + wall.bounds.max.z) * 0.5f
-//         };
-
-//         float distSqr = Vector3DistanceSqr(center, desired);
-
-//         if (distSqr < radiusSqr)
-//         {
-//             out.push_back(wall.bounds);
-//         }
-//     }
-
-//     return out;
-// }
-
-
 
 BoundingBox MakeWallBoundingBox(const Vector3& start, const Vector3& end,
                                 float thickness, float height)
@@ -709,7 +547,7 @@ void GenerateFloorTiles(float baseY)
 {
     floorTiles.clear();
     lavaTiles.clear();
-    gFloorInstanceSources.clear();
+    //gFloorInstanceSources.clear();
 
     voidMask.assign(dungeonWidth * dungeonHeight, 0);
     lavaMask.assign(dungeonWidth * dungeonHeight, 0);
@@ -1517,6 +1355,48 @@ bool IsDoorOpenAt(int x, int y) {
     return true; // If no door is found, assume it's open (or not a real door)
 }
 
+static int GetAutoCornerSpawnChance(DungeonPropType type)
+{
+    switch (type)
+    {
+        case DungeonPropType::SpiderWebCorner:
+            return 75;
+
+        case DungeonPropType::BonePile:
+            return 80;
+
+        case DungeonPropType::CratePile:
+            return 70;
+
+        case DungeonPropType::Stool:
+            return 30;
+
+        default:
+            return 0;
+    }
+}
+
+static float GetAutoCornerInsetMultiplier(DungeonPropType type)
+{
+    switch (type)
+    {
+        case DungeonPropType::SpiderWebCorner:
+            return 1.0f;   // pushed deep into corner
+
+        case DungeonPropType::Stool:
+            return 0.65f;  // closer to wall than crates, but not clipping
+
+        case DungeonPropType::BonePile:
+            return 0.45f;  // floor clutter, can sit more toward center
+
+        case DungeonPropType::CratePile:
+            return 0.50f;  // your current offsetX / 2 behavior
+
+        default:
+            return 1.0f;
+    }
+}
+
 
 static DungeonProp MakeAutoCornerProp(
     DungeonPropType type,
@@ -1530,23 +1410,21 @@ static DungeonProp MakeAutoCornerProp(
     {
         case DungeonPropType::SpiderWebCorner:
         {
-            prop.position.y = baseY + 50.0f;
+            prop.position.y = baseY + 40.0f;
             prop.rotationY = rotationY;
+
         } break;
 
-        // Later examples:
-        //
-        // case DungeonPropType::BonePile:
-        // {
-        //     prop.position.y = baseY + 5.0f;
-        //     prop.rotationY = (float)GetRandomValue(0, 359);
-        // } break;
-        //
-        // case DungeonPropType::WallSkull:
-        // {
-        //     prop.position.y = baseY + 120.0f;
-        //     prop.rotationY = rotationY;
-        // } break;
+        case DungeonPropType::BonePile:
+        {
+            prop.rotationY = RandomFloat(0, 359);
+        } break;
+
+        case DungeonPropType::CratePile:
+        {
+            //nothing to do, rotation is good for all corders. 
+        }break;
+
 
         default:
         {
@@ -1563,23 +1441,19 @@ static DungeonPropType PickAutoCornerPropType()
     // Special case: spider boss / web-heavy level.
     if (CurrentLevelIs("Dungeon7"))
     {
-        return DungeonPropType::SpiderWebCorner;
+        return DungeonPropType::SpiderWebCorner; //all webs
     }
 
-    // Later you can add more level themes.
-    // if (CurrentLevelIs("ZombieDungeon"))
-    // {
-    //     int roll = GetRandomValue(1, 100);
-    //     if (roll <= 70) return DungeonPropType::BonePile;
-    //     return DungeonPropType::SpiderWebCorner;
-    // }
+    int roll = GetRandomValue(0, 3);
 
-    int roll = GetRandomValue(1, 100);
-
-    // For now, still all webs.
-    if (roll <= 100)
-    {
+    if (roll == 0){
         return DungeonPropType::SpiderWebCorner;
+    }else if (roll == 1){
+        return DungeonPropType::CratePile;
+    }else if (roll == 2){
+        return DungeonPropType::Stool;
+    }else if (roll == 3){
+        return DungeonPropType::BonePile;
     }
 
     return DungeonPropType::None;
@@ -1589,7 +1463,7 @@ void GenerateAutoCornerProps(float baseY)
 {
     if (!isDungeon) return;
 
-    const int spawnChancePercent = CurrentLevelIs("Dungeon7") ? 85 : 50;
+    const int spawnChancePercent = 75.0f;
     const float cornerInset = tileSize * 0.6f;
 
     auto IsSolidWall = [&](Color c)
@@ -1603,12 +1477,8 @@ void GenerateAutoCornerProps(float baseY)
     auto IsOpenForCornerProp = [&](Color c)
     {
         if (c.a == 0) return false;
-        if (IsSolidWall(c)) return false;
-        if (IsBarrelColor(c)) return false;
 
-        if (EqualsRGB(c, ColorOf(Code::LavaTile))) return false;
-
-        return true;
+        return EqualsRGB(c, WHITE); //only corners that are empty. 
     };
 
     auto GetPixelSafe = [&](int x, int y) -> Color
@@ -1621,14 +1491,23 @@ void GenerateAutoCornerProps(float baseY)
 
     auto TrySpawnCornerProp = [&](int x, int y, float offsetX, float offsetZ, float rotationY)
     {
-        if (GetRandomValue(1, 100) > spawnChancePercent) return;
 
         DungeonPropType type = PickAutoCornerPropType();
         if (type == DungeonPropType::None) return;
 
+        int spawnChancePercent = GetAutoCornerSpawnChance(type);
+
+        if (GetRandomValue(1, 100) > spawnChancePercent) return;
+        
+
+        if (!IsWalkable(x, y, dungeonImg)) return;
+
         Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
-        pos.x += offsetX;
-        pos.z += offsetZ;
+
+        float insetMult = GetAutoCornerInsetMultiplier(type);
+
+        pos.x += offsetX * insetMult;
+        pos.z += offsetZ * insetMult;
 
         DungeonProp prop = MakeAutoCornerProp(type, pos, baseY, rotationY);
         gDungeonProps.push_back(prop);
@@ -2681,17 +2560,17 @@ void GeneratePortalLights(float baseY) {
     for (Portal& p : portals){
         LightSource L = MakeStaticTorch(p.position);
         L.colorTint = ColorToV3(p.tint);
-        L.edgeColor = ColorToV3(p.tint);
+        L.edgeColor = ColorToV3(p.tint); //portal lights could have a gradiant. 
         L.coreColor = ColorToV3(p.tint);
         L.range = 800.0f; //less range for portal lights
-        L.intensity = 0.5;
+        L.intensity = 0.35;
         dungeonLights.push_back(L);
     }
 }
 
 void GenerateLightSources(float baseY) {
     dungeonLights.clear();
-
+    //light pedestals. 
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
@@ -2723,7 +2602,7 @@ void GenerateLightSources(float baseY) {
 }
 
 void GenerateBoxesFromImage(float baseY) {
-
+    //moveable boxes. 
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
@@ -2927,53 +2806,6 @@ void UpdateLauncherTraps(float dt)
     }
 }
 
-
-// void UpdateLauncherTraps(float dt){
-//     const float SPEED    = 900.0f;
-//     const float LIFE     = 10.0f;
-//     const float AHEAD    = 1500.0f;
-
-//     if (CurrentLevelIs("Ship") && !gKraken.isDead){ //don't start firing until the kraken is dead. 
-//         return;
-//     }
-
-
-
-//     for (LauncherTrap& L : launchers){
-//         L.cooldown -= dt;
-//         if (L.cooldown > 0.0f) continue;
-
-
-//         if (L.recoilTimer > 0.0f)
-//         {
-//             L.recoilTimer -= dt;
-//             if (L.recoilTimer < 0.0f)
-//                 L.recoilTimer = 0.0f;
-//         }
-//         float muzzleOffset = CurrentLevelIs("Ship") ? 125.0f : 100.0f;
-//         Vector3 origin = { L.position.x, L.position.y + muzzleOffset, L.position.z };
-//         Vector3 target = Vector3Add(origin, Vector3Scale(L.direction, AHEAD));
-//         if (L.type == TrapType::fireball){
-
-//             if (CurrentLevelIs("Ship")){
-
-//                 L.recoilTimer = L.recoilDuration;
-//                 FireCannon(origin, target, 3500.0f, 5.0f, true);
-//                 L.cooldown = std::max(0.01f, L.fireIntervalSec);
-//             }else{
-//                 FireFireball(origin, target, SPEED, LIFE, /*enemy=*/true, /*launcher=*/true, false);
-//                 L.cooldown = std::max(0.01f, L.fireIntervalSec);
-
-//             }
-
-
-//         }else if (L.type == TrapType::iceball){
-//             FireIceball(origin, target, SPEED, LIFE,true, true);
-//             L.cooldown = std::max(0.01f, L.fireIntervalSec);
-//         }
-
-//     }
-// }
 
 void DrawFlatWeb(Texture2D texture, Vector3 position, float width, float height, float rotationY, Color tint)
 {
@@ -3209,6 +3041,11 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         400.0f    
     );
 
+
+        //instanced floors
+    BuildVisibleDungeonInstanceTransforms(camera, GameSettings::maxDrawDist);
+    DrawDungeonInstancedFloors();
+
     //Walls
     for (const WallInstance& _wall : wallInstances) {
         if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue; //dont cull when in debug mode. 
@@ -3243,20 +3080,6 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         
     }
 
-    BuildVisibleFloorTileInstanceTransforms(camera, maxDrawDist);
-
-    GameSettings::gTotalFloorTileCount = (int)gFloorInstanceSources.size();
-    GameSettings::gVisibleFloorTileCount = (int)gGrayFloorInstancing.transforms.size(); 
-
-    // TraceLog(LOG_INFO, "visible gray floors = %i / sources = %i",
-    //     (int)gGrayFloorInstancing.transforms.size(),
-    //     (int)gFloorInstanceSources.size());
-
-    //Floors
-    DrawFloorBatch(gGrayFloorInstancing);
-    DrawFloorBatch(gWoodFloorInstancing);
-
-    
 
 
     //Lava floor

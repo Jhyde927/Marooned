@@ -6,7 +6,7 @@
 #include "world.h"
 #include "sound_manager.h"
 
-using namespace dungeon;
+using namespace dungeonColors;
 
 static std::vector<Portal> portalsGroup0; // default group (no ID pixel)
 static std::vector<Portal> portalsGroup1; // has PortalID pixel to the right

@@ -4,10 +4,12 @@
 #include "world.h"
 #include "dungeonColors.h"
 #include "weapon.h"
-
+#include "viewCone.h"
+#include "game_settings.h"
+#include "debug_console.h"
 #include <cmath>
 
-using namespace dungeon;
+using namespace dungeonColors;
 
 std::vector<DungeonProp> gDungeonProps;
 
@@ -121,7 +123,7 @@ void GatherDungeonPropDrawRequests(
             {
 
                 // Later. Models should probably be drawn in a separate DrawDungeonPropModels().
-                DrawDungeonPropModels();
+                //DrawDungeonPropModels(camera);
             } break;
         }
     }
@@ -162,6 +164,22 @@ DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotati
             prop.tint = WHITE;
         } break;
 
+        case DungeonPropType::Stool:
+        {
+            prop.renderMode = DungeonPropRenderMode::Model;
+            prop.modelName = "stool";
+            prop.modelSize = {150.0f, 150.0f, 150.0f};
+            prop.tint = WHITE;
+        } break;
+
+        case DungeonPropType::BonePile:
+        {
+            prop.renderMode = DungeonPropRenderMode::Model;
+            prop.modelName = "bonePile";
+            prop.modelSize = {10.0f, 10.0f, 10.0f};
+            prop.tint = WHITE;
+        } break;
+
 
         case DungeonPropType::SpiderWebCorner:
         {
@@ -174,33 +192,24 @@ DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotati
 
             prop.tint = tint;
 
-
-
-        } break;
-
-    
-
-        case DungeonPropType::HangingWeb:
-        {
-            prop.renderMode = DungeonPropRenderMode::FixedFlat;
-            prop.textureName = "hangingWeb";
-            prop.size = { 160.0f, 220.0f };
-            prop.tint = WHITE;
         } break;
 
         case DungeonPropType::WallBanner:
         {
             prop.renderMode = DungeonPropRenderMode::WallQuad;
             prop.textureName = "wallBanner";
-            prop.size = { 120.0f, 180.0f };
-            prop.tint = WHITE;
-        } break;
+            prop.size = {128.0f, 256.0f};
 
+            float darkness = CalculateDarknessFactor(prop.position, dungeonLights);
+            Color tint = TintFromDarkness(darkness);
+
+            prop.tint = tint;
+        } break;
 
         default:
         {
             prop.renderMode = DungeonPropRenderMode::CrossQuads;
-            prop.textureName = "spiderWebCorner";
+            prop.textureName = "spiderWebTexture";
             prop.size = { 180.0f, 180.0f };
             prop.tint = WHITE;
         } break;
@@ -209,25 +218,38 @@ DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotati
     return prop;
 }
 
-void SpawnDungeonProp(DungeonPropType type, Vector3 position, float rotationY)
-{
-    //Test prop. Replace this with tile-based spawning later.
-
-
-}
 
 void GenerateDungeonPropsForCurrentLevel()
 {
-    Vector3 spawnPos = {6175.0f, floorHeight+20, 4225.0f};
-    DungeonProp prop = MakeDefaultProp(DungeonPropType::CratePile, spawnPos, 0.0f);
-    gDungeonProps.push_back(prop);
+    //(5975, 220, 4887) //wall banner
+    if (CurrentLevelIs("Dungeon1")){
+        Vector3 spawnPos = {6060, floorHeight+200, 5000};
+        DungeonProp prop = MakeDefaultProp(DungeonPropType::WallBanner, spawnPos, 90.0f);
+        gDungeonProps.push_back(prop);
 
+    }
 
 
 }
 
+static unsigned int gLastPropSeed = 0;
 
 void GenerateProps(float baseY) {
+    //debug command: Props = regenerate props. 
+    gDungeonProps.clear();
+    
+    gLastPropSeed = (unsigned int)GetRandomValue(1, 999999999);
+
+    //if (CurrentLevelIs("Dungeon1")) gLastPropSeed = 922767668; //good seed for dungeon1
+
+    std::string seedString = std::to_string(gLastPropSeed);
+
+    DebugConsole::Log("Prop Seed: " + seedString);
+    std::cout << "Prop seed: " << gLastPropSeed << "\n";
+    
+    SetRandomSeed(gLastPropSeed);
+
+    if (CurrentLevelIs("Dungeon1")) GenerateDungeonPropsForCurrentLevel(); //hardcoded props. 
 
     GenerateAutoCornerProps(baseY);
 
@@ -243,19 +265,47 @@ void GenerateProps(float baseY) {
             }
         }
     }
+
+    // Re-randomize the global RNG so gameplay randomness is not locked
+    // to the prop seed forever.
+    SetRandomSeed((unsigned int)GetTime() * 1000000u);
 }
 
-void  DrawDungeonPropModels(){
-    //drawModelEx
+void  DrawDungeonPropModels(Camera& camera){
+
+    ViewConeParams vp = MakeViewConeParams( 
+        camera,
+        55.0f,
+        GameSettings::maxDrawDist,
+        400.0f
+    );
+
+
     for (DungeonProp& prop : gDungeonProps){
 
-        if (prop.type == DungeonPropType::TableSet){
+        if (!IsInViewCone(vp, prop.position)) continue;//frustum cull
 
+        //DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
+        switch (prop.type)
+        {
+        case DungeonPropType::TableSet:
             DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
-        }else if (prop.type == DungeonPropType::CratePile){
+            break;
+
+        case DungeonPropType::CratePile:
             DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
+            break;
+        case DungeonPropType::Stool:
+            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
+            break;
+
+        case DungeonPropType::BonePile:
+            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
+            break;
+
+        default:
+            break;
         }
-
 
     }
 }

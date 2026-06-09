@@ -52,7 +52,7 @@ public:
     void SetTerrainShaderValues();
     void SetCeilingShaderValues();
     void SetGhostShaderValues();
-    void SetFloorInstancedLightingShaderValues(FloorInstancing& batch);
+    //void SetFloorInstancedLightingShaderValues(FloorInstancing& batch);
     void SetTreeInstancedShaderValues();
 
 

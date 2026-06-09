@@ -12,6 +12,7 @@
 
 
 
+
 ResourceManager* ResourceManager::_instance = nullptr;
 
 void ResourceManager::ensureFallback_() const {
@@ -288,6 +289,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("grassCard3",          "assets/textures/grassCard3.png");
     R.LoadTexture("grassCard4",          "assets/textures/grassCard4.png");
     R.LoadTexture("cratePile",           "assets/textures/cratePile.png");
+    R.LoadTexture("wallBanner",          "assets/sprites/wallBanner.png");
 
     R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
     R.LoadTexture("raftBody", "assets/sprites/raftBody.png");
@@ -351,6 +353,8 @@ void ResourceManager::LoadAllResources() {
 
     R.LoadModel("TableSet",               "assets/Models/TableSet.glb");
     R.LoadModel("cratePile",              "assets/Models/cratePile.glb");
+    R.LoadModel("stool",                  "assets/Models/stool.glb");
+    R.LoadModel("bonePile",               "assets/Models/bonePile.glb");
 
     //generated models
 
@@ -663,54 +667,6 @@ void ResourceManager::SetCeilingShaderValues()
     if (locTiling >= 0) SetShaderValue(sh, locTiling, &tiling, SHADER_UNIFORM_VEC2);
 }
 
-void ResourceManager::SetFloorInstancedLightingShaderValues(FloorInstancing& batch)
-{
-    if (!batch.initialized) return;
-
-    Shader& sh = batch.material.shader;
-
-    sh.locs[SHADER_LOC_MATRIX_MVP] =
-        GetShaderLocation(sh, "mvp");
-
-    sh.locs[SHADER_LOC_MATRIX_MODEL] =
-        GetShaderLocationAttrib(sh, "instanceTransform");
-
-    sh.locs[SHADER_LOC_MAP_DIFFUSE] =
-        GetShaderLocation(sh, "texture0");
-
-    sh.locs[SHADER_LOC_MAP_EMISSION] =
-        GetShaderLocation(sh, "texture4");
-
-    // Only override runtime texture slot.
-    // Do NOT overwrite MATERIAL_MAP_DIFFUSE here.
-    batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
-
-    int locGrid   = GetShaderLocation(sh, "gridBounds");
-    int locDynStr = GetShaderLocation(sh, "dynStrength");
-    int locAmb    = GetShaderLocation(sh, "ambientBoost");
-
-    float grid[4] = {
-        gDynamic.minX,
-        gDynamic.minZ,
-        gDynamic.sizeX ? 1.0f / gDynamic.sizeX : 0.0f,
-        gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f
-    };
-
-    float dynStrength  = lightConfig.dynStrength;
-    float ambientBoost = lightConfig.ambient;
-
-    if (locGrid >= 0)
-        SetShaderValue(sh, locGrid, grid, SHADER_UNIFORM_VEC4);
-
-    if (locDynStr >= 0)
-        SetShaderValue(sh, locDynStr, &dynStrength, SHADER_UNIFORM_FLOAT);
-
-    if (locAmb >= 0)
-        SetShaderValue(sh, locAmb, &ambientBoost, SHADER_UNIFORM_FLOAT);
-}
-
-
-
 void ResourceManager::SetLightingShaderValues()
 {
     Shader& lightingShader = R.GetShader("lightingShader");
@@ -733,7 +689,9 @@ void ResourceManager::SetLightingShaderValues()
     Model& woodDoorWay   = R.GetModel("woodDoorWay");
     Model& woodWallHalf  = R.GetModel("woodWallHalf");
     Model& tableSet      = R.GetModel("TableSet");
-    Model& cratePile      = R.GetModel("cratePile");
+    Model& cratePile     = R.GetModel("cratePile");
+    Model& stool         = R.GetModel("stool");
+    Model& bonePile      = R.GetModel("bonePile");
 
 
     //apply texture to cratePile. Find a better place for this. 
@@ -754,9 +712,10 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < woodWall.materialCount;   ++i) woodWall.materials[i].shader   = lightingShader;
     for (int i = 0; i < woodWallHalf.materialCount;   ++i) woodWallHalf.materials[i].shader   = lightingShader;
     for (int i = 0; i < woodDoorWay.materialCount;   ++i) woodDoorWay.materials[i].shader   = lightingShader;
-
     for (int i = 0; i < tableSet.materialCount;   ++i) tableSet.materials[i].shader   = lightingShader;
     for (int i = 0; i < cratePile.materialCount;   ++i) cratePile.materials[i].shader   = lightingShader;
+    for (int i = 0; i < stool.materialCount;   ++i) stool.materials[i].shader   = lightingShader;
+    for (int i = 0; i < bonePile.materialCount;   ++i) bonePile.materials[i].shader   = lightingShader;
 
     // Bind the lightmap texture to EMISSION slot for each model material
     auto setLightmap = [&](Model& m){
@@ -779,6 +738,8 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(woodDoorWay);
     setLightmap(tableSet);
     setLightmap(cratePile);
+    setLightmap(stool);
+    setLightmap(bonePile);
     // Per-level uniforms for lighting shader
     Shader& use = wallModel.materials[0].shader;
 

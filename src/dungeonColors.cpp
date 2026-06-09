@@ -3,7 +3,7 @@
 #include <string>
 #include <algorithm>
 
-namespace dungeon {
+namespace dungeonColors {
 
 static std::string normalize(std::string_view s) {
     std::string out;

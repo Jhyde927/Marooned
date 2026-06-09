@@ -89,6 +89,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         rlEnableDepthMask();
         rlEnableDepthTest();
         DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
+        DrawDungeonPropModels(camera);
         DrawPowerUps(player, camera, dt);
         DrawDungeonPillars();
         DrawDungeonBarrels();
@@ -100,24 +101,6 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         EndMode3D();
         rlDisableDepthTest();
     EndTextureMode();
-
-    // // --- post to postProcessTexture ---
-    // BeginTextureMode(R.GetRenderTexture("postProcessTexture"));
-    // {
-    //     BeginShaderMode(R.GetShader("fogShader"));
-    //         auto& sceneRT = R.GetRenderTexture("sceneTexture");
-    //         Rectangle src = { 0, 0,
-    //                         (float)sceneRT.texture.width,
-    //                         -(float)sceneRT.texture.height }; // flip Y!
-    //         Rectangle dst = { 0, 0,
-    //                         (float)GetScreenWidth(),
-    //                         (float)GetScreenHeight() };
-    //         DrawTexturePro(sceneRT.texture, src, dst, {0,0}, 0.0f, WHITE);
-    //     EndShaderMode();
-    // }
-    // EndTextureMode();
-
-
 
     // --- final to backbuffer + UI ---
     BeginDrawing();
@@ -193,7 +176,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //draw the dungeon
             DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
             DrawDungeonBarrels();
-            DrawDungeonPropModels();
+            DrawDungeonPropModels(camera);
             DrawLaunchers();
             DrawDungeonChests();
             DrawDungeonPillars();

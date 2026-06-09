@@ -11,10 +11,11 @@ enum class DungeonPropType
 {
     None,
     SpiderWebCorner,
-    HangingWeb,
-    WallBanner,
     TableSet,
-    CratePile, 
+    CratePile,
+    Stool,
+    BonePile,
+    WallBanner, 
 
 };
 
@@ -57,7 +58,7 @@ struct DungeonProp
 extern std::vector<DungeonProp> gDungeonProps;
 
 void ClearDungeonProps();
-void  DrawDungeonPropModels();
+void  DrawDungeonPropModels(Camera& camera);
 void GenerateProps(float baseY);
 
 void SpawnDungeonProp(

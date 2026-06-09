@@ -9,6 +9,7 @@
 #include "pathfinding.h"
 #include <iomanip>
 #include "vegetation_instanced.h"
+#include "dungeon_props.h"
 
 namespace DebugConsole
 {
@@ -265,6 +266,9 @@ namespace DebugConsole
         {
             CommandStats();
         }
+        else if (command == "props"){
+            CommandProps();
+        }
         else if (command == "freecam")
         {
             CommandFreecam();
@@ -288,11 +292,11 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:");
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",    "Clear");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina", "Exit");
-            LogCommandRow("Enemies",    "Start",           "End",           "Kill",        "");
-            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",     "");
-            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",  "");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",    "Props");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",            "Clear");
+            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "Exit");
+            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",                 "");
+            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",              "");
 
         }
         else
@@ -644,6 +648,12 @@ namespace DebugConsole
 
         showStats = !showStats;
         
+    }
+
+    void CommandProps()
+    {
+        Log("Regenerate Corner Props");
+        GenerateProps(floorHeight + 20);
     }
 
     void CommandFreecam()

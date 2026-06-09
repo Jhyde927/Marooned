@@ -9,7 +9,7 @@
 #include "utilities.h"
 #include "dungeonColors.h"
 
-using namespace dungeon;
+using namespace dungeonColors;
 std::vector<std::vector<bool>> walkable; //grid of bools that mark walkabe/unwalkable tiles. 
 std::vector<std::vector<bool>> walkableBat; //bats can fly over lava tiles. We make a separate walkable grid just for bats, that includes lava tiles.
 
@@ -115,13 +115,14 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool boxes = (EqualsRGB(c, ColorOf(Code::Box)));
             bool woodWalls = (EqualsRGB(c, ColorOf(Code::woodWall))); //wood walls.
             bool woodWallHalf = (EqualsRGB(c, ColorOf(Code::woodWallHalf))); //wood walls.  
+            bool nextLevelDoor = (EqualsRGB(c, ColorOf(Code::NextLevelOrange))); //next level doors
             //secret walls? 
 
             walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window ||
-                 silver || skeleton || eventLocked || boxes || woodWalls || woodWallHalf);
+                 silver || skeleton || eventLocked || boxes || woodWalls || woodWallHalf || nextLevelDoor);
 
             walkableBat[x][y] = !(black || purple || aqua || window ||
-                 silver || skeleton || eventLocked || blue || yellow || woodWalls || woodWallHalf); //bats cant fly over barrels for reasons
+                 silver || skeleton || eventLocked || blue || yellow || woodWalls || woodWallHalf || nextLevelDoor); //bats cant fly over barrels for reasons
         }   //bats can fly through windows? no
     }
 }

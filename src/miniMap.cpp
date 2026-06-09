@@ -8,7 +8,7 @@
 #include "iostream"
 
 
-using namespace dungeon;
+using namespace dungeonColors;
 
 
 static constexpr float REVEAL_FADE_DURATION = 0.2f; 

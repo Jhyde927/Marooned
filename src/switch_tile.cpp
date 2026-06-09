@@ -6,7 +6,7 @@
 #include "pathfinding.h"
 #include "dungeonColors.h"
 
-using namespace dungeon;
+using namespace dungeonColors;
 
 std::vector<SwitchTile> switches;
 

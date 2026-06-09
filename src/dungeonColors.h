@@ -4,7 +4,7 @@
 #include <optional>
 #include "raymath.h"
 
-namespace dungeon {
+namespace dungeonColors {
 
 // All PNG-encoded legend entries.
 // Note: FLOOR may not actually appear in the PNG (world is filled with floor),
