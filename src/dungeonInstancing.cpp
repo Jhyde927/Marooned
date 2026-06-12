@@ -326,13 +326,29 @@ void AddWallInstanceSource(const WallInstance& wall)
     gDungeonInstanceSources.push_back(src);
 }
 
-void AddFloorInstanceSource(const FloorTile& tile)
+// void AddFloorInstanceSource(const FloorTile& tile)
+// {
+//     if (tile.floorType != FloorType::Normal) return;
+
+//     DungeonInstanceSource src;
+//     src.position = tile.position;
+//     src.transform = MakeFloorTransform(tile.position);
+
+//     src.kind = CurrentLevelIs("Ship")
+//         ? DungeonInstanceKind::FloorWood
+//         : DungeonInstanceKind::FloorGray;
+
+//     gDungeonInstanceSources.push_back(src);
+// }
+
+
+void AddFloorInstanceSource(Vector3 position, FloorType floorType)
 {
-    if (tile.floorType != FloorType::Normal) return;
+    if (floorType != FloorType::Normal) return;
 
     DungeonInstanceSource src;
-    src.position = tile.position;
-    src.transform = MakeFloorTransform(tile.position);
+    src.position = position;
+    src.transform = MakeFloorTransform(position);
 
     src.kind = CurrentLevelIs("Ship")
         ? DungeonInstanceKind::FloorWood

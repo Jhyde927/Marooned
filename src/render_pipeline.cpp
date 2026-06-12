@@ -71,7 +71,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 
         if (!isDungeon){
 
-            DrawTerrainGrid(terrain, camera, menuDrawDist); //draw the chunks
+            DrawTerrainGrid(terrain, camera, GameSettings::maxDrawDist); //draw the chunks
 
             DrawBoat(player_boat);
             HandleWaves(camera); //update water plane bob. 

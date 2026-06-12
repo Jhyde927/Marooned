@@ -555,8 +555,6 @@ void UpdateMenu(Camera& camera, float dt)
         currentGameState = GameState::Playing;
         drawCeiling = levels[levelIndex].hasCeiling; //turn the ceiling back on if there is one. 
         CameraSystem::Get().StopCinematic();
-        // ShaderSetup::StopSkyCycle();
-        // ApplyLevelDefaultSky();
         return;
     }
 

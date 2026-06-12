@@ -1558,14 +1558,11 @@ void ClearLevel() {
     dungeonEntrances.clear();
     masts.clear();
     tentacles.clear();
+    cannons.clear();
     g_powerUps.clear();
     SpawnManager::Clear();
     EventLockAllDoors(false);
-
     ClearDungeonInstancingSources();
-    // gFloorInstanceSources.clear();
-    // gGrayFloorInstancing.transforms.clear();
-    // gWoodFloorInstancing.transforms.clear();
     ClearDungeonProps();
 
 

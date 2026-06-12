@@ -54,8 +54,8 @@ extern DungeonInstancingBatch gWoodHalfWallInstancing;
 void ClearDungeonInstancingSources();
 
 void InitDungeonInstancing();
-
-void AddFloorInstanceSource(const FloorTile& tile);
+void AddFloorInstanceSource(Vector3 position, FloorType floorType);
+//void AddFloorInstanceSource(const FloorTile& tile);
 void AddWallInstanceSource(const WallInstance& wall);
 void BuildVisibleDungeonInstanceTransforms(Camera& camera, float maxDrawDist);
 

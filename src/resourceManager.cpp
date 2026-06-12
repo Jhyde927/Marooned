@@ -355,6 +355,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("cratePile",              "assets/Models/cratePile.glb");
     R.LoadModel("stool",                  "assets/Models/stool.glb");
     R.LoadModel("bonePile",               "assets/Models/bonePile.glb");
+    R.LoadModel("candelabra",             "assets/Models/candelabra.glb");
 
     //generated models
 
@@ -692,6 +693,7 @@ void ResourceManager::SetLightingShaderValues()
     Model& cratePile     = R.GetModel("cratePile");
     Model& stool         = R.GetModel("stool");
     Model& bonePile      = R.GetModel("bonePile");
+    Model& candelabra    = R.GetModel("candelabra");
 
 
     //apply texture to cratePile. Find a better place for this. 
@@ -716,6 +718,7 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < cratePile.materialCount;   ++i) cratePile.materials[i].shader   = lightingShader;
     for (int i = 0; i < stool.materialCount;   ++i) stool.materials[i].shader   = lightingShader;
     for (int i = 0; i < bonePile.materialCount;   ++i) bonePile.materials[i].shader   = lightingShader;
+    for (int i = 0; i < candelabra.materialCount;   ++i) candelabra.materials[i].shader   = lightingShader;
 
     // Bind the lightmap texture to EMISSION slot for each model material
     auto setLightmap = [&](Model& m){
@@ -740,6 +743,7 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(cratePile);
     setLightmap(stool);
     setLightmap(bonePile);
+    setLightmap(candelabra);
     // Per-level uniforms for lighting shader
     Shader& use = wallModel.materials[0].shader;
 

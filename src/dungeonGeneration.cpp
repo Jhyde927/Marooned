@@ -588,12 +588,14 @@ void GenerateFloorTiles(float baseY)
             }
 
 
-            FloorTile tile;
-            tile.position = pos;
-            tile.tint = WHITE;
-            tile.floorType = FloorType::Normal;
-            floorTiles.push_back(tile);
-            AddFloorInstanceSource(tile);
+            // FloorTile tile;
+            // tile.position = pos;
+            // tile.tint = WHITE;
+            // tile.floorType = FloorType::Normal;
+            // floorTiles.push_back(tile);
+            // AddFloorInstanceSource(tile);
+
+            AddFloorInstanceSource(pos, FloorType::Normal);
         }
 
     }
@@ -1177,8 +1179,8 @@ void AddLavaSkirtEdge(int x, int y, int dir, float baseY) {
 
     skirt.position  = mid;
 
-    wallInstances.push_back(skirt);
-
+    //wallInstances.push_back(skirt);
+    AddWallInstanceSource(skirt);
     BoundingBox bb = MakeAABBFromSkirt(skirt, dir);
 
     // Store it (rotY not needed for AABB)
@@ -1357,203 +1359,6 @@ bool IsDoorOpenAt(int x, int y) {
     return true; // If no door is found, assume it's open (or not a real door)
 }
 
-static int GetAutoCornerSpawnChance(DungeonPropType type)
-{
-    switch (type)
-    {
-        case DungeonPropType::SpiderWebCorner:
-            return 75;
-
-        case DungeonPropType::BonePile:
-            return 80;
-
-        case DungeonPropType::CratePile:
-            return 70;
-
-        case DungeonPropType::Stool:
-            return 30;
-
-        default:
-            return 0;
-    }
-}
-
-static float GetAutoCornerInsetMultiplier(DungeonPropType type)
-{
-    switch (type)
-    {
-        case DungeonPropType::SpiderWebCorner:
-            return 1.0f;   // pushed deep into corner
-
-        case DungeonPropType::Stool:
-            return 0.65f;  // closer to wall than crates, but not clipping
-
-        case DungeonPropType::BonePile:
-            return 0.45f;  // floor clutter, can sit more toward center
-
-        case DungeonPropType::CratePile:
-            return 0.50f;  // your current offsetX / 2 behavior
-
-        default:
-            return 1.0f;
-    }
-}
-
-
-static DungeonProp MakeAutoCornerProp(
-    DungeonPropType type,
-    Vector3 basePos,
-    float baseY,
-    float rotationY)
-{
-    DungeonProp prop = MakeDefaultProp(type, basePos, rotationY);
-
-    switch (type)
-    {
-        case DungeonPropType::SpiderWebCorner:
-        {
-            prop.position.y = baseY + 40.0f;
-            prop.rotationY = rotationY;
-
-        } break;
-
-        case DungeonPropType::BonePile:
-        {
-            prop.rotationY = RandomFloat(0, 359);
-        } break;
-
-        case DungeonPropType::CratePile:
-        {
-            //nothing to do, rotation is good for all corders. 
-        }break;
-
-
-        default:
-        {
-            prop.position.y = baseY;
-        } break;
-    }
-
-    return prop;
-}
-
-
-static DungeonPropType PickAutoCornerPropType()
-{
-    // Special case: spider boss / web-heavy level.
-    if (CurrentLevelIs("Dungeon7"))
-    {
-        return DungeonPropType::SpiderWebCorner; //all webs
-    }
-
-    int roll = GetRandomValue(0, 3);
-
-    if (roll == 0){
-        return DungeonPropType::SpiderWebCorner;
-    }else if (roll == 1){
-        return DungeonPropType::CratePile;
-    }else if (roll == 2){
-        return DungeonPropType::Stool;
-    }else if (roll == 3){
-        return DungeonPropType::BonePile;
-    }
-
-    return DungeonPropType::None;
-}
-
-void GenerateAutoCornerProps(float baseY)
-{
-    if (!isDungeon) return;
-
-    const int spawnChancePercent = 75.0f;
-    const float cornerInset = tileSize * 0.6f;
-
-    auto IsSolidWall = [&](Color c)
-    {
-        if (c.a == 0) return false;
-        if (!IsWallColor(c)) return false;
-        if (IsBarrelColor(c)) return false;
-        return true;
-    };
-
-    auto IsOpenForCornerProp = [&](Color c)
-    {
-        if (c.a == 0) return false;
-
-        return EqualsRGB(c, WHITE); //only corners that are empty. 
-    };
-
-    auto GetPixelSafe = [&](int x, int y) -> Color
-    {
-        if (x < 0 || y < 0 || x >= dungeonWidth || y >= dungeonHeight)
-            return { 0, 0, 0, 0 };
-
-        return dungeonPixels[y * dungeonWidth + x];
-    };
-
-    auto TrySpawnCornerProp = [&](int x, int y, float offsetX, float offsetZ, float rotationY)
-    {
-
-        DungeonPropType type = PickAutoCornerPropType();
-        if (type == DungeonPropType::None) return;
-
-        int spawnChancePercent = GetAutoCornerSpawnChance(type);
-
-        if (GetRandomValue(1, 100) > spawnChancePercent) return;
-        
-
-        if (!IsWalkable(x, y, dungeonImg)) return;
-
-        Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
-
-        float insetMult = GetAutoCornerInsetMultiplier(type);
-
-        pos.x += offsetX * insetMult;
-        pos.z += offsetZ * insetMult;
-
-        DungeonProp prop = MakeAutoCornerProp(type, pos, baseY, rotationY);
-        gDungeonProps.push_back(prop);
-    };
-
-    for (int y = 0; y < dungeonHeight; y++)
-    {
-        for (int x = 0; x < dungeonWidth; x++)
-        {
-            Color center = GetPixelSafe(x, y);
-            if (!IsOpenForCornerProp(center)) continue;
-
-            bool north = IsSolidWall(GetPixelSafe(x,     y - 1));
-            bool south = IsSolidWall(GetPixelSafe(x,     y + 1));
-            bool west  = IsSolidWall(GetPixelSafe(x - 1, y));
-            bool east  = IsSolidWall(GetPixelSafe(x + 1, y));
-
-            bool nw = IsSolidWall(GetPixelSafe(x - 1, y - 1));
-            bool ne = IsSolidWall(GetPixelSafe(x + 1, y - 1));
-            bool sw = IsSolidWall(GetPixelSafe(x - 1, y + 1));
-            bool se = IsSolidWall(GetPixelSafe(x + 1, y + 1));
-
-            if (north && west && nw)
-            {
-                TrySpawnCornerProp(x, y,  cornerInset,  cornerInset,  45.0f);
-            }
-
-            if (north && east && ne)
-            {
-                TrySpawnCornerProp(x, y, -cornerInset,  cornerInset, -45.0f);
-            }
-
-            if (south && west && sw)
-            {
-                TrySpawnCornerProp(x, y,  cornerInset, -cornerInset, -45.0f);
-            }
-
-            if (south && east && se)
-            {
-                TrySpawnCornerProp(x, y, -cornerInset, -cornerInset,  45.0f);
-            }
-        }
-    }
-}
 
 
 

@@ -7,6 +7,7 @@
 #include "viewCone.h"
 #include "game_settings.h"
 #include "debug_console.h"
+#include "pathfinding.h"
 #include <cmath>
 
 using namespace dungeonColors;
@@ -180,6 +181,14 @@ DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotati
             prop.tint = WHITE;
         } break;
 
+        case DungeonPropType::Candelabra:
+        {
+            prop.renderMode = DungeonPropRenderMode::Model;
+            prop.modelName = "candelabra";
+            prop.modelSize = {100.0f, 100.0f, 100.0f};
+            prop.tint = WHITE;
+        } break;
+
 
         case DungeonPropType::SpiderWebCorner:
         {
@@ -271,7 +280,243 @@ void GenerateProps(float baseY) {
     SetRandomSeed((unsigned int)GetTime() * 1000000u);
 }
 
+
+
+static int GetAutoCornerSpawnChance(DungeonPropType type)
+{
+    switch (type)
+    {
+        case DungeonPropType::SpiderWebCorner:
+            return 75;
+
+        case DungeonPropType::BonePile:
+            return 90;
+
+        case DungeonPropType::CratePile:
+            return 100;
+
+        case DungeonPropType::Stool:
+            return 50;
+
+        case DungeonPropType::Candelabra:
+            return 100;
+
+        default:
+            return 0;
+    }
+}
+
+static float GetAutoCornerInsetMultiplier(DungeonPropType type)
+{
+    switch (type)
+    {
+        case DungeonPropType::SpiderWebCorner:
+            return 1.0f;   // pushed deep into corner
+
+        case DungeonPropType::Stool:
+            return 0.65f;  // closer to wall than crates, but not clipping
+
+        case DungeonPropType::BonePile:
+            return 0.45f;  // floor clutter, can sit more toward center
+
+        case DungeonPropType::CratePile:
+            return 0.50f;  // your current offsetX / 2 behavior
+
+        default:
+            return 1.0f;
+    }
+}
+
+
+static DungeonProp MakeAutoCornerProp(
+    DungeonPropType type,
+    Vector3 basePos,
+    float baseY,
+    float rotationY)
+{
+    DungeonProp prop = MakeDefaultProp(type, basePos, rotationY);
+
+    prop.position.y = baseY;
+    prop.ambientBoost = 0.2f;
+
+    switch (type)
+    {
+        case DungeonPropType::SpiderWebCorner:
+            prop.position.y = baseY + 40.0f;
+            prop.rotationY = rotationY;
+            prop.ambientBoost = 0.0f;
+            break;
+
+        case DungeonPropType::BonePile:
+            prop.ambientBoost = 0.05f;
+            prop.rotationY = RandomFloat(0.0f, 359.0f);
+            break;
+
+        case DungeonPropType::CratePile:
+            prop.ambientBoost = 0.1f;
+            break;
+
+        case DungeonPropType::TableSet:
+            prop.ambientBoost = 0.0f;
+
+            prop.rotationY = GetRandomValue(0,1) ? 0.0f : 90.0f;
+            break;
+
+        case DungeonPropType::WallBanner:
+            prop.ambientBoost = 0.0f;
+            break;
+
+        case DungeonPropType::Candelabra:
+        case DungeonPropType::Stool:
+        default:
+            break;
+    }
+
+    return prop;
+}
+
+
+static DungeonPropType PickAutoCornerPropType()
+{
+    // Special case: spider boss / web-heavy level.
+
+    int roll = GetRandomValue(0, 4);
+
+    if (roll == 0){
+        return DungeonPropType::SpiderWebCorner;
+    }else if (roll == 1){
+        return DungeonPropType::CratePile;
+    }else if (roll == 2){
+        return DungeonPropType::Stool;
+    }else if (roll == 3){
+        return DungeonPropType::BonePile;
+    }else if (roll == 4){
+        return DungeonPropType::Candelabra;
+    }
+
+    return DungeonPropType::None;
+}
+
+void GenerateAutoCornerProps(float baseY)
+{
+    if (!isDungeon) return;
+
+    const int spawnChancePercent = 75.0f;
+    const float cornerInset = tileSize * 0.6f;
+
+    auto IsSolidWall = [&](Color c)
+    {
+        if (c.a == 0) return false;
+        if (!IsWallColor(c)) return false;
+        if (IsBarrelColor(c)) return false;
+        return true;
+    };
+
+    auto IsOpenForCornerProp = [&](Color c)
+    {
+        if (c.a == 0) return false;
+
+        return EqualsRGB(c, WHITE); //only corners that are empty. 
+    };
+
+    auto GetPixelSafe = [&](int x, int y) -> Color
+    {
+        if (x < 0 || y < 0 || x >= dungeonWidth || y >= dungeonHeight)
+            return { 0, 0, 0, 0 };
+
+        return dungeonPixels[y * dungeonWidth + x];
+    };
+
+    auto TrySpawnCornerProp = [&](int x, int y, float offsetX, float offsetZ, float rotationY)
+    {
+
+        DungeonPropType type = PickAutoCornerPropType();
+        if (type == DungeonPropType::None) return;
+
+        int spawnChancePercent = GetAutoCornerSpawnChance(type);
+
+        if (GetRandomValue(1, 100) > spawnChancePercent) return;
+        
+
+        if (!IsWalkable(x, y, dungeonImg)) return;
+
+        Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+        float insetMult = GetAutoCornerInsetMultiplier(type);
+
+        pos.x += offsetX * insetMult;
+        pos.z += offsetZ * insetMult;
+
+        DungeonProp prop = MakeAutoCornerProp(type, pos, baseY, rotationY);
+
+        gDungeonProps.push_back(prop);
+    };
+
+    for (int y = 0; y < dungeonHeight; y++)
+    {
+        for (int x = 0; x < dungeonWidth; x++)
+        {
+            Color center = GetPixelSafe(x, y);
+            if (!IsOpenForCornerProp(center)) continue;
+
+            bool north = IsSolidWall(GetPixelSafe(x,     y - 1));
+            bool south = IsSolidWall(GetPixelSafe(x,     y + 1));
+            bool west  = IsSolidWall(GetPixelSafe(x - 1, y));
+            bool east  = IsSolidWall(GetPixelSafe(x + 1, y));
+
+            bool nw = IsSolidWall(GetPixelSafe(x - 1, y - 1));
+            bool ne = IsSolidWall(GetPixelSafe(x + 1, y - 1));
+            bool sw = IsSolidWall(GetPixelSafe(x - 1, y + 1));
+            bool se = IsSolidWall(GetPixelSafe(x + 1, y + 1));
+
+            if (north && west && nw)
+            {
+                TrySpawnCornerProp(x, y,  cornerInset,  cornerInset,  45.0f);
+            }
+
+            if (north && east && ne)
+            {
+                TrySpawnCornerProp(x, y, -cornerInset,  cornerInset, -45.0f);
+            }
+
+            if (south && west && sw)
+            {
+                TrySpawnCornerProp(x, y,  cornerInset, -cornerInset, -45.0f);
+            }
+
+            if (south && east && se)
+            {
+                TrySpawnCornerProp(x, y, -cornerInset, -cornerInset,  45.0f);
+            }
+        }
+    }
+}
+
+float GetPropBrightness(DungeonProp& prop){
+    //default is 0.20
+    switch (prop.type)
+    {
+    case DungeonPropType::CratePile:
+        return 0.10f;
+    case DungeonPropType::Candelabra:
+        return 0.3f;
+
+    case DungeonPropType::BonePile:
+        return 0.1f;
+
+    case DungeonPropType::Stool:
+        return 0.2f;
+
+    case DungeonPropType::TableSet:
+        return 0.1f;
+    default:
+        return 0.2f;
+        break;
+    }
+}
+
 void  DrawDungeonPropModels(Camera& camera){
+    Shader& sh = R.GetShader("lightingShader");
 
     ViewConeParams vp = MakeViewConeParams( 
         camera,
@@ -280,32 +525,28 @@ void  DrawDungeonPropModels(Camera& camera){
         400.0f
     );
 
+    int propAmbientLoc = GetShaderLocation(sh, "propAmbientBoost");
+    int maxBrightnessLoc = GetShaderLocation(sh, "maxBrightness");
+
 
     for (DungeonProp& prop : gDungeonProps){
-
+        if (prop.renderMode != DungeonPropRenderMode::Model) continue;
+  
         if (!IsInViewCone(vp, prop.position)) continue;//frustum cull
 
-        //DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
-        switch (prop.type)
-        {
-        case DungeonPropType::TableSet:
-            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
-            break;
+        
 
-        case DungeonPropType::CratePile:
-            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
-            break;
-        case DungeonPropType::Stool:
-            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
-            break;
+        SetShaderValue(sh, propAmbientLoc, &prop.ambientBoost, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, maxBrightnessLoc, &prop.maxBrightness, SHADER_UNIFORM_FLOAT);
 
-        case DungeonPropType::BonePile:
-            DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
-            break;
-
-        default:
-            break;
-        }
+        DrawModelEx(R.GetModel(prop.modelName), prop.position, Vector3{0, 1, 0}, prop.rotationY, prop.modelSize, WHITE);
 
     }
+
+    float resetPropAmbientBoost = 0.0f;
+    float resetMaxBrightness = 1.0f;
+
+    SetShaderValue(sh, propAmbientLoc, &resetPropAmbientBoost, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(sh, maxBrightnessLoc, &resetMaxBrightness, SHADER_UNIFORM_FLOAT);
 }
+

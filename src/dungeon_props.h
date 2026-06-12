@@ -15,7 +15,8 @@ enum class DungeonPropType
     CratePile,
     Stool,
     BonePile,
-    WallBanner, 
+    WallBanner,
+    Candelabra,
 
 };
 
@@ -33,26 +34,18 @@ struct DungeonProp
 {
     DungeonPropType type = DungeonPropType::SpiderWebCorner;
     DungeonPropRenderMode renderMode = DungeonPropRenderMode::CrossQuads;
-
     Vector3 position = { 0, 0, 0 };
     float rotationY = 0.0f;
-
     Vector2 size = { 200.0f, 200.0f };
-
     Vector3 modelSize = {100.0f, 100.0f, 100.0f};
-
-    // Use a string key so ResourceManager owns the texture.
     std::string textureName;
-
-    // Later, for real 3D props.
     std::string modelName;
-
     Color tint = WHITE;
-
     bool active = true;
-
-    // Keep false for decoration props.
     bool hasCollision = false;
+
+    float ambientBoost = 0.20f;
+    float maxBrightness = 1.25f;
 };
 
 extern std::vector<DungeonProp> gDungeonProps;
@@ -66,6 +59,8 @@ void SpawnDungeonProp(
     Vector3 position,
     float rotationY = 0.0f
 );
+
+void GenerateAutoCornerProps(float baseY);
 
 // Optional first-pass generator.
 void GenerateDungeonPropsForCurrentLevel();

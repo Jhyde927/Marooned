@@ -64,6 +64,7 @@ int main() {
         MainMenu::InitLevelPreviewFromSavedLevel();
     }
 
+    GameSettings::maxDrawDist = 20000.0f;
 
     //main game loop
     while (!WindowShouldClose()) {

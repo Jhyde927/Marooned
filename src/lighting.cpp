@@ -27,6 +27,13 @@ LightingConfig lightConfig =
     0.4f,     // staticIntensity
     {1.0f, 0.7f, 0.4f}, // staticColor
 
+    // { 0.16f, 0.42f, 0.34f },  // dark teal-green outer
+    // { 0.70f, 0.85f, 0.35f },  // yellow-green center
+
+
+ 
+
+    //ORIGINAL
     { 0.45f, 0.55f, 1.0f },  // cold blue outer falloff
     { 1.0f, 0.55f, 0.25f },  // warm torch center
 

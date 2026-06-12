@@ -8,6 +8,8 @@
 #include "rlgl.h"
 #include "game_settings.h"
 
+static float optionsInputLockTimer = 0.0f;
+
 static float Normalize01(float value, float minValue, float maxValue)
 {
     return (value - minValue) / (maxValue - minValue);
@@ -18,18 +20,37 @@ static float Denormalize01(float t, float minValue, float maxValue)
     return minValue + t * (maxValue - minValue);
 }
 
+static Rectangle GetSliderTrack(Rectangle r)
+{
+    return Rectangle{
+        r.x + 18.0f,
+        r.y + r.height * 0.5f - 5.0f,
+        r.width - 36.0f,
+        10.0f
+    };
+}
+
 static void HandleSliderMouse(Rectangle r, float& value, float minValue, float maxValue)
 {
     Vector2 m = GetMousePosition();
+    Rectangle track = GetSliderTrack(r);
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(m, r))
+    // Optional: make the clickable area taller than the visual track.
+    Rectangle hitbox = {
+        track.x,
+        track.y - 12.0f,
+        track.width,
+        track.height + 24.0f
+    };
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(m, hitbox))
     {
-        float t = (m.x - r.x) / r.width;
+        float t = (m.x - track.x) / track.width;
         t = Clamp(t, 0.0f, 1.0f);
+
         value = Denormalize01(t, minValue, maxValue);
     }
 }
-
 
 
 
@@ -674,16 +695,13 @@ static void DrawSlider(Font font, Rectangle r, const char* label, float value, f
         char valueText[32];
         snprintf(valueText, sizeof(valueText), "%.3f", value);
 
+        //snprintf(valueText, sizeof(valueText), "%.0fk", value / 1000.0f);
+
         DrawCarvedText(font, valueText, valueRect, 24.0f, 1.0f, false, selected);
     }
 
     // Track
-    Rectangle track = {
-        r.x + 18.0f,
-        r.y + r.height * 0.5f - 5.0f,
-        r.width - 36.0f,
-        10.0f
-    };
+    Rectangle track = GetSliderTrack(r);
 
     DrawRectangleRounded(track, 0.5f, 12, {80, 55, 35, 220});
 
@@ -720,6 +738,11 @@ namespace MainMenu
     MainMenu::Action Update(State& s, float dt, bool levelLoaded, int optionsCount, int& levelIndex, int levelsCount, const Layout& L)
     {
 
+        if (optionsInputLockTimer > 0.0f)
+        {
+            optionsInputLockTimer -= GetFrameTime();
+        }
+        
         auto SplitLevelRow = [&](Rectangle rLevel, Rectangle& rMinus, Rectangle& rCenter, Rectangle& rPlus)
         {
             float sideW = rLevel.height; // square buttons
@@ -834,6 +857,7 @@ namespace MainMenu
                     s.showMenu = false;
                     s.showOptions = true;
                     s.showPreview = false;
+                    optionsInputLockTimer = 0.15f;
                     return Action::Options;
                 case 3:
                     ToggleBorderlessFullscreenClean();
@@ -930,92 +954,97 @@ namespace MainMenu
             // selectedOption 0 is mouse sensitivity slider
             Rectangle sliderRect = L.selectable[0];
 
-            HandleSliderMouse(
-                sliderRect,
-                GameSettings::mouseSensitivity,
-                GameSettings::minMouseSensitivity,
-                GameSettings::maxMouseSensitivity
-            );
+            if (optionsInputLockTimer <= 0.0f){
 
-            HandleSliderMouse(
-                L.selectable[1],
-                GameSettings::maxDrawDist,
-                GameSettings::minDrawDist,
-                GameSettings::maxDrawDistLimit
-            );
 
-            HandleSliderMouse(
-                L.selectable[2],
-                GameSettings::fovY,
-                GameSettings::minFovY,
-                GameSettings::maxFovY
-            );
-
-            bool leftPressed =
-                IsKeyPressed(KEY_LEFT) ||
-                (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT));
-
-            bool rightPressed =
-                IsKeyPressed(KEY_RIGHT) ||
-                (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT));
-
-            // Keyboard/gamepad left-right adjustment while slider row is selected
-            if (s.selectedOption == 0)
-            {
-                float step = 0.0025f;
-
-                if (leftPressed)
-                {
-                    GameSettings::mouseSensitivity -= step;
-                }
-
-                if (rightPressed)
-                {
-                    GameSettings::mouseSensitivity += step;
-                }
-
-                GameSettings::mouseSensitivity = Clamp(
+                HandleSliderMouse(
+                    sliderRect,
                     GameSettings::mouseSensitivity,
                     GameSettings::minMouseSensitivity,
                     GameSettings::maxMouseSensitivity
                 );
-            }
-            if (s.selectedOption == 1)
-            {
-                float step = 1000.0f;
 
-                if (leftPressed)
-                   GameSettings::maxDrawDist -= step;
-
-                if (rightPressed)
-                    GameSettings::maxDrawDist += step;
-
-                GameSettings::maxDrawDist = Clamp(
+                HandleSliderMouse(
+                    L.selectable[1],
                     GameSettings::maxDrawDist,
                     GameSettings::minDrawDist,
                     GameSettings::maxDrawDistLimit
                 );
-            }
 
-            if (s.selectedOption == 2)
-            {
-                float step = 1.0f;
-
-                if (leftPressed)
-                    GameSettings::fovY -= step;
-
-                if (rightPressed)
-                    GameSettings::fovY += step;
-
-                GameSettings::fovY = Clamp(
+                HandleSliderMouse(
+                    L.selectable[2],
                     GameSettings::fovY,
                     GameSettings::minFovY,
                     GameSettings::maxFovY
                 );
+
+            
+
+                bool leftPressed =
+                    IsKeyPressed(KEY_LEFT) ||
+                    (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT));
+
+                bool rightPressed =
+                    IsKeyPressed(KEY_RIGHT) ||
+                    (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT));
+
+                // Keyboard/gamepad left-right adjustment while slider row is selected
+                if (s.selectedOption == 0)
+                {
+                    float step = 0.0025f;
+
+                    if (leftPressed)
+                    {
+                        GameSettings::mouseSensitivity -= step;
+                    }
+
+                    if (rightPressed)
+                    {
+                        GameSettings::mouseSensitivity += step;
+                    }
+
+                    GameSettings::mouseSensitivity = Clamp(
+                        GameSettings::mouseSensitivity,
+                        GameSettings::minMouseSensitivity,
+                        GameSettings::maxMouseSensitivity
+                    );
+                }
+                if (s.selectedOption == 1)
+                {
+                    float step = 1000.0f;
+
+                    if (leftPressed)
+                    GameSettings::maxDrawDist -= step;
+
+                    if (rightPressed)
+                        GameSettings::maxDrawDist += step;
+
+                    GameSettings::maxDrawDist = Clamp(
+                        GameSettings::maxDrawDist,
+                        GameSettings::minDrawDist,
+                        GameSettings::maxDrawDistLimit
+                    );
+                }
+
+                if (s.selectedOption == 2)
+                {
+                    float step = 1.0f;
+
+                    if (leftPressed)
+                        GameSettings::fovY -= step;
+
+                    if (rightPressed)
+                        GameSettings::fovY += step;
+
+                    GameSettings::fovY = Clamp(
+                        GameSettings::fovY,
+                        GameSettings::minFovY,
+                        GameSettings::maxFovY
+                    );
+                }
+
             }
-
         }
-
 
 
         return Action::None;
@@ -1026,7 +1055,6 @@ namespace MainMenu
         int savedIndex = LoadLastLevel();
 
         // Default menu state
-
 
         // No saved level / first level / invalid value
         if (savedIndex <= 0)
