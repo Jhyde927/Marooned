@@ -19,6 +19,7 @@ struct DungeonEntrance {
     Vector3 position;
     int linkedLevelIndex;
     bool isLocked = false;
+    float rotationY = 45.0f;
 
 };
 

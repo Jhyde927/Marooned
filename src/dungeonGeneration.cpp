@@ -2788,6 +2788,7 @@ void DebugDrawGrappleBox(){
 void DrawSwitches(){
 
     for (const SwitchTile& s : switches){
+        Vector3 planePos = {s.position.x, s.position.y + 22.0f, s.position.z};
         Vector3 raisedPos = {s.position.x, s.position.y + 20.0f, s.position.z};
         Vector3 pressedPos = {s.position.x, s.position.y + 15.0f, s.position.z};
         Vector3 triggerdPos = s.triggered ? pressedPos : raisedPos;
@@ -2795,6 +2796,8 @@ void DrawSwitches(){
         {
         case SwitchKind::FloorPlate:
         {
+
+            DrawPlane(planePos, Vector2{200.0f, 200.0f}, BLACK);
             DrawModelEx(R.GetModel("floorTileGray"), triggerdPos, Vector3{0}, 0.0f, Vector3{350, 350, 350}, RED);
             break;
         }
@@ -2821,24 +2824,6 @@ void DrawSwitches(){
 }
 
 
-// void DrawModelInstanced(Model& model, const std::vector<Matrix>& transforms)
-// {
-//     if (transforms.empty()) return;
-
-//     for (int i = 0; i < model.meshCount; i++) {
-//         int matIndex = model.meshMaterial[i];
-//         Material mat = model.materials[matIndex];
-//         DrawMeshInstanced(
-//             model.meshes[i],
-//             mat,
-//             transforms.data(),
-//             (int)transforms.size()
-//         );
-//     }
-// }
-
-
-
 void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     const Vector3 baseScale   = {700, 700, 700};
 
@@ -2855,20 +2840,6 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
     DrawDungeonInstancedFloors();
     DrawDungeonInstancedWalls();
 
-    //Walls
-    // for (const WallInstance& _wall : wallInstances) {
-    //     if (!IsInViewCone(vp, _wall.position) && !debugInfo) continue; //dont cull when in debug mode. 
-
-    //     if (_wall.type == WallType::Wood){
-    //         DrawModelEx(R.GetModel("woodWall"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-    //     }else if (_wall.type == WallType::WoodHalf){
-    //         DrawModelEx(R.GetModel("woodWallHalf"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-    //     }  else{
-    //         DrawModelEx(R.GetModel("wallSegment"), _wall.position, Vector3{0, 1, 0}, _wall.rotationY, Vector3{700, 700, 700}, _wall.tint);
-    //     }
-    // }
-
-
     //Doorways
     for (const DoorwayInstance& d : doorways) { 
         //if (!IsInViewCone(vp, d.position)) continue;  //dont cull doorways because of dungeon entrances outside are doorways
@@ -2884,6 +2855,7 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
         } else{
             Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
             DrawModelEx(R.GetModel("doorWayGray"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+      
         }
 
         
@@ -3089,7 +3061,35 @@ bool IsDungeonFloorTile(int x, int y) {
     return c.r > 200 && c.g > 200 && c.b > 200;  // close to white
 }
 
+BoundingBox MakeEntranceDoorBoundingBox(Vector3 position, float rotationY)
+{
+    // Smaller than dungeon door collider because angled AABBs get fat.
+    float halfWidth = 70.0f;
+    float height    = 365.0f;
+    float depth     = 20.0f;
 
+    Vector3 forward = Vector3RotateByAxisAngle({0, 0, 1}, {0, 1, 0}, rotationY);
+    Vector3 right = Vector3CrossProduct({0, 1, 0}, forward);
+
+    Vector3 halfExtents = Vector3Add(
+        Vector3Scale(right, halfWidth),
+        Vector3Scale(forward, depth)
+    );
+
+    Vector3 boxMin = {
+        position.x - fabsf(halfExtents.x),
+        position.y,
+        position.z - fabsf(halfExtents.z)
+    };
+
+    Vector3 boxMax = {
+        position.x + fabsf(halfExtents.x),
+        position.y + height,
+        position.z + fabsf(halfExtents.z)
+    };
+
+    return { boxMin, boxMax };
+}
 
 BoundingBox MakeDoorBoundingBox(Vector3 position, float rotationY, float halfWidth, float height, float depth) {
     //covers the full archway

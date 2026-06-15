@@ -543,7 +543,6 @@ void CameraSystem::UpdateOrbitCinematicCam(float dt)
 }
 
 void CameraSystem::UpdateCinematicCam(float dt) {
-    //if (!cineActive) return;
 
     if (cineKind == CinematicKind::Cutscene) {
         UpdateCutsceneCam(dt);

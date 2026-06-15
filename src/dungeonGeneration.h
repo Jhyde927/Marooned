@@ -123,6 +123,16 @@ struct DoorwayInstance {
 
 };
 
+
+struct EntranceDoorCollider
+{
+    Vector3 center;
+    float rotationY;   // radians
+    float halfWidth;   // along local X / door width
+    float halfDepth;   // thickness
+    float height;
+};
+
 struct Door {
     Vector3 position;
     float rotationY;
@@ -143,6 +153,9 @@ struct Door {
     int linkedLevelIndex = -1; // -1 means no linked level
     float monsterTimer = 0.0f;
     bool monsterTriggered = false; // LOS seen at least once
+
+    bool useEntranceCollider = false;
+    EntranceDoorCollider entranceCollider{};
 };
 
 
@@ -428,6 +441,7 @@ void ScheduleDoorAction(int doorIndex, bool open, bool relockOnClose = false);
 void UpdateDoorDelayedActions(float dt);
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);
 std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired);
+BoundingBox MakeEntranceDoorBoundingBox(Vector3 position, float rotationY);
 
 
 void ClearDungeon();

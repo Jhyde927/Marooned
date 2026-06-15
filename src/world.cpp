@@ -246,7 +246,7 @@ void StartCutScene(){
     if (CurrentLevelIs("MiddleIsland") && first){ //only show cutscene the first time.
         //hard coded positions
         intro.startPos = { -10845.8, 975.138, 2969.99 };
-        intro.endPos   = { 5475.0f, 300.0f, -5665.0f};
+        intro.endPos   = player.position;
         intro.target   = { 0.0f, 200.0f, 0.0f };
 
         intro.duration = 25.0f;
@@ -832,12 +832,17 @@ void GenerateEntrances() {
         const DungeonEntrance& e = dungeonEntrances[i];
         Door d{};
         d.position = e.position;
-        d.rotationY = 0.0f;
+        // float doorModelOffset = 90.0f * DEG2RAD;
+        // d.rotationY = e.rotationY + doorModelOffset;
+        
         d.doorTexture = R.GetTexture("doorTexture");
         d.isOpen = false;
         d.isLocked = e.isLocked;
         if (i == 2) d.isLocked = !unlockEntrances; //entrance 3 unlocks
-        if (i == 0 && levelIndex == 0) d.isLocked = unlockEntrances; //lock entrance 1, prevent player from replaying first 3 levels.
+        if (i == 0 && levelIndex == 0){
+            d.isLocked = unlockEntrances; //lock entrance 1, prevent player from replaying first 3 levels.
+            
+        } 
         if (e.position.x == -5484.0f) d.isLocked = true; //entrance 2 always remains locked, make damn sure. 
 
         d.scale = {300, 365, 1};
@@ -845,15 +850,29 @@ void GenerateEntrances() {
         d.linkedLevelIndex = e.linkedLevelIndex;
         d.doorType = DoorType::GoToNext;
 
-        float halfWidth = 200.0f;
-        float height    = 365.0f;
-        float depth     = 20.0f;
-        d.collider = MakeDoorBoundingBox(d.position, d.rotationY, halfWidth, height, depth);
+        constexpr float DOOR_MODEL_ROTATION_OFFSET = 90.0f * DEG2RAD;
+
+        float entranceRot = e.rotationY;
+        float doorVisualRot = entranceRot + DOOR_MODEL_ROTATION_OFFSET;
+
+        d.rotationY = doorVisualRot;
+
+        // keep old collider harmless / unused
+        d.collider = { d.position, d.position };
+
+        d.useEntranceCollider = true;
+        d.entranceCollider.center = d.position;
+        d.entranceCollider.rotationY = doorVisualRot; // try this first
+        //d.entranceCollider.rotationY = entranceRot;
+        d.entranceCollider.halfWidth = 150.0f;
+        d.entranceCollider.halfDepth = 12.0f;
+        d.entranceCollider.height = 365.0f;
+
         doors.push_back(d);
 
         DoorwayInstance dw{};
         dw.position = e.position;
-        dw.rotationY = 90.0f * DEG2RAD;
+        dw.rotationY = e.rotationY;//radians
         dw.isOpen = false;
         //dw.isLocked = d.isLocked;
         dw.tint = WHITE;

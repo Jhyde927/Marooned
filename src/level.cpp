@@ -98,8 +98,9 @@ std::vector<PreviewInfo> BuildLevelPreviews(bool preloadTextures)
 
 DungeonEntrance entranceToDungeon1 = {
     {0, 180, 0}, // position
-    1, // linkedLevelIndex //// Set index to 2 for old levels. 
+    1, // linkedLevelIndex 
     false, //islocked
+    45.0f * DEG2RAD,
 };
 
 

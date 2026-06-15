@@ -14,8 +14,25 @@
 #include "switch_tile.h"
 
 
+bool CheckCircleInEntranceDoorColliderXZ(Vector3 p, float radius, const EntranceDoorCollider& c)
+{
+    if (p.y < c.center.y || p.y > c.center.y + c.height) return false;
 
+    Vector3 forward = Vector3RotateByAxisAngle({0, 0, 1}, {0, 1, 0}, c.rotationY);
+    Vector3 right   = Vector3CrossProduct({0, 1, 0}, forward);
 
+    Vector3 rel = {
+        p.x - c.center.x,
+        0.0f,
+        p.z - c.center.z
+    };
+
+    float localX = Vector3DotProduct(rel, right);
+    float localZ = Vector3DotProduct(rel, forward);
+
+    return fabsf(localX) <= c.halfWidth + radius &&
+           fabsf(localZ) <= c.halfDepth + radius;
+}
 
 static BoundingBox MakeBoxAABBAt(const Box& box, Vector3 pos)
 {
@@ -144,6 +161,51 @@ bool ResolveBoxBoxCollisionXZ(const BoundingBox& enemyBox, const BoundingBox& wa
     }
 
     return true;
+}
+
+void ResolveCircleEntranceDoorCollision(Vector3& playerPos, float radius, const EntranceDoorCollider& c)
+{
+    if (playerPos.y < c.center.y || playerPos.y > c.center.y + c.height) return;
+
+    Vector3 forward = Vector3RotateByAxisAngle({0, 0, 1}, {0, 1, 0}, c.rotationY);
+    Vector3 right   = Vector3CrossProduct({0, 1, 0}, forward);
+
+    Vector3 rel = {
+        playerPos.x - c.center.x,
+        0.0f,
+        playerPos.z - c.center.z
+    };
+
+    float localX = Vector3DotProduct(rel, right);
+    float localZ = Vector3DotProduct(rel, forward);
+
+    float expandedHalfWidth = c.halfWidth + radius;
+    float expandedHalfDepth = c.halfDepth + radius;
+
+    if (fabsf(localX) > expandedHalfWidth ||
+        fabsf(localZ) > expandedHalfDepth)
+    {
+        return;
+    }
+
+    float pushX = expandedHalfWidth - fabsf(localX);
+    float pushZ = expandedHalfDepth - fabsf(localZ);
+
+    Vector3 push = {0};
+
+    if (pushX < pushZ)
+    {
+        float sign = (localX >= 0.0f) ? 1.0f : -1.0f;
+        push = Vector3Scale(right, pushX * sign);
+    }
+    else
+    {
+        float sign = (localZ >= 0.0f) ? 1.0f : -1.0f;
+        push = Vector3Scale(forward, pushZ * sign);
+    }
+
+    playerPos.x += push.x;
+    playerPos.z += push.z;
 }
 
 
@@ -289,13 +351,51 @@ void SpiderEggCollision(){
     }
 }
 
+bool DoorBlocksPlayer(const Door& door, Vector3 playerPos, float playerRadius)
+{
+    if (door.isOpen) return false;
+
+    if (door.useEntranceCollider)
+    {
+        return CheckCircleInEntranceDoorColliderXZ(
+            playerPos,
+            playerRadius,
+            door.entranceCollider
+        );
+    }
+
+    return CheckCollisionBoxSphere(
+        door.collider,
+        playerPos,
+        playerRadius
+    );
+}
+
 
 void DoorCollision(){
     for (Door& door : doors){//player collision
-        if (!door.isOpen && CheckCollisionBoxSphere(door.collider, player.position, player.radius)){
-           ResolveBoxSphereCollision(door.collider, player.position, player.radius);
+        if (door.isOpen) continue;
 
+        if (door.useEntranceCollider)
+        {
+            ResolveCircleEntranceDoorCollision(
+                player.position,
+                player.radius,
+                door.entranceCollider
+            );
         }
+        else
+        {
+            if (CheckCollisionBoxSphere(door.collider, player.position, player.radius))
+            {
+                ResolveBoxSphereCollision(
+                    door.collider,
+                    player.position,
+                    player.radius
+                );
+            }
+        }
+
 
         for (Character* enemy : enemyPtrs){ //enemy collilsion 
             if (!door.isOpen && CheckCollisionBoxSphere(door.collider, enemy->position, enemy->radius)){

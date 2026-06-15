@@ -806,7 +806,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     int modelNightDarknessLoc = GetShaderLocation(treeShader, "u_ModelNightDarkness");
     //Move this to ShaderSetup
 
-    float fogStart = (currentGameState == GameState::Menu) ? 3000 : 2000;
+    float fogStart = (currentGameState == GameState::Menu) ? 9000 : 6000;
     SetShaderValue(treeShader, fogStartLoc,&fogStart, SHADER_UNIFORM_FLOAT);
     int useFog = 1;//(currentGameState == GameState::Menu) ? 0 : 1; //dont render fog in menu.
     
