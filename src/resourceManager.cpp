@@ -9,6 +9,7 @@
 #include "utilities.h"
 #include "camera_system.h"
 #include "shaderSetup.h"
+#include "game_settings.h"
 
 
 
@@ -408,28 +409,28 @@ Vector3 MakeTerrainWaterColor(Vector3 skyTopColor)
     return c;
 }
 
-void ResourceManager::SetTreeInstancedShaderValues(){
+// void ResourceManager::SetTreeInstancedShaderValues(){
 
-    Shader& instancedTreeShader = GetShader("tree_instanced");
+//     Shader& instancedTreeShader = GetShader("tree_instanced");
 
-    R.GetModel("palmTree").materials[0].shader = instancedTreeShader;
-    R.GetModel("bush").materials[0].shader = instancedTreeShader;
+//     R.GetModel("palmTree").materials[0].shader = instancedTreeShader;
+//     R.GetModel("bush").materials[0].shader = instancedTreeShader;
 
-    instancedTreeShader.locs[SHADER_LOC_MATRIX_MVP] =
-        GetShaderLocation(instancedTreeShader, "mvp");
+//     instancedTreeShader.locs[SHADER_LOC_MATRIX_MVP] =
+//         GetShaderLocation(instancedTreeShader, "mvp");
 
-    instancedTreeShader.locs[SHADER_LOC_MAP_DIFFUSE] =
-        GetShaderLocation(instancedTreeShader, "texture0");
+//     instancedTreeShader.locs[SHADER_LOC_MAP_DIFFUSE] =
+//         GetShaderLocation(instancedTreeShader, "texture0");
 
-    instancedTreeShader.locs[SHADER_LOC_COLOR_DIFFUSE] =
-        GetShaderLocation(instancedTreeShader, "colDiffuse");
+//     instancedTreeShader.locs[SHADER_LOC_COLOR_DIFFUSE] =
+//         GetShaderLocation(instancedTreeShader, "colDiffuse");
 
-    int alphaCutoffLoc = GetShaderLocation(instancedTreeShader, "alphaCutoff");
-    float alphaCutoff = 0.3f;
-    SetShaderValue(instancedTreeShader, alphaCutoffLoc, &alphaCutoff, SHADER_UNIFORM_FLOAT);
+//     int alphaCutoffLoc = GetShaderLocation(instancedTreeShader, "alphaCutoff");
+//     float alphaCutoff = 0.3f;
+//     SetShaderValue(instancedTreeShader, alphaCutoffLoc, &alphaCutoff, SHADER_UNIFORM_FLOAT);
 
 
-}
+// }
 
 
 
@@ -471,7 +472,6 @@ void ResourceManager::SetShaderValues(){
 
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     // set shaders values
-    Shader& bloomShader = R.GetShader("bloomShader");
     Shader& shadowShader = R.GetShader("shadowShader");
     Shader& cutoutShader = R.GetShader("cutoutShader"); //leaf_cutout.fs isn't for leaves, it's for dungeon sprites. 
 
@@ -483,16 +483,10 @@ void ResourceManager::SetShaderValues(){
 
     SetGhostShaderValues();
 
-    //regular black vignette
-    vignetteStrengthValue = isDungeon ? 0.8 : 0.25f; //less of vignette outdoors.
-    if (CurrentLevelIs("Ship")) vignetteStrengthValue = 0.0f; // no vignette on ship level
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "baseVignetteStrength"), &vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
-
     // Shadow shadows beneath enemies. 
     Model& shadowQuad = R.GetModel("shadowQuad");
     shadowQuad.materials[0].shader = shadowShader;
     SetMaterialTexture(&shadowQuad.materials[0], MATERIAL_MAP_DIFFUSE, R.GetTexture("shadowTex"));
-
 
     Model& boltModel = R.GetModel("bolt");
 
@@ -591,7 +585,7 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     Vector3 skyTop  = ShaderSetup::GetCurrentSkyTopFogColor();
     Vector3 skyHorz = ShaderSetup::GetCurrentSkyFogColor();//{0.60f, 0.80f, 0.95f};
     float fogStart  = 1000.0f; //fog start set every frame in update shaders
-    float fogEnd    = 23000.0f;
+    float fogEnd    = GameSettings::terrainFogEnd;
     float seaLevel  = 400.0f;
     float falloff   = 0.002f;
 
@@ -778,12 +772,8 @@ void ResourceManager::UpdateShaders(Camera& camera){
     
     Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
     Shader& waterShader = R.GetShader("waterShader");
-    //Shader& skyShader = R.GetShader("skyShader");
     Shader& terrainShader = R.GetShader("terrainShader");
     Shader& treeShader = R.GetShader("treeShader");
-
-    Shader& bloomShader = R.GetShader("bloomShader");
-
     Vector3 camPos = camera.position;
 
     float t = GetTime();
@@ -794,7 +784,7 @@ void ResourceManager::UpdateShaders(Camera& camera){
     //terrain fog locs
     int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
     int tFogStartLoc = GetShaderLocation(terrainShader, "u_FogStart");
-    int vignettModeLoc = GetShaderLocation(bloomShader, "vignetteMode");
+
     int fogColorLoc = GetShaderLocation(terrainShader, "u_SkyColorHorizon");
     int fogColorTopLoc = GetShaderLocation(terrainShader, "u_SkyColorTop");
     int useFogLoc = GetShaderLocation(terrainShader, "u_UseFog");
@@ -806,8 +796,10 @@ void ResourceManager::UpdateShaders(Camera& camera){
     int modelNightDarknessLoc = GetShaderLocation(treeShader, "u_ModelNightDarkness");
     //Move this to ShaderSetup
 
-    float fogStart = (currentGameState == GameState::Menu) ? 9000 : 6000;
-    SetShaderValue(treeShader, fogStartLoc,&fogStart, SHADER_UNIFORM_FLOAT);
+    float treefogStart = GameSettings::treeFogStart;
+    float terrainFogStart = (currentGameState == GameState::Menu) ? GameSettings::terrainFogStartMenu : GameSettings::terrainFogStart;
+
+    SetShaderValue(treeShader, fogStartLoc,&treefogStart, SHADER_UNIFORM_FLOAT);
     int useFog = 1;//(currentGameState == GameState::Menu) ? 0 : 1; //dont render fog in menu.
     
 
@@ -825,26 +817,13 @@ void ResourceManager::UpdateShaders(Camera& camera){
     Vector3 topFogColor = ShaderSetup::GetCurrentSkyTopFogColor();
     SetShaderValue(terrainShader, fogColorLoc, &fogColor, SHADER_UNIFORM_VEC3); //use current sky color
     SetShaderValue(terrainShader, fogColorTopLoc, &topFogColor, SHADER_UNIFORM_VEC3);
-    SetShaderValue(terrainShader, tFogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(terrainShader, tFogStartLoc, &terrainFogStart, SHADER_UNIFORM_FLOAT);
 
     SetShaderValue(treeShader, treeFogHorzLoc, &fogColor, SHADER_UNIFORM_VEC3);
     SetShaderValue(treeShader, treeFogTopLoc, &topFogColor, SHADER_UNIFORM_VEC3);
     //distance based desaturation on terrain needs camera pos
     SetShaderValue(terrainShader, camPosLoc, &camPos, SHADER_UNIFORM_VEC3);
 
-    //red vignette intensity over time
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "vignetteIntensity"), &vignetteIntensity, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(bloomShader, vignettModeLoc, &vignetteMode, SHADER_UNIFORM_INT);
-
-    //dungeonDarkness //is there a reason we need to set these every frame? 
-    float dungeonDarkness = -0.1f;//it darkens the gun model as well, so go easy. negative number brightens it. 
-    float dungeonContrast = 1.00f; //makes darks darker. 
-
-    int isDungeonVal = isDungeon ? 1 : 0; 
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "resolution"), &screenResolution, SHADER_UNIFORM_VEC2);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "isDungeon"), &isDungeonVal, SHADER_UNIFORM_INT);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "dungeonDarkness"), &dungeonDarkness, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(bloomShader, GetShaderLocation(bloomShader, "dungeonContrast"), &dungeonContrast, SHADER_UNIFORM_FLOAT);
 
     //tree shadows
     // Once (cache locations)

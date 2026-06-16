@@ -130,7 +130,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
     //RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
 
     EnsureRenderTargetsMatchWindow(sceneTexture);
-    //EnsureRenderTargetsMatchWindow(postTexture);
     // --- 3D scene to sceneTexture ---
     BeginTextureMode(R.GetRenderTexture("sceneTexture"));
         ClearBackground(SKYBLUE);
@@ -163,12 +162,11 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         
             DrawBoat(player_boat);
 
-            VegetationInstanced::Draw(camera);
-
-            //DrawDungeonDoorways();          
+            VegetationInstanced::Draw(camera);       
             DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
             DrawOverworldProps();
-            if (CurrentLevelIs("MiddleIsland")) raft.Draw();
+            //draw raft //dont render raft in cutscene
+            if (CurrentLevelIs("MiddleIsland") && !CameraSystem::Get().IsCutsceneActive()) raft.Draw();
 
 
         } else {
@@ -200,13 +198,10 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         }
 
         DrawPlayer(player, camera);
-        //DrawWeapons(player, camera);  
-
         DrawEnemyShadows();
         DrawBullets(camera);
         DrawCollectableWeapons(player, dt);
         DrawPowerUps(player, camera, dt);
-        //DrawPotions();
         // transparency last
 
         DrawTransparentDrawRequests(camera);
@@ -222,22 +217,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
         rlDisableDepthTest();
     EndTextureMode();
-
-    // --- post to postProcessTexture ---
-    // BeginTextureMode(R.GetRenderTexture("postProcessTexture"));
-    // {
-    //     BeginShaderMode(R.GetShader("fogShader"));
-    //         auto& sceneRT = R.GetRenderTexture("sceneTexture");
-    //         Rectangle src = { 0, 0,
-    //                         (float)sceneRT.texture.width,
-    //                         -(float)sceneRT.texture.height }; // flip Y!
-    //         Rectangle dst = { 0, 0,
-    //                         (float)GetScreenWidth(),
-    //                         (float)GetScreenHeight() };
-    //         DrawTexturePro(sceneRT.texture, src, dst, {0,0}, 0.0f, WHITE);
-    //     EndShaderMode();
-    // }
-    // EndTextureMode();
 
     // --- final to backbuffer + UI ---
     BeginDrawing();
@@ -257,7 +236,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
             rlDisableDepthTest();
             BeginMode3D(camera);
-                if (!player.dying) DrawWeapons(player, camera);
+                if (!player.dying) DrawWeapons(player, camera); //weapons drawn on top of render texture.
             EndMode3D();
             //rlEnableDepthTest(); //Leave depth test off. If left on it messes with minimap
 
@@ -265,11 +244,10 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
         
         if (pendingLevelIndex != -1) {
+            //loading screen, no other UI
             DrawText("Loading...", GetScreenWidth()/2 - MeasureText("Loading...", 20)/2,
                      GetScreenHeight()/2, 20, WHITE);
         } else {
-
-
 
             //health mana stam bars UI
             if (controlPlayer) DrawUI();
@@ -292,15 +270,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
                 
             }
 
-
-
-            // if (debugInfo) { //Press ~ for debug mode. 
-            //     DrawTimer(ElapsedTime);
-            //     DrawText("PRESS TAB FOR FREE CAMERA", GetScreenWidth()/2, 15, 20, WHITE);
-            //     //show FPS over top of lightmap
-            //     DrawText(TextFormat("%d FPS", GetFPS()), 350, 10, 20, WHITE);
-
-            // }
+            //DrawText(TextFormat("%d FPS", GetFPS()), 350, 10, 20, WHITE);
             
         } 
     EndDrawing();

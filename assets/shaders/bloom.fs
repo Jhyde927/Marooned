@@ -7,23 +7,27 @@ uniform sampler2D sceneTexture;
 uniform vec2  resolution;
 
 // Bloom + tone mapping
-uniform float bloomStrength;       // 0.0 = off, ~0.2–1.0 typical
-uniform float uExposure;           // 0.5–2.0 typical
-uniform int   uToneMapOperator;    // 0=Off, 1=ACES, 2=Reinhard
+uniform float bloomStrength;
+uniform float uExposure;
+uniform int   uToneMapOperator;
 
 // Vignette / status / fade / dungeon
-uniform float baseVignetteStrength; // 0.0 = off, ~0.3–0.8 typical
+uniform float baseVignetteStrength;
 
 // 0 = normal red damage
 // 1 = frozen blue
 // 2 = quad damage orange
 // 3 = haste yellow
 uniform int   vignetteMode;
-uniform float vignetteIntensity;    // 0.0–1.0
-uniform float fadeToBlack;          // 0.0 = no fade, 1.0 = full black
-uniform float dungeonDarkness;      // 0.0 = normal, 1.0 = fully dark
-uniform float dungeonContrast;      // 1.0 = normal, >1.0 = more contrast
+uniform float vignetteIntensity;
+uniform float fadeToBlack;
+uniform float dungeonDarkness;
+uniform float dungeonContrast;
 uniform int   isDungeon;
+
+// Cinematic letterbox
+uniform float letterboxAmount;   // 0.0 = none, 0.12 = 12% of screen height per bar
+uniform float letterboxSoftness; // try 0.004
 
 // --- sRGB <-> linear helpers ---
 vec3 toLinear(vec3 c) { return pow(c, vec3(2.2)); }
@@ -59,7 +63,7 @@ void main()
     // ------------------------------------------------------------
     vec3 bloomLin = vec3(0.0);
 
-    if (bloomStrength > 0.001) //skip bloom iteration if 0.0
+    if (bloomStrength > 0.001)
     {
         float weightSum = 0.0;
         const float threshold = 0.8;
@@ -86,7 +90,6 @@ void main()
             bloomLin /= weightSum;
         }
     }
-
 
     vec3 resultLin = srcLin + bloomLin * bloomStrength;
 
@@ -149,90 +152,23 @@ void main()
         final = mix(final, vec3(0.1, 0.3, 0.7), 0.13);
     }
 
+    // ------------------------------------------------------------
+    // 4) Cinematic letterbox
+    // ------------------------------------------------------------
+    float lb = clamp(letterboxAmount, 0.0, 0.49);
+    float soft = max(letterboxSoftness, 0.00001);
+
+    float y = fragTexCoord.y;
+
+    // Bottom bar: 1.0 inside bar, 0.0 outside
+    float bottomBar = 1.0 - smoothstep(lb, lb + soft, y);
+
+    // Top bar: 1.0 inside bar, 0.0 outside
+    float topBar = smoothstep(1.0 - lb - soft, 1.0 - lb, y);
+
+    float letterboxMask = clamp(bottomBar + topBar, 0.0, 1.0);
+
+    final = mix(final, vec3(0.0), letterboxMask);
+
     finalColor = vec4(clamp(final, 0.0, 1.0), 1.0);
 }
-
-// #version 330
-
-// in vec2 fragTexCoord;
-// out vec4 finalColor;
-
-// uniform sampler2D sceneTexture;
-// uniform vec2  resolution;
-
-// // Simple bloom + tone mapping
-// uniform float bloomStrength;       // 0.0 = off, ~0.2–1.0 typical
-// uniform float uExposure;           // 0.5–2.0 typical (default 1.0)
-// uniform int   uToneMapOperator;    // 0=Off, 1=ACES, 2=Reinhard
-
-// // --- sRGB <-> linear helpers ---
-// vec3 toLinear(vec3 c) { return pow(c, vec3(2.2)); }
-// vec3 toSRGB  (vec3 c) { return pow(c, vec3(1.0/2.2)); }
-
-// // --- Tone mapping operators (expect linear) ---
-
-// // ACES (Hable-ish)
-// vec3 ToneMapACES(vec3 x) {
-//     float a = 2.51;
-//     float b = 0.03;
-//     float c = 2.43;
-//     float d = 0.59;
-//     float e = 0.14;
-//     return clamp((x*(a*x + b)) / (x*(c*x + d) + e), 0.0, 1.0);
-// }
-
-// // Simple Reinhard
-// vec3 ToneMapReinhard(vec3 x) {
-//     return x / (1.0 + x);
-// }
-
-// void main() {
-//     vec2 texelSize = 1.0 / resolution;
-
-//     // Sample the source scene (sRGB) and convert to linear for math
-//     vec3 srcSRGB = texture(sceneTexture, fragTexCoord).rgb;
-//     vec3 srcLin  = toLinear(srcSRGB);
-
-//     // --- Basic bloom (bright-pass + small blur, all in linear) ---
-//     vec3 bloomLin   = vec3(0.0);
-//     float weightSum = 0.0;
-
-//     const float threshold = 0.8; // in linear luminance
-//     for (int y = -2; y <= 2; ++y) {
-//         for (int x = -2; x <= 2; ++x) {
-//             vec2 uv = fragTexCoord + vec2(x, y) * texelSize;
-//             vec3 s   = toLinear(texture(sceneTexture, uv).rgb);
-
-//             float lum = dot(s, vec3(0.2126, 0.7152, 0.0722));
-//             float w   = smoothstep(threshold, threshold + 1.0, lum);
-
-//             bloomLin   += s * w;
-//             weightSum  += w;
-//         }
-//     }
-
-//     if (weightSum > 0.0) {
-//         bloomLin /= weightSum;
-//     } else {
-//         bloomLin = vec3(0.0);
-//     }
-
-//     // Combine scene + bloom in linear space
-//     vec3 resultLin = srcLin + bloomLin * bloomStrength;
-
-//     // --- Tone mapping (still linear) ---
-//     vec3 mappedLin = resultLin * uExposure;   // exposure pre-scale
-
-//     if (uToneMapOperator == 1) {
-//         mappedLin = ToneMapACES(mappedLin);
-//     } else if (uToneMapOperator == 2) {
-//         mappedLin = ToneMapReinhard(mappedLin);
-//     }
-//     // 0 = off (just exposure)
-
-//     // Convert back to sRGB for display
-//     vec3 resultSRGB = toSRGB(mappedLin);
-
-//     finalColor = vec4(clamp(resultSRGB, 0.0, 1.0), 1.0);
-// }
-

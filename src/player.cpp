@@ -17,6 +17,7 @@
 #include "box.h"
 #include "utilities.h"
 #include "debug_console.h"
+#include "shaderSetup.h"
 
 Weapon weapon;
 MeleeWeapon meleeWeapon;
@@ -960,31 +961,102 @@ constexpr float VOID_SNAP_REENABLE_Y = 200.0f;  // how close to a floor you must
 constexpr float VOID_COMMIT_FALL = 200.0f;      // how far below the "expected floor" before we commit to void fall
 constexpr float VOID_SNAP_MAX_UP = 200.0f;      // max upward snap allowed (prevents big teleports)
 
-void HandleVignette(Player& player, float deltaTime){
-    float baseVignette = 0.0f;
-    if (player.state == PlayerState::Frozen){
-        vignetteFade += deltaTime * 0.25; //keep vignette for longer if frozen
-    }else if (player.quadDamage){
-        vignetteMode = 2;
-        float pulseSpeed = 4.0f;     // how fast it pulses
-        float pulseAmount = 1.0f;   // how strong the pulse is
-        float pulse = (sinf(GetTime() * pulseSpeed) + 1.0f) * 0.5f; // 0 to 1
-        vignetteIntensity = baseVignette + pulse * pulseAmount;
-        vignetteFade = 0.0f;
+void HandleVignette(Player& player, float deltaTime)
+{
+    ShaderSetup::BloomShader& bloom = ShaderSetup::gBloom;
 
-    }else if (player.haste){
-        vignetteMode = 3;
-        vignetteIntensity = 0.5f;
-        vignetteFade = 0.0f;
-    }else{
-        //normal fade out. clamp to 1.
-        vignetteFade += deltaTime * 2.0f; 
-        vignetteIntensity = Clamp(1.0f - vignetteFade, 0.0f, 1.0f);
+    if (player.state == PlayerState::Frozen)
+    {
+        bloom.vignetteMode = 1; // frozen blue
+
+        // Keep/increase frozen effect
+        bloom.vignetteIntensity = Lerp(
+            bloom.vignetteIntensity,
+            0.65f,
+            1.0f - expf(-6.0f * deltaTime)
+        );
+
     }
+    else if (player.quadDamage)
+    {
+        bloom.vignetteMode = 2; // quad orange
+
+        float pulseSpeed = 4.0f;
+        float pulseAmount = 1.0f;
+        float pulse = (sinf((float)GetTime() * pulseSpeed) + 1.0f) * 0.5f;
+
+        bloom.vignetteIntensity = pulse * pulseAmount;
+        bloom.fadeToBlack = 0.0f;
+    }
+    else if (player.haste)
+    {
+        bloom.vignetteMode = 3; // haste yellow
+
+        bloom.vignetteIntensity = Lerp(
+            bloom.vignetteIntensity,
+            0.5f,
+            1.0f - expf(-8.0f * deltaTime)
+        );
+
+        bloom.fadeToBlack = 0.0f;
+    }
+    else
+    {
+        // No active status effect.
+        // Let damage flash / previous status vignette fade away.
+        bloom.vignetteIntensity = Lerp(
+            bloom.vignetteIntensity,
+            0.0f,
+            1.0f - expf(-2.0f * deltaTime)
+        );
+
+        if (bloom.vignetteIntensity < 0.001f)
+        {
+            bloom.vignetteIntensity = 0.0f;
+        }
 
 
-
+        if (bloom.fadeToBlack < 0.001f)
+        {
+            bloom.fadeToBlack = 0.0f;
+        }
+    }
 }
+
+// void HandleVignette(Player& player, float deltaTime){
+//     float baseVignette = 0.0f;
+//     if (player.state == PlayerState::Frozen){
+//         //vignetteFade += deltaTime * 0.25f; //keep vignette for longer if frozen
+//         ShaderSetup::gBloom.fadeToBlack += deltaTime * 0.25f;
+//         ShaderSetup::gBloom.vignetteMode = 1;
+//     }else if (player.quadDamage){
+//         //vignetteMode = 2;
+//         ShaderSetup::gBloom.vignetteMode = 2;
+//         float pulseSpeed = 4.0f;     // how fast it pulses
+//         float pulseAmount = 1.0f;   // how strong the pulse is
+//         float pulse = (sinf(GetTime() * pulseSpeed) + 1.0f) * 0.5f; // 0 to 1
+//         ShaderSetup::gBloom.vignetteIntensity = baseVignette + pulse * pulseAmount;
+//         //vignetteFade = 0.0f;
+//         ShaderSetup::gBloom.fadeToBlack = 0.0f;
+
+//     }else if (player.haste){
+//         //vignetteMode = 3;
+//         ShaderSetup::gBloom.vignetteMode = 3;
+//         ShaderSetup::gBloom.vignetteIntensity = 0.5f;
+
+//         ShaderSetup::gBloom.fadeToBlack = 0.0f;
+//         //vignetteFade = 0.0f;
+//     }else{
+//         //normal fade out. clamp to 1.
+//         //vignetteFade += deltaTime * 2.0f; 
+//         //ShaderSetup::gBloom.fadeToBlack = 0.0f;
+//         //ShaderSetup::gBloom.fadeToBlack += deltaTime * 2.0f;
+//         //ShaderSetup::gBloom.vignetteIntensity = Clamp(1.0f - ShaderSetup::gBloom.fadeToBlack, 0.0f, 1.0f);
+//     }
+
+
+
+// }
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     HandleGamepadLook(deltaTime);
@@ -1060,8 +1132,9 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         player.godMode = true;
         player.deathTimer += deltaTime;
         //player.canMove = false;
-        vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe. 
-        vignetteFade = 0.0f;
+        ShaderSetup::gBloom.vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe. 
+        //vignetteFade = 0.0f;
+        ShaderSetup::gBloom.fadeToBlack = 0.0f;
 
         if (!player.overVoid && !player.overLava){ //dont animate death cam if you fall into a pit. it would warp you back up. same for lava
             CameraSystem::Get().SnapAllToPlayer();
@@ -1304,13 +1377,15 @@ void Player::TakeDamage(int amount){
     }
     hitTimer = 0.15;
     if (player.state == PlayerState::Frozen) {
-        vignetteMode = 1;
-        vignetteIntensity = 1.0f;
-        vignetteFade = 0.0f;
+        //vignetteMode = 1;
+        ShaderSetup::gBloom.vignetteMode = 1;
+        ShaderSetup::gBloom.vignetteIntensity = 1.0f;
+        ShaderSetup::gBloom.vignetteFade = 0.0f;
     }else{
-        vignetteMode = 0;
-        vignetteIntensity = 1.0f;
-        vignetteFade = 0.0f;
+        //vignetteMode = 0;
+        ShaderSetup::gBloom.vignetteMode = 0;
+        ShaderSetup::gBloom.vignetteIntensity = 1.0f;
+        ShaderSetup::gBloom.vignetteFade = 0.0f;
     }
 
     if (rand() % 2 == 0){

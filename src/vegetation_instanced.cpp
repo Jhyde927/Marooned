@@ -317,8 +317,8 @@ void VegetationInstanced::SetShaderValues(Camera& camera)
     Vector3 camPos = camera.position;
     Vector3 topFogColor = ShaderSetup::GetCurrentSkyTopFogColor();
     Vector3 fogHor = ShaderSetup::GetCurrentSkyFogColor();
-    float fogStart = (currentGameState == GameState::Menu) ? 10000 : 3000;
-    float fogEnd    = 20000.0f;
+    float fogStart = (currentGameState == GameState::Menu) ? GameSettings::instancedFogStartMenu :  GameSettings::instancedFogStart;
+    float fogEnd    = GameSettings::instancedFogEnd;
     float seaLevel  = 400.0f; // Visual fog height base, not literal ocean height
     float falloff   = 0.001f; // Lower = taller/softer height fog; helps giant tree tops stay fogged
 

@@ -6,6 +6,7 @@
 #include "utilities.h"
 #include "game_settings.h"
 #include "debug_console.h"
+#include "shaderSetup.h"
 
 DeathCamState deathCam;
 
@@ -213,6 +214,7 @@ void CameraSystem::UpdateCutsceneCam(float dt)
     if (t >= 1.0f) {
         cutsceneActive = false;
         drawCeiling = levels[gCurrentLevelIndex].hasCeiling; //turn ceilings back on
+        ShaderSetup::gBloom.letterboxTarget = 0.0f;
         if (cutscene.returnToPlayerOnFinish) {
             SnapAllToPlayer();
             SetMode(CamMode::Player);

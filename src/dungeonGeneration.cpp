@@ -2709,39 +2709,6 @@ void DrawLaunchers()
     }
 }
 
-// void DrawLaunchers() {
-//     for (const LauncherTrap& launcher : launchers) {
-//         float offsetY = CurrentLevelIs("Ship") ? 75.0f : 20.0f;
-//         Vector3 offsetPos = {
-//             launcher.position.x,
-//             launcher.position.y + offsetY,
-//             launcher.position.z
-//         };
-
-//         if (CurrentLevelIs("Ship")) {
-//             float yawDeg = DirectionToYawDeg(launcher.direction) + 90.0f;
-
-//             DrawModelEx(
-//                 R.GetModel("cannon"),
-//                 offsetPos,
-//                 Vector3{0, 1, 0},
-//                 yawDeg,
-//                 Vector3{25, 25, 25},
-//                 GRAY
-//             );
-//         } else {
-//             DrawModelEx(
-//                 R.GetModel("stonePillar"),
-//                 offsetPos,
-//                 Vector3{0, 1, 0},
-//                 0.0f,
-//                 Vector3{100, 100, 100},
-//                 WHITE
-//             );
-//         }
-//     }
-// }
-
 
 void DrawDungeonBarrels() {
     for (const BarrelInstance& barrel : barrelInstances) {

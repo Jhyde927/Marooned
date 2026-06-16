@@ -59,22 +59,17 @@ extern float dungeonPlayerHeight;
 extern float floorHeight;
 extern float wallHeight;
 extern unsigned char* heightmapPixels;
-extern float vignetteStrengthValue;
-extern float bloomStrengthValue;
 extern int selectedOption; // 0 = Start, 1 = Quit
 extern int levelIndex;
 extern int previousLevelIndex;
 extern int pendingLevelIndex;
-extern float fadeToBlack;
-extern float vignetteIntensity;
-extern float vignetteFade;
-extern int  vignetteMode;
+
 extern float boatSpeed;
 extern float waterHeightY;
 extern float ceilingHeight;
 extern bool switchFromMenu;
 extern float tileSize;
-//extern float maxDrawDist;
+
 extern float menuDrawDist;
 
 extern bool first;
@@ -100,9 +95,7 @@ extern int gCurrentLevelIndex; //for resuming game
 extern bool quitQued;
 extern float lavaOffsetY;
 extern bool enteredDungeon1;
-// extern bool squareRes;
-// extern bool showTutorial;
-//extern float muzzleFlashTimer;
+
 extern Model oceanModel;
 extern GameState currentGameState;
 extern FadePhase gFadePhase;
@@ -119,7 +112,6 @@ extern std::vector<MuzzleFlash> activeMuzzleFlashes;
 extern std::vector<PreviewInfo> levelPreviews;
 extern std::vector<CollectableWeapon> worldWeapons;
 extern std::vector<Portal> portals;
-//extern std::vector<std::unique_ptr<Character>> enemies;
 extern std::vector<Character> enemies;  
 extern std::vector<Character*> enemyPtrs;
 extern std::vector<NPC> gNPCs;
@@ -136,7 +128,7 @@ void removeAllCharacters();
 void generateRaptors(int amount, Vector3 centerPos, float radius);
 void generateDactyls(int amount, Vector3 centerPos, float radius);
 void generateTrex(int amount, Vector3 centerPos, float radius);
-//void BeginCustom3D(Camera3D camera, float farClip);
+
 void GenerateEntrances();
 void HandleWaves(Camera& camera);
 void UpdateEnemies(float deltaTime);

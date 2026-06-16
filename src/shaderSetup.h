@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "resourceManager.h"
+#include "game_settings.h"
 
 
 
@@ -127,12 +128,35 @@ namespace ShaderSetup
         int loc_exposure        = -1;
         int loc_toneMapOperator = -1;
         int loc_resolution      = -1;
+        int loc_letterboxAmount = -1;
+        int loc_letterboxTarget = -1;
+        int loc_letterboxSoftness = -1;
+        int loc_vignetteMode = -1;
+        int loc_baseVignetteStrength = -1;
+        int loc_vignetteIntensity = -1;
+        int loc_fadeToBlack = -1;
+        int loc_dungeonDarkness = -1;
+        int loc_dungeonContrast = -1;
+        int loc_isDungeon = -1;
 
-        // Stored params (so you can re-apply easily)
+        // Stored params (so you can re-apply easily)]
         float   bloomStrength = 0.0f;
         float   exposure      = 1.0f;
         int     toneOp        = 0; // 0 = island, 1 = dungeon (based on your code)
         Vector2 resolution    = { 0, 0 };
+
+        int vignetteMode;
+        float vignetteStrengthValue;
+        float vignetteIntensity;
+        float vignetteFade;
+        float fadeToBlack;
+        float dungeonDarkness;
+        float dungeonContrast;
+        int   isDungeon;
+
+        float letterboxAmount;   // 0.0 = none, 0.12 = 12% screen height per bar
+        float letterboxTarget;
+        float letterboxSoftness; // 0.0 = hard edge, 0.003-0.01 = soft edge
     };
 
     struct TreeShader
@@ -153,7 +177,7 @@ namespace ShaderSetup
         Vector3 skyTop  = {0.55f, 0.75f, 1.00f};
         Vector3 skyHorz = {0.60f, 0.80f, 0.95f};
         float fogStart  = 0.0f;
-        float fogEnd    = 16000.0f;
+        float fogEnd    = GameSettings::treeFogEnd;
         float seaLevel  = 400.0f;
         float falloff   = 0.002f;
 
@@ -233,6 +257,7 @@ namespace ShaderSetup
     void SetBloomResolution(BloomShader& bs, int screenW, int screenH);
     void SetBloomTonemap(BloomShader& bs, bool isDungeon, float islandExposure, float dungeonExposure);
     void SetBloomStrength(BloomShader& bs, float strength);
+    void UpdateBloomShaderPerFrame(BloomShader& bs, float dt);
 
     //Portal Shader
     void InitPortalShader(Shader& shader, PortalShader& out);

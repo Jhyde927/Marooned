@@ -106,6 +106,11 @@ Color LerpColor(Color a, Color b, float t) {
     };
 }
 
+float SmoothTo(float current, float target, float speed, float dt)
+{
+    return current + (target - current) * (1.0f - expf(-speed * dt));
+}
+
 
 Vector3 NormalizeXZ(Vector3 v) {
     v.y = 0.0f;

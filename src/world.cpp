@@ -63,12 +63,7 @@ float waterHeightY = 60;
 Vector3 bottomPos = {0, waterHeightY - 100, 0};
 float dungeonPlayerHeight = 100;
 float ceilingHeight = 480;
-float fadeToBlack = 0.0f;
-float vignetteIntensity = 0.0f;
-float vignetteFade = 0.0f;
-int vignetteMode = 0;
-float vignetteStrengthValue = 0.2;
-float bloomStrengthValue = 0.0;
+
 //float maxDrawDist = 15000.0f;
 float menuDrawDist = 50000.0f;
 
@@ -238,6 +233,7 @@ void UpdateShadersPerFrame(float deltaTime,float ElapsedTime, Camera& camera){
     ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, ElapsedTime, camera);
     ShaderSetup::UpdateTreeShader(ShaderSetup::gTree, camera);
     ShaderSetup::UpdateSkyShaderPerFrame(ShaderSetup::gSky, ElapsedTime);
+    ShaderSetup::UpdateBloomShaderPerFrame(ShaderSetup::gBloom, deltaTime);
 }
 
 void StartCutScene(){
@@ -255,6 +251,7 @@ void StartCutScene(){
         intro.returnToPlayerOnFinish = true;
 
         CameraSystem::Get().StartCutscene(intro);
+        ShaderSetup::gBloom.letterboxTarget = 0.14f;
 
     }else if (CurrentLevelIs("Dungeon1")){
 
@@ -263,7 +260,7 @@ void StartCutScene(){
 
         intro.startPos = { (float)dungeonWidth, 975.138, -(float)dungeonWidth }; //+x -z = opposite corner
         intro.endPos   = player.position;
-        intro.target   = { 3460.73, 660.262, 3206.36};
+        intro.target   = player.position;//{ 3460.73, 660.262, 3206.36};
 
         intro.duration = 15.0f;
         intro.arcHeight = 2500.0f;
@@ -271,6 +268,7 @@ void StartCutScene(){
         intro.returnToPlayerOnFinish = true;
 
         CameraSystem::Get().StartCutscene(intro);
+        ShaderSetup::gBloom.letterboxTarget = 0.14f;
 
     }else{
         CameraSystem::Get().SetMode(CamMode::Player);
@@ -588,9 +586,7 @@ void UpdateFade(Camera& camera, float deltaTime) {
 
     // Only touch the shader when we are not swapping
     if (gFadePhase != FadePhase::Swapping) {
-        Shader& bloomShader = R.GetShader("bloomShader");
-        int loc = GetShaderLocation(bloomShader, "fadeToBlack");
-        SetShaderValue(bloomShader, loc, &fadeValue, SHADER_UNIFORM_FLOAT);
+        ShaderSetup::gBloom.fadeToBlack = fadeValue;
     }
 }
 

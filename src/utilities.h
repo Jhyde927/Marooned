@@ -36,6 +36,7 @@ Vector3 DirFromYawDeg(float yawDeg);
 float DirectionToYawDeg(Vector3 dir);
 float DistSq(const Vector3& a, const Vector3& b);
 float SmoothStep01(float t);
+float SmoothTo(float current, float target, float speed, float dt);
 //launchers
 bool IsDirPixel(Color c);
 bool IsTimingPixel(Color c);

@@ -225,10 +225,25 @@ namespace ShaderSetup
         bs.loc_exposure        = GetShaderLocation(sh, "uExposure");
         bs.loc_toneMapOperator = GetShaderLocation(sh, "uToneMapOperator");
         bs.loc_resolution      = GetShaderLocation(sh, "resolution");
+        bs.loc_vignetteMode = GetShaderLocation(sh,    "vignetteMode");
+
+        bs.loc_baseVignetteStrength = GetShaderLocation(sh, "baseVignetteStrength");
+        bs.loc_vignetteIntensity = GetShaderLocation(sh, "vignetteIntensity");
+        bs.loc_fadeToBlack = GetShaderLocation(sh, "fadeToBlack");
+        bs.loc_dungeonDarkness = GetShaderLocation(sh, "dungeonDarkness");
+        bs.loc_dungeonContrast = GetShaderLocation(sh, "dungeonContrast");
+        bs.loc_isDungeon = GetShaderLocation(sh, "isDungeon");
+
+        bs.loc_letterboxAmount = GetShaderLocation(sh, "letterboxAmount");
+        bs.loc_letterboxTarget = GetShaderLocation(sh, "letterboxTarget");
+        bs.loc_letterboxSoftness = GetShaderLocation(sh, "letterboxSoftness");
+
+        
     }
 
     void ApplyBloomParams(BloomShader& bs)
     {
+        //inital values
         assert(bs.shader && "BloomShader must be initialized before applying params");
         Shader& sh = *bs.shader;
 
@@ -236,6 +251,20 @@ namespace ShaderSetup
         SetShaderValue(sh, bs.loc_exposure,        &bs.exposure,      SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, bs.loc_toneMapOperator, &bs.toneOp,        SHADER_UNIFORM_INT);
         SetShaderValue(sh, bs.loc_resolution,      &bs.resolution,    SHADER_UNIFORM_VEC2);
+
+        SetShaderValue(sh, bs.vignetteMode, &bs.vignetteMode, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_vignetteIntensity, &bs.vignetteIntensity, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_baseVignetteStrength, &bs.vignetteStrengthValue, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_fadeToBlack, &bs.fadeToBlack, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_dungeonDarkness, &bs.dungeonDarkness, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_dungeonContrast, &bs.dungeonContrast, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_isDungeon, &bs.isDungeon, SHADER_UNIFORM_INT);
+
+
+        SetShaderValue(sh, bs.loc_letterboxAmount, &bs.letterboxAmount, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_letterboxTarget, &bs.letterboxTarget, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, bs.loc_letterboxSoftness, &bs.letterboxSoftness, SHADER_UNIFORM_FLOAT);
+
     }
 
     void InitBloomShader(Shader& shader, BloomShader& out)
@@ -249,6 +278,19 @@ namespace ShaderSetup
         out.exposure      = 1.0f; 
         out.toneOp        = 0;
         out.resolution    = { (float)GetScreenWidth(), (float)GetScreenHeight() };
+
+        out.vignetteMode = 0;
+        out.vignetteStrengthValue = isDungeon ? 0.8f : 0.25f;
+        if (CurrentLevelIs("Ship")) out.vignetteStrengthValue = 0.0f; // no vignette on ship level
+        out.vignetteIntensity = 0.0f;
+        out.fadeToBlack = 0.0f;
+        out.dungeonDarkness = -0.1f;
+        out.dungeonContrast = 1.0f;
+        out.isDungeon = isDungeon ? 1 : 0; 
+
+        out.letterboxAmount = 0.0f;
+        out.letterboxTarget = 0.0f;
+        out.letterboxSoftness = 0.004f;
 
         ApplyBloomParams(out);
     }
@@ -304,10 +346,11 @@ namespace ShaderSetup
         assert(ts.shader && "TreeShader not initialized");
         Shader& sh = *ts.shader;
         float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
+        float fogEnd = GameSettings::treeFogEnd;
         SetShaderValue(sh, ts.loc_skyTop,   &ts.skyTop,   SHADER_UNIFORM_VEC3);
         SetShaderValue(sh, ts.loc_skyHorz,  &ts.skyHorz,  SHADER_UNIFORM_VEC3);
         SetShaderValue(sh, ts.loc_fogStart, &fogStart, SHADER_UNIFORM_FLOAT);
-        SetShaderValue(sh, ts.loc_fogEnd,   &ts.fogEnd,   SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_fogEnd,   &fogEnd,   SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ts.loc_seaLevel, &ts.seaLevel, SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ts.loc_falloff,  &ts.falloff,  SHADER_UNIFORM_FLOAT);
 
@@ -385,6 +428,28 @@ namespace ShaderSetup
 
 
     //UPDATE
+
+    void UpdateBloomShaderPerFrame(BloomShader& bs, float dt){
+        bs.letterboxAmount = SmoothTo(bs.letterboxAmount, bs.letterboxTarget, 6.0f, dt);
+        Shader sh = R.GetShader("bloomShader");
+
+        Vector2 screenRes = {(float)GetScreenWidth(), (float)GetScreenHeight()}; //update resolution every frame incase fullscreen.
+
+        SetShaderValue(sh, bs.loc_resolution, &screenRes, SHADER_UNIFORM_VEC2); 
+
+        SetShaderValue(sh, bs.loc_fadeToBlack, &bs.fadeToBlack, SHADER_UNIFORM_FLOAT);
+
+        //how is this working?
+        SetShaderValue(sh, bs.loc_vignetteMode, &bs.vignetteMode, SHADER_UNIFORM_INT);
+
+        SetShaderValue(sh, bs.loc_vignetteIntensity, &bs.vignetteIntensity, SHADER_UNIFORM_FLOAT);
+
+        SetShaderValue(sh, bs.loc_letterboxAmount,
+                    &bs.letterboxAmount, SHADER_UNIFORM_FLOAT);
+
+        SetShaderValue(sh, bs.loc_letterboxSoftness,
+                    &bs.letterboxSoftness, SHADER_UNIFORM_FLOAT);
+    }
 
     void UpdateLavaShaderPerFrame(LavaShader& ls, float t, bool isLoadingLevel)
     {

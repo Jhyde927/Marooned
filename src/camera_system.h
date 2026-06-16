@@ -119,7 +119,6 @@ public:
 
     CamMode GetMode() const;
 
-
     Vector3 GetCutscenePathPosition(float t) const;
     Vector3 GetOrbitCinematicPosition(float angleDeg) const;
 
@@ -141,7 +140,10 @@ public:
     void BeginCustom3D(const Camera3D& cam, float nearClip, float farClip);
 
     bool IsPlayerMode() const { return GetMode() == CamMode::Player; }
+
+    bool IsCutsceneActive() const { return cutsceneActive; }
     bool aspectSquare = false;
+
 
 
 private:
@@ -176,8 +178,7 @@ private:
 
     CutsceneDesc cutscene{};
     float cutsceneT = 0.0f;
-    bool cutsceneActive = false;
-
-
+     bool cutsceneActive = false;
+    
 
 };
