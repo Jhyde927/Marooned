@@ -10,11 +10,61 @@
 
 DeathCamState deathCam;
 
-
-static float EaseInOutSmooth(float t)
+CinematicDesc CameraSystem::MakeStartupMenuCinematic()
 {
-    t = Clamp01(t);
-    return t * t * (3.0f - 2.0f * t);
+    CinematicDesc cd{};
+
+    cd.focus = { 0.0f, 0.0f, 0.0f };
+    cd.radius = 12000.0f;
+    cd.height = 3000.0f;
+
+    cd.orbitSpeedDeg = 2.0f;
+    cd.posSmooth = 1.5f;
+    cd.lookSmooth = 6.0f;
+
+    cd.bobHeight = true;
+    cd.bobAmount = 2500.0f;
+    cd.bobSpeed = 0.01f;
+
+    return cd;
+}
+
+CinematicDesc CameraSystem::MakeEnterMenuCinematic(bool isDungeon, bool isShip, int dungeonWidth)
+{
+    CinematicDesc cd{};
+
+    cd.snapOnStart = true;
+    cd.orbitSpeedDeg = 1.0f;
+    cd.lookSmooth = 6.0f;
+    cd.posSmooth = 1.5f;
+
+    if (isDungeon)
+    {
+        float worldSize = dungeonWidth * tileSize;
+
+        cd.focus = {
+            worldSize * 0.5f,
+            0.0f,
+            worldSize * 0.5f
+        };
+
+        cd.radius = worldSize * 0.7f;
+        cd.height = 3000.0f;
+        cd.startAngleDeg = isShip ? 90.0f : 180.0f;
+    }
+    else
+    {
+        cd.focus = { 0.0f, 0.0f, 0.0f };
+        cd.radius = 12000.0f;
+        cd.height = 3000.0f;
+        cd.startAngleDeg = 180.0f;
+
+        cd.bobHeight = false;
+        cd.bobAmount = 0.0f;
+        cd.bobSpeed = 0.01f;
+    }
+
+    return cd;
 }
 
 Vector3 CameraSystem::GetOrbitCinematicPosition(float angleDeg) const

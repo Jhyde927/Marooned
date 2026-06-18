@@ -2,18 +2,213 @@
 #include <cassert>
 #include "raymath.h"
 #include "world.h"
+#include "lighting.h"
 
 namespace ShaderSetup
 {
 
-    PortalShader gPortal;
-    WaterShader  gWater;
-    LavaShader   gLava;
-    BloomShader  gBloom;
-    TreeShader   gTree;
-    SkyShader    gSky;
+    PortalShader      gPortal;
+    WaterShader       gWater;
+    LavaShader        gLava;
+    BloomShader       gBloom;
+    TreeShader        gTree;
+    SkyShader         gSky;
+    GhostShader       gGhost;
+    CeilingShader     gCeiling;
+    SkyCycle          gSkyCycle;
+    AlphaCutoutShader gAlpha;
+    ShadowShader      gShadow;
 
-    SkyCycle gSkyCycle;
+
+    //Shadow Shader
+    static void CacheShadowLocations(ShadowShader& ss)
+    {
+        assert(ss.shader && "Shadow shader must be set");
+        Shader& sh = *ss.shader;
+
+        ss.loc_strength = GetShaderLocation(sh, "shadowStrength");
+    }
+
+    void InitShadowShader(ShadowShader& ss)
+    {
+        ss.shader = &R.GetShader("shadowShader");
+        Shader& sh = *ss.shader;
+
+        CacheShadowLocations(ss);
+
+        ss.shadowStrength = 0.6f;
+        SetShaderValue(sh, ss.loc_strength, &ss.shadowStrength, SHADER_UNIFORM_FLOAT);
+
+
+        Model& shadowQuad = R.GetModel("shadowQuad");
+
+
+        shadowQuad.materials[0].shader = sh;
+        SetMaterialTexture(&shadowQuad.materials[0], MATERIAL_MAP_DIFFUSE, R.GetTexture("shadowTex"));
+
+
+    }
+
+    //Alpha cutout
+
+    static void CacheCutoutLocations(AlphaCutoutShader& as)
+    {
+        assert(as.shader && "Cutout shader must be set");
+        Shader& sh = *as.shader;
+        as.loc_alphaCutoff = GetShaderLocation(sh, "alphaCutoff");
+
+    }
+
+    void InitAlphaCutout(AlphaCutoutShader& as){
+        as.shader = &R.GetShader("cutoutShader");
+
+        Shader& sh = *as.shader;
+
+        CacheCutoutLocations(as);
+        //    float cut = 0.1f;
+        as.alphaCutoff = 0.1f;
+        SetShaderValue(sh, as.loc_alphaCutoff, &as.alphaCutoff, SHADER_UNIFORM_FLOAT);
+
+    }
+
+    //Ceiling
+
+    static void SetGridBounds(float outGrid[4])
+    {
+        outGrid[0] = gDynamic.minX;
+        outGrid[1] = gDynamic.minZ;
+        outGrid[2] = gDynamic.sizeX != 0.0f ? 1.0f / gDynamic.sizeX : 0.0f;
+        outGrid[3] = gDynamic.sizeZ != 0.0f ? 1.0f / gDynamic.sizeZ : 0.0f;
+    }
+
+    static void CacheCeilingLocations(CeilingShader& cs)
+    {
+        assert(cs.shader && "Ceiling shader must be set");
+
+        Shader& sh = *cs.shader;
+
+        cs.loc_grid = GetShaderLocation(sh, "gridBounds");
+        cs.loc_dynStr = GetShaderLocation(sh, "dynStrength");
+        cs.loc_amb = GetShaderLocation(sh, "ambientBoost");
+        cs.loc_gridSize = GetShaderLocation(sh, "u_GridSize");
+        cs.loc_tiling = GetShaderLocation(sh, "u_TilingXZ");
+
+    }
+
+    void InitCeilingShader(CeilingShader& cs){
+        cs.shader = &R.GetShader("ceilingShader");
+
+        Shader& sh = *cs.shader;
+        Model&  ceilingPlane  = R.GetModel("ceilingPlane");
+
+        CacheCeilingLocations(cs);
+
+        // ---- A) Tell raylib how to feed built-ins for this shader ----
+        sh.locs[SHADER_LOC_MATRIX_MVP]    = GetShaderLocation(sh, "mvp");
+        sh.locs[SHADER_LOC_MATRIX_MODEL]  = GetShaderLocation(sh, "matModel");
+        sh.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(sh, "colDiffuse");
+
+        sh.locs[SHADER_LOC_MAP_DIFFUSE]   = GetShaderLocation(sh, "texture0");
+        sh.locs[SHADER_LOC_MAP_EMISSION]  = GetShaderLocation(sh, "texture4");
+        sh.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(sh, "texture3");
+
+        // ---- B) Assign shader to ceiling model ----
+        ceilingPlane.materials[0].shader = sh;
+
+        // ---- C) Bind textures used by ceiling shader ----
+        // Diffuse (ceiling tiles)
+        ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("ceilingTexture");
+        ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].color   = WHITE;
+        SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture, TEXTURE_WRAP_REPEAT);
+
+        // Emission (dynamic lightmap)
+        ceilingPlane.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+
+        // Occlusion (void mask)
+        ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture = ceilingMaskTex;
+        SetTextureFilter(ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture, TEXTURE_FILTER_POINT);
+        SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture, TEXTURE_WRAP_CLAMP);
+
+        SetGridBounds(cs.grid);
+
+        cs.gridSize = { (float)dungeonWidth, (float)dungeonHeight };
+        cs.tiling   = { (float)dungeonWidth * 0.5f, (float)dungeonHeight * 0.5f };
+
+        float dynStrength  = lightConfig.dynStrength;
+        float ambientBoost = lightConfig.ambient;
+
+        if (cs.loc_grid >= 0)
+            SetShaderValue(sh, cs.loc_grid, cs.grid, SHADER_UNIFORM_VEC4);
+
+        if (cs.loc_dynStr >= 0)
+            SetShaderValue(sh, cs.loc_dynStr, &dynStrength, SHADER_UNIFORM_FLOAT);
+
+        if (cs.loc_amb >= 0)
+            SetShaderValue(sh, cs.loc_amb, &ambientBoost, SHADER_UNIFORM_FLOAT);
+
+        if (cs.loc_gridSize >= 0)
+            SetShaderValue(sh, cs.loc_gridSize, &cs.gridSize, SHADER_UNIFORM_VEC2);
+
+        if (cs.loc_tiling >= 0)
+            SetShaderValue(sh, cs.loc_tiling, &cs.tiling, SHADER_UNIFORM_VEC2);
+
+    }
+
+    //Ghost raft
+    static void CacheGhostLocations(GhostShader& gs)
+    {
+        assert(gs.shader && "Ghost.shader must be set");
+
+        Shader& sh = *gs.shader;
+
+        gs.loc_viewPos     = GetShaderLocation(sh, "viewPos");
+        gs.loc_baseAlpha   = GetShaderLocation(sh, "baseAlpha");
+        gs.loc_ghostColor  = GetShaderLocation(sh, "ghostColor");
+        gs.loc_rimPower    = GetShaderLocation(sh, "rimPower");
+        gs.loc_rimStrength = GetShaderLocation(sh, "rimStrength");
+        gs.loc_darkness    = GetShaderLocation(sh, "nightDarkness");
+    }
+
+    void InitGhostShader(GhostShader& gs)
+    {
+        gs.shader = &R.GetShader("ghostShader");
+        assert(gs.shader && "GhostShader.shader must be set");
+        Model& raftModel = R.GetModel("raft");
+        Shader& sh = *gs.shader;
+
+        for (int i = 0; i < raftModel.materialCount; i++)
+        {
+            raftModel.materials[i].shader = sh;
+        }
+
+        CacheGhostLocations(gs);
+
+        gs.ghostTint = {0.4f, 0.8f, 1.0f}; // spectral blue
+        gs.alpha = 0.35f;
+        gs.rimPow = 2.0f;
+        gs.rimStr = 1.2f;
+        gs.nightDarkness = ShaderSetup::gSky.skyTransition;
+        gs.camPos = CameraSystem::Get().Active().position;
+
+        SetShaderValue(sh, gs.loc_darkness, &gs.nightDarkness, SHADER_UNIFORM_FLOAT);
+
+        SetShaderValue(sh, gs.loc_viewPos, &gs.camPos, SHADER_UNIFORM_VEC3);
+        SetShaderValue(sh, gs.loc_ghostColor, &gs.ghostTint, SHADER_UNIFORM_VEC3);
+        SetShaderValue(sh, gs.loc_baseAlpha, &gs.alpha, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, gs.loc_rimPower, &gs.rimPow, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, gs.loc_rimStrength, &gs.rimStr, SHADER_UNIFORM_FLOAT);
+
+    }
+
+    void UpdateGhostShaderPerFrame(GhostShader& gs){
+        Shader& sh = *gs.shader;
+        gs.nightDarkness = ShaderSetup::gSky.skyTransition;
+        gs.camPos = CameraSystem::Get().Active().position;
+        SetShaderValue(sh, gs.loc_darkness, &gs.nightDarkness, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, gs.loc_viewPos, &gs.camPos, SHADER_UNIFORM_VEC3);
+    }
+
+
 
     //Portal
     static void CachePortalLocations(PortalShader& ps)
@@ -339,22 +534,26 @@ namespace ShaderSetup
         ts.loc_seaLevel = GetShaderLocation(sh, "u_SeaLevel");
         ts.loc_falloff  = GetShaderLocation(sh, "u_FogHeightFalloff");
         ts.loc_alphaCut = GetShaderLocation(sh, "alphaCutoff");
+        ts.loc_useFog   = GetShaderLocation(sh, "u_UseFog");
+        ts.loc_cam      = GetShaderLocation(sh, "cameraPos");
+        ts.loc_darkenss = GetShaderLocation(sh, "u_ModelNightDarkness");
+
     }
 
     void ApplyTreeFogParams(TreeShader& ts)
     {
         assert(ts.shader && "TreeShader not initialized");
         Shader& sh = *ts.shader;
-        float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
-        float fogEnd = GameSettings::treeFogEnd;
+        ts.fogStart = (currentGameState == GameState::Menu) ? GameSettings::treefogStartMenu : GameSettings::treeFogStart;
+        ts.fogEnd = GameSettings::treeFogEnd;
         SetShaderValue(sh, ts.loc_skyTop,   &ts.skyTop,   SHADER_UNIFORM_VEC3);
         SetShaderValue(sh, ts.loc_skyHorz,  &ts.skyHorz,  SHADER_UNIFORM_VEC3);
-        SetShaderValue(sh, ts.loc_fogStart, &fogStart, SHADER_UNIFORM_FLOAT);
-        SetShaderValue(sh, ts.loc_fogEnd,   &fogEnd,   SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_fogStart, &ts.fogStart, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_fogEnd,   &ts.fogEnd,   SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ts.loc_seaLevel, &ts.seaLevel, SHADER_UNIFORM_FLOAT);
         SetShaderValue(sh, ts.loc_falloff,  &ts.falloff,  SHADER_UNIFORM_FLOAT);
-
         SetShaderValue(sh, ts.loc_alphaCut, &ts.alphaCutoff, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(sh, ts.loc_useFog,   &ts.useFog, SHADER_UNIFORM_INT);
     }
 
     void SetTreeAlphaCutoff(TreeShader& ts, float cutoff)
@@ -471,15 +670,21 @@ namespace ShaderSetup
     }
 
     void UpdateTreeShader(TreeShader& ts,  Camera& camera){
+        Shader& treeShader = R.GetShader("treeShader");
         Vector3 camPos = camera.position;
-        float fogStart = (currentGameState == GameState::Menu) ? 10000 : 100;
         
-        int locCam_Trees   = GetShaderLocation(R.GetShader("treeShader"),   "cameraPos");
-        int fogLoc = GetShaderLocation(R.GetShader("treeShader"), "u_FogStart");
-        Vector3 fogColor =  GetCurrentSkyFogColor();
-        SetShaderValue(R.GetShader("treeShader"), ts.loc_skyHorz, &fogColor, SHADER_UNIFORM_VEC3);
-        SetShaderValue(R.GetShader("treeShader"),   locCam_Trees,   &camPos, SHADER_UNIFORM_VEC3);
-        SetShaderValue(R.GetShader("treeShader"), fogLoc, &fogStart, SHADER_UNIFORM_FLOAT);
+        ts.useFog = GameSettings::useFog;
+        ts.nightDarkness = ShaderSetup::gSky.skyTransition;
+        ts.skyHorz = ShaderSetup::GetCurrentSkyFogColor();
+        ts.skyTop  = ShaderSetup::GetCurrentSkyTopFogColor();
+
+        SetShaderValue(treeShader,   ts.loc_cam,   &camPos, SHADER_UNIFORM_VEC3);
+        SetShaderValue(treeShader, ts.loc_useFog, &ts.useFog, SHADER_UNIFORM_INT);
+        SetShaderValue(treeShader, ts.loc_darkenss, &ts.nightDarkness, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(treeShader, ts.loc_skyHorz, &ts.skyHorz, SHADER_UNIFORM_VEC3);
+        SetShaderValue(treeShader, ts.loc_skyTop, &ts.skyTop, SHADER_UNIFORM_VEC3);
+
+ 
         
     }
 

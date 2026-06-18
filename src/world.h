@@ -167,6 +167,7 @@ void UpdateShadersPerFrame(float deltaTime, float ElapsedTime, Camera& camera);
 void InitNPCs();
 void eraseCharacters();
 void DrawWaterPlane();
+void DrawDungeonWaterPlane();
 void ActivatePowerUp();
 bool HasLoadedLevel();
 bool CurrentLevelIs(const std::string& name);

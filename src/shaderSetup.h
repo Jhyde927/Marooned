@@ -18,6 +18,73 @@ namespace ShaderSetup
         ToDay
     };
 
+    struct ShadowShader 
+    {
+        Shader* shader = nullptr;
+
+        int loc_strength = -1;
+
+        float shadowStrength = 0.0f;
+    };
+
+    struct AlphaCutoutShader
+    {
+
+        Shader* shader = nullptr;
+
+        int loc_alphaCutoff = -1;
+
+        float alphaCutoff = 0.0f;;
+    };
+
+    struct CeilingShader 
+    {
+        Shader* shader = nullptr;
+
+        int loc_grid     = -1;
+        int loc_dynStr   = -1;
+        int loc_amb      = -1;
+        int loc_gridSize = -1;
+        int loc_tiling   = -1;
+
+        float grid[4] = {0, 0, 0, 0};
+        float dynStrength  = 0.0f;
+        float ambientBoost = 0.0f;
+
+        Vector2 gridSize = { 0.0f, 0.0f };
+        Vector2 tiling   = { 1.0f, 1.0f };
+
+    };
+
+    struct GhostShader 
+    {
+        Shader* shader = nullptr;
+
+        int loc_viewPos = -1;
+        int loc_ghostColor = -1;
+        int loc_baseAlpha = -1;
+        int loc_rimPower = -1;
+        int loc_rimStrength = -1;
+        int loc_camPos = -1;
+        int loc_darkness = -1;
+            
+
+        Vector3 ghostTint = {0};// = {0.4f, 0.8f, 1.0f}; // spectral blue
+        Vector3 camPos = {0};
+        float alpha = 0.0f;
+        float rimPow = 0.0f;;
+        float rimStr = 0.0f;;
+
+        float nightDarkness = 0.0f;;
+
+
+            // 0.35f;
+            // 2.0f;
+            // 1.2f;
+        // Vector3 ghostTint = {0.4f, 0.8f, 1.0f}; // spectral blue
+
+    };
+
     struct PortalShader
     {
         // Non-owning pointer to the shader stored inside ResourceManager.
@@ -171,6 +238,9 @@ namespace ShaderSetup
         int loc_seaLevel  = -1;
         int loc_falloff   = -1;
         int loc_alphaCut  = -1;
+        int loc_useFog    = -1;
+        int loc_cam       = -1;
+        int loc_darkenss  = -1;
     
 
         // Params you want to store
@@ -180,8 +250,10 @@ namespace ShaderSetup
         float fogEnd    = GameSettings::treeFogEnd;
         float seaLevel  = 400.0f;
         float falloff   = 0.002f;
-
         float alphaCutoff = 0.30f;
+        int useFog = 1;
+        float nightDarkness = 0.0f;
+
     };
 
     struct SkyShader
@@ -240,6 +312,10 @@ namespace ShaderSetup
     extern BloomShader gBloom;
     extern TreeShader gTree;
     extern SkyShader gSky;
+    extern GhostShader gGhost;
+    extern CeilingShader gCeiling;
+    extern AlphaCutoutShader gAlpha;
+    extern ShadowShader gShadow;
 
     //sky shader
     void InitSkyShader(Shader& shader, SkyShader& out, Model& skyModel, bool isDungeon);
@@ -258,6 +334,19 @@ namespace ShaderSetup
     void SetBloomTonemap(BloomShader& bs, bool isDungeon, float islandExposure, float dungeonExposure);
     void SetBloomStrength(BloomShader& bs, float strength);
     void UpdateBloomShaderPerFrame(BloomShader& bs, float dt);
+
+    //enemy shadows
+    void InitShadowShader(ShadowShader& ss);
+
+    //dungeon billboard cutout shader. 
+    void InitAlphaCutout(AlphaCutoutShader& as);
+
+    //Ceiling lighting
+    void InitCeilingShader(CeilingShader& cs); //we need an update for dynamic lights. 
+
+    //Ghost Shader
+    void InitGhostShader(GhostShader& gs);
+    void UpdateGhostShaderPerFrame(GhostShader& gs);
 
     //Portal Shader
     void InitPortalShader(Shader& shader, PortalShader& out);

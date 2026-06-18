@@ -11,6 +11,7 @@ void Raft::Update(float dt)
 
 void Raft::Draw()
 {
+    //positions of the peices 
     const float scale = 100.0f;
 
     //rlDisableBackfaceCulling();

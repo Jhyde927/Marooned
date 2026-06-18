@@ -336,7 +336,7 @@ void VegetationInstanced::SetShaderValues(Camera& camera)
     SetShaderValue(gShader, locSeaLevel, &seaLevel, SHADER_UNIFORM_FLOAT);
     SetShaderValue(gShader, locFogHeightFalloff, &falloff, SHADER_UNIFORM_FLOAT);
 
-    int useFog = 1;
+    int useFog = GameSettings::useFog;
     SetShaderValue(gShader, locUseFog, &useFog, SHADER_UNIFORM_INT);
 
     float nightDarkness = ShaderSetup::gSky.skyTransition;

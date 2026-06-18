@@ -106,6 +106,12 @@ Color LerpColor(Color a, Color b, float t) {
     };
 }
 
+float EaseInOutSmooth(float t)
+{
+    t = Clamp01(t);
+    return t * t * (3.0f - 2.0f * t);
+}
+
 float SmoothTo(float current, float target, float speed, float dt)
 {
     return current + (target - current) * (1.0f - expf(-speed * dt));
@@ -302,4 +308,24 @@ bool IsFacingTarget2D(Vector3 origin, Vector3 forward, Vector3 targetPos, float 
 
     float dot = Vector3DotProduct(forward, to);
     return dot >= minDot;
+}
+
+Vector3 MakeTerrainWaterColor(Vector3 skyTopColor)
+{
+
+    Vector3 oceanBlue = { 0.10f, 0.55f, 1.00f };
+
+    float blueMix = 0.25f; // higher = bluer, lower = more sky-colored
+
+    Vector3 c = {
+        Lerp(skyTopColor.x, oceanBlue.x, blueMix),
+        Lerp(skyTopColor.y, oceanBlue.y, blueMix),
+        Lerp(skyTopColor.z, oceanBlue.z, blueMix)
+    };
+
+    c.x = Clamp(c.x, 0.0f, 1.0f);
+    c.y = Clamp(c.y, 0.0f, 1.0f);
+    c.z = Clamp(c.z, 0.0f, 1.0f);
+
+    return c;
 }

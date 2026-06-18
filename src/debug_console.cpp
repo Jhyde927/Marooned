@@ -280,6 +280,8 @@ namespace DebugConsole
         else if (command == "weapons")
         {
             CommandWeapons();
+        }else if (command == "fog"){
+            CommandFog();
         }
         else if (command == "clear")
         {
@@ -292,10 +294,10 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:");
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",    "Props");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",            "Clear");
-            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "Exit");
-            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",                 "");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog");
+            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "Clear");
+            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "Exit");
             LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",              "");
 
         }
@@ -542,7 +544,10 @@ namespace DebugConsole
     // Placeholder command functions
     // Replace these with real Marooned logic later.
     // ------------------------------------------------------------
-
+    void CommandFog(){
+        Log("Toggle Fog");
+        GameSettings::useFog = !GameSettings::useFog;
+    }
 
 
     void CommandSky(float duration){

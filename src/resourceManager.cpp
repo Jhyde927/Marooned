@@ -383,127 +383,15 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("floorInstancedLightingShader", "assets/shaders/floor_instanced_lighting.vs", "assets/shaders/floor_instanced_lighting.fs");
     R.LoadShader("tree_instanced", "assets/shaders/tree_instanced.vs",     "assets/shaders/tree_instanced.fs");
 
-
-
-
-
 }
 
-Vector3 MakeTerrainWaterColor(Vector3 skyTopColor)
-{
 
-    Vector3 oceanBlue = { 0.10f, 0.55f, 1.00f };
-
-    float blueMix = 0.25f; // higher = bluer, lower = more sky-colored
-
-    Vector3 c = {
-        Lerp(skyTopColor.x, oceanBlue.x, blueMix),
-        Lerp(skyTopColor.y, oceanBlue.y, blueMix),
-        Lerp(skyTopColor.z, oceanBlue.z, blueMix)
-    };
-
-    c.x = Clamp(c.x, 0.0f, 1.0f);
-    c.y = Clamp(c.y, 0.0f, 1.0f);
-    c.z = Clamp(c.z, 0.0f, 1.0f);
-
-    return c;
-}
-
-// void ResourceManager::SetTreeInstancedShaderValues(){
-
-//     Shader& instancedTreeShader = GetShader("tree_instanced");
-
-//     R.GetModel("palmTree").materials[0].shader = instancedTreeShader;
-//     R.GetModel("bush").materials[0].shader = instancedTreeShader;
-
-//     instancedTreeShader.locs[SHADER_LOC_MATRIX_MVP] =
-//         GetShaderLocation(instancedTreeShader, "mvp");
-
-//     instancedTreeShader.locs[SHADER_LOC_MAP_DIFFUSE] =
-//         GetShaderLocation(instancedTreeShader, "texture0");
-
-//     instancedTreeShader.locs[SHADER_LOC_COLOR_DIFFUSE] =
-//         GetShaderLocation(instancedTreeShader, "colDiffuse");
-
-//     int alphaCutoffLoc = GetShaderLocation(instancedTreeShader, "alphaCutoff");
-//     float alphaCutoff = 0.3f;
-//     SetShaderValue(instancedTreeShader, alphaCutoffLoc, &alphaCutoff, SHADER_UNIFORM_FLOAT);
-
-
-// }
-
-
-
-void ResourceManager::SetGhostShaderValues(){
-    Shader& ghostShader = R.GetShader("ghostShader");
-    Model& raftModel    = R.GetModel("raft");
-
-    int viewPosLoc     = GetShaderLocation(ghostShader, "viewPos");
-    int ghostColorLoc  = GetShaderLocation(ghostShader, "ghostColor");
-    int baseAlphaLoc   = GetShaderLocation(ghostShader, "baseAlpha");
-    int rimPowerLoc    = GetShaderLocation(ghostShader, "rimPower");
-    int rimStrengthLoc = GetShaderLocation(ghostShader, "rimStrength");
-
-    //raftModel.materials[0].shader = ghostShader;
-
-    for (int i = 0; i < raftModel.materialCount; i++)
-    {
-        raftModel.materials[i].shader = ghostShader;
-    }
-
-    Vector3 camPos = CameraSystem::Get().Active().position;
-
-    SetShaderValue(ghostShader, viewPosLoc, &camPos, SHADER_UNIFORM_VEC3);
-
-    Vector3 ghostTint = {0.4f, 0.8f, 1.0f}; // spectral blue
-    float alpha = 0.35f;
-    float rimPow = 2.0f;
-    float rimStr = 1.2f;
-
-    SetShaderValue(ghostShader, ghostColorLoc, &ghostTint, SHADER_UNIFORM_VEC3);
-    SetShaderValue(ghostShader, baseAlphaLoc, &alpha, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ghostShader, rimPowerLoc, &rimPow, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ghostShader, rimStrengthLoc, &rimStr, SHADER_UNIFORM_FLOAT);
-
-}
 
 void ResourceManager::SetShaderValues(){
 
-
-    Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
-    // set shaders values
-    Shader& shadowShader = R.GetShader("shadowShader");
-    Shader& cutoutShader = R.GetShader("cutoutShader"); //leaf_cutout.fs isn't for leaves, it's for dungeon sprites. 
-
-    float cut = 0.1f;
-    int cutoutAlphaCutoffLoc = GetShaderLocation(cutoutShader, "alphaCutoff"); //Dungeon alpha cutoff amount. 0.1 for webs. 
-
-
-    SetShaderValue(cutoutShader, cutoutAlphaCutoffLoc, &cut, SHADER_UNIFORM_FLOAT);
-
-    SetGhostShaderValues();
-
-    // Shadow shadows beneath enemies. 
-    Model& shadowQuad = R.GetModel("shadowQuad");
-    shadowQuad.materials[0].shader = shadowShader;
-    SetMaterialTexture(&shadowQuad.materials[0], MATERIAL_MAP_DIFFUSE, R.GetTexture("shadowTex"));
-
-    Model& boltModel = R.GetModel("bolt");
-
-    for (int i = 0; i < boltModel.materialCount; ++i) {
-        Material& mat = boltModel.materials[i];
-
-            // Create an image with white pixels
-        Image whiteImage = GenImageColor(100, 100, WHITE);  // Generates a 100x100 white image 
-
-        // Convert the image to a texture
-        Texture2D whiteTexture = LoadTextureFromImage(whiteImage);
-        Texture2D whiteTex = whiteTexture;
-
-        mat.maps[MATERIAL_MAP_ALBEDO].texture = whiteTex;
-        mat.maps[MATERIAL_MAP_ALBEDO].color   = (Color){ 255, 100, 100, 255 }; // neon cyan
-
-    }
+    ShaderSetup::InitGhostShader(ShaderSetup::gGhost);
+    ShaderSetup::InitAlphaCutout(ShaderSetup::gAlpha);
+    ShaderSetup::InitShadowShader(ShaderSetup::gShadow);
 
 }
 
@@ -517,8 +405,6 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 
     int waterColorLoc = GetShaderLocation(sh, "u_waterColor");
     SetShaderValue(sh, waterColorLoc, &oceanColor, SHADER_UNIFORM_VEC3);
-
-
 
     sh.locs[SHADER_LOC_MAP_ALBEDO]    = GetShaderLocation(sh, "texGrass");
     sh.locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(sh, "texSand");
@@ -578,9 +464,6 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     SetShaderValue(terrainShader, locWorldSizeXZ, &t_worldSizeXZ, SHADER_UNIFORM_VEC2);
 
 
-
-
-
     // --- Fog and sky
     Vector3 skyTop  = ShaderSetup::GetCurrentSkyTopFogColor();
     Vector3 skyHorz = ShaderSetup::GetCurrentSkyFogColor();//{0.60f, 0.80f, 0.95f};
@@ -599,81 +482,18 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
 }
 
 
-void ResourceManager::SetCeilingShaderValues()
-{
-    Shader& ceilingShader = R.GetShader("ceilingShader");
-    Model&  ceilingPlane  = R.GetModel("ceilingPlane");
-
-    // ---- A) Tell raylib how to feed built-ins for this shader ----
-    ceilingShader.locs[SHADER_LOC_MATRIX_MVP]    = GetShaderLocation(ceilingShader, "mvp");
-    ceilingShader.locs[SHADER_LOC_MATRIX_MODEL]  = GetShaderLocation(ceilingShader, "matModel");
-    ceilingShader.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(ceilingShader, "colDiffuse");
-
-    ceilingShader.locs[SHADER_LOC_MAP_DIFFUSE]   = GetShaderLocation(ceilingShader, "texture0");
-    ceilingShader.locs[SHADER_LOC_MAP_EMISSION]  = GetShaderLocation(ceilingShader, "texture4");
-    ceilingShader.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(ceilingShader, "texture3");
-
-    // ---- B) Assign shader to ceiling model ----
-    ceilingPlane.materials[0].shader = ceilingShader;
-
-    // ---- C) Bind textures used by ceiling shader ----
-    // Diffuse (ceiling tiles)
-    ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("ceilingTexture");
-    ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].color   = WHITE;
-    SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture, TEXTURE_WRAP_REPEAT);
-
-    // Emission (dynamic lightmap)
-    ceilingPlane.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
-
-    // Occlusion (void mask)
-    ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture = ceilingMaskTex;
-    SetTextureFilter(ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture, TEXTURE_FILTER_POINT);
-    SetTextureWrap(ceilingPlane.materials[0].maps[MATERIAL_MAP_OCCLUSION].texture, TEXTURE_WRAP_CLAMP);
-
-    // ---- D) Set ceiling shader per-level uniforms ----
-    // IMPORTANT: set these on the shader that is actually used by the material
-    Shader& sh = ceilingPlane.materials[0].shader;
-
-    // Lighting uniforms (same as walls/floor)
-    int locGrid   = GetShaderLocation(sh, "gridBounds");
-    int locDynStr = GetShaderLocation(sh, "dynStrength");
-    int locAmb    = GetShaderLocation(sh, "ambientBoost");
-
-    float grid[4] = {
-        gDynamic.minX, gDynamic.minZ,
-        gDynamic.sizeX ? 1.0f / gDynamic.sizeX : 0.0f,
-        gDynamic.sizeZ ? 1.0f / gDynamic.sizeZ : 0.0f
-    };
-
-    float dynStrength  = lightConfig.dynStrength;
-    float ambientBoost = lightConfig.ambient;
-
-    if (locGrid   >= 0) SetShaderValue(sh, locGrid,   grid,        SHADER_UNIFORM_VEC4);
-    if (locDynStr >= 0) SetShaderValue(sh, locDynStr, &dynStrength,  SHADER_UNIFORM_FLOAT);
-    if (locAmb    >= 0) SetShaderValue(sh, locAmb,    &ambientBoost, SHADER_UNIFORM_FLOAT);
-
-    // Mask snapping grid size (tile resolution)
-    int locGridSize = GetShaderLocation(sh, "u_GridSize");
-    Vector2 gridSize = { (float)dungeonWidth, (float)dungeonHeight };
-    if (locGridSize >= 0) SetShaderValue(sh, locGridSize, &gridSize, SHADER_UNIFORM_VEC2);
-
-    // Visual tiling for ceiling texture (choose your taste)
-    int locTiling = GetShaderLocation(sh, "u_TilingXZ");
-    Vector2 tiling = { (float)dungeonWidth * 0.5f, (float)dungeonHeight * 0.5f };
-    if (locTiling >= 0) SetShaderValue(sh, locTiling, &tiling, SHADER_UNIFORM_VEC2);
-}
-
 void ResourceManager::SetLightingShaderValues()
 {
     Shader& lightingShader = R.GetShader("lightingShader");
+    ShaderSetup::InitCeilingShader(ShaderSetup::gCeiling);
 
     // Tell raylib about emission sampler location (you use texture4)
     lightingShader.locs[SHADER_LOC_MAP_EMISSION] =
         GetShaderLocation(lightingShader, "texture4");
 
     // Assign lighting shader to all dungeon models (except ceiling)
-    Model& floorModel    = R.GetModel("floorTileGray");
-    Model& wallModel     = R.GetModel("wallSegment");
+    // Model& floorModel    = R.GetModel("floorTileGray");
+    // Model& wallModel     = R.GetModel("wallSegment");
     Model& windowModel   = R.GetModel("windowWay");
     Model& doorwayModel  = R.GetModel("doorWayGray");
     Model& launcherModel = R.GetModel("stonePillar");
@@ -698,7 +518,7 @@ void ResourceManager::SetLightingShaderValues()
         cratePile.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = crateTex;
     }
 
-    for (int i = 0; i < wallModel.materialCount;    ++i) wallModel.materials[i].shader    = lightingShader;
+    //for (int i = 0; i < wallModel.materialCount;    ++i) wallModel.materials[i].shader    = lightingShader;
     for (int i = 0; i < windowModel.materialCount;  ++i) windowModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < doorwayModel.materialCount; ++i) doorwayModel.materials[i].shader = lightingShader;
     for (int i = 0; i < launcherModel.materialCount;++i) launcherModel.materials[i].shader= lightingShader;
@@ -723,7 +543,7 @@ void ResourceManager::SetLightingShaderValues()
     };
 
     //setLightmap(floorModel);
-    setLightmap(wallModel);
+    //setLightmap(wallModel);
     setLightmap(windowModel);
     setLightmap(doorwayModel);
     setLightmap(launcherModel);
@@ -740,7 +560,7 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(bonePile);
     setLightmap(candelabra);
     // Per-level uniforms for lighting shader
-    Shader& use = wallModel.materials[0].shader;
+    Shader& use = windowModel.materials[0].shader;
 
 
     int locGrid   = GetShaderLocation(use, "gridBounds");
@@ -760,7 +580,6 @@ void ResourceManager::SetLightingShaderValues()
     if (locDynStr >= 0) SetShaderValue(use, locDynStr, &dynStrength,  SHADER_UNIFORM_FLOAT);
     if (locAmb    >= 0) SetShaderValue(use, locAmb,    &ambientBoost, SHADER_UNIFORM_FLOAT);
 
-    
 
 }
 
@@ -769,48 +588,24 @@ void ResourceManager::SetLightingShaderValues()
 void ResourceManager::UpdateShaders(Camera& camera){
     //SetWaterShaderValues(camera); //update water every frame
     //runs every frame, updates all shaders
-    
-    Vector2 screenResolution = (Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() };
-    Shader& waterShader = R.GetShader("waterShader");
+
     Shader& terrainShader = R.GetShader("terrainShader");
-    Shader& treeShader = R.GetShader("treeShader");
     Vector3 camPos = camera.position;
 
     float t = GetTime();
     int dungeonFlag = isDungeon ? 1 : 0;
-
-    int fogStartLoc = GetShaderLocation(treeShader, "u_FogStart");
-
     //terrain fog locs
     int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
     int tFogStartLoc = GetShaderLocation(terrainShader, "u_FogStart");
-
     int fogColorLoc = GetShaderLocation(terrainShader, "u_SkyColorHorizon");
     int fogColorTopLoc = GetShaderLocation(terrainShader, "u_SkyColorTop");
     int useFogLoc = GetShaderLocation(terrainShader, "u_UseFog");
+    int locCam_Terrain = GetShaderLocation(terrainShader, "cameraPos");
 
-    //tree fog locs
-    int useFogLocT = GetShaderLocation(treeShader, "u_UseFog");
-    int treeFogTopLoc = GetShaderLocation(treeShader, "u_SkyColorTop");
-    int treeFogHorzLoc = GetShaderLocation(treeShader, "u_SkyColorHorizon");
-    int modelNightDarknessLoc = GetShaderLocation(treeShader, "u_ModelNightDarkness");
-    //Move this to ShaderSetup
-
-    float treefogStart = GameSettings::treeFogStart;
     float terrainFogStart = (currentGameState == GameState::Menu) ? GameSettings::terrainFogStartMenu : GameSettings::terrainFogStart;
-
-    SetShaderValue(treeShader, fogStartLoc,&treefogStart, SHADER_UNIFORM_FLOAT);
-    int useFog = 1;//(currentGameState == GameState::Menu) ? 0 : 1; //dont render fog in menu.
-    
-
+    int useFog = GameSettings::useFog;//1;//(currentGameState == GameState::Menu) ? 0 : 1; //dont render fog in menu.
 
     SetShaderValue( terrainShader, useFogLoc, &useFog, SHADER_UNIFORM_INT);
-
-    SetShaderValue(treeShader, useFogLocT, &useFog, SHADER_UNIFORM_INT);
-
-    //dynamic terrain water color
-    Vector3 oceanColor = MakeTerrainWaterColor(ShaderSetup::GetCurrentSkyTopFogColor());
-    int waterColorLoc = GetShaderLocation(terrainShader, "u_waterColor");
 
     //SetShaderValue(R.GetShader("treeShader"), fogStartLoc, &fogStart, SHADER_UNIFORM_FLOAT);
     Vector3 fogColor = ShaderSetup::GetCurrentSkyFogColor();
@@ -818,9 +613,6 @@ void ResourceManager::UpdateShaders(Camera& camera){
     SetShaderValue(terrainShader, fogColorLoc, &fogColor, SHADER_UNIFORM_VEC3); //use current sky color
     SetShaderValue(terrainShader, fogColorTopLoc, &topFogColor, SHADER_UNIFORM_VEC3);
     SetShaderValue(terrainShader, tFogStartLoc, &terrainFogStart, SHADER_UNIFORM_FLOAT);
-
-    SetShaderValue(treeShader, treeFogHorzLoc, &fogColor, SHADER_UNIFORM_VEC3);
-    SetShaderValue(treeShader, treeFogTopLoc, &topFogColor, SHADER_UNIFORM_VEC3);
     //distance based desaturation on terrain needs camera pos
     SetShaderValue(terrainShader, camPosLoc, &camPos, SHADER_UNIFORM_VEC3);
 
@@ -841,11 +633,8 @@ void ResourceManager::UpdateShaders(Camera& camera){
     SetShaderValueTexture(terrainShader, locShadow, gTreeShadowMask.rt.texture);
 
     //distance fog
-    int locCam_Terrain = GetShaderLocation(terrainShader, "cameraPos");
-    float nightDarkness = ShaderSetup::gSky.skyTransition;
-    //float modelNightDarkness = ShaderSetup::gSky.skyTransition;
 
-    SetShaderValue(treeShader, modelNightDarknessLoc, &nightDarkness, SHADER_UNIFORM_FLOAT);
+    float nightDarkness = ShaderSetup::gSky.skyTransition;
 
     SetShaderValue(terrainShader,GetShaderLocation(terrainShader, "u_TerrainNightDarkness"),&nightDarkness,SHADER_UNIFORM_FLOAT);
     SetShaderValue(terrainShader, locCam_Terrain, &camPos, SHADER_UNIFORM_VEC3);

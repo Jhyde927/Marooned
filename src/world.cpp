@@ -122,36 +122,16 @@ using namespace dungeonColors;
 void EnterMenu() {
     bool isShip = CurrentLevelIs("Ship");
     EnableCursor();
-    CinematicDesc cd{};
-    cd.snapOnStart   = true;
-    cd.orbitSpeedDeg = 1.0f;      // very slow
-    cd.height        = 5000.0f;
-    cd.lookSmooth    = 6.0f;
-    cd.posSmooth     = 1.5f;
-    cd.height = 3000.0f;
+    CinematicDesc cd = CameraSystem::Get().MakeEnterMenuCinematic(
+        isDungeon,
+        isShip,
+        dungeonWidth
+    );
 
-    cd.bobHeight = true;
-    cd.bobAmount = 0.0f;
-    cd.bobSpeed = 0.01f;
-
-    if (isDungeon) {
-        // 32 tiles * 200 = 6400. Center is (3200,0,3200)
-        float worldSize = dungeonWidth * tileSize;   // or just 6400.0f if fixed
-        cd.focus  = { worldSize * 0.5f, 0.0f, worldSize * 0.5f };
-        cd.radius = worldSize * 0.7f;                // bigger than half (half=3200)
-        cd.startAngleDeg = isShip ? 90.0 : 180.0f;
-
-    } else {
-        cd.focus  = { 0.0f, 0.0f, 0.0f };            // set to your island center
-        cd.radius = 12000.0f;
-        cd.height = 3000.0f;
-        cd.startAngleDeg = 180.0f;                   // starts on -Z side
-        cd.bobAmount = 2500.0f;
-
-    }
-
-    MainMenu::SetCurrentPreview(gCurrentLevelIndex);
+    ShaderSetup::gBloom.letterboxTarget = 0.0f; //skipping cutscene removes letterbox
     CameraSystem::Get().StartCinematic(cd);
+    MainMenu::SetCurrentPreview(gCurrentLevelIndex);
+
     
 }
 
@@ -175,18 +155,9 @@ void InitMenuLevel(LevelData& level){
     ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
     if (!isDungeon) R.SetTerrainShaderValues();
 
-    CinematicDesc cd;
-    cd.focus = { 0, 0, 0 };        // whatever looks good on your island
-    cd.radius = 12000.0f;
-    cd.height = 3000.0f;
-    cd.orbitSpeedDeg = 2.0f;       // slow
-    cd.posSmooth = 1.5f;
-    cd.lookSmooth = 6.0f;
+   
 
-    cd.bobHeight = true;
-    cd.bobAmount = 2500.0f;
-    cd.bobSpeed = 0.01f;
-    
+    CinematicDesc cd = CameraSystem::Get().MakeStartupMenuCinematic();
     CameraSystem::Get().StartCinematic(cd);
 
     if (!isDungeon) ShaderSetup::StartSkyCycle(
@@ -234,6 +205,7 @@ void UpdateShadersPerFrame(float deltaTime,float ElapsedTime, Camera& camera){
     ShaderSetup::UpdateTreeShader(ShaderSetup::gTree, camera);
     ShaderSetup::UpdateSkyShaderPerFrame(ShaderSetup::gSky, ElapsedTime);
     ShaderSetup::UpdateBloomShaderPerFrame(ShaderSetup::gBloom, deltaTime);
+    ShaderSetup::UpdateGhostShaderPerFrame(ShaderSetup::gGhost);
 }
 
 void StartCutScene(){
@@ -641,7 +613,7 @@ void InitDungeonLights(){
     BuildDynamicLightmapFromFrameLights(frameLights); // build dynamic light map once for good luck.
 
     R.SetLightingShaderValues();
-    R.SetCeilingShaderValues();
+    //R.SetCeilingShaderValues();
 
 }
 
@@ -667,17 +639,31 @@ bool CurrentLevelIs(const std::string& name)
            levels[gCurrentLevelIndex].name == name;
 }
 
-
-void DrawWaterPlane()
-{
+void DrawDungeonWaterPlane(){
     float dungeonWorldWidth  = dungeonWidth  * tileSize;
     float dungeonWorldHeight = dungeonHeight * tileSize;
 
     Vector3 dungeonCenter = {
         dungeonWorldWidth  * 0.5f,
-        -8.0f,
+        -200.0f,
         dungeonWorldHeight * 0.5f
     };
+
+    DrawModel(R.GetModel("waterModel"), dungeonCenter, 1.0f, WHITE);
+
+}
+
+
+void DrawWaterPlane()
+{
+    // float dungeonWorldWidth  = dungeonWidth  * tileSize;
+    // float dungeonWorldHeight = dungeonHeight * tileSize;
+
+    // Vector3 dungeonCenter = {
+    //     dungeonWorldWidth  * 0.5f,
+    //     -8.0f,
+    //     dungeonWorldHeight * 0.5f
+    // };
 
     DrawModel(R.GetModel("waterModel"), Vector3{0}, 1.0f, WHITE);
 }
@@ -690,23 +676,15 @@ void DrawEnemyShadows() {
     rlEnableDepthTest();
     rlDisableDepthMask();
 
-    Shader shadowSh = R.GetShader("shadowShader"); // your quad shadow shader
-    int locStrength = GetShaderLocation(shadowSh, "shadowStrength");
-
-    float enemyStrength = 0.6f;
-    SetShaderValue(shadowSh, locStrength, &enemyStrength, SHADER_UNIFORM_FLOAT);
-
     for (NPC& npc : gNPCs){
         Vector3 groundPos = {npc.position.x, npc.GetFeetPosY() + 1.0f, npc.position.z};
-        // Vector3 floorPos = {npc.position.x, floorHeight + 10.0f, npc.position.z};
-        // Vector3 currentPos = isDungeon ? floorPos : groundPos;
+
         DrawModelEx(shadowModel, groundPos, {0,1,0}, 0.0f, {100,100,100}, BLACK);
 
     }
 
     for (Character& enemy : enemies) {
         if (enemy.type == CharacterType::Bat) continue; //dont draw shadows for bats
-
 
         Vector3 groundPos;
         if (isDungeon) {
@@ -746,7 +724,7 @@ void HandleWaves(Camera& camera){
     //water
     // update position (keep your existing waterModel)
     Vector3 waterCenter = {0.0f, waterHeightY, 0.0f};
-    Matrix xform = MatrixTranslate(waterCenter.x, waterCenter.y + sinf(GetTime()*0.9f)*0.9f, waterCenter.z);
+    Matrix xform = MatrixTranslate(waterCenter.x, waterCenter.y + sinf(GetTime()*0.5f)*10.9f, waterCenter.z);
     R.GetModel("waterModel").transform = xform;
 
 

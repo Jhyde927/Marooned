@@ -135,38 +135,40 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         ClearBackground(SKYBLUE);
         float farClip = isDungeon ? 50000.0f : 100000.0f;
         float nearclip = 30.0f;
-
+        HandleWaves(camera); //update water plane bob.
         CameraSystem::Get().BeginCustom3D(camera, nearclip, farClip);
-
+ 
         //skybox
         rlDisableBackfaceCulling(); rlDisableDepthMask(); rlDisableDepthTest();
         DrawModel(R.GetModel("skyModel"), camera.position, 10000.0f, WHITE);
         rlEnableDepthMask(); 
         rlEnableDepthTest();
         BeginBlendMode(BLEND_ALPHA);
+        
 
         if (!isDungeon) {
 
             //float maxDrawDist = 15000.0f; //lowest it can be before terrain popping in is noticable. 
 
-            DrawTerrainGrid(terrain, camera, GameSettings::maxDrawDist); //draw the chunks
+            DrawTerrainGrid(terrain, camera, GameSettings::maxDrawDist);
 
-            HandleWaves(camera); //update water plane bob. 
-
-
-            rlEnableDepthTest();
-            rlDisableDepthMask();         // don’t write depth for transparent water
-            DrawModel(R.GetModel("waterModel"), {0,0,0}, 1.0f, WHITE); // shader colors the water, different water plane than ship level
-  
-            rlEnableDepthMask();
-        
             DrawBoat(player_boat);
-
-            VegetationInstanced::Draw(camera);       
+            VegetationInstanced::Draw(camera);
             DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
             DrawOverworldProps();
-            //draw raft //dont render raft in cutscene
-            if (CurrentLevelIs("MiddleIsland") && !CameraSystem::Get().IsCutsceneActive()) raft.Draw();
+
+            // Water only needs this if it is actually transparent/blended.
+            DrawWaterPlane();
+
+            // Transparent ghost raft LAST-ish
+            if (CurrentLevelIs("MiddleIsland") && !CameraSystem::Get().IsCutsceneActive())
+            {
+                rlEnableDepthTest();
+                rlDisableDepthMask();     // transparent object should not block later stuff
+                raft.Draw();
+                rlEnableDepthMask();
+            }
+                        
 
 
         } else {
@@ -183,7 +185,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             Vector3 squidPos = Vector3{4679, 100, 4695};
 
             if (CurrentLevelIs("Ship")){
-                DrawWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly.
+                DrawDungeonWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly.
                 DrawKraken(camera);
                 //DrawModel(R.GetModel("cannon"), Vector3{2655, 210, 1209}, 25.0f, GRAY);
                 DrawCannons();

@@ -16,7 +16,7 @@ namespace GameSettings
     inline constexpr float minFovY = 30.0f;
     inline constexpr float maxFovY = 80.0f;
 
-    inline float maxDrawDist = 30000.0f;
+    inline float maxDrawDist = 25000.0f;
     inline constexpr float minDrawDist = 5000.0f;
     inline constexpr float maxDrawDistLimit = 50000.0f;
 
@@ -24,11 +24,12 @@ namespace GameSettings
     inline int gTotalDungeonInstanceCount;
 
     //Distant FOG:
+    inline bool useFog = true;
 
     //outdoor props, entrances
-    inline float treefogStartMenu = 16000.0f; //entrances were too heavily fogged. 
-    inline float treeFogStart = 16000.0f;
-    inline float treeFogEnd = 30000.0f;
+    inline float treefogStartMenu = 8000.0f; 
+    inline float treeFogStart = 8000.0f;
+    inline float treeFogEnd = 20000.0f;
 
     //terrain
     inline float terrainFogStartMenu = 9000.0f;

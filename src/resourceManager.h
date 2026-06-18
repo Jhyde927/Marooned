@@ -50,11 +50,6 @@ public:
     void UpdateShaders(Camera& camera);
     void SetLightingShaderValues();
     void SetTerrainShaderValues();
-    void SetCeilingShaderValues();
-    void SetGhostShaderValues();
-    //void SetFloorInstancedLightingShaderValues(FloorInstancing& batch);
-    //void SetTreeInstancedShaderValues();
-
 
     // Clean-up
     void UnloadAll();

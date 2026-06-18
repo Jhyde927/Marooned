@@ -79,8 +79,6 @@ struct CameraRig {
 
 struct CinematicDesc {
     Vector3 focus{0,0,0};        // what we look at / orbit around
-    // float radius = 5000.0f;
-    // float height = 2000.0f;
 
     float radius = 10000.0f;
     float height = 4000.0f;
@@ -134,6 +132,9 @@ public:
     void SetCinematicFocus(const Vector3& p);         // optional runtime tweak
 
     void StartDeathCam(float dungeonFloorY, float terrainFloorY);
+
+    CinematicDesc MakeStartupMenuCinematic();
+    CinematicDesc MakeEnterMenuCinematic(bool isDungeon, bool isShip, int dungeonWidth);
 
     Camera3D& Active();
     const Camera3D& Active() const;

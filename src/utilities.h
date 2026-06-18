@@ -37,6 +37,7 @@ float DirectionToYawDeg(Vector3 dir);
 float DistSq(const Vector3& a, const Vector3& b);
 float SmoothStep01(float t);
 float SmoothTo(float current, float target, float speed, float dt);
+float EaseInOutSmooth(float t);
 //launchers
 bool IsDirPixel(Color c);
 bool IsTimingPixel(Color c);
@@ -46,3 +47,5 @@ Rectangle FitTextureDest(const Texture2D& tex, int screenW, int screenH, bool co
 bool IsFacingTarget2D(Vector3 origin, Vector3 forward, Vector3 targetPos, float minDot);
 
 Color TintFromDarkness(float darkness, Color base = {255,255,255,255});
+
+Vector3 MakeTerrainWaterColor(Vector3 skyTopColor);
