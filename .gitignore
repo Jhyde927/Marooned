@@ -9,3 +9,6 @@ raylib/
 build/
 /*.tar.gz
 /*.zip
+!dlls/
+!dlls/**
+!dlls/**/*.dll
