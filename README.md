@@ -31,19 +31,25 @@ Install:
 
 #### Build Steps
 1. Clone the repository:
-```bash
+```powershell
 git clone https://github.com/Jhyde927/Marooned.git
 ```
 2. Navigate to the repository:
-```bash
+```powershell
 cd Marooned
 ```
 
 3. Build the project with Make:
-```bash
+```powershell
 make
 ```
 4. Run `Marooned.exe`. The assets folder and all `.dll` files must be in the same folder in which the executable is run. 
+
+
+Or make a build for distribution:
+```powershell
+.\windows_build.bat
+```
 
 ### Linux
 #### Prerequisites

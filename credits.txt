@@ -1,5 +1,5 @@
 Linux support and testing:
-	Alex Morgan Johnson Acerx-AMJ
+	Daniel Vishnevsky Acerx-AMJ
 
 Models:
 

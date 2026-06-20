@@ -6,6 +6,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 cp -r assets Marooned/
 cp build/marooned Marooned/
+cp credits.txt Marooned/
 
 # Copy Linux libraries
 cp /lib/x86_64-linux-gnu/libstdc++.so.6 Marooned/
