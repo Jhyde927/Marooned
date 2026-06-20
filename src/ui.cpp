@@ -677,15 +677,17 @@ void DrawSwordSlash(SlashEffect& slash)
 
     Vector2 head = slash.pos;
 
-    // Tail is down-left from the head
+    float xDir = slash.mirrorX ? -1.0f : 1.0f;
+
+    // Tail direction changes depending on swing direction
     Vector2 tail = {
-        slash.pos.x + slash.length,
+        slash.pos.x + slash.length * xDir,
         slash.pos.y - slash.length * 0.65f
     };
 
-    // Midpoint bends the line into a curve
+    // Bend direction should probably mirror too
     Vector2 mid = {
-        (head.x + tail.x) * 0.5f - slash.arcAmount,
+        (head.x + tail.x) * 0.5f - slash.arcAmount * xDir,
         (head.y + tail.y) * 0.5f - slash.arcAmount
     };
 
@@ -787,6 +789,69 @@ void WeaponBar::Draw(WeaponType activeWeapon) const
         DrawTextureEx(tex, p, 0.0f, scale, WHITE);
     }
 }
+
+
+void SpawnSwordSlashForAttack(SwordAttackType attackType)
+{
+    SlashEffect slash;
+    slash.active = true;
+
+    slash.timer = 0.0f;
+    slash.lifetime = 0.40f;
+
+    slash.length = 650.0f;
+    slash.thickness = 12.0f;
+    slash.arcAmount = 28.0f;
+
+    slash.color = { 255, 255, 255, 100 };
+
+    switch (attackType)
+    {
+        case SwordAttackType::RightSlash:
+        {
+            // Starts right-ish and moves down-left
+            slash.pos = {
+                GetScreenWidth() * 0.60f,
+                GetScreenHeight() * 0.70f
+            };
+
+            slash.velocity = { -260.0f, 180.0f };
+            slash.mirrorX = false;
+        } break;
+
+        case SwordAttackType::LeftSlash:
+        {
+            // Starts left-ish and moves down-right
+            slash.pos = {
+                GetScreenWidth() * 0.50f,
+                GetScreenHeight() * 0.70f
+            };
+
+            slash.velocity = { 260.0f, 180.0f };
+            slash.mirrorX = true;
+
+            // If your slash curve bends the wrong way, flip this too
+            //slash.arcAmount = 28.0f;
+        } break;
+
+        case SwordAttackType::Stab:
+        {
+            // Temporary until you make a stab effect
+            slash.pos = {
+                GetScreenWidth() * 0.50f,
+                GetScreenHeight() * 0.65f
+            };
+
+            slash.velocity = { 0.0f, 120.0f };
+            slash.length = 300.0f;
+            slash.thickness = 10.0f;
+            slash.arcAmount = 0.0f;
+        } break;
+    }
+
+    gSlashEffects.push_back(slash);
+}
+
 
 void DrawUI(){
     //draw player hud and UI elements

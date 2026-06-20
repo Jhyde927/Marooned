@@ -9,8 +9,100 @@
 #include "world.h"
 #include "ui.h"
 
+void MeleeWeapon::Init()
+{
+    //scale = { 1.0f, 1.0f, 1.0f };
+
+    swingTimer = 0.0f;
+    swingDuration = 0.7f;
+    swinging = false;
+
+    hitboxActive = false;
+    hitboxTimer = 0.0f;
+    hitboxDuration = 0.25f;
+
+    hitWindowStart = 0.1f;
+    hitWindowEnd = 0.25f;
+    hitboxTriggered = false;
+
+    blocking = false;
+    blockLerp = 0.0f;
+    blockSpeed = 6.0f;
+
+    // Block pose offsets
+    blockForwardOffset = 50.0f;
+    blockVerticalOffset = -50.0f;
+    blockSideOffset = 0.0f;
+
+    bobbingTime = 0.0f;
+    isMoving = false;
+    bobVertical = 0.0f;
+    bobSide = 0.0f;
+
+    swingAmount = 20.0f;
+    swingOffset = 0.0f;
+
+    verticalSwingOffset = -30.0f;
+    verticalSwingAmount = 60.0f;
+
+    horizontalSwingOffset = 0.0f;
+    horizontalSwingAmount = 20.0f;
+
+    equipDip = 0.0f;
+
+    timeSinceLastSwing = 999.0f;
+
+    forwardOffset = 60.0f;
+    sideOffset = 15.0f;
+    verticalOffset = -45.0f;
+
+    currentAttack = SwordAttackType::RightSlash;
+
+    comboIndex = 0;
+    comboTimer = 0.0f;
+    comboResetTime = 0.75f;
+
+    normalCooldown = 0.75f;
+    comboCooldown = 0.45f;
+
+    attackForwardOffset = 0.0f;
+    attackSideOffset = 20.0f;
+    attackVerticalOffset = -45.0f;
+
+    attackYawDeg = 0.0f;
+    attackRollDeg = 0.0f;
+
+    baseRollDeg = -10.0f; // idle sword tilt around Z
+}
+
+float MeleeWeapon::GetCurrentDamage() const
+{
+    switch (currentAttack)
+    {
+        case SwordAttackType::RightSlash:
+            return 25.0f;
+
+        case SwordAttackType::LeftSlash:
+            return 25.0f;
+
+        case SwordAttackType::Stab:
+            return 50.0f;
+    }
+
+    return 25.0f;
+}
 
 
+SwordAttackType GetComboAttack(int comboIndex)
+{
+    switch (comboIndex)
+    {
+        case 0: return SwordAttackType::RightSlash;
+        case 1: return SwordAttackType::LeftSlash;
+        case 2: return SwordAttackType::Stab;
+        default: return SwordAttackType::RightSlash;
+    }
+}
 
 void Crossbow::FireHarpoon(Camera& camera) {
     if (!hasHarpoon) return;
@@ -202,6 +294,59 @@ void Crossbow::Update(float dt)
     }
 }
 
+void MeleeWeapon::UpdateRightSlashMotion(float t)
+{
+    float speedFactor = 2.0f;  // higher = faster downstroke
+    float tFast = Clamp(t * speedFactor, 0.0f, 1.0f);
+
+    float arc = sinf(tFast * (PI * 0.6f));
+
+    swingOffset = arc * swingAmount;
+
+    // tweak vertical so the sword ends low and forward
+    float halfArc = arc;
+
+    verticalSwingOffset   = -halfArc * verticalSwingAmount * 2.0f;
+    horizontalSwingOffset = -halfArc * horizontalSwingAmount * 3.0f;
+
+    attackForwardOffset = 0.0f;
+    attackSideOffset = 0.0f;
+    attackVerticalOffset = 0.0f;
+
+    attackYawDeg = 0.0f;
+    attackRollDeg = 0.0f;
+
+}
+
+void MeleeWeapon::UpdateLeftSlashMotion(float t)
+{
+    float speedFactor = 1.0f; //2.0
+    float tFast = Clamp(t * speedFactor, 0.0f, 1.0f);
+
+    float arc = sinf(tFast * (PI * 0.6f));
+
+    swingOffset = arc * swingAmount;
+
+    verticalSwingOffset = -arc * verticalSwingAmount * 3.0f;
+
+    // mirrored horizontal sweep
+    horizontalSwingOffset = arc * horizontalSwingAmount * 2.0f;
+
+    // left slash starts more to the left side of screen
+    attackSideOffset = -25.0f;
+
+    // maybe pull it slightly forward so it does not feel buried in the camera
+    attackForwardOffset = 20.0f;
+
+    // maybe raise/lower a touch depending on the model
+    attackVerticalOffset = 0.0f;
+
+    // Y axis was the useful one
+    attackYawDeg = -20.0f;
+    attackRollDeg = 30.0f;
+    
+}
+
 
 void MeleeWeapon::Update(float deltaTime) {
     if (player.activeWeapon != WeaponType::Sword) return;
@@ -212,8 +357,6 @@ void MeleeWeapon::Update(float deltaTime) {
         bobSide = sinf(bobbingTime * 0.5f) * amplitude * 0.5f;
 
     }
-
-
     // Smooth transition into and out of block pose
     if (blocking) {
         blockLerp += deltaTime * blockSpeed;
@@ -222,26 +365,47 @@ void MeleeWeapon::Update(float deltaTime) {
     }
     blockLerp = Clamp(blockLerp, 0.0f, 1.0f);
 
-
+    attackRollDeg = 0.0f;
+    attackYawDeg = 0.0f;
     if (swinging) {
         swingTimer += deltaTime;
 
         float t = swingTimer / swingDuration;
-        float speedFactor = 2.0f;  // higher = faster downstroke
-        float tFast = Clamp(t * speedFactor, 0.0f, 1.0f);
+        t = Clamp(t, 0.0f, 1.0f);
 
-        float arc = sinf(tFast * (PI * 0.6f));
+        switch (currentAttack)
+        {
+            case SwordAttackType::RightSlash:
+                UpdateRightSlashMotion(t);
+                break;
 
-        swingOffset = arc * swingAmount;
+            case SwordAttackType::LeftSlash:
+                UpdateLeftSlashMotion(t);
+                break;
 
-        // tweak vertical so the sword ends low and forward
-        float halfArc = arc; // reuse
-        verticalSwingOffset   = -halfArc * verticalSwingAmount*2;
-        horizontalSwingOffset = -halfArc * horizontalSwingAmount*3;
+            case SwordAttackType::Stab:
+                UpdateRightSlashMotion(t); // temporary
+                break;
+        }
+
+        // float t = swingTimer / swingDuration;
+        // float speedFactor = 2.0f;  // higher = faster downstroke
+        // float tFast = Clamp(t * speedFactor, 0.0f, 1.0f);
+
+        // float arc = sinf(tFast * (PI * 0.6f));
+
+        // swingOffset = arc * swingAmount;
+
+
+        // // tweak vertical so the sword ends low and forward
+        // float halfArc = arc; // reuse
+        // verticalSwingOffset   = -halfArc * verticalSwingAmount*2;
+        // horizontalSwingOffset = -halfArc * horizontalSwingAmount*3;
 
         // Delay turning off swinging until next frame
         if (swingTimer >= swingDuration) {
             swinging = false;
+
         }
 
                 // Hitbox activation window
@@ -251,14 +415,33 @@ void MeleeWeapon::Update(float deltaTime) {
             hitboxTimer = 0.0f;
         }
     } else {
-        const float returnSpeed = 25.0f;
 
-        swingOffset         = Lerp(swingOffset,         0.0f, deltaTime * returnSpeed);
+        //const float returnSpeed = 25.0f;
+        bool comboStillAlive = comboTimer <= comboResetTime && comboIndex > 0;
+        float returnSpeed = comboStillAlive ? 8.0f : 25.0f;
+  
+        swingOffset = Lerp(swingOffset, 0.0f, deltaTime * returnSpeed);
         verticalSwingOffset = Lerp(verticalSwingOffset, 0.0f, deltaTime * returnSpeed);
         horizontalSwingOffset = Lerp(horizontalSwingOffset, 0.0f, deltaTime * returnSpeed);
+
+        attackForwardOffset = Lerp(attackForwardOffset, 0.0f, deltaTime * returnSpeed);
+        attackSideOffset = Lerp(attackSideOffset, 0.0f, deltaTime * returnSpeed);
+        attackVerticalOffset = Lerp(attackVerticalOffset, 0.0f, deltaTime * returnSpeed);
+        attackYawDeg = Lerp(attackYawDeg, 0.0f, deltaTime * returnSpeed);
+        // const float returnSpeed = 25.0f;
+
+        // swingOffset         = Lerp(swingOffset,         0.0f, deltaTime * returnSpeed);
+        // verticalSwingOffset = Lerp(verticalSwingOffset, 0.0f, deltaTime * returnSpeed);
+        // horizontalSwingOffset = Lerp(horizontalSwingOffset, 0.0f, deltaTime * returnSpeed);
     }
 
     timeSinceLastSwing += deltaTime;
+
+    comboTimer += deltaTime;
+
+    if (!swinging && comboTimer > comboResetTime) {
+        comboIndex = 0;
+    }
 
     // Hitbox timing
     if (hitboxActive) {
@@ -429,6 +612,10 @@ void MeleeWeapon::Draw(const Camera& camera) {
     blendedSide += horizontalSwingOffset;
     blendedVertical += verticalSwingOffset + bobVertical;
 
+    blendedForward += attackForwardOffset;
+    blendedSide += attackSideOffset;
+    blendedVertical += attackVerticalOffset;
+
     // 🔹 Apply equip dip (positive = push sword *down*)
     blendedVertical -= equipDip;
 
@@ -439,7 +626,38 @@ void MeleeWeapon::Draw(const Camera& camera) {
     swordPos = Vector3Add(swordPos, Vector3Scale(camRight, blendedSide + bobSide));
     swordPos = Vector3Add(swordPos, Vector3Scale(camUp, blendedVertical));
     Color tint = TintFromDarkness(weaponDarkness);
-    DrawModelEx(model, swordPos, axis, angleDeg, scale, tint);
+
+    Matrix cameraRot = QuaternionToMatrix(q);
+
+    // Permanent idle/model correction
+    Matrix baseRoll = MatrixRotateZ(baseRollDeg * DEG2RAD);
+
+    // Attack-specific rotations
+    Matrix attackYaw = MatrixRotateY(attackYawDeg * DEG2RAD);
+    Matrix attackRoll = MatrixRotateZ(attackRollDeg * DEG2RAD);
+
+    // Combined weapon-local rotation
+    Matrix extraRot = MatrixMultiply(baseRoll, attackYaw);
+    extraRot = MatrixMultiply(attackRoll, extraRot);
+
+    Matrix finalRot = MatrixMultiply(extraRot, cameraRot);
+
+    Quaternion finalQ = QuaternionFromMatrix(finalRot);
+
+    float finalAngle = 2.0f * acosf(finalQ.w);
+    float finalAngleDeg = finalAngle * RAD2DEG;
+    float finalSinTheta = sqrtf(1.0f - finalQ.w * finalQ.w);
+
+    Vector3 finalAxis = (finalSinTheta < 0.001f)
+        ? Vector3{1, 0, 0}
+        : Vector3{
+            finalQ.x / finalSinTheta,
+            finalQ.y / finalSinTheta,
+            finalQ.z / finalSinTheta
+        };
+
+    DrawModelEx(model, swordPos, finalAxis, finalAngleDeg, scale, tint);
+
 }
 
 
@@ -454,13 +672,22 @@ void MeleeWeapon::EndBlock() {
 }
 
 void MeleeWeapon::StartSwing(Camera& camera) {
-    if (timeSinceLastSwing >= cooldown && !blocking) {
+    bool comboStillAlive = comboTimer <= comboResetTime && comboIndex > 0;
+    float requiredCooldown = comboStillAlive ? comboCooldown : normalCooldown;
+
+    if (timeSinceLastSwing >= requiredCooldown && !blocking)  {
         PlaySwipe();
-        //PlayerSwipeDecal(camera); //play animated decal, semi transparent red slash animation on hit
+
+             // Choose which attack this swing is
+        currentAttack = GetComboAttack(comboIndex);
 
         //player swipe with code triggers here. 
         Vector2 basePos = { GetScreenWidth() * 0.60f, GetScreenHeight() * 0.70f };
-        SpawnSwordSlash(basePos);
+        //SpawnSwordSlash(basePos);
+
+        SpawnSwordSlashForAttack(currentAttack);
+        // Reset combo timer because we successfully continued/started the chain
+        comboTimer = 0.0f;
         
         player.attackId++; //for unique id each attack, so eggs are only damaged once. 
         swinging = true;
@@ -470,7 +697,32 @@ void MeleeWeapon::StartSwing(Camera& camera) {
         hitboxActive = false;
         hitboxTimer = 0.0f;
         hitboxTriggered = false;
+
+        // Advance combo for next click
+        comboIndex++;
+
+        if (comboIndex > 1) {
+            comboIndex = 0;
+        }
+
+
+        switch (currentAttack)
+        {
+            case SwordAttackType::RightSlash:
+                TraceLog(LOG_INFO, "Sword combo: RightSlash");
+                break;
+
+            case SwordAttackType::LeftSlash:
+                TraceLog(LOG_INFO, "Sword combo: LeftSlash");
+                break;
+
+            case SwordAttackType::Stab:
+                TraceLog(LOG_INFO, "Sword combo: Stab");
+                break;
+        }
     }
+
+
 }
 
 
@@ -557,6 +809,7 @@ void MagicStaff::StartSwing(Camera& camera) {
     swingOffset = -swingAmount;
     verticalSwingOffset = -verticalSwingAmount;
     horizontalSwingOffset = -horizontalSwingAmount;
+
 }
 
 

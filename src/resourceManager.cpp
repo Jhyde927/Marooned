@@ -310,7 +310,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("doorWayGray",            "assets/Models/doorWayGray.glb");
     R.LoadModel("wallSegment",            "assets/Models/wallSegment.glb");
     R.LoadModel("barrelModel",            "assets/Models/barrel.glb");
-    R.LoadModel("swordModel",             "assets/Models/sword.glb");
+    R.LoadModel("swordModel",             "assets/Models/sword2.glb");
     R.LoadModel("lampModel",              "assets/Models/lamp.glb");
     R.LoadModel("brokeBarrel",            "assets/Models/brokeBarrel.glb");
     R.LoadModel("chestModel",             "assets/Models/chest.glb");

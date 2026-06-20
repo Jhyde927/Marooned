@@ -843,6 +843,7 @@ void InitSword(MeleeWeapon& meleeWeapon){
     meleeWeapon.model = R.GetModel("swordModel");
     meleeWeapon.scale = {2, 2, 2};
     meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean");
+    meleeWeapon.Init();
     
 }
 

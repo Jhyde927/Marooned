@@ -232,7 +232,7 @@ void GenerateDungeonPropsForCurrentLevel()
 {
     //(5975, 220, 4887) //wall banner
     if (CurrentLevelIs("Dungeon1")){
-        Vector3 spawnPos = {6060, floorHeight+200, 5000};
+        Vector3 spawnPos = {6060, floorHeight+215, 4905};
         DungeonProp prop = MakeDefaultProp(DungeonPropType::WallBanner, spawnPos, 90.0f);
         gDungeonProps.push_back(prop);
 

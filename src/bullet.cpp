@@ -465,7 +465,9 @@ void DrawSpiralRope(Vector3 anchor, Vector3 tip, float timeSec)
                                     Vector3Scale(up,    sn * amp));
         p = Vector3Add(p, offset);
 
-        DrawCylinderEx(prev, p, radius, radius, 6, (Color){150,75,30,255});
+        Color ropeColor = {150,75,30,255};
+
+        DrawCylinderEx(prev, p, radius, radius, 6, ropeColor);
         prev = p;
     }
 }

@@ -24,6 +24,8 @@ struct CutsceneDesc {
 
     float duration = 4.0f;
 
+    //30,1 -> 8,1 -> 2,7
+
     // If Arc, this is how high the camera rises in the middle.
     float arcHeight = 1500.0f;
 

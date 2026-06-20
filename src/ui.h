@@ -20,6 +20,8 @@ struct SlashEffect
     float thickness = 12.0f;
     float arcAmount = 28.0f;
 
+    bool mirrorX = false;
+
     Color color = { 255, 90, 90, 255 };
 };
 
@@ -97,6 +99,7 @@ void DrawHUDBars(const Player& player);
 void UpdateHintManager(float deltaTime);
 void SpawnSwordSlash(Vector2 startPos);
 void DrawSwordSlash(SlashEffect& slash);
+void SpawnSwordSlashForAttack(SwordAttackType attackType);
 void UpdateSwordSlash(SlashEffect& slash, float dt);
 void DrawHints();
 void TutorialSetup();

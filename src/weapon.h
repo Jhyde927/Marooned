@@ -2,7 +2,11 @@
 
 #include "raylib.h"
 
-
+enum class SwordAttackType {
+    RightSlash,
+    LeftSlash,
+    Stab
+};
 
 enum class CrossbowState {
     Loaded,
@@ -33,57 +37,67 @@ struct MuzzleFlash {
 };
 
 
-
 struct MeleeWeapon {
     Model model;
     Vector3 scale = { 1.0f, 1.0f, 1.0f };
 
-    float swingTimer = 0.0f;
-    float swingDuration = 0.7f;
-    bool swinging = false;
+    float swingTimer;
+    float swingDuration;
+    bool swinging;
 
-    bool hitboxActive = false;
-    float hitboxTimer = 0.0f;
-    float hitboxDuration = 0.25f; // how long hitbox stays active
+    bool hitboxActive;
+    float hitboxTimer;
+    float hitboxDuration;
 
-    float hitWindowStart = 0.1f;  // seconds into the swing
-    float hitWindowEnd = 0.25f;   // seconds into the swing
-    bool hitboxTriggered = false;
+    float hitWindowStart;
+    float hitWindowEnd;
+    bool hitboxTriggered;
 
-    bool blocking = false;
-    float blockLerp = 0.0f; // 0 → 1 smooth transition
-    float blockSpeed = 6.0f; // how fast it moves to blocking position
+    bool blocking;
+    float blockLerp;
+    float blockSpeed;
 
-    // Block pose offsets
-    float blockForwardOffset = 50.0f;
-    float blockVerticalOffset = -50.0f;
-    float blockSideOffset = 0.0f;
+    float blockForwardOffset;
+    float blockVerticalOffset;
+    float blockSideOffset;
 
-    
-    float bobbingTime = 0.0f;
-    bool isMoving = false; // set this externally based on player movement
-    float bobVertical = 0.0f;
-    float bobSide = 0.0f;
+    float bobbingTime;
+    bool isMoving;
+    float bobVertical;
+    float bobSide;
 
+    float swingAmount;
+    float swingOffset;
 
-    float swingAmount = 20.0f;   // how far forward it jabs or sweeps
-    float swingOffset = 0.0f;    // forward movement
+    float verticalSwingOffset;
+    float verticalSwingAmount;
 
-    float verticalSwingOffset = -30.0f;
-    float verticalSwingAmount = 60.0f; // how far it chops down
+    float horizontalSwingOffset;
+    float horizontalSwingAmount;
 
-    float horizontalSwingOffset = 0.0f;
-    float horizontalSwingAmount = 20.0f; // little lateral arc
+    float attackForwardOffset;
+    float attackSideOffset;
+    float attackVerticalOffset;
+    float attackYawDeg;
 
-    float equipDip = 0.0f; // 0 = normal, positive = pushed down/out of view
+    float equipDip;
 
-    float cooldown = 1.0f;
-    float timeSinceLastSwing = 999.0f;
+    float normalCooldown;
+    float comboCooldown;
+    float comboResetTime;
+    float timeSinceLastSwing;
+    float comboTimer;
+    int comboIndex;
+    SwordAttackType currentAttack;
 
-    float forwardOffset = 60.0f;//default postion
-    float sideOffset = 20.0f; // pull it left of the screen
-    float verticalOffset = -45.0f; //default position
+    float baseRollDeg;
+    float attackRollDeg;
 
+    float forwardOffset;
+    float sideOffset;
+    float verticalOffset;
+
+    void Init();
 
     void StartBlock();
     void EndBlock();
@@ -91,7 +105,91 @@ struct MeleeWeapon {
     void PlaySwipe();
     void Update(float deltaTime);
     void Draw(const Camera& camera);
+
+    void UpdateRightSlashMotion(float t);
+    void UpdateLeftSlashMotion(float t);
+    float GetCurrentDamage() const;
 };
+// struct MeleeWeapon {
+//     Model model;
+//     Vector3 scale = { 1.0f, 1.0f, 1.0f };
+
+//     float swingTimer = 0.0f;
+//     float swingDuration = 0.7f;
+//     bool swinging = false;
+
+//     bool hitboxActive = false;
+//     float hitboxTimer = 0.0f;
+//     float hitboxDuration = 0.25f; // how long hitbox stays active
+
+//     float hitWindowStart = 0.1f;  // seconds into the swing
+//     float hitWindowEnd = 0.25f;   // seconds into the swing
+//     bool hitboxTriggered = false;
+
+//     bool blocking = false;
+//     float blockLerp = 0.0f; // 0 → 1 smooth transition
+//     float blockSpeed = 6.0f; // how fast it moves to blocking position
+
+//     // Block pose offsets
+//     float blockForwardOffset = 50.0f;
+//     float blockVerticalOffset = -50.0f;
+//     float blockSideOffset = 0.0f;
+
+    
+//     float bobbingTime = 0.0f;
+//     bool isMoving = false; // set this externally based on player movement
+//     float bobVertical = 0.0f;
+//     float bobSide = 0.0f;
+
+
+//     float swingAmount = 20.0f;   // how far forward it jabs or sweeps
+//     float swingOffset = 0.0f;    // forward movement
+
+//     float verticalSwingOffset = -30.0f;
+//     float verticalSwingAmount = 60.0f; // how far it chops down
+
+//     float horizontalSwingOffset = 0.0f;
+//     float horizontalSwingAmount = 20.0f; // little lateral arc
+
+//     float equipDip = 0.0f; // 0 = normal, positive = pushed down/out of view
+
+//     float cooldown = 1.0f;
+//     float timeSinceLastSwing = 999.0f;
+
+//     float forwardOffset = 60.0f;//default postion
+//     float sideOffset = 20.0f; // pull it left of the screen
+//     float verticalOffset = -45.0f; //default position
+
+//     SwordAttackType currentAttack = SwordAttackType::RightSlash;
+
+//     int comboIndex = 0;              // 0 = right slash, 1 = left slash, 2 = stab
+//     float comboTimer = 0.0f;         // counts time since last swing
+//     float comboResetTime = 0.75f;    // if player waits longer than this, combo resets
+
+//     float normalCooldown = 0.75f;
+//     float comboCooldown = 0.45f;
+
+//     // swingDuration = 0.7f;
+//     // normalCooldown = 0.75f;
+//     // comboCooldown = 0.42f;
+//     // comboResetTime = 0.75f;
+
+//     float attackForwardOffset = 20.0f;
+//     float attackSideOffset = 0.0f;
+//     float attackVerticalOffset = -30.0f;
+
+//     float attackYawDeg = 0.0f; // since Y rotation seems correct
+
+//     void UpdateRightSlashMotion(float t);
+//     void UpdateLeftSlashMotion(float t);
+//     float GetCurrentDamage() const;
+//     void StartBlock();
+//     void EndBlock();
+//     void StartSwing(Camera& camera);
+//     void PlaySwipe();
+//     void Update(float deltaTime);
+//     void Draw(const Camera& camera);
+// };
 
 
 struct Weapon {
