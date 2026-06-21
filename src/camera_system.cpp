@@ -160,6 +160,8 @@ void CameraSystem::AttachToPlayer(const Vector3& pos, const Vector3& forward) {
 void CameraSystem::SetMode(CamMode m) { mode = m; }
 CamMode CameraSystem::GetMode() const { return mode; }
 
+CameraRig CameraSystem::GetPlayerRig() const {return playerRig;}
+
 void CameraSystem::SetFOV(float fov) {
     playerRig.fov = fov; 
     freeRig.fov   = fov;
@@ -253,8 +255,29 @@ void CameraSystem::UpdateCutsceneCam(float dt)
 
     cinematicRig.cam.position = pos;
 
+    // if (cutscene.lockTarget) {
+    //     cinematicRig.cam.target = cutscene.target;
+    // }
+
     if (cutscene.lockTarget) {
-        cinematicRig.cam.target = cutscene.target;
+        Vector3 desiredTarget = cutscene.target;
+        DebugPrintVector(desiredTarget);
+
+        if (cutscene.mergeToPlayerViewAtEnd) {
+            float mergeT = 0.0f;
+
+            if (cutscene.mergeStartT < 1.0f) {
+                mergeT = (t - cutscene.mergeStartT) / (1.0f - cutscene.mergeStartT);
+                mergeT = Clamp01(mergeT);
+            }
+
+            mergeT = mergeT * mergeT * (3.0f - 2.0f * mergeT);
+
+            cinematicRig.cam.position = Vector3Lerp(pos, cutscene.endPos, mergeT);
+            desiredTarget = Vector3Lerp(cutscene.target, cutscene.endTarget, mergeT);
+        }
+
+        cinematicRig.cam.target = desiredTarget;
     }
 
     cinematicRig.cam.up = { 0, 1, 0 };
@@ -270,6 +293,31 @@ void CameraSystem::UpdateCutsceneCam(float dt)
             SetMode(CamMode::Player);
         }
     }
+}
+
+void CameraSystem::GetPlayerCameraPose(Vector3& outPos, Vector3& outTarget) const
+{
+    Vector3 basePos = pv.onBoard
+        ? Vector3Add(pv.boatPos, Vector3{0, 200.0f, 0})
+        : pv.position;
+
+    if (player.isSwimming && !pv.onBoard) {
+        basePos.y -= 40.0f;
+    }
+
+    float yawRad   = DEG2RAD * pv.yawDeg;
+    float pitchRad = DEG2RAD * pv.pitchDeg;
+
+    Vector3 forward = {
+        cosf(pitchRad) * sinf(yawRad),
+        sinf(pitchRad),
+        cosf(pitchRad) * cosf(yawRad)
+    };
+
+    forward = Vector3Normalize(forward);
+
+    outPos = basePos;
+    outTarget = Vector3Add(basePos, Vector3Scale(forward, 1000.0f));
 }
 
 
@@ -317,11 +365,6 @@ void CameraSystem::UpdatePlayerCam(float dt)
     playerRig.yaw   = pv.yawDeg;
     playerRig.pitch = pv.pitchDeg;
 
-    // if (debugInfo){
-    //     SetFarClip(isDungeon ? 100000.0f : 100000.0f);
-    // }else{
-    //     SetFarClip(isDungeon ? 50000.0f : 100000.0f);
-    // }
 }
 
 void CameraSystem::UpdateFreeCam(float dt) {

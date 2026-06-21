@@ -207,6 +207,33 @@ Vector3 DirFromYawDeg(float yawDeg) {
     return { sinf(r), 0.0f, cosf(r) }; // 0° -> +Z, 90° -> +X
 }
 
+Vector3 GetForwardFromYawPitch(float yawDeg, float pitchDeg)
+{
+    float yawRad   = DEG2RAD * yawDeg;
+    float pitchRad = DEG2RAD * pitchDeg;
+
+    Vector3 forward = {
+        cosf(pitchRad) * sinf(yawRad),
+        sinf(pitchRad),
+        cosf(pitchRad) * cosf(yawRad)
+    };
+
+    return Vector3Normalize(forward);
+}
+
+
+
+Vector3 GetForwardFromYaw(float yawRadians)
+{
+    Vector3 forward = {
+        sinf(yawRadians),
+        0.0f,
+        cosf(yawRadians)
+    };
+
+    return Vector3Normalize(forward);
+}
+
 float DirectionToYawDeg(Vector3 dir)
 {
     dir.y = 0.0f;

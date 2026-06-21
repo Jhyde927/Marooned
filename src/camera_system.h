@@ -39,6 +39,15 @@ struct CutsceneDesc {
 
     // Auto return to player camera when finished.
     bool returnToPlayerOnFinish = true;
+
+    // New: near the end, blend camera.target to match player camera.
+    bool mergeToPlayerViewAtEnd = false;
+
+    // Last chunk of the cutscene used for the merge.
+    // Example: 0.25 means final 25 percent of the cutscene.
+    float mergeStartT = 0.75f;
+
+    Vector3 endTarget{0,0,0};
 };
 
 struct DeathCamState {
@@ -119,8 +128,11 @@ public:
 
     CamMode GetMode() const;
 
+    CameraRig GetPlayerRig() const;
+
     Vector3 GetCutscenePathPosition(float t) const;
     Vector3 GetOrbitCinematicPosition(float angleDeg) const;
+    void GetPlayerCameraPose(Vector3& outPos, Vector3& outTarget) const;
 
     void SetFOV(float fov);
     void SetFarClip(float farClip);

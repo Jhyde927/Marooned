@@ -21,6 +21,7 @@ struct SlashEffect
     float arcAmount = 28.0f;
 
     bool mirrorX = false;
+    bool verticalLine = false;
 
     Color color = { 255, 90, 90, 255 };
 };

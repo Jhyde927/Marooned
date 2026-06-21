@@ -779,64 +779,7 @@ void UpdateMeleeHitbox(Camera& camera)
         player.meleeVolume.boxes.push_back(box);
     }
 
-    // Add one forgiving close box so face-hugging webs/barrels/enemies still get hit.
-    // {
-    //     Vector3 center = Vector3Add(player.position, Vector3Scale(forward, closeRange));
-    //     center.y += 20.0f;
-
-    //     Vector3 closeBoxSize = { 140.0f, 130.0f, 140.0f };
-
-    //     BoundingBox closeBox;
-    //     closeBox.min = {
-    //         center.x - closeBoxSize.x * 0.5f,
-    //         center.y - closeBoxSize.y * 0.5f,
-    //         center.z - closeBoxSize.z * 0.5f
-    //     };
-
-    //     closeBox.max = {
-    //         center.x + closeBoxSize.x * 0.5f,
-    //         center.y + closeBoxSize.y * 0.5f,
-    //         center.z + closeBoxSize.z * 0.5f
-    //     };
-
-    //     player.meleeVolume.boxes.push_back(closeBox);
-    // }
-
-    // Compatibility: old systems that only check player.meleeHitbox
-    // will at least use the center-ish box.
-    // if (!player.meleeVolume.boxes.empty())
-    // {
-    //     player.meleeHitbox = player.meleeVolume.boxes[player.meleeVolume.boxes.size() / 2];
-    // }
 }
-
-// void UpdateMeleeHitbox(Camera& camera){
-//     if (meleeWeapon.hitboxActive || magicStaff.hitboxActive) {
-//         Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-//         //Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, { 0, 1, 0 }));
-
-//         Vector3 hitboxCenter = Vector3Add(player.position, Vector3Scale(forward, 200.0f));
-//         hitboxCenter.y += 0.0f; 
-
-//         Vector3 boxSize = {100.0f, 100.0f, 100.0f};
-
-//         Vector3 min = {
-//             hitboxCenter.x - boxSize.x * 0.5f,
-//             hitboxCenter.y - boxSize.y * 0.5f,
-//             hitboxCenter.z - boxSize.z * 0.5f
-//         };
-//         Vector3 max = {
-//             hitboxCenter.x + boxSize.x * 0.5f,
-//             hitboxCenter.y + boxSize.y * 0.5f,
-//             hitboxCenter.z + boxSize.z * 0.5f
-//         };
-
-//         player.meleeHitbox = { min, max };
-//     } else {
-//         // Collapse the hitbox to prevent accidental damage
-//         player.meleeHitbox = { player.position, player.position };
-//     }
-// }
 
 void InitSword(MeleeWeapon& meleeWeapon){
     //init sword
@@ -1445,6 +1388,8 @@ void DrawPlayer(const Player& player, Camera& camera) {
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
         DrawBoundingBox(player.GetBoundingBox(), RED);
+        DrawMeleeVolumeDebug(player.meleeVolume);
+
 
     }
 
@@ -1485,6 +1430,8 @@ void DrawPlayer(const Player& player, Camera& camera) {
 
     //DrawMeleeVolumeDebug(player.meleeVolume);
     //DrawBoundingBox(player.meleeHitbox, WHITE);
+
+    DrawMeleeVolumeDebug(player.meleeVolume);
  
 
 

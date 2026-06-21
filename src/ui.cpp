@@ -677,19 +677,37 @@ void DrawSwordSlash(SlashEffect& slash)
 
     Vector2 head = slash.pos;
 
-    float xDir = slash.mirrorX ? -1.0f : 1.0f;
+    Vector2 tail;
+    Vector2 mid;
 
-    // Tail direction changes depending on swing direction
-    Vector2 tail = {
-        slash.pos.x + slash.length * xDir,
-        slash.pos.y - slash.length * 0.65f
-    };
+    if (slash.verticalLine)
+    {
+        // Straight vertical stab line.
+        // Tail below head, so the bright head appears toward the top.
+        tail = {
+            slash.pos.x,
+            slash.pos.y + slash.length
+        };
 
-    // Bend direction should probably mirror too
-    Vector2 mid = {
-        (head.x + tail.x) * 0.5f - slash.arcAmount * xDir,
-        (head.y + tail.y) * 0.5f - slash.arcAmount
-    };
+        mid = {
+            (head.x + tail.x) * 0.5f,
+            (head.y + tail.y) * 0.5f
+        };
+    }
+    else
+    {
+        float xDir = slash.mirrorX ? -1.0f : 1.0f;
+
+        tail = {
+            slash.pos.x + slash.length * xDir,
+            slash.pos.y - slash.length * 0.65f
+        };
+
+        mid = {
+            (head.x + tail.x) * 0.5f - slash.arcAmount * xDir,
+            (head.y + tail.y) * 0.5f - slash.arcAmount
+        };
+    }
 
     const int segments = 16;
     Vector2 prev = head;
@@ -836,16 +854,18 @@ void SpawnSwordSlashForAttack(SwordAttackType attackType)
 
         case SwordAttackType::Stab:
         {
-            // Temporary until you make a stab effect
             slash.pos = {
-                GetScreenWidth() * 0.50f,
-                GetScreenHeight() * 0.65f
+                GetScreenWidth() * 0.57f,
+                GetScreenHeight() * 0.62f
             };
 
-            slash.velocity = { 0.0f, 120.0f };
-            slash.length = 300.0f;
-            slash.thickness = 10.0f;
+            slash.velocity = { 0.0f, -80.0f };
+
+            slash.length = 100.0f;
+            slash.thickness = 8.0f;
             slash.arcAmount = 0.0f;
+            slash.mirrorX = false;
+            slash.verticalLine = true;
         } break;
     }
 

@@ -80,13 +80,13 @@ float MeleeWeapon::GetCurrentDamage() const
     switch (currentAttack)
     {
         case SwordAttackType::RightSlash:
-            return 25.0f;
+            return 50.0f;
 
         case SwordAttackType::LeftSlash:
-            return 25.0f;
+            return 50.0f;
 
         case SwordAttackType::Stab:
-            return 50.0f;
+            return 100.0f;
     }
 
     return 25.0f;
@@ -347,6 +347,47 @@ void MeleeWeapon::UpdateLeftSlashMotion(float t)
     
 }
 
+void MeleeWeapon::UpdateStabMotion(float t)
+{
+    // t is 0.0 to 1.0 across swingDuration
+
+    float extendEnd = 0.30f;
+    float holdEnd   = 0.80f; // hold from 30% to 60% of the stab
+    float retractT  = 0.0f;
+
+    float jab = 0.0f;
+
+    if (t < extendEnd)
+    {
+        // 0 -> 1 quickly
+        float p = t / extendEnd;
+        jab = sinf(p * PI * 0.5f); // ease out
+    }
+    else if (t < holdEnd)
+    {
+        // stay fully extended
+        jab = 1.0f;
+    }
+    else
+    {
+        // 1 -> 0
+        float p = (t - holdEnd) / (1.0f - holdEnd);
+        jab = 1.0f - p;
+    }
+
+    swingOffset = jab * 75.0f;
+
+    horizontalSwingOffset = 0.0f;
+    verticalSwingOffset = -10.0f;
+
+    attackForwardOffset = 25.0f;
+    attackSideOffset = 0.0f;
+    attackVerticalOffset = -20.0f;
+
+    attackYawDeg = 0.0f;
+    attackRollDeg = 0.0f;
+}
+
 
 void MeleeWeapon::Update(float deltaTime) {
     if (player.activeWeapon != WeaponType::Sword) return;
@@ -384,7 +425,7 @@ void MeleeWeapon::Update(float deltaTime) {
                 break;
 
             case SwordAttackType::Stab:
-                UpdateRightSlashMotion(t); // temporary
+                UpdateStabMotion(t);
                 break;
         }
 
@@ -701,7 +742,7 @@ void MeleeWeapon::StartSwing(Camera& camera) {
         // Advance combo for next click
         comboIndex++;
 
-        if (comboIndex > 1) {
+        if (comboIndex > 2) {
             comboIndex = 0;
         }
 

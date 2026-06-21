@@ -213,31 +213,86 @@ void StartCutScene(){
     CutsceneDesc intro;
     if (CurrentLevelIs("MiddleIsland") && first){ //only show cutscene the first time.
         //hard coded positions
+
+
+
+        Vector3 playerEyePos = player.position;
+        playerEyePos.y += 40.0f; // or whatever your camera/head offset is
+
+        float yawOffset = 20.0f * DEG2RAD;
+        Vector3 playerForward = GetForwardFromYaw(player.startRotationY + yawOffset);
+
+        //Vector3 playerForward = GetForwardFromYaw(player.startRotationY);
+
+        Vector3 playerViewTarget = Vector3Add(
+            playerEyePos,
+            Vector3Scale(playerForward, 10000.0f)
+        );
+
         intro.startPos = { -10845.8, 975.138, 2969.99 };
-        intro.endPos   = player.position;
+        intro.endPos = playerEyePos;
+        intro.endTarget = playerViewTarget;
+
+        //intro.startPos = { (float)dungeonWidth, 975.138f, -(float)dungeonWidth };
+        // intro.endPos   = player.position;//CameraSystem::Get().GetPlayerRig().cam.position;
+
+        // This is what the camera looks at for most of the cutscene.
         intro.target   = { 0.0f, 200.0f, 0.0f };
+        intro.lockTarget = true;
 
         intro.duration = 25.0f;
         intro.arcHeight = 2000.0f;
         intro.pathType = CutscenePathType::Arc;
         intro.returnToPlayerOnFinish = true;
 
+        intro.mergeToPlayerViewAtEnd = true;
+        intro.mergeStartT = 0.5f;
+
         CameraSystem::Get().StartCutscene(intro);
         ShaderSetup::gBloom.letterboxTarget = 0.14f;
+        // intro.endPos   = player.position;
+        // intro.target   = { 0.0f, 200.0f, 0.0f };
+
+        // intro.duration = 25.0f;
+        // intro.arcHeight = 2000.0f;
+        // intro.pathType = CutscenePathType::Arc;
+        // intro.returnToPlayerOnFinish = true;
+
+        // CameraSystem::Get().StartCutscene(intro);
+        // ShaderSetup::gBloom.letterboxTarget = 0.14f;
 
     }else if (CurrentLevelIs("Dungeon1")){
 
         //center
         //Vector3(3460.73, 660.262, 3206.36)
 
-        intro.startPos = { (float)dungeonWidth, 975.138, -(float)dungeonWidth }; //+x -z = opposite corner
-        intro.endPos   = player.position;
-        intro.target   = player.position;//{ 3460.73, 660.262, 3206.36};
+        Vector3 playerEyePos = player.position;
+        playerEyePos.y += 40.0f; // or whatever your camera/head offset is
+
+        float yawOffset = 20.0f * DEG2RAD;
+        Vector3 playerForward = GetForwardFromYaw(player.startRotationY + yawOffset);
+
+        Vector3 playerViewTarget = Vector3Add(
+            playerEyePos,
+            Vector3Scale(playerForward, 10000.0f)
+        );
+
+        intro.endPos = playerEyePos;
+        intro.endTarget = playerViewTarget;
+        intro.startPos = { (float)dungeonWidth, 975.138f, -(float)dungeonWidth };
+        // intro.endPos   = player.position;//CameraSystem::Get().GetPlayerRig().cam.position;
+
+        // This is what the camera looks at for most of the cutscene.
+        intro.target   = player.position;
+        intro.lockTarget = true;
 
         intro.duration = 15.0f;
         intro.arcHeight = 2500.0f;
         intro.pathType = CutscenePathType::Arc;
         intro.returnToPlayerOnFinish = true;
+
+        intro.mergeToPlayerViewAtEnd = true;
+        intro.mergeStartT = 0.5f;
 
         CameraSystem::Get().StartCutscene(intro);
         ShaderSetup::gBloom.letterboxTarget = 0.14f;
@@ -245,8 +300,6 @@ void StartCutScene(){
     }else{
         CameraSystem::Get().SetMode(CamMode::Player);
     }
-
-
 
 }
 

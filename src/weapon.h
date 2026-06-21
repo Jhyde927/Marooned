@@ -108,6 +108,7 @@ struct MeleeWeapon {
 
     void UpdateRightSlashMotion(float t);
     void UpdateLeftSlashMotion(float t);
+    void UpdateStabMotion(float t);
     float GetCurrentDamage() const;
 };
 // struct MeleeWeapon {

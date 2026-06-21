@@ -580,21 +580,26 @@ void HandleMeleeHitboxCollision(Camera& camera) {
 
 
         if (CheckMeleeVolumeCollision(player.meleeVolume, enemy->GetBoundingBox()) && enemy->lastAttackid != player.attackId){
-            if (swordActive || staffActive){
+
+            if (swordActive){
                 meleeWeapon.hitboxActive = false;
-                magicStaff.hitboxActive = false;
-                enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
-                enemy->TakeDamage(50 * qDamage); //staff and sword both do 50. maybe staff should do less. 
-                
+                enemy->lastAttackid = player.attackId;
+                enemy->TakeDamage(meleeWeapon.GetCurrentDamage() * qDamage);
+                SoundManager::GetInstance().Play("swordHit");
+
                 if (enemy->type != CharacterType::Skeleton && enemy->type != CharacterType::Ghost){ //skeles and ghosts dont bleed.  
                     if (enemy->currentHealth <= 0){
                         meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordBloody");
                     } 
                 }
 
-                if (player.activeWeapon == WeaponType::Sword) SoundManager::GetInstance().Play("swordHit");
-                if (player.activeWeapon == WeaponType::MagicStaff) SoundManager::GetInstance().Play("staffHit");
+            }else if (staffActive){
+                magicStaff.hitboxActive = false;
+                enemy->lastAttackid = player.attackId; //only apply damage once per swing. player.attackId is incremented every swing
+                enemy->TakeDamage(50 * qDamage); //staff and sword both do 50. maybe staff should do less.
+                SoundManager::GetInstance().Play("staffHit"); 
             }
+        
 
         }
     }
