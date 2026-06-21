@@ -261,7 +261,6 @@ void CameraSystem::UpdateCutsceneCam(float dt)
 
     if (cutscene.lockTarget) {
         Vector3 desiredTarget = cutscene.target;
-        DebugPrintVector(desiredTarget);
 
         if (cutscene.mergeToPlayerViewAtEnd) {
             float mergeT = 0.0f;

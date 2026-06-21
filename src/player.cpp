@@ -1388,7 +1388,6 @@ void DrawPlayer(const Player& player, Camera& camera) {
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
         DrawBoundingBox(player.GetBoundingBox(), RED);
-        DrawMeleeVolumeDebug(player.meleeVolume);
 
 
     }
@@ -1430,11 +1429,6 @@ void DrawPlayer(const Player& player, Camera& camera) {
 
     //DrawMeleeVolumeDebug(player.meleeVolume);
     //DrawBoundingBox(player.meleeHitbox, WHITE);
-
-    DrawMeleeVolumeDebug(player.meleeVolume);
- 
-
-
 }
 
 
