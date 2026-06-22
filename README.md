@@ -6,8 +6,10 @@
 ### Table of Contents
 - [Features](#features)
 - [Installation](#installation)
-- - [Windows](#windows)
-- - [Linux](#linux)
+- - [Cloning](#cloning)
+- - [CMake](#cmake)
+- - [Make](#make)
+- - [Distribution](#for-distribution)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -22,79 +24,50 @@
 
 ![Gameplay demo](assets/screenshots/demo.gif)
 ## Installation
-### Windows
-#### Prerequisites
-Install:
+### Prerequisites
 - [Git](https://git-scm.com/downloads)
-- [MinGW-w64](https://www.mingw-w64.org/) or another C++ compiler
-- [Raylib 5.5](https://www.raylib.com/)
+- [CMake](https://cmake.org/download/) or [Make](https://gnuwin32.sourceforge.net/packages/make.htm)
+- A C++17 compiler, like [MinGW](https://www.mingw-w64.org/) or [GCC](https://gcc.gnu.org/)
+- [Raylib 5.5](https://www.raylib.com/) (if using Make)
 
-#### Build Steps
-1. Clone the repository:
-```powershell
-git clone https://github.com/Jhyde927/Marooned.git
-```
-2. Navigate to the repository:
-```powershell
-cd Marooned
-```
-
-3. Build the project with Make:
-```powershell
-make
-```
-4. Run `Marooned.exe`. The assets folder and all `.dll` files must be in the same folder in which the executable is run. 
-
-
-Or make a build for distribution:
-```powershell
-.\windows_build.bat
-```
-
-### Linux
-#### Prerequisites
-You must install git, make (or cmake), a c++ compiler and raylib 5.5. Example on Ubuntu-based distributions:
-```bash
-sudo apt update
-sudo apt install git make cmake gcc g++
-sudo apt install build-essential libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev # Required for building raylib
-git clone https://github.com/raysan5/raylib.git
-cd raylib
-mkdir -p build
-cd build
-cmake ..
-make
-sudo make install
-```
-#### Install Steps
-1. Clone the repository:
+### Cloning
 ```bash
 git clone https://github.com/Jhyde927/Marooned.git
-```
-
-2. Navigate to the repository:
-```bash
 cd Marooned
 ```
-
-3. Build the project with Make:
+### CMake
+Raylib is fetched automatically. This way of building is cross-platform.
+```bash
+mkdir build
+cmake -B build
+cmake --build build
+```
+And then run with:
+```bash
+./build/Marooned
+```
+### Make
+For building with Make you must install Raylib yourself. Build with:
 ```bash
 make
 ```
-Or build with CMake:
+And then run with:
 ```bash
-mkdir -p build
-cd build
-cmake ..
-make
+./Marooned
 ```
-4. Run `Marooned` or `build/marooned` depending on how you built. The assets folder and all `.so`/`.a` files (if ran `make install`) must be in the same folder in which the executable is run.
-
-It is also possible to create a full Linux build for distribution by running
+### For Distribution
+For Windows all DLLs are found in dlls/win64/. Package everything with:
+```bash
+./windows_build
+```
+For Linux run:
 ```bash
 ./linux_build.sh
 ```
-
+You might have to run this command beforehand if you get permission errors or an error that the file is not executable. This is a single use command:
+```bash
+chmod +x linux_build.sh
+```
 
 ## Contributing
 Feel free to create PRs or issues. To create a PR:
