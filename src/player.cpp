@@ -1497,7 +1497,7 @@ void DrawPlayer(const Player& player, Camera& camera) {
         }
     }
 
-    DrawMeleeVolumeDebug(player.meleeVolume);
+    //DrawMeleeVolumeDebug(player.meleeVolume);
 
 }
 
