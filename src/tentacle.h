@@ -19,18 +19,14 @@ enum class TentacleState
 class Tentacle
 {
 public:
-
     Tentacle();
 
-    Vector3 undersideOffset;
-    bool playerInRange; 
-    bool isDead;
-    bool canDie;
+    Vector3 undersideOffset{ 0.0f, 0.0f, 0.0f };
+    bool playerInRange = false;
+    bool isDead = false;
+    bool canDie = false;
 
-    // Setup
     void Init(const Vector3& rootPosition, int segmentCount, float segmentLength);
-
-    // Game loop
     void Update(float dt, const Vector3& target, Player& player, std::vector<Character*> pirates);
     void Draw() const;
 
@@ -46,46 +42,39 @@ private:
     void ChangeState(TentacleState newState);
     void UpdateTipHitbox();
     void ResolveTentacleVsShip();
-    //Vector3 FindClosestPirate( const Vector3& tentaclePos, const Vector3& fallbackTarget, const std::vector<Character*>& pirates);
-
 
 private:
-    // Chain data
     std::vector<Vector3> joints;
 
-    Vector3 rootPos;
-    Vector3 surfaceRootPos;
-    Vector3 hiddenRootPos;
-    Vector3 tipTarget;
+    Vector3 rootPos{ 0.0f, 0.0f, 0.0f };
+    Vector3 surfaceRootPos{ 0.0f, 0.0f, 0.0f };
+    Vector3 hiddenRootPos{ 0.0f, 0.0f, 0.0f };
+    Vector3 tipTarget{ 0.0f, 0.0f, 0.0f };
 
     float baseYaw = 0.0f;
 
-    float segmentLength;
-    float totalLength;
+    float segmentLength = 100.0f;
+    float totalLength = 0.0f;
 
-    // State machine
-    TentacleState state;
-    float stateTimer;
+    TentacleState state = TentacleState::Hidden;
+    float stateTimer = 0.0f;
 
-    // Attack target
-    Vector3 attackTarget;
-    Vector3 slamStartTip;
-    Vector3 slamTarget;
+    Vector3 attackTarget{ 3526.0f, 0.0f, 3290.0f };
+    float attackRange = 3000.0f;
+    Vector3 slamStartTip{ 0.0f, 0.0f, 0.0f };
+    Vector3 slamTarget{ 0.0f, 0.0f, 0.0f };
     bool slamTargetLocked = false;
-    float attackRange;
 
-    bool pirateInRange;
+    bool pirateInRange = false;
 
-    //Ermerge
-    int visibleSegments;
-    float emergeStepTimer;
-    float emergeStepDelay;
+    int visibleSegments = 0;
+    float emergeStepTimer = 0.0f;
+    float emergeStepDelay = 0.0f;
 
-    //Collision
-    Vector3 tipHitCenter;
-    float tipHitRadius;
-    float deckHeight;
-    bool tipHitActive;
-    bool canHit;
-    bool slamSoundPlayed;
+    Vector3 tipHitCenter{ 0.0f, 0.0f, 0.0f };
+    float tipHitRadius = 0.0f;
+    float deckHeight = 0.0f;
+    bool tipHitActive = false;
+    bool canHit = false;
+    bool slamSoundPlayed = false;
 };

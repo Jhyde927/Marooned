@@ -5,6 +5,7 @@
 
 void Raft::Update(float dt)
 {
+    (void)dt;
     // Optional future bobbing
     position.y += sin(GetTime()) * 0.1f;
 }
@@ -15,7 +16,7 @@ void Raft::Draw()
     const float scale = 100.0f;
 
     //rlDisableBackfaceCulling();
-    DrawModelEx(R.GetModel("raft"), position, Vector3{0}, 0.0f, Vector3{scale, scale, scale}, WHITE); //draw the ghost raft. 
+    DrawModelEx(R.GetModel("raft"), position, Vector3{0, 0, 0}, 0.0f, Vector3{scale, scale, scale}, WHITE); //draw the ghost raft. 
 
     if (hasBody)
         DrawModel(R.GetModel("raftBody"), position, scale, GRAY); //darken the boards.

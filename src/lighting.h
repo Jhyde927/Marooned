@@ -71,7 +71,7 @@ std::vector<int> GetStaticLightIndices(const Vector3& doorPos);
 // Call this right after a door toggles open/closed.
 // Rebuilds static base lighting only in a local region around the door,
 // using only the affected static lights (by index).
-void OnDoorToggled_RebakeStaticLights(const Vector3& doorWorldPos, const std::vector<int>& affectedStaticLightIndices);
+//void OnDoorToggled_RebakeStaticLights(const Vector3& doorWorldPos, const std::vector<int>& affectedStaticLightIndices);
 
 void SubtileVis2x2(float vis[2][2],
                           const Vector3& lightPos,

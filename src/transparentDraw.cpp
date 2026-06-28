@@ -71,7 +71,9 @@ void GatherGrapplePoint(Camera& camera) {
             1.0f,
             false,
             false,
-            false
+            false,
+            GetPortalPalette(0),
+            0.0f
         });
     }
 }
@@ -552,7 +554,7 @@ void GatherTransparentDrawRequests(Camera& camera, float deltaTime) {
 
 void SetPortalShaderColor(Vector3 colorA, Vector3 colorB){
     Shader& portalShader = R.GetShader("portalShader");
-    int locTint = GetShaderLocation(portalShader, "u_tint");
+    // int locTint = GetShaderLocation(portalShader, "u_tint");
     int locTintStrength = GetShaderLocation(portalShader, "u_tintStrength");
 
     int locColorA = GetShaderLocation(portalShader, "u_colorA");

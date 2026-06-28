@@ -285,6 +285,7 @@ static bool TryTeleportInGroup(
     int groupIndex
 )
 {
+    (void)teleportCooldown;
     if ((int)group.size() < 2)
     {
         return false;
@@ -420,6 +421,7 @@ void PortalSystem::RenderPortalView(void (*drawSceneFunc)(const Camera3D&))
 
 void PortalSystem::DrawDebug(Camera& camera)
 {
+    (void)camera;
     for (const Portal& p : portals)
     {
         DrawCube(p.position, 40.0f, 80.0f, 40.0f, RED);

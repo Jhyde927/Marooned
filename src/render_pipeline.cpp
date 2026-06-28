@@ -25,9 +25,6 @@
 #include "dungeon_props.h"
 
 
-static int lastW = 0;
-static int lastH = 0;
-
 static void EnsureRenderTargetsMatchWindow(RenderTexture2D& rt)
 {
     //resize RenderTextures to match new fullscreen size
@@ -47,7 +44,7 @@ static void EnsureRenderTargetsMatchWindow(RenderTexture2D& rt)
 
 
 
-void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
+void RenderMenuFrame(Camera3D& camera) {
     //Render level background for menu
     RenderTexture2D& sceneTexture = R.GetRenderTexture("sceneTexture");
     //RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
@@ -90,7 +87,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
         rlEnableDepthTest();
         DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
         DrawDungeonPropModels(camera);
-        DrawPowerUps(player, camera, dt);
+        DrawPowerUps(camera);
         DrawDungeonPillars();
         DrawDungeonBarrels();
         DrawLaunchers();
@@ -128,8 +125,7 @@ void RenderMenuFrame(Camera3D& camera, Player& player, float dt) {
 void RenderFrame(Camera3D& camera, Player& player, float dt) {
     //Main Render frame
     RenderTexture2D& sceneTexture = R.GetRenderTexture("sceneTexture");
-    //RenderTexture2D& postTexture = R.GetRenderTexture("postProcessTexture");
-
+    (void)dt; //we may need this later
     EnsureRenderTargetsMatchWindow(sceneTexture);
     // --- 3D scene to sceneTexture ---
     BeginTextureMode(R.GetRenderTexture("sceneTexture"));
@@ -183,7 +179,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             DrawBoxes();
             PortalSystem::UpdatePortalRenderCamera(CameraSystem::Get().Active());
             //PortalSystem::RenderPortalView(DrawSceneForPortalTest);
-            Vector3 squidPos = Vector3{4679, 100, 4695};
 
             if (CurrentLevelIs("Ship")){
                 DrawDungeonWaterPlane(); //draw ship water plane. Ship is dungeon, so we need to draw it separetly.
@@ -203,8 +198,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         DrawPlayer(player, camera);
         DrawEnemyShadows();
         DrawBullets(camera);
-        DrawCollectableWeapons(player, dt);
-        DrawPowerUps(player, camera, dt);
+        DrawCollectableWeapons();
+        DrawPowerUps(camera);
         // transparency last
 
         DrawTransparentDrawRequests(camera);

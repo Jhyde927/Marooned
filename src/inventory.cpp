@@ -77,11 +77,11 @@ void DrawPowerUpTimer(float powerUpTimer, int slotX, int slotY, int slotWidth, i
 }
 
 
-void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey, bool hasSkeletonKey, PowerUpType& type) const {
+void Inventory::DrawInventoryUIWithIcons(const std::map<std::string, Texture2D>& itemTextures, const std::vector<std::string>& slotOrder, int x, int y, int slotSize, bool hasGoldKey, bool hasSilverKey, bool hasSkeletonKey) const {
     int spacing = slotSize + 10;
     auto &font = R.GetFont("Pieces");
     
-    for (int i = 0; i < slotOrder.size(); ++i) {
+    for (size_t i = 0; i < slotOrder.size(); ++i) {
         const std::string& itemId = slotOrder[i];
 
         Rectangle slotRect = { (float)(x + i * spacing), (float)y, (float)slotSize, (float)slotSize };

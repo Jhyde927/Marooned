@@ -12,11 +12,42 @@
       "problemMatcher": "$gcc"
     },
     {
+      "label": "Clean Build with Make",
+      "type": "shell",
+      "command": "C:/msys64/ucrt64/bin/mingw32-make.exe",
+      "args": ["clean", "all"],
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
       "label": "Run Game",
       "type": "shell",
-      "command": "./Marooned.exe",
+      "command": "${workspaceFolder}/Marooned.exe",
       "group": "none",
       "dependsOn": "Build with Make"
     }
   ]
 }
+
+// {
+//   "version": "2.0.0",
+//   "tasks": [
+//     {
+//       "label": "Build with Make",
+//       "type": "shell",
+//       "command": "C:/msys64/ucrt64/bin/mingw32-make.exe",
+//       "group": {
+//         "kind": "build",
+//         "isDefault": true
+//       },
+//       "problemMatcher": "$gcc"
+//     },
+//     {
+//       "label": "Run Game",
+//       "type": "shell",
+//       "command": "./Marooned.exe",
+//       "group": "none",
+//       "dependsOn": "Build with Make"
+//     }
+//   ]
+// }

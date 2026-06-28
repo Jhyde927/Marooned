@@ -401,7 +401,7 @@ void GenerateAutoCornerProps(float baseY)
 {
     if (!isDungeon) return;
 
-    const int spawnChancePercent = 75.0f;
+    //const int spawnChancePercent = 75.0f;
     const float cornerInset = tileSize * 0.6f;
 
     auto IsSolidWall = [&](Color c)

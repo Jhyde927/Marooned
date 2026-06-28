@@ -122,7 +122,7 @@ void Cannon::Fire()
 
     Vector3 muzzlePos = GetMuzzlePosition();
     Vector3 dir = GetForward();
-    Vector3 velocity = Vector3Scale(dir, kCannonballSpeed);
+    //Vector3 velocity = Vector3Scale(dir, kCannonballSpeed);
     Vector3 target = Vector3Add(muzzlePos, Vector3Scale(dir, 200.0f));
 
     FireCannon(muzzlePos, target, 2000.0f, 5.0f, false);

@@ -42,5 +42,5 @@ struct PowerUpPickup {
     bool CheckPickup(Player& player, float pickupRadius = 80.0f);
 };
 
-void DrawPowerUps(Player& player, const Camera3D& camera, float deltaTime);
+void DrawPowerUps(const Camera3D& camera);
 void UpdatePowerUps(Player& player, float deltaTime);

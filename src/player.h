@@ -142,7 +142,7 @@ struct Player {
     float powerUpTimer = 0.0f;
 
     bool infiniteStam = false;
-
+    //
     int currentWeaponIndex = -1; 
     WeaponType activeWeapon = WeaponType::Crossbow;
     WeaponType previousWeapon = WeaponType::Sword;

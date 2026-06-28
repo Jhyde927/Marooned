@@ -18,7 +18,7 @@ InputMode currentInputMode = InputMode::KeyboardMouse;
 
 void ControlPlayerWhileFreeCam(float deltaTime){
     //control player with arrow keys while in free cam. 
-    Vector3 input = {0};
+    Vector3 input = {0, 0, 0};
     if (IsKeyDown(KEY_UP)) input.z += 1;
     if (IsKeyDown(KEY_DOWN)) input.z -= 1;
     if (IsKeyDown(KEY_LEFT)) input.x += 1;
@@ -48,7 +48,7 @@ void ControlPlayerWhileFreeCam(float deltaTime){
 
 void debugControls(Camera& camera, float deltaTime){
     //use console. 
-
+    (void)camera;
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         ControlPlayerWhileFreeCam(deltaTime); //move the player around with the arrow keys while controlling free cam. 
     }
@@ -62,7 +62,7 @@ void debugControls(Camera& camera, float deltaTime){
     }
 }
 
-void HandleMouseLook(float deltaTime)
+void HandleMouseLook()
 {
     Vector2 mouseDelta = GetMouseDelta();
 

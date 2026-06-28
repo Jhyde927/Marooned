@@ -15,7 +15,7 @@ PowerUpPickup::PowerUpPickup(PowerUpType type, Vector3 position, Texture2D textu
     bobTimer = 0.0f;
     spinTimer = 0.0f;
     scaleX = 1.0f;
-    model = { 0 };
+    model = {};
 }
 
 PowerUpPickup::PowerUpPickup(PowerUpType type, Vector3 position, Model model)
@@ -28,7 +28,7 @@ PowerUpPickup::PowerUpPickup(PowerUpType type, Vector3 position, Model model)
     bobTimer = 0.0f;
     spinTimer = 0.0f;
     scaleX = 1.0f;
-    texture = { 0 };
+    texture = {};
 }
 
 Texture2D GetPowerUpTexture(PowerUpType type)
@@ -62,6 +62,7 @@ void PowerUpPickup::Update(float deltaTime)
 
 void PowerUpPickup::Draw(const Camera3D& camera)
 {
+    (void)camera;
     if (isCollected) return;
 
     float bobOffset = std::sin(bobTimer * 2.5f) * 4.0f;
@@ -154,7 +155,7 @@ void UpdatePowerUps(Player& player, float deltaTime)
     }
 }
 
-void DrawPowerUps(Player& player, const Camera3D& camera, float deltaTime)
+void DrawPowerUps(const Camera3D& camera)
 {
     for (auto& powerUp : g_powerUps)
     {

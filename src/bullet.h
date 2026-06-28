@@ -28,30 +28,43 @@ struct BulletLight {
     bool   detached = false;      // became a glow after bullet died
     float  age = 0.0f;
     float  lifeTime = 0.0f;        // e.g. 0.25s
-    Vector3 posWhenDetached{};    // freeze final position
+    Vector3 posWhenDetached = {0, 0, 0};    // freeze final position
 };
 
 
 class Bullet {
 public:
     Bullet(Vector3 position, Vector3 velocity, float lifetime, bool enemy,  BulletType t = BulletType::Default, float radius = 25.0f, bool launcher = false);
-    Emitter fireEmitter;
-    Emitter sparkEmitter;
+
     Vector3 position;
     Vector3 velocity;   // replaces direction and speed
-    bool alive;
-    bool enemy;
-    bool fireball = false;
-    float age;
-    float maxLifetime = 4.0f;
     float lifeTime;
+    bool enemy;
+    BulletType type = BulletType::Default;
+    float radius = 25.0f; //draw radius or collider radius?
+    bool launcher;
+    bool alive;
+    float age;
+    Emitter fireEmitter;
+    Emitter sparkEmitter;
+
+    bool fireball = false;
+    float maxLifetime = 4.0f;
+
     float timeSinceImpact = 0.0f;
-    float timer;
     float gravity = 300.0f;
-    float radius = 25.0f; //draw radius or collider radius? 
+
+    float timer = 0.0f;
+    unsigned int id = 0;
+
+    Vector3 prevPosition = {0.0f, 0.0f, 0.0f};
+    Quaternion rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+
+
     float spinAngle = 0.0f;
     float size = 3.0f;
     bool hermit = false;
+
 
     //Grapple
     bool stuckToGrapple = false;
@@ -60,16 +73,22 @@ public:
     bool exploded = false;
     float timeSinceExploded = 0.0f;
     bool explosionTriggered = false;
-    unsigned int id;            // <-- unique per bullet
+
     bool   stuck = false;
     int    stuckEnemyId = -1;
     Vector3 stuckOffset = {0, 0, 0};   // world-space offset from enemy.position
     bool retracting = false;
     float retractSpeed = 4000.0f; // units/sec tweak
 
+    int curTileX = INT_MIN, curTileY = INT_MIN;
+    float killFloorY = 0;          // Y at which to kill this bullet in the current tile
+    bool tileIsLava = false;              // cached flag for current tile
+
+    float   baseDamage = 15.0f; //10.0f
+    float   initialSpeed = 1.0f;  // set when fired
+
     Vector3 retractTip = {0, 0, 0};     // where the rope tip currently is during retract
 
-    Quaternion rotation;   // NEW
     BulletLight light;
     void Update(Camera& camera, float deltaTime);
     void UpdateMagicBall(Camera& camera, float deltaTime);
@@ -87,22 +106,16 @@ public:
     bool IsDone();
     void Explode(Camera& camera);
     void BulletHole(Camera& camera, bool enemy = false);
-    void HandleBulletWorldCollision(Camera& camera);
+    void HandleBulletWorldCollision();
 
     float ComputeDamage();
     float GetRadius() const { return radius; }
     bool pendingExplosion = false;
     float explosionTimer = 0.0f;
-    bool launcher = false;
-    BulletType type = BulletType::Default;
-    Vector3 GetPosition() const;
-    Vector3 prevPosition;
-    int curTileX = INT_MIN, curTileY = INT_MIN;
-    float killFloorY = 0;          // Y at which to kill this bullet in the current tile
-    bool tileIsLava = false;              // cached flag for current tile
 
-    float   baseDamage = 15.0f; //10.0f
-    float   initialSpeed = 1.0f;  // set when fired
+
+    Vector3 GetPosition() const;
+
 
 
 };

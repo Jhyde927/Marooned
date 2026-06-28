@@ -84,11 +84,12 @@ void CameraSystem::UpdateWaypointCutsceneCam(float dt)
         ShaderSetup::gBloom.letterboxTarget = 0.0f;
         GameSettings::drawMinimap = true; //turn minimap back on after waypoint cutscene.
         
+        if (CurrentLevelIs("Ship")) SpawnManager::cutSceneFinished = true; //kraken cut scene finished. 
 
         if (waypointCutscene.returnToPlayerOnFinish) {
             SnapAllToPlayer();
             SwitchToPlayerCamera();
-            if (CurrentLevelIs("Ship")) gKraken.trigger = true;
+            
             //SetMode(CamMode::Player);
         }
 

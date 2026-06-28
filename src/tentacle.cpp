@@ -10,17 +10,7 @@
 Color krakenPurple = { 60, 25, 70, 255 };
 Color suckerPink = { 170, 90, 140, 255 };
 
-Tentacle::Tentacle()
-    : rootPos{ 0.0f, 0.0f, 0.0f }
-    , tipTarget{ 0.0f, 0.0f, 0.0f }
-    , segmentLength(100.0f)
-    , state(TentacleState::Hidden)
-    , stateTimer(0.0f)
-    , attackTarget{3526.0, 0.0, 3290.0}
-    , attackRange(3000.0f)
-    , playerInRange(false)
-{
-}
+Tentacle::Tentacle() = default;
 
 void Tentacle::SolveChain()
 {
@@ -96,7 +86,7 @@ void Tentacle::ResolveTentacleVsShip()
     if (state == TentacleState::Emerging || state == TentacleState::Withdraw || state == TentacleState::Hidden) return;
 
 
-    int unclampedBaseJoints = 2; // dont clamp the bottom two segments because they are below ship height. 
+    size_t unclampedBaseJoints = 2; // dont clamp the bottom two segments because they are below ship height. 
     for (size_t i = 0; i < joints.size(); i++)
     {
     if (joints[i].y < deckHeight && i > unclampedBaseJoints)

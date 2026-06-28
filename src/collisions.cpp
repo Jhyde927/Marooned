@@ -34,76 +34,17 @@ bool CheckCircleInEntranceDoorColliderXZ(Vector3 p, float radius, const Entrance
            fabsf(localZ) <= c.halfDepth + radius;
 }
 
-static BoundingBox MakeBoxAABBAt(const Box& box, Vector3 pos)
-{
-    float half = 50.0f * box.scale;     // match your UpdateBounds() half-size
-    float h    = 100.0f * box.scale;
+// static BoundingBox MakeBoxAABBAt(const Box& box, Vector3 pos)
+// {
+//     float half = 50.0f * box.scale;     // match your UpdateBounds() half-size
+//     float h    = 100.0f * box.scale;
 
-    BoundingBox bb;
-    bb.min = { pos.x - half, pos.y,       pos.z - half };
-    bb.max = { pos.x + half, pos.y + h,   pos.z + half };
-    return bb;
-}
+//     BoundingBox bb;
+//     bb.min = { pos.x - half, pos.y,       pos.z - half };
+//     bb.max = { pos.x + half, pos.y + h,   pos.z + half };
+//     return bb;
+// }
 
-// Returns a corrected position that does NOT overlap any wall boxes, by clamping along one axis.
-static float ClampAxisAgainstWalls(
-    float startAxis, float desiredAxis,
-    Vector3 basePos,              // position containing the other axes already chosen
-    bool clampX,                  // true: move along X, false: move along Z
-    const Box& box,
-    const std::vector<BoundingBox>& wallBoxes)
-{
-    float outAxis = desiredAxis;
-
-    // Build candidate position with the proposed axis change
-    Vector3 candPos = basePos;
-    if (clampX) candPos.x = outAxis;
-    else        candPos.z = outAxis;
-
-    BoundingBox candBB = MakeBoxAABBAt(box, candPos);
-
-    for (const BoundingBox& w : wallBoxes)
-    {
-        if (!CheckCollisionBoxes(candBB, w)) continue;
-
-        // We collided. Push back to the closest non-penetrating position along that axis.
-        // Determine direction of motion:
-        float delta = desiredAxis - startAxis;
-
-        if (clampX)
-        {
-            if (delta > 0.0f) {
-                // Moving +X: clamp our max.x to wall min.x
-                float half = 50.0f * box.scale;
-                outAxis = w.min.x - half;
-            } else if (delta < 0.0f) {
-                // Moving -X: clamp our min.x to wall max.x
-                float half = 50.0f * box.scale;
-                outAxis = w.max.x + half;
-            }
-        }
-        else
-        {
-            if (delta > 0.0f) {
-                // Moving +Z: clamp our max.z to wall min.z
-                float half = 50.0f * box.scale;
-                outAxis = w.min.z - half;
-            } else if (delta < 0.0f) {
-                // Moving -Z: clamp our min.z to wall max.z
-                float half = 50.0f * box.scale;
-                outAxis = w.max.z + half;
-            }
-        }
-
-        // Update candidate after clamping, and rebuild BB for subsequent walls
-        if (clampX) candPos.x = outAxis;
-        else        candPos.z = outAxis;
-
-        candBB = MakeBoxAABBAt(box, candPos);
-    }
-
-    return outAxis;
-}
 
 
 bool CheckCollisionPointBox(Vector3 point, BoundingBox box) {
@@ -191,7 +132,7 @@ void ResolveCircleEntranceDoorCollision(Vector3& playerPos, float radius, const 
     float pushX = expandedHalfWidth - fabsf(localX);
     float pushZ = expandedHalfDepth - fabsf(localZ);
 
-    Vector3 push = {0};
+    Vector3 push = {0, 0, 0};
 
     if (pushX < pushZ)
     {
@@ -818,7 +759,6 @@ void CheckBulletHits(Camera& camera) {
         for (Character* enemy : enemyPtrs) {
             if (enemy->isDead) continue;
             bool isSkeleton = (enemy->type == CharacterType::Skeleton);
-            bool isGhost = (enemy->type == CharacterType::Ghost);
             bool isZombie = (enemy->type == CharacterType::Zombie);
             if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), b.GetPosition(), b.GetRadius())) {
                 if (!b.IsEnemy() && (b.type == BulletType::Default)) {
@@ -1327,8 +1267,7 @@ void TreeCollision(Camera& camera){
 
 void HandleDoorInteraction(Camera& camera)
 {
-    float dt = GetFrameTime();
-
+    (void)camera;
     const bool interactPressed =
         IsKeyPressed(KEY_E) ||
         (IsGamepadAvailable(0) && IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT));

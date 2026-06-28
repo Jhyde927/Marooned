@@ -9,6 +9,7 @@ namespace SpawnManager
     std::vector<Spawner> spawners;
     bool startSpawning = false;
     bool startCutscene = false;
+    bool cutSceneFinished = false;
     int maxAlive = 4;
     int CountAliveSpawnedByType(CharacterType type)
     {
@@ -41,7 +42,7 @@ namespace SpawnManager
 
 
         //first play the cut scene
-        if (doors[2].isOpen && !startCutscene) //there is a better way.
+        if (doors[3].isOpen && !startCutscene) //there is a better way.
         {
             startCutscene = true;
             StartKrakenScene();
@@ -49,14 +50,15 @@ namespace SpawnManager
 
         }
 
+
         // gKraken.trigger is set by door[2] opening. This gets rid of the anti chamber we had where the player could safely respawn. 
-        if (gKraken.trigger && !startSpawning){  
+        if (cutSceneFinished && !startSpawning){  
             startSpawning = true;
             ShaderSetup::StartSkyTransition(0.95, 30.0f); //30 seconds too long? 
             EventLockAllDoors(true);
-            Vector3 playerPosAfterCutscene = DungeonTileCenter(27, 29, dungeonWidth, dungeonHeight, tileSize, 300.0f);
+            Vector3 playerPosAfterCutscene = Vector3{3585.0f, 220.0f, 3062.0f};
             player.position = playerPosAfterCutscene;
-            player.startPosition = playerPosAfterCutscene; //Vector3{3585.0f, 220.0f, 3062.0f}; //move respawn location to just outside of boss arena. 
+            player.startPosition = playerPosAfterCutscene;//move respawn location to just outside of boss arena. 
             
         } 
 

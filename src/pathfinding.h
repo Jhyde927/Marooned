@@ -16,13 +16,13 @@ bool FindFirstWalkableNeighbor(int tileX, int tileY, Vector2& outTile);
 bool IsSeeThroughForLOS(int x, int y);
 bool IsLavaTile(int x, int y);
 bool CanSeeDoorTile(int x0, int y0, int x1, int y1);
-bool IsTileOccupied(int x, int y, const std::vector<Character*>& skeletons, const Character* self);
+bool IsTileOccupied(int x, int y, const Character* self);
 Character* GetTileOccupier(int x, int y, const std::vector<Character*>& skeletons, const Character* self);
 Vector2 TileToWorldCenter(Vector2 tile);
 bool HasWorldLineOfSight(Vector3 from, Vector3 to, float epsilonFraction = 0.0f, LOSMode mode = LOSMode::AI);
 bool LineOfSightRaycast(Vector2 start, Vector2 end, const Image& dungeonMap, int maxSteps, float epsilon);
 bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int maxSteps, float epsilon);
-bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap);
+bool TileLineOfSight(Vector2 start, Vector2 end);
 Vector2 GetRandomReachableTile(const Vector2& start, const Character* self, int maxAttempts = 100);
 bool TrySetRandomPatrolPath(const Vector2& start, Character* self, std::vector<Vector3>& outPath);
 bool TrySetRetreatPath(const Vector2& startTile, const Vector2& playerTile, Character* self, std::vector<Vector3>& outPath, 
@@ -33,7 +33,7 @@ bool TrySetRetreatPath(const Vector2& startTile, const Vector2& playerTile, Char
     int   maxShrinkSteps      // fallback: shrink distance band a bit
 );
 
-std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath, const Image& dungeonMap);
+std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath);
 std::vector<Vector3> SmoothWorldPath(const std::vector<Vector3>& worldPath);
 std::vector<Vector2> FindPath( std::vector<std::vector<bool>>& grid, Vector2 start, Vector2 goal);
 
@@ -45,5 +45,5 @@ Vector3 FleeXZ(const Vector3& pos, const Vector3& threat, float maxSpeed);
 Vector3 WanderXZ(float& wanderAngle, float wanderTurnRate, float wanderSpeed, float dt);
 
 
-bool StopAtWaterEdge(const Vector3& pos,Vector3& desiredVel, float waterLevel, float dt);
+bool StopAtWaterEdge(const Vector3& pos,Vector3& desiredVel, float waterLevel);
 bool IsWaterAtXZ(float x, float z, float waterLevel);

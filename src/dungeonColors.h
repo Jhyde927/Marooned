@@ -225,7 +225,7 @@ inline bool IsLockedDoorAqua(const Color& c)              { return EqualsRGB(c, 
 inline bool IsKeyGold(const Color& c)                     { return EqualsRGB(c, ColorOf(Code::KeyGold)); }
 inline bool IsHealthPotPink(const Color& c)               { return EqualsRGB(c, ColorOf(Code::HealthPotPink)); }
 inline bool IsLauncherTrapVermillion(const Color& c)      { return EqualsRGB(c, ColorOf(Code::LauncherTrapVermillion)); }
-
+void foo();
 // Name-based lookups (case-insensitive, spaces/underscores/hyphens tolerated)
 std::optional<Code> CodeFromName(std::string_view name);
 std::optional<Color> ColorFromName(std::string_view name);

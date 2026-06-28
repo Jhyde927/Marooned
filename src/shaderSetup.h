@@ -355,7 +355,7 @@ namespace ShaderSetup
     //Lava shader
     void InitLavaShader(Shader& shader, LavaShader& out, Model& lavaTileModel);
     void UpdateLavaShaderPerFrame(LavaShader& ls, float t, bool isLoadingLevel);
-    void UpdatePortalShader(PortalShader& ps, float t);
+    void UpdatePortalShader(float t);
     void UpdateTreeShader(TreeShader& ts, Camera& camera);
     //WaterShader
     void InitWaterShader(Shader& shader, WaterShader& out, Vector3 terrainScale);

@@ -8,9 +8,9 @@
 struct CollectableWeapon {
     WeaponType type; //weaponType used again for collectable weapons
     Vector3 position;
+    Model model;
     float rotationY;
     bool isCollected;
-    Model model;
 
     CollectableWeapon(WeaponType type, Vector3 position, Model model);
     
@@ -19,5 +19,5 @@ struct CollectableWeapon {
     bool CheckPickup(Player& player, float pickupRadius = 80.0f);
 };
 
-void DrawCollectableWeapons(Player& player, float deltaTime);
+void DrawCollectableWeapons();
 void UpdateCollectableWeapons(float deltaTime);

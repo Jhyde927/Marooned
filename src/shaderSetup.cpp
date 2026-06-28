@@ -659,7 +659,7 @@ namespace ShaderSetup
         SetShaderValue(sh, ls.locTime, &t, SHADER_UNIFORM_FLOAT);
     }
 
-    void UpdatePortalShader(PortalShader& ps, float t){
+    void UpdatePortalShader(float t){
         Shader& portalShader = R.GetShader("portalShader");
         int loc_time_p = GetShaderLocation(R.GetShader("portalShader"), "u_time");
         //portal

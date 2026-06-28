@@ -76,7 +76,7 @@ void DrawDebugOverlay(const DebugOverlayInfo& info) {
     Font terminal = R.GetFont("terminal");
 
     const int screenW = GetScreenWidth();
-    const int screenH = GetScreenHeight();
+    //const int screenH = GetScreenHeight();
 
     const float scale = 1.25f;
     const float spacing = 1.0f * scale;

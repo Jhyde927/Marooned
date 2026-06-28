@@ -83,7 +83,7 @@ static int CountOrthogonalNeighborsWithColor(//determine the locktype of the swi
     return count;
 }
 
-BoundingBox MakeSwitchBox(const Vector3& pos, SwitchKind kind, float tileSize, float baseY)
+BoundingBox MakeSwitchBox(const Vector3& pos, SwitchKind kind, float tileSize)
 {
     //Make differently shaped bounding box depending on SwitchKind. 
     BoundingBox b{};
@@ -280,7 +280,7 @@ void GenerateSwitches(float baseY)
             }
 
             // ---- collider shape depends on kind ----
-            st.box = MakeSwitchBox(st.position, st.kind, tileSize, baseY);
+            st.box = MakeSwitchBox(st.position, st.kind, tileSize);
 
             switches.push_back(st);
         }

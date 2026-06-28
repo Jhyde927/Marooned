@@ -95,7 +95,7 @@ void generateVegetation(){
     float minTreeSpacing = isSwamp ? 50 : 50;
 
     float treeHeightThreshold = terrainScale.y * 0.8f;
-    float bushHeightThreshold = terrainScale.y * 0.9f;
+    //float bushHeightThreshold = terrainScale.y * 0.9f;
     heightmapPixels = (unsigned char*)heightmap.data; //for iterating heightmap data for tree placement
     // Generate the trees
     trees = GenerateTrees(heightmap, heightmapPixels, terrainScale, treeSpacing, minTreeSpacing, treeHeightThreshold);

@@ -331,6 +331,7 @@ Vector2 HintManager::MeasureMultiline(const std::string& text, Font font, float 
 }
 
 void HintManager::DrawMultilineText(const std::string& text, Font font, float fontSize, float spacing, Vector2 pos, Color tint, float alphaScale) const {
+    (void)alphaScale;
     std::istringstream ss(text);
     std::string line;
     float y = pos.y;

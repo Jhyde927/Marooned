@@ -132,6 +132,7 @@ void Kraken::Update(float dt, Player& player)
 
 void Kraken::Draw(Camera& camera) const
 {
+    (void)camera;
     if (state == State::Hidden) return; // don't render kraken if he's underwater. 
     if (!modelLoaded || !visible)
         return;
@@ -356,8 +357,8 @@ void Kraken::UpdateIdleMotion(float dt, Player& player)
     bobTime += dt;
     rockTime += dt;
     characterTime += dt;
+    ///
 
-    float bobOffset = 0.0f;
     if (bobEnabled && state == State::Exposed)
     {
         bobOffset = std::sin(bobTime * bobSpeed) * bobAmplitude;

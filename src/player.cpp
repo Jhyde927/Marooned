@@ -111,7 +111,7 @@ void Player::SpawnBoxInHand(Player& player, Vector3 pilePosition){
 
 void UpdateBoxInteraction(Player& player, float deltaTime)
 {
-
+    (void)deltaTime;
     player.showWeapon = player.isCarrying ? false : true;
 
     // 1) Read input ONCE
@@ -422,6 +422,12 @@ void WeaponDip(){
 
         case WeaponType::MagicStaff:
             magicStaff.equipDip = 50;
+            break;
+
+        case WeaponType::None:
+            break;
+
+        case WeaponType::COUNT:
             break;
     }
 }
@@ -737,8 +743,8 @@ void UpdateMeleeHitbox(Camera& camera)
     const int boxCount = 5;
     const int activeWidth = 2;
 
-    const float range = 200.0f;
-    const float arcWidth = 220.0f;
+    // const float range = 200.0f;
+    // const float arcWidth = 220.0f;
 
     const Vector3 boxSize = { 45.0f, 60.0f, 45.0f };
 
@@ -774,6 +780,20 @@ void UpdateMeleeHitbox(Camera& camera)
         player.meleeVolume.boxes.push_back(box);
     };
 
+    auto PushArcBox = [&](int i, float arcRange, float arcWidth)
+    {
+        float t = (float)i / (float)(boxCount - 1);
+        float side = (t * 2.0f) - 1.0f;
+
+        float forwardDist = arcRange - fabsf(side) * 35.0f;
+
+        Vector3 center = player.position;
+        center = Vector3Add(center, Vector3Scale(forward, forwardDist));
+        center = Vector3Add(center, Vector3Scale(right, side * arcWidth * 0.5f));
+
+        PushBox(center);
+    };
+
     switch (meleeWeapon.currentAttack)
     {
         case SwordAttackType::RightSlash:
@@ -781,8 +801,8 @@ void UpdateMeleeHitbox(Camera& camera)
             // Right side toward center: 4 -> 3 -> 2
             const int startIndex = boxCount - 1;
             const int endIndex = boxCount / 2;
-
-            int activeIndex = startIndex - (int)(sweepT * 3.0f);
+            const float slashSweepSteps = 2.0f;
+            int activeIndex = startIndex - (int)(sweepT * slashSweepSteps);
             activeIndex = (int)Clamp((float)activeIndex, (float)endIndex, (float)startIndex);
 
             for (int i = 0; i < boxCount; ++i)
@@ -790,16 +810,8 @@ void UpdateMeleeHitbox(Camera& camera)
                 if (abs(i - activeIndex) > activeWidth - 1)
                     continue;
 
-                float t = (float)i / (float)(boxCount - 1);
-                float side = (t * 2.0f) - 1.0f;
-
-                float forwardDist = range - fabsf(side) * 50.0f;
-
-                Vector3 center = player.position;
-                center = Vector3Add(center, Vector3Scale(forward, forwardDist));
-                center = Vector3Add(center, Vector3Scale(right, side * arcWidth * 0.5f));
-
-                PushBox(center);
+                PushArcBox(i, 200.0f, 220.0f);
+                PushArcBox(i, 105.0f, 150.0f);
             }
         } break;
 
@@ -808,8 +820,8 @@ void UpdateMeleeHitbox(Camera& camera)
             // Left side toward center: 0 -> 1 -> 2
             const int startIndex = 0;
             const int endIndex = boxCount / 2;
-
-            int activeIndex = startIndex + (int)(sweepT * 3.0f);
+            const float slashSweepSteps = 2.0f;
+            int activeIndex = startIndex + (int)(sweepT * slashSweepSteps);
             activeIndex = (int)Clamp((float)activeIndex, (float)startIndex, (float)endIndex);
 
             for (int i = 0; i < boxCount; ++i)
@@ -817,16 +829,8 @@ void UpdateMeleeHitbox(Camera& camera)
                 if (abs(i - activeIndex) > activeWidth - 1)
                     continue;
 
-                float t = (float)i / (float)(boxCount - 1);
-                float side = (t * 2.0f) - 1.0f;
-
-                float forwardDist = range - fabsf(side) * 50.0f;
-
-                Vector3 center = player.position;
-                center = Vector3Add(center, Vector3Scale(forward, forwardDist));
-                center = Vector3Add(center, Vector3Scale(right, side * arcWidth * 0.5f));
-
-                PushBox(center);
+                PushArcBox(i, 200.0f, 220.0f);
+                PushArcBox(i, 105.0f, 150.0f);
             }
         } break;
 
@@ -1045,7 +1049,7 @@ void HandleVignette(Player& player, float deltaTime)
 
 void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     HandleGamepadLook(deltaTime);
-    HandleMouseLook(deltaTime);
+    HandleMouseLook();
     TriggerMonsterDoors();
     UpdateWeapons(deltaTime);
     UpdateBoxInteraction(player, deltaTime);
@@ -1409,6 +1413,9 @@ void DrawWeapons(const Player& player, Camera& camera) {
             case WeaponType::None:
                 // draw nothing
                 break;
+
+            case WeaponType::COUNT:
+                break;
         }
     }
 
@@ -1426,6 +1433,7 @@ void DrawMeleeVolumeDebug(const MeleeHitVolume& volume)
 }
 
 void DrawPlayer(const Player& player, Camera& camera) {
+    (void)camera;
     if (CameraSystem::Get().GetMode() == CamMode::Free){
         DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
         DrawBoundingBox(player.GetBoundingBox(), RED);

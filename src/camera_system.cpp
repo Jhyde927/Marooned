@@ -198,7 +198,6 @@ void CameraSystem::Shake(float mag, float dur) { shakeMag = mag; shakeTime = dur
 void CameraSystem::ApplyShake(float dt) {
     if (shakeTime <= 0.f) return;
     shakeTime -= dt;
-    float t = shakeTime;
     Vector3 jitter = { (GetRandomValue(-100,100)/100.f)*shakeMag,
                        (GetRandomValue(-100,100)/100.f)*shakeMag,
                        (GetRandomValue(-100,100)/100.f)*shakeMag };

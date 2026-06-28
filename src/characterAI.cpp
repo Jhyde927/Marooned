@@ -12,47 +12,35 @@
 void Character::UpdateAI(float deltaTime, Player& player) {
     switch (type) {
         case CharacterType::Raptor:
-            UpdateRaptorAI(deltaTime, player); //distSq check
-
+            UpdateRaptorAI(deltaTime, player); 
             break;
-
         case CharacterType::Pterodactyl:
-            UpdateDactylAI(deltaTime, player); //distsq check
+            UpdateDactylAI(deltaTime, player); 
             break;
-
         case CharacterType::Trex:
-            UpdateTrexAI(deltaTime, player); //distsq check
+            UpdateTrexAI(deltaTime, player); 
             break;
-
         case CharacterType::Zombie:
-            UpdateZombieAI(deltaTime, player);//distsq check
+            UpdateZombieAI(deltaTime, player);
             break;
-
         case CharacterType::Ghost: //ghost, spider, skeleton all use the same AI
         case CharacterType::Spider:
         case CharacterType::Skeleton:
-            UpdateSkeletonAI(deltaTime, player); //distsq check
+            UpdateSkeletonAI(deltaTime, player); 
             break;
-
         case CharacterType::Bat:
-            UpdateBatAI(deltaTime, player);//distsq check
+            UpdateBatAI(deltaTime, player);
             break;
-            
         case CharacterType::Captain:
         case CharacterType::Pirate:
-            UpdatePirateAI(deltaTime, player); //distsq check  
+            UpdatePirateAI(deltaTime, player);  
             break;
-
         case CharacterType::Wizard:
-            UpdateWizardAI(deltaTime, player); //distsq check 
+            UpdateWizardAI(deltaTime, player); 
             break;
-
         case CharacterType::GiantSpider:
-            UpdateGiantSpiderAI(deltaTime, player);//distsq check 
+            UpdateGiantSpiderAI(deltaTime, player);
             break;
-
-
-
     }
 }
 
@@ -260,6 +248,10 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
             break;
         }
 
+        case CharacterState::Reposition: {break;}
+
+        case CharacterState::Patrol: {break;}
+
         case CharacterState::Chase: {
 
             stateTimer += deltaTime;
@@ -305,6 +297,8 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
             }
 
         } break;
+
+        case CharacterState::MeleeAttack: {break;}
 
         case CharacterState::Attack: {
             
@@ -553,6 +547,10 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
         }
 
         
+        case CharacterState::RunAway: {break;}
+
+
+
         case CharacterState::Chase: {
             float attackDistance = 200.0f * 200.0f;
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
@@ -587,6 +585,8 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100, repel);
             }
         } break;
+
+        case CharacterState::MeleeAttack: {break;}
 
         case CharacterState::Attack: {
             //dont stand on the same tile as another skele when attacking
@@ -648,9 +648,6 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
         }
         case CharacterState::Reposition: {
             //surround the player
-
-
-            Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
 
             bool foundSpot = FindRepositionTarget(player, position, target);
@@ -795,7 +792,7 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
 void Character::UpdateZombieAI(float deltaTime, Player& player) {
     float distanceSq = Vector3DistanceSqr(position, player.position);
-    Vector2 start = WorldToImageCoords(position);
+
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateTargeting(deltaTime, player, enemyPtrs);
@@ -834,6 +831,8 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
             break;
         }
+
+        case CharacterState::RunAway: {break;}
 
         case CharacterState::Chase:
         {
@@ -890,6 +889,8 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             }
 
         } break;
+
+        case CharacterState::MeleeAttack:{break;}
 
         case CharacterState::Attack:
         {
@@ -979,7 +980,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
         case CharacterState::Reposition: {
             //surround the player
-            Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
 
             bool foundSpot = FindRepositionTarget(player, position, target);
@@ -1144,7 +1144,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
     float distanceSq = Vector3DistanceSqr(position, player.position);
     float visionEnter = 4000.0f * 4000.0f;
-    Vector2 start = WorldToImageCoords(position);
 
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     if (state != CharacterState::Chase) chaseSoundTimer = 0.0f;
@@ -1179,6 +1178,8 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
             break;
         }
 
+        case CharacterState::RunAway: {break;}
+
         
         case CharacterState::Chase: {
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
@@ -1209,6 +1210,8 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
             }
         } break;
+
+        case CharacterState::MeleeAttack:{break;}
 
         case CharacterState::Attack: {
             //dont stand on the same tile as another skele when attacking
@@ -1280,7 +1283,6 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         case CharacterState::Reposition: {
             //surround the player
 
-            Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
 
             bool foundSpot = FindRepositionTarget(player, position, target);
@@ -1472,11 +1474,15 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
             }
         } break;
 
+        case CharacterState::Harpooned: {break;}
+
         case CharacterState::Patrol:
         {
             UpdatePatrol(deltaTime);
             break;
         }
+
+        case CharacterState::Reposition: {break;}
 
         case CharacterState::Chase:
         {
@@ -1484,6 +1490,8 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
             UpdateChase(deltaTime);
             break;
         }
+
+        case CharacterState::MeleeAttack:{break;}
 
         case CharacterState::Attack:
         {
@@ -1573,12 +1581,10 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
 
     // --- Simple deadbands ---
     float STALK_ENTER = 3000.0f * 3000.0f; //birds can't see player when in free cam. 
-    float VISION_ENTER = 4000.0f * 4000.0f;
-    const float STALK_EXIT    = 3400.0f * 3400.0f;  // drop back to idle 
+
     const float ATTACK_ENTER  = 200.0f * 200.0f;   // start attack if closer than this
     const float ATTACK_EXIT   = 300.0f * 200.0f;   // leave attack if beyond this 
     const float FLEE_ENTER    = 100.0f * 100.0f;   // too close -> run away
-    const float FLEE_EXIT     = 2000.0f * 2000.0f;   // far enough -> stop fleeing
 
 
     switch (state)
@@ -1624,6 +1630,8 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
             break;   
         }
 
+        case CharacterState::Reposition: {break;}
+
         case CharacterState::Chase:
         {
             UpdateMovementAnim();
@@ -1631,6 +1639,7 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
           
         } break;
 
+        case CharacterState::MeleeAttack:{break;}
 
         case CharacterState::Attack:
 
@@ -1791,12 +1800,10 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
     // --- Simple deadbands ---
     const float STALK_ENTER   = 3000.0f * 3000.0f;  // engage if closer than this
-    const float STALK_EXIT    = 3400.0f * 3400.0f;  // drop back to idle 
     const float ATTACK_ENTER  = 200.0f * 200.0f;   // start attack if closer than this
     const float ATTACK_EXIT   = 300.0f * 300.0f;   // leave attack if beyond this 
     const float FLEE_ENTER    = 100.0f * 100.0f;   // too close -> run away
-    const float FLEE_EXIT     = 2000.0f * 2000.0f;   // far enough -> stop fleeing
-    const float VISION_ENTER = 4000.0f * 4000.0f;
+
 
 
     switch (state)
@@ -1831,12 +1838,16 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
             break;   
         }
 
+        case CharacterState::Reposition: {break;}
+
         case CharacterState::Chase:
         {
             UpdateMovementAnim();
             UpdateChase(deltaTime);
           
         } break;
+
+        case CharacterState::MeleeAttack:{break;}
 
 
         case CharacterState::Attack:
@@ -1998,7 +2009,6 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 
     constexpr float VISION_ENTER = 4000.0f * 4000.0f;
     constexpr float WIZARD_ATTACK_ENTER = 1600.0f * 1600.0f; // start attacking when closer than this
-    constexpr float WIZARD_ATTACK_EXIT  = 2500.0f * 2500.0f; // stop attacking when farther than this
     constexpr float WIZARD_MELEE_ENTER  = 250.0f * 250.0f; // stop attacking when farther than this
     Vector2 start = WorldToImageCoords(position);
     //Vector2 goal = WorldToImageCoords(player.position);
@@ -2037,6 +2047,8 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 
             break;
         }
+
+        case CharacterState::RunAway: {break;}
 
         case CharacterState::Chase: {
 
@@ -2198,8 +2210,6 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
         case CharacterState::Reposition: {
             //skeletons and pirates and spiders, when close, surround the player. Instead of all standing on the same tile. 
             stateTimer += deltaTime;
-
-            Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
 
             bool foundSpot = FindRepositionTarget(player, position, target);
@@ -2398,6 +2408,8 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             break;
         }
 
+        case CharacterState::RunAway: {break;}
+
         case CharacterState::Chase:
         {
             pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
@@ -2579,7 +2591,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             // --- Pick victim (player by default) ---
             Vector3 victimPos    = player.position;
             float   victimDist   = distanceSq;  // your existing distance-to-player
-            bool    victimCanSee = canSee;    // your existing LOS-to-player
+            //bool    victimCanSee = canSee;    // your existing LOS-to-player
             bool    attackingZombie = false;
             Character* victim = nullptr;
 
@@ -2590,7 +2602,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
                 victimPos    = target->position;
                 victimDist   = targetDist;     // set by UpdateTargeting
-                victimCanSee = targetCanSee;   // set by UpdateTargeting
+                //victimCanSee = targetCanSee;   // set by UpdateTargeting
             }
 
             float horizDist = DistXZ(position, victimPos);
@@ -2681,7 +2693,6 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         case CharacterState::Reposition: {
             //skeletons and pirates and spiders, when close, surround the player. Instead of all standing on the same tile. 
 
-            Vector2 playerTile = WorldToImageCoords(player.position);
             Vector3 target = position; // fallback
 
             bool foundSpot = FindRepositionTarget(player, position, target);
@@ -2829,6 +2840,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 }
 
 bool Character::FindRepositionTarget(const Player& player, const Vector3& selfPos, Vector3& outTarget) {
+    (void)selfPos;
     //surround the player, don't all stand on the same tile. 
     Vector2 playerTile = WorldToImageCoords(player.position);
 
@@ -2851,7 +2863,7 @@ bool Character::FindRepositionTarget(const Player& player, const Vector3& selfPo
 
         if (tx < 0 || ty < 0 || tx >= dungeonWidth || ty >= dungeonHeight) continue;
         if (!IsWalkable(tx, ty, dungeonImg)) continue;
-        if (IsTileOccupied(tx, ty, enemyPtrs, nullptr)) continue;
+        if (IsTileOccupied(tx, ty, nullptr)) continue;
 
         outTarget = GetDungeonWorldPos(tx, ty, tileSize, dungeonPlayerHeight);
         outTarget.y += 80.0f;
@@ -3044,7 +3056,6 @@ Vector3 Character::ComputeRepulsionForce(const std::vector<Character*>& allRapto
 
 void Character::AlertNearbySkeletons(const Vector3& alertOrigin, float radius)
 {
-    Vector2 originTile = WorldToImageCoords(alertOrigin);
     float radiusSq = radius * radius;
 
     for (Character* other : enemyPtrs)
@@ -3057,33 +3068,10 @@ void Character::AlertNearbySkeletons(const Vector3& alertOrigin, float radius)
         float distSq = Vector3DistanceSqr(alertOrigin, other->position);
         if (distSq > radiusSq) continue;
 
-        Vector2 targetTile = WorldToImageCoords(other->position);
-
         if (!HasWorldLineOfSight(alertOrigin, other->position)) continue;
         other->ChangeState(CharacterState::Chase);
     }
 }
-
-// void Character::AlertNearbySkeletons(Vector3 alertOrigin, float radius) {
-//     //*nearby enemies
-//     Vector2 originTile = WorldToImageCoords(alertOrigin);
-
-//     for (Character& other : enemies) {
-//         if (&other == this) continue; // Don't alert yourself
-//         if (other.isDead || other.state == CharacterState::Chase) continue;
-
-//         float distSqr = Vector3DistanceSqr(alertOrigin, other.position);
-//         if (distSqr > radius * radius) continue;
-
-//         Vector2 targetTile = WorldToImageCoords(other.position);
-//         if (!LineOfSightRaycast(originTile, targetTile, dungeonImg, 60, 0.0f)) continue;
-
-//         // Passed all checks → alert the skeleton
-//         other.ChangeState(CharacterState::Chase); //chase player regardless of LOS
-
-//     }
-// }
-
 
 
 void Character::SetPath(Vector2 start)
@@ -3096,7 +3084,7 @@ void Character::SetPath(Vector2 start)
         tilePath.clear();
         tilePath = FindPath(walkableBat, start, goal);
     } 
-    std::vector<Vector2> smoothTiles = SmoothTilePath(tilePath, dungeonImg);
+    std::vector<Vector2> smoothTiles = SmoothTilePath(tilePath);
     // 2) Convert tile centers to world points (y based on type)
     std::vector<Vector3> worldPath;
     worldPath.reserve(smoothTiles.size());
@@ -3161,7 +3149,7 @@ void Character::SetPathTo(const Vector3& goalWorld) {
     Vector2 start = WorldToImageCoords(position);
     Vector2 goal  = WorldToImageCoords(goalWorld);
 
-    std::vector<Vector2> tilePath = SmoothTilePath(FindPath(start, goal), dungeonImg);
+    std::vector<Vector2> tilePath = SmoothTilePath(FindPath(start, goal));
 
     currentWorldPath.clear();
     currentWorldPath.reserve(tilePath.size());
@@ -3363,7 +3351,7 @@ void Character::UpdateChase(float deltaTime)
     Vector3 vel = ArriveXZ(position, targetPos, MAX_SPEED, SLOW_RADIUS);
 
     // Safety: still obey water edge logic (nav grid *should* avoid water, but no harm)
-    bool blocked = StopAtWaterEdge(position, vel, 65, deltaTime);
+    bool blocked = StopAtWaterEdge(position, vel, 65);
 
     Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 800.0f);
 
@@ -3630,7 +3618,7 @@ void Character::UpdateRunaway(float deltaTime)
     desired = Limit(desired, MAX_SPEED);
 
     // Don’t run into water (belt-and-suspenders: nav should already avoid it)
-    bool blocked = StopAtWaterEdge(position, desired, 65, deltaTime);
+    bool blocked = StopAtWaterEdge(position, desired, 65);
     if (blocked) {
         // water edge killed motion; drop flee target so we pick a new one next frame
         hasFleeTarget = false;
@@ -3682,16 +3670,14 @@ void Character::UpdatePatrolSteering(float dt)
         float maxDist = 10000;
         float distanceToOrigin = Vector3Length(position);
         if (distanceToOrigin > maxDist){
-            patrolTarget = Vector3{0}; //if you go too far from center, return to center of the map. 
+            patrolTarget = Vector3{0, 0, 0}; //if you go too far from center, return to center of the map. 
         }
 
 
     }
 
-    const float MAX_SPEED    = raptorSpeed;
-    const float MAX_ACCEL    = MAX_SPEED * 3.0f;   // snappy missile feel
+
     const float ARRIVE_EPS   = 150.0f;             // consider “arrived”
-    const float SLOW_RADIUS  = 600.0f;             // optional soften near target
     const float VISION_ENTER = 4000.0f;
 
     // --- desired velocity (seek or arrive) ---
@@ -3792,7 +3778,7 @@ void Character::UpdatePatrol(float deltaTime)
     position    = Vector3Add(position, Vector3Scale(vel, deltaTime));
 
     // Stop at water edge → flee (belt-and-suspenders on top of nav)
-    if (StopAtWaterEdge(position, vel, 65, deltaTime)) {
+    if (StopAtWaterEdge(position, vel, 65)) {
         hasPatrolTarget = false;
         navHasPath      = false;
         navPath.clear();

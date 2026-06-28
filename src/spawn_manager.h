@@ -32,6 +32,7 @@ namespace SpawnManager
     extern int maxAlive;
     extern bool startSpawning;
     extern bool startCutscene;
+    extern bool cutSceneFinished;
 
     int CountAliveSpawnedByType(CharacterType type);
     void Clear();

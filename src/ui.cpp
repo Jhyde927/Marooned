@@ -501,7 +501,7 @@ void DrawHUDBars(const Player& player) {
 
     //Position the bars on screen
     float baseY   = 22.0f;
-    float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
+    //float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
     float xCenter = baseY + hp.width / 2.f;
  
     // Vertical spacing between bars 
@@ -546,6 +546,7 @@ void DrawHUDBars(const Player& player) {
 
 void UpdateMenu(Camera& camera, float dt)
 {
+    (void)camera;
     if (currentGameState != GameState::Menu) return;
 
     // Keep your Escape behavior here (since it touches CameraSystem + game state)
@@ -568,7 +569,7 @@ void UpdateMenu(Camera& camera, float dt)
     MainMenu::Layout layout = gMenu.showOptions ? MainMenu::ComputeOptionsLayout(menuX, baseY, gapY, btnW, btnH) : 
     MainMenu::ComputeLayout(menuX, baseY, gapY, btnW, btnH);
     int oCount = gMenu.showOptions ? 5 : 5;
-    MainMenu::Action a = MainMenu::Update(gMenu, dt, levelLoaded, oCount, levelIndex, (int)levels.size(), layout);
+    MainMenu::Action a = MainMenu::Update(gMenu, dt, oCount, levelIndex, (int)levels.size(), layout);
     
 
     if (a == MainMenu::Action::StartGame)
@@ -882,10 +883,8 @@ void DrawUI(){
     std::string goldText = TextFormat("GOLD: %d", (int)player.displayedGold);
     DrawTextEx(pieces, goldText.c_str(), { 22.0f, 100.f }, 30.0f, 1.0f, GOLD);
     player.inventory.DrawInventoryUIWithIcons(itemTextures, slotOrder, 20, GetScreenHeight() - 80, 64, 
-        player.hasGoldKey, player.hasSilverKey, player.hasSkeletonKey, player.currentPowerUp); //this is pretty dumb
+        player.hasGoldKey, player.hasSilverKey, player.hasSkeletonKey); //this is pretty dumb
     DrawHints();
     if (dialogManager.IsActive()) dialogManager.Draw();
-    float yOffset = 100.0f;
-    if (player.activeWeapon == WeaponType::Blunderbuss) yOffset = GetScreenHeight() * 0.075f;
     DrawReticle(player.activeWeapon);
 }

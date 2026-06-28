@@ -261,7 +261,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("blank",              "assets/textures/blank.png");
     R.LoadTexture("silverKey",          "assets/sprites/silverKey.png");
     R.LoadTexture("harpoon",            "assets/sprites/harpoon.png");
-    R.LoadTexture("backFade",           "assets/sprites/backFade.png");
     R.LoadTexture("grapplePoint",       "assets/sprites/grapplePoint.png");
     R.LoadTexture("swordIcon",          "assets/sprites/cutlassIcon.png");
     R.LoadTexture("crossbowIcon",       "assets/sprites/crossbowIcon2.png");
@@ -455,8 +454,8 @@ void ResourceManager::SetTerrainShaderValues(){ //plus palm tree shader
     // --- World bounds and tiling
     int locWorldMinXZ  = GetShaderLocation(terrainShader, "u_WorldMinXZ");
     int locWorldSizeXZ = GetShaderLocation(terrainShader, "u_WorldSizeXZ");
-    int locGrassTile   = GetShaderLocation(terrainShader, "grassTiling");
-    int locSandTile    = GetShaderLocation(terrainShader, "sandTiling");
+    // int locGrassTile   = GetShaderLocation(terrainShader, "grassTiling");
+    // int locSandTile    = GetShaderLocation(terrainShader, "sandTiling");
 
     Vector2 t_worldMinXZ  = { -terrainScale.x * 0.5f, -terrainScale.z * 0.5f };
     Vector2 t_worldSizeXZ = {  terrainScale.x,          terrainScale.z       };
@@ -592,8 +591,6 @@ void ResourceManager::UpdateShaders(Camera& camera){
     Shader& terrainShader = R.GetShader("terrainShader");
     Vector3 camPos = camera.position;
 
-    float t = GetTime();
-    int dungeonFlag = isDungeon ? 1 : 0;
     //terrain fog locs
     int camPosLoc = GetShaderLocation(terrainShader, "cameraPos");
     int tFogStartLoc = GetShaderLocation(terrainShader, "u_FogStart");

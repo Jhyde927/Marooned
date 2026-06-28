@@ -353,7 +353,7 @@ void MeleeWeapon::UpdateStabMotion(float t)
 
     float extendEnd = 0.30f;
     float holdEnd   = 0.80f; // hold from 30% to 60% of the stab
-    float retractT  = 0.0f;
+    //float retractT  = 0.0f;
 
     float jab = 0.0f;
 
@@ -623,10 +623,10 @@ void MeleeWeapon::Draw(const Camera& camera) {
     Matrix swordRotation = MatrixInvert(lookAt);
     Quaternion q = QuaternionFromMatrix(swordRotation);
 
-    float angle = 2.0f * acosf(q.w);
-    float angleDeg = angle * RAD2DEG;
-    float sinTheta = sqrtf(1.0f - q.w * q.w);
-    Vector3 axis = (sinTheta < 0.001f) ? Vector3{1, 0, 0} : Vector3{ q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
+    //float angle = 2.0f * acosf(q.w);
+    //float angleDeg = angle * RAD2DEG;
+    //float sinTheta = sqrtf(1.0f - q.w * q.w);
+    //Vector3 axis = (sinTheta < 0.001f) ? Vector3{1, 0, 0} : Vector3{ q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
 
     Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 camRight = Vector3Normalize(Vector3CrossProduct(camForward, { 0, 1, 0 }));
@@ -702,6 +702,7 @@ void MeleeWeapon::EndBlock() {
 }
 
 void MeleeWeapon::StartSwing(Camera& camera) {
+    (void)camera;
     bool comboStillAlive = comboTimer <= comboResetTime && comboIndex > 0;
     float requiredCooldown = comboStillAlive ? comboCooldown : normalCooldown;
 
@@ -802,6 +803,7 @@ void MagicStaff::PlaySwipe(){
 }
 
 void MagicStaff::StartSwing(Camera& camera) {
+    (void)camera;
     if (swinging || timeSinceLastSwing < cooldown) return;
     PlaySwipe();
     player.attackId++;
@@ -940,7 +942,7 @@ void Crossbow::Draw(const Camera& camera) {
     Vector3 camRight   = Vector3Normalize(Vector3CrossProduct(camForward, { 0, 1, 0 }));
     Vector3 camUp      = Vector3CrossProduct(camRight, camForward);
 
-    Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    //Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
 
     // === Aspect ratio correction ===
     float screenAspect = (float)GetScreenWidth() / (float)GetScreenHeight();

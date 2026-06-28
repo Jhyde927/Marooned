@@ -305,7 +305,7 @@ bool CanSeeDoorTile(int x0, int y0, int x1, int y1)
 
 
 
-bool IsTileOccupied(int x, int y, const std::vector<Character*>& skeletons, const Character* self) {
+bool IsTileOccupied(int x, int y,const Character* self) {
     for (const Character* s : enemyPtrs) {
         if (s == self || s->state == CharacterState::Death) continue; 
 
@@ -353,7 +353,7 @@ static Vector2 GetRetreatTileAwayFrom(
 
         if (rx < 0 || ry < 0 || rx >= dungeonWidth || ry >= dungeonHeight) continue;
         if (!walkable[rx][ry]) continue;
-        if (IsTileOccupied(rx, ry, enemyPtrs, self)) continue;
+        if (IsTileOccupied(rx, ry, self)) continue;
 
         return { (float)rx, (float)ry };
     }
@@ -378,7 +378,7 @@ static Vector2 GetRetreatTile(
 
         if (rx < 0 || ry < 0 || rx >= dungeonWidth || ry >= dungeonHeight) continue;
         if (!walkable[rx][ry]) continue;
-        if (IsTileOccupied(rx, ry, enemyPtrs, self)) continue;
+        if (IsTileOccupied(rx, ry, self)) continue;
 
         return { (float)rx, (float)ry };
     }
@@ -457,7 +457,7 @@ Vector2 GetRandomReachableTile(const Vector2& start, const Character* self, int 
             continue;
 
         if (!walkable[rx][ry]) continue;
-        if (IsTileOccupied(rx, ry, enemyPtrs, self)) continue;
+        if (IsTileOccupied(rx, ry, self)) continue;
 
         Vector2 target = {(float)rx, (float)ry};
         if (!LineOfSightRaycast(start, target, dungeonImg, 100, 0.0f)) continue;
@@ -640,7 +640,7 @@ bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int m
 // Supercover Bresenham LOS.
 // Returns true ONLY if the straight line from start->end stays in walkable space.
 // Uses runtime walkable grid via IsSeeThroughForLOS
-bool TileLineOfSight(Vector2 start, Vector2 end, const Image& dungeonMap)
+bool TileLineOfSight(Vector2 start, Vector2 end)
 {
     int x0 = (int)start.x;
     int y0 = (int)start.y;
@@ -693,7 +693,7 @@ static constexpr int   kMaxLookaheadTiles = 1;   // how many nodes ahead to cons
 static constexpr int   kMaxLosSteps       = 80;  // ray steps for LOS (>= dungeon max dimension * 4 is fine)
 static constexpr float kLosEpsilon        = 0.01f; // small epsilon for your raycast
 
-std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath, const Image& dungeonMap)
+std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath)
 {
     std::vector<Vector2> out;
     if (tilePath.empty()) return out;
@@ -713,8 +713,7 @@ std::vector<Vector2> SmoothTilePath(const std::vector<Vector2>& tilePath, const 
         for (size_t j = maxJ; j > i; --j)
         {
             // If LOS says yes, we can skip straight there
-            if (TileLineOfSight(tilePath[i], tilePath[j],
-                                   dungeonMap))
+            if (TileLineOfSight(tilePath[i], tilePath[j]))
             {
                 furthest = j;
                 break; // take the longest valid skip
@@ -822,8 +821,7 @@ Vector3 WanderXZ(float& wanderAngle, float wanderTurnRate, float wanderSpeed, fl
 // returns true if movement was blocked by water this frame
 bool StopAtWaterEdge(const Vector3& pos,
                             Vector3& desiredVel,     // in/out
-                            float waterLevel,
-                            float dt)
+                            float waterLevel)
 {
     // if we’re not moving, nothing to do
     float v2 = desiredVel.x*desiredVel.x + desiredVel.z*desiredVel.z;

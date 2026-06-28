@@ -445,3 +445,4 @@ BoundingBox MakeEntranceDoorBoundingBox(Vector3 position, float rotationY);
 
 
 void ClearDungeon();
+void foo();

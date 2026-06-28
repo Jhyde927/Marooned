@@ -19,16 +19,17 @@ static unsigned int gBulletCounter = 0;
 Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletType t, float r, bool launch)
     : position(startPos),
       velocity(vel),
-      alive(true),
-      age(0.0f),
       lifeTime(lifetime),
       enemy(en),
       type(t),
-      fireEmitter(startPos),
-      sparkEmitter(startPos),
       radius(r),
-      launcher(launch)
-{}
+      launcher(launch),
+      alive(true),
+      age(0.0f),
+      fireEmitter(startPos),
+      sparkEmitter(startPos)
+{
+}
 
 
 static inline unsigned char LerpByte(unsigned char a, unsigned char b, float t) {
@@ -158,7 +159,7 @@ void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
 
 }
 
-void Bullet::HandleBulletWorldCollision(Camera& camera){
+void Bullet::HandleBulletWorldCollision(){
     // Handle floor/ceiling/terrain collision
     if (isDungeon) {
         if (drawCeiling && position.y >= ceilingHeight){
@@ -362,7 +363,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
        } 
     }
 
-    HandleBulletWorldCollision(camera);
+    HandleBulletWorldCollision();
 
     float speed = Vector3Length(velocity);
     if (speed < 800.0f && type != BulletType::Harpoon) {   //  ~ one bounce theoretically
@@ -372,7 +373,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     }
 }
 
-inline void BeginBulletTransform(const Vector3& pos, float age, float size)
+inline void BeginBulletTransform(const Vector3& pos, float age)
 {
     rlPushMatrix();
     rlTranslatef(pos.x, pos.y, pos.z);
@@ -519,11 +520,6 @@ void DrawHarpoon(const Bullet& b, const Camera& camera)
     float d = Vector3Distance(anchor, tip);
     if (d > 10.0f)
     {
-        float ropeRadius = 0.5f;   // tweak: 1.0 - 3.0
-        int ropeSides = 6;         // cheap but round enough
-
-        // DrawCylinderEx(anchor, tip, ropeRadius, ropeRadius, ropeSides,
-        //                (Color){150, 75, 30, 255});
         DrawSpiralRope(anchor, tip, ElapsedTime);
     }
 }
@@ -571,13 +567,13 @@ void Bullet::Draw(Camera& camera) const {
 
         // Pop cube for very early frame
         if (age < 0.5f) {
-            BeginBulletTransform(position, age, 3.5f); //rotate the cubes, arbitary rotation
+            BeginBulletTransform(position, age); //rotate the cubes, arbitary rotation
             DrawCube({0,0,0}, 3.5f, 3.5f, 3.5f, heat);
             EndBulletTransform();
         }
 
         // Main bullet cube
-        BeginBulletTransform(position, age, size);
+        BeginBulletTransform(position, age);
         DrawCube({0,0,0}, size, size, size, heat);
         EndBulletTransform();
     }
@@ -632,12 +628,7 @@ void Bullet::Erase(){
 }
 
 void Bullet::kill(Camera& camera){
-    //smoke decals and bullet death
-    Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
-    Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, -100.0f));
-
-    //decals.emplace_back(offsetPos, DecalType::Smoke, R.GetTexture("smokeSheet"), 7, 0.8f, 0.1f, 25.0f);
-
+    (void)camera;
     alive = false;
     exploded = true;
     
@@ -701,7 +692,7 @@ void Bullet::Explode(Camera& camera) {
         if (type == BulletType::Fireball || type == BulletType::CannonBall){
             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
             fireEmitter.EmitBurst(position, 200, ParticleType::Sparks);
-            Vector3 forward = Vector3Negate(Vector3Normalize(velocity));
+            //Vector3 forward = Vector3Negate(Vector3Normalize(velocity));
             ExplodeShrapnelSphere(position, 10, 1500.0f, 1.0f, false);
         }else if (type == BulletType::Iceball){
             

@@ -249,7 +249,7 @@ namespace VegetationInstanced
 
 namespace VegetationInstanced
 {
-    static Shader gShader = { 0 };
+    static Shader gShader = {};
 
     static int locAlphaCutoff = -1;
     static int locCameraPos = -1;

@@ -138,6 +138,8 @@ void Box::Update(float dt,
                  bool dropPressed,
                  Vector3 dropTileCenter)
 {
+    (void)dt;
+    (void)playerForward;
     // --- Pick up ---
     if (state == BoxState::OnGround)
     {

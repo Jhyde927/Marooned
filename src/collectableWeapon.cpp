@@ -61,7 +61,7 @@ void UpdateCollectableWeapons(float deltaTime){
     }
 }
 
-void DrawCollectableWeapons(Player& player, float deltaTime){
+void DrawCollectableWeapons(){
     for (CollectableWeapon& cw : worldWeapons){
         cw.Draw();
     }

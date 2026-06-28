@@ -21,20 +21,47 @@ enum BillboardType {
 };
 
 struct BillboardDrawRequest {
-    BillboardType type;
-    Vector3 position;
-    Texture2D texture;
-    Rectangle sourceRect;
-    Vector2 size;
-    Color tint;
-    float distanceToCamera;
-    float rotationY;
-    bool flipX = false; 
-    bool isPortal;
-    bool isOpen;
-    PortalPalette pallet;
-    float openAmount;
+    BillboardType type = Billboard_FacingCamera;
+
+    Vector3 position = Vector3{0.0f, 0.0f, 0.0f};
+    Texture2D texture = Texture2D{0U, 0, 0, 0, 0};
+    Rectangle sourceRect = Rectangle{0.0f, 0.0f, 0.0f, 0.0f};
+    Vector2 size = Vector2{0.0f, 0.0f};
+
+    Color tint = WHITE;
+
+    float distanceToCamera = 0.0f;
+    float rotationY = 0.0f;
+
+    bool flipX = false;
+    bool isPortal = false;
+    bool isOpen = false;
+
+    PortalPalette pallet = { {0.0f, 0.25f, 1.0f}, {0.5f, 0.2f, 1.0f} };
+    
+    float openAmount = 0.0f;
 };
+
+// void GatherGrapplePoint(Camera& camera) {
+//     for (GrapplePoint& g : grapplePoints){
+//         //float dist = Vector3Distance(camera.position, g.position);
+//         float dist = Vector3DistanceSqr(camera.position, g.position);
+//         billboardRequests.push_back({
+//             Billboard_FacingCamera, 
+//             g.position,
+//             g.tex,
+//             Rectangle{0, 0, (float)g.tex.width, (float)g.tex.height},
+//             Vector2{g.scale,g.scale},
+//             WHITE,
+//             dist,
+//             1.0f,
+//             false,
+//             false,
+//             false,
+//             0.0f
+//         });
+//     }
+// }
 
 extern std::vector<BillboardDrawRequest> billboardRequests;
 
@@ -49,3 +76,4 @@ void GatherDecals(Camera& camera, const std::vector<Decal>& decals);
 void GatherSpawnPortals(Camera& camera);
 void GatherPortals(Camera& camera, const std::vector<Portal>& portals);
 float GetAdjustedBillboardSize(float baseSize, float distance);
+PortalPalette GetPortalPalette(int groupID);

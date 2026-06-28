@@ -45,7 +45,7 @@ struct SwitchTile {
 
 extern std::vector<SwitchTile> switches;
 
-BoundingBox MakeSwitchBox(const Vector3& pos, SwitchKind kind, float tileSize, float baseY);
+BoundingBox MakeSwitchBox(const Vector3& pos, SwitchKind kind, float tileSize);
 bool IsSwitchPressed(const SwitchTile& st, const Player& player, const std::vector<Box>& boxes);
 void DeactivateSwitch(const SwitchTile& st);
 void ActivateSwitch(const SwitchTile& st);

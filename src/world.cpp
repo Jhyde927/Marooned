@@ -200,13 +200,15 @@ void InitShaders(){
 
 void UpdateShadersPerFrame(float deltaTime,float ElapsedTime, Camera& camera){
     ShaderSetup::UpdateLavaShaderPerFrame(ShaderSetup::gLava, ElapsedTime, isLoadingLevel);
-    ShaderSetup::UpdatePortalShader(ShaderSetup::gPortal, ElapsedTime);
+    ShaderSetup::UpdatePortalShader(ElapsedTime);
     ShaderSetup::UpdateWaterShaderPerFrame(ShaderSetup::gWater, ElapsedTime, camera);
     ShaderSetup::UpdateTreeShader(ShaderSetup::gTree, camera);
     ShaderSetup::UpdateSkyShaderPerFrame(ShaderSetup::gSky, ElapsedTime);
     ShaderSetup::UpdateBloomShaderPerFrame(ShaderSetup::gBloom, deltaTime);
     ShaderSetup::UpdateGhostShaderPerFrame(ShaderSetup::gGhost);
 }
+
+
 
 
 
@@ -232,12 +234,12 @@ void StartCutScene(){
 
 }
 
-static Vector3 LookBetween(Vector3 a, Vector3 b, float lookY, float amount = 0.99f)
-{
-    Vector3 p = Vector3Lerp(a, b, amount);
-    p.y = lookY;
-    return p;
-}
+// static Vector3 LookBetween(Vector3 a, Vector3 b, float lookY, float amount = 0.99f)
+// {
+//     Vector3 p = Vector3Lerp(a, b, amount);
+//     p.y = lookY;
+//     return p;
+// }
 
 void StartIslandIntro(){
     CutsceneDesc intro;
@@ -294,19 +296,19 @@ void StartIslandWaypointIntro()
 
     //Work In Progress
     const float camY = 1800.0f;
-    const float lookY = 300.0f;
+    //const float lookY = 300.0f;
 
     Vector3 startPos    = Vector3{ 5475.0f,   camY, -5665.0f };
-    Vector3 rightIsland = Vector3{-8254.4, camY, -8892.74};
+    //Vector3 rightIsland = Vector3{-8254.4, camY, -8892.74};
     Vector3 farIsland   = Vector3{-8722.67, camY, 9487.32 };
-    Vector3 leftIsland  = Vector3{ 8281.82, camY, 8645.83};
+    //Vector3 leftIsland  = Vector3{ 8281.82, camY, 8645.83};
     Vector3 middle = Vector3{ 0, camY, 0};
 
 
 
     Vector3 p0 = farIsland;
     Vector3 p1 = middle;
-    Vector3 p2 = startPos;
+    //Vector3 p2 = startPos;
     // Vector3 p3 = leftIsland;
     // Vector3 p4 = startPos;
 

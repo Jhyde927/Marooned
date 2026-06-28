@@ -65,7 +65,6 @@ namespace MainMenu
                          float btnH);
 
     Action Update(State& s, float dt,
-                  bool levelLoaded,
                   int optionsCount,
                   int& levelIndex,
                   int levelsCount,

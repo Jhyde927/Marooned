@@ -57,7 +57,7 @@ static void HandleSliderMouse(Rectangle r, float& value, float minValue, float m
     }
 
     if (dragging) {
-        float mouseX = Clamp(m.x, track.x, track.x + track.width);
+        //float mouseX = Clamp(m.x, track.x, track.x + track.width);
         float t = (m.x - track.x) / track.width;
         t = Clamp(t, 0.0f, 1.0f);
 
@@ -109,22 +109,22 @@ static const PreviewInfo* GetPreviewForSelectionIndex(int selectionIndex)
 
 
 
-static Rectangle ComputePreviewPanelRect(const Rectangle& rStart, const Rectangle& rQuit)
-{
-    float panelX = rStart.x + rStart.width + 30.0f;
-    float panelY = rStart.y;
-    float panelW = 420.0f;
-    float panelH = (rQuit.y + rQuit.height) - rStart.y;
+// static Rectangle ComputePreviewPanelRect(const Rectangle& rStart, const Rectangle& rQuit)
+// {
+//     float panelX = rStart.x + rStart.width + 30.0f;
+//     float panelY = rStart.y;
+//     float panelW = 420.0f;
+//     float panelH = (rQuit.y + rQuit.height) - rStart.y;
 
-    Rectangle r = { panelX, panelY, panelW, panelH };
+//     Rectangle r = { panelX, panelY, panelW, panelH };
 
-    // Keep it on-screen (important for small windows)
-    float rightEdge = r.x + r.width;
-    float maxRight  = (float)GetScreenWidth() - 20.0f;
-    if (rightEdge > maxRight) r.x -= (rightEdge - maxRight);
+//     // Keep it on-screen (important for small windows)
+//     float rightEdge = r.x + r.width;
+//     float maxRight  = (float)GetScreenWidth() - 20.0f;
+//     if (rightEdge > maxRight) r.x -= (rightEdge - maxRight);
 
-    return r;
-}
+//     return r;
+// }
 
 
 
@@ -151,7 +151,7 @@ Rectangle ComputeControlsPanelRect(Rectangle rTopButton, Rectangle rBottomButton
 
 Rectangle ComputeOptionsPanelRect(Rectangle rTopButton, Rectangle rBottomButton)
 {
-    float gap = 24.0f;
+    //float gap = 24.0f;
 
     float x = GetScreenWidth()/2 - 185.0f;//rTopButton.x - rTopButton.width/2 + gap;
     float y = rTopButton.y;
@@ -205,6 +205,7 @@ MainMenu::Layout MainMenu::ComputeLayout(float menuX, float baseY, float gapY, f
 
 MainMenu::Layout MainMenu::ComputeOptionsLayout(float menuX, float baseY, float gapY, float btnW, float btnH)
 {
+    (void)gapY;
     float cx = menuX + btnW * 0.5f;
 
     Layout L{};
@@ -399,14 +400,14 @@ static inline void DrawStoneOutlinedText(Font font, const char* text,
 }
 
 
-static inline void DrawControlsPanelAsButton(Rectangle r, bool titleStyle = false)
+static inline void DrawControlsPanelAsButton(Rectangle r)
 {
     // Reuse your existing button renderer as the panel background
     // selected=false so it uses the normal palette
     DrawMenuButtonRounded(r, false, 1.0f, true);
 }
 
-static inline void DrawOptionsPanelAsButton(Rectangle r, bool titleStyle = false)
+static inline void DrawOptionsPanelAsButton(Rectangle r)
 {
     // Reuse your existing button renderer as the panel background
     // selected=false so it uses the normal palette
@@ -467,7 +468,7 @@ static inline Rectangle PadRect(Rectangle r, float px, float py)
 static void DrawLevelPreviewPanel(const Rectangle& panelRect, const PreviewInfo* preview)
 {
     // Background uses your existing menu/button style
-    DrawControlsPanelAsButton(panelRect, false);
+    DrawControlsPanelAsButton(panelRect);
 
     auto& font = R.GetFont("Pieces");
 
@@ -748,7 +749,7 @@ namespace MainMenu
 
 
 
-    MainMenu::Action Update(State& s, float dt, bool levelLoaded, int optionsCount, int& levelIndex, int levelsCount, const Layout& L)
+    MainMenu::Action Update(State& s, float dt, int optionsCount, int& levelIndex, int levelsCount, const Layout& L)
     {
 
         if (optionsInputLockTimer > 0.0f)
@@ -1108,7 +1109,7 @@ namespace MainMenu
     {
         
         auto& pieces = R.GetFont("Pieces");
-        Texture2D& backFade = R.GetTexture("backFade");
+        //Texture2D& backFade = R.GetTexture("backFade");
 
         const char* title = "Marooned";
         float titleFontSize = 200.0f;
@@ -1155,7 +1156,7 @@ namespace MainMenu
         // --- Menu items (buttons) ---
         float menuFontSizeF = 60.0f;
         float menuSpacing   = 1.0f;
-        int   menuShadowPx  = std::max(1, (int)(menuFontSizeF/18.0f));
+        //int   menuShadowPx  = std::max(1, (int)(menuFontSizeF/18.0f));
 
         float baseY = 375.0f;
         float gapY  = 75.0f;                 // spacing between rows
@@ -1170,7 +1171,8 @@ namespace MainMenu
         Rectangle rFull     = MakeButtonRect(menuX, baseY + gapY*3.0f, btnW, btnH);
         Rectangle rQuit     = MakeButtonRect(menuX, baseY + gapY*4.0f, btnW, btnH); 
 
-        Rectangle rMenu     = MakeButtonRect(menuX, baseY + gapY*5.0f, btnW, btnH); 
+        // Rectangle rMenu     = MakeButtonRect(menuX, baseY + gapY*5.0f, btnW, btnH);
+        // (void)rMenu; 
 
         // Split Level row into (-) [center] (+)
         float sideW = rLevel.height; // square mini-buttons
@@ -1190,17 +1192,18 @@ namespace MainMenu
         const char* lblControls = "Options";
         const char* lblFull  = "Fullscreen";
         const char* lblQuit  = "Quit";
-        const char* lblMenu  = "Menu";
+        //const char* lblMenu  = "Menu";
 
         
         bool selStart    = (s.selectedOption == 0);
-        bool selLevel    = (s.selectedOption == 1);
+        //bool selLevel    = (s.selectedOption == 1);
         bool selControls = (s.selectedOption == 2);
         bool selFull     = (s.selectedOption == 3);
         bool selQuit     = (s.selectedOption == 4);
 
-        bool selMenu     = (s.selectedOption == 0);
+        //bool selMenu     = (s.selectedOption == 0);
 
+        
         Vector2 m = GetMousePosition();
         bool hovMinus  = CheckCollisionPointRec(m, rLevelMinus);
         bool hovPlus   = CheckCollisionPointRec(m, rLevelPlus);
@@ -1216,7 +1219,7 @@ namespace MainMenu
         // Example: blink highlight off for Level when pressed
         if (s.pressFlash[1] > 0.05f)
         {
-            selLevel = false;
+            //selLevel = false;
             selLevelMinus = false;
             selLevelPlus = false;
             //selLevelCenter = false; //looks better without the center flashing. 
@@ -1234,7 +1237,7 @@ namespace MainMenu
         ControlsPanel panel;
         panel.rect = { panelX, panelY, panelW, panelH };
 
-        Rectangle pPanel = ComputePreviewPanelRect(rStart, rQuit); //preview panel
+        //Rectangle pPanel = ComputePreviewPanelRect(rStart, rQuit); //preview panel
 
         // Keep it on-screen (important for small windows)
         float rightEdge = panel.rect.x + panel.rect.width;
@@ -1244,7 +1247,7 @@ namespace MainMenu
         if (s.showOptions)
         {
             Rectangle oPanel = ComputeOptionsPanelRect(rStart, rQuit);
-            DrawOptionsPanelAsButton(oPanel, false);
+            DrawOptionsPanelAsButton(oPanel);
 
             // Recreate the same options layout for drawing
             Layout optL = ComputeOptionsLayout(menuX - btnW * 0.5f, baseY, gapY, btnW, btnH);
@@ -1306,7 +1309,7 @@ namespace MainMenu
 
             // Optional controls panel on the side
             Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
-            DrawControlsPanelAsButton(rPanel, false);
+            DrawControlsPanelAsButton(rPanel);
             DrawControlsText(R.GetFont("Pieces"), rPanel);
         }
 

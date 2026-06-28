@@ -115,72 +115,72 @@ static inline RectI IntersectInclusive(const RectI& a, const RectI& b)
     return r;
 }
 
-static RectI ClampRectToMap(RectI r, int w, int h)
-{
-    if (r.x0 < 0) r.x0 = 0;
-    if (r.y0 < 0) r.y0 = 0;
-    if (r.x1 > w) r.x1 = w;
-    if (r.y1 > h) r.y1 = h;
-    if (r.x1 < r.x0) r.x1 = r.x0;
-    if (r.y1 < r.y0) r.y1 = r.y0;
-    return r;
-}
+// static RectI ClampRectToMap(RectI r, int w, int h)
+// {
+//     if (r.x0 < 0) r.x0 = 0;
+//     if (r.y0 < 0) r.y0 = 0;
+//     if (r.x1 > w) r.x1 = w;
+//     if (r.y1 > h) r.y1 = h;
+//     if (r.x1 < r.x0) r.x1 = r.x0;
+//     if (r.y1 < r.y0) r.y1 = r.y0;
+//     return r;
+// }
 
-static RectI ComputeDoorAffectedRegion_LightmapPixels_UsingStamperMapping(
-    const Vector3& doorPos,
-    int bufW, int bufH,
-    float radius) // world units (e.g., 2200)
-{
-    const int tppX = bufW / dungeonWidth;
-    const int tppZ = bufH / dungeonHeight;
+// static RectI ComputeDoorAffectedRegion_LightmapPixels_UsingStamperMapping(
+//     const Vector3& doorPos,
+//     int bufW, int bufH,
+//     float radius) // world units (e.g., 2200)
+// {
+//     const int tppX = bufW / dungeonWidth;
+//     const int tppZ = bufH / dungeonHeight;
 
-    // Door world -> tile indices using SAME origin as stamper
-    const int tx = (int)floorf((doorPos.x - gDynamic.minX) / tileSize);
-    const int tz = (int)floorf((doorPos.z - gDynamic.minZ) / tileSize);
+//     // Door world -> tile indices using SAME origin as stamper
+//     const int tx = (int)floorf((doorPos.x - gDynamic.minX) / tileSize);
+//     const int tz = (int)floorf((doorPos.z - gDynamic.minZ) / tileSize);
 
-    // If door is outside dungeon bounds, return empty rect
-    if (tx < 0 || tz < 0 || tx >= dungeonWidth || tz >= dungeonHeight) {
-        return RectI{0,0,-1,-1}; // empty (x0 > x1)
-    }
+//     // If door is outside dungeon bounds, return empty rect
+//     if (tx < 0 || tz < 0 || tx >= dungeonWidth || tz >= dungeonHeight) {
+//         return RectI{0,0,-1,-1}; // empty (x0 > x1)
+//     }
 
-    // Door tile -> lightmap pixel center (roughly center of that tile in texels)
-    const int cx = tx * tppX + (tppX / 2);
-    const int cy = tz * tppZ + (tppZ / 2);
+//     // Door tile -> lightmap pixel center (roughly center of that tile in texels)
+//     const int cx = tx * tppX + (tppX / 2);
+//     const int cy = tz * tppZ + (tppZ / 2);
 
-    // Radius in tiles -> radius in pixels
-    const int Rtiles = (int)ceilf(radius / tileSize);
-    const int RpxX   = Rtiles * tppX;
-    const int RpxY   = Rtiles * tppZ;
+//     // Radius in tiles -> radius in pixels
+//     const int Rtiles = (int)ceilf(radius / tileSize);
+//     const int RpxX   = Rtiles * tppX;
+//     const int RpxY   = Rtiles * tppZ;
 
-    RectI r;
-    r.x0 = cx - RpxX;
-    r.y0 = cy - RpxY;
-    r.x1 = cx + RpxX;
-    r.y1 = cy + RpxY;
+//     RectI r;
+//     r.x0 = cx - RpxX;
+//     r.y0 = cy - RpxY;
+//     r.x1 = cx + RpxX;
+//     r.y1 = cy + RpxY;
 
-    // Clamp to buffer bounds (inclusive)
-    if (r.x0 < 0) r.x0 = 0;
-    if (r.y0 < 0) r.y0 = 0;
-    if (r.x1 > bufW - 1) r.x1 = bufW - 1;
-    if (r.y1 > bufH - 1) r.y1 = bufH - 1;
+//     // Clamp to buffer bounds (inclusive)
+//     if (r.x0 < 0) r.x0 = 0;
+//     if (r.y0 < 0) r.y0 = 0;
+//     if (r.x1 > bufW - 1) r.x1 = bufW - 1;
+//     if (r.y1 > bufH - 1) r.y1 = bufH - 1;
 
-    return r;
-}
-
-
-static void ClearStaticBaseRegion(std::vector<Color>& buf, int w, int h, const RectI& r)
-{
-    if (r.x0 == r.x1 || r.y0 == r.y1) return;
-
-    for (int y = r.y0; y < r.y1; ++y) {
-        int row = y * w;
-        for (int x = r.x0; x < r.x1; ++x) {
-            buf[row + x] = (Color){0,0,0,255};
-        }
-    }
+//     return r;
+// }
 
 
-}
+// static void ClearStaticBaseRegion(std::vector<Color>& buf, int w, int h, const RectI& r)
+// {
+//     if (r.x0 == r.x1 || r.y0 == r.y1) return;
+
+//     for (int y = r.y0; y < r.y1; ++y) {
+//         int row = y * w;
+//         for (int x = r.x0; x < r.x1; ++x) {
+//             buf[row + x] = (Color){0,0,0,255};
+//         }
+//     }
+
+
+// }
 
 void StampLight_StaticBase_Subtile2x2_ToBuffer_Clipped(std::vector<Color>& outBuf, int bufW, int bufH,
                                                        const Vector3& lightPos, float radius, Color color,
@@ -686,83 +686,73 @@ static void StampDynamicLight(const Vector3& lightPos, float radius, Color color
     }
 }
 
-void OnDoorToggled_RebakeStaticLights(const Vector3& doorWorldPos,
-                                      const std::vector<int>& affectedStaticLightIndices)
-{
-    // Safety: nothing to do
-    if (affectedStaticLightIndices.empty()){
-        return;
+// void OnDoorToggled_RebakeStaticLights(const Vector3& doorWorldPos,
+//                                       const std::vector<int>& affectedStaticLightIndices)
+// {
+//     // Safety: nothing to do
+//     if (affectedStaticLightIndices.empty()){
+//         return;
 
-    }
-    const int w = gDynamic.w;
-    const int h = gDynamic.h;
-
-    // --- Compute patch region (lightmap pixel rect) ---
-    // Use whatever you implemented. This is just a common default:
-    // (4 px per tile because you InitDynamicLightmap(dungeonWidth * 4))
-    constexpr int PIXELS_PER_TILE = 4;
-
-    // You said 2200 range ~= 11 tiles. If lights have per-light range,
-    // you can also compute this dynamically (max tile radius across affected lights).
-    constexpr int DEFAULT_RANGE_TILES = 4;
-    //this never runs some how
+//     }
+//     const int w = gDynamic.w;
+//     const int h = gDynamic.h;
 
 
-    // Use a radius that matches the “zone that could change”.
-    // You can use 2200, or better: the max range of affected lights.
-    float patchRadius = 800.0f;
+//     // Use a radius that matches the “zone that could change”.
+//     // You can use 2200, or better: the max range of affected lights.
+//     float patchRadius = 800.0f;
 
-    RectI region = ComputeDoorAffectedRegion_LightmapPixels_UsingStamperMapping(
-        doorWorldPos, w, h, patchRadius);
-
-
-    // EXTREME DEBUG: paint the region bright magenta
-    // for (int y = region.y0; y <= region.y1; ++y) {
-    //     for (int x = region.x0; x <= region.x1; ++x) {
-    //         gStaticBase[y * w + x] = (Color){255, 0, 255, 255};
-    //     }
-    // }
-    // std::cout << "DEBUG: painted region magenta\n";
-    // return; // <-- return early so stamping doesn't overwrite it
+//     RectI region = ComputeDoorAffectedRegion_LightmapPixels_UsingStamperMapping(
+//         doorWorldPos, w, h, patchRadius);
 
 
-    // empty region guard (depending on your rect convention)
-    if (region.x0 > region.x1 || region.y0 > region.y1){
+//     // EXTREME DEBUG: paint the region bright magenta
+//     // for (int y = region.y0; y <= region.y1; ++y) {
+//     //     for (int x = region.x0; x <= region.x1; ++x) {
+//     //         gStaticBase[y * w + x] = (Color){255, 0, 255, 255};
+//     //     }
+//     // }
+//     // std::cout << "DEBUG: painted region magenta\n";
+//     // return; // <-- return early so stamping doesn't overwrite it
 
-        return;
 
-    }
+//     // empty region guard (depending on your rect convention)
+//     if (region.x0 > region.x1 || region.y0 > region.y1){
+
+//         return;
+
+//     }
 
 
-    // --- Clear only that region of the static base ---
-    ClearStaticBaseRegion(gStaticBase, w, h, region);
+//     // --- Clear only that region of the static base ---
+//     ClearStaticBaseRegion(gStaticBase, w, h, region);
 
-    // --- Restamp only affected static lights, clipped to region ---
-    for (int idx : affectedStaticLightIndices)
-    {
-        if (idx < 0 || idx >= (int)dungeonLights.size())
-            continue;
+//     // --- Restamp only affected static lights, clipped to region ---
+//     for (int idx : affectedStaticLightIndices)
+//     {
+//         if (idx < 0 || idx >= (int)dungeonLights.size())
+//             continue;
 
-        const LightSource& L = dungeonLights[idx];
+//         const LightSource& L = dungeonLights[idx];
 
-        Color c = {
-            (unsigned char)Clamp(L.colorTint.x * 255.0f * L.intensity, 0.0f, 255.0f),
-            (unsigned char)Clamp(L.colorTint.y * 255.0f * L.intensity, 0.0f, 255.0f),
-            (unsigned char)Clamp(L.colorTint.z * 255.0f * L.intensity, 0.0f, 255.0f),
-            255
-        };
+//         Color c = {
+//             (unsigned char)Clamp(L.colorTint.x * 255.0f * L.intensity, 0.0f, 255.0f),
+//             (unsigned char)Clamp(L.colorTint.y * 255.0f * L.intensity, 0.0f, 255.0f),
+//             (unsigned char)Clamp(L.colorTint.z * 255.0f * L.intensity, 0.0f, 255.0f),
+//             255
+//         };
 
-        StampLight_StaticBase_Subtile2x2_ToBuffer_Clipped(
-            gStaticBase, w, h,
-            L.position, L.range, c,
-            region
-        );
-    }
+//         StampLight_StaticBase_Subtile2x2_ToBuffer_Clipped(
+//             gStaticBase, w, h,
+//             L.position, L.range, c,
+//             region
+//         );
+//     }
 
-    // No headroom pass (per your preference).
-    // Your regular render/update path should copy gStaticBase -> gDynamic each frame,
-    // so this patch will show up immediately on the next dynamic build.
-}
+//     // No headroom pass (per your preference).
+//     // Your regular render/update path should copy gStaticBase -> gDynamic each frame,
+//     // so this patch will show up immediately on the next dynamic build.
+// }
 
 
 

@@ -15,12 +15,12 @@ struct WindowedRestore
 static WindowedRestore gWindowed;
 
 // Call this once after InitWindow() if you want a sane default restore size.
-static void InitWindowedRestoreDefaults(int w, int h)
-{
-    gWindowed.w = w;
-    gWindowed.h = h;
-    gWindowed.hasSaved = false;
-}
+// static void InitWindowedRestoreDefaults(int w, int h)
+// {
+//     gWindowed.w = w;
+//     gWindowed.h = h;
+//     gWindowed.hasSaved = false;
+// }
 
 // Borderless fullscreen toggle (does NOT change display mode)
 static void ToggleBorderlessFullscreenClean()

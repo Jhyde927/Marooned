@@ -40,21 +40,21 @@ static bool IsWithinAimConeXZ(const Vector3& hermitPos,
     return d >= cosThresh;
 }
 
-static bool ViewerIsInFrontOfNPC(const Vector3& npcPos, float npcYawDeg, const Vector3& viewerPos)
-{
-    float yaw = npcYawDeg * DEG2RAD;
-    Vector3 forward = { sinf(yaw), 0.0f, cosf(yaw) };
+// static bool ViewerIsInFrontOfNPC(const Vector3& npcPos, float npcYawDeg, const Vector3& viewerPos)
+// {
+//     float yaw = npcYawDeg * DEG2RAD;
+//     Vector3 forward = { sinf(yaw), 0.0f, cosf(yaw) };
 
-    Vector3 toViewer = Vector3Subtract(viewerPos, npcPos);
-    toViewer.y = 0.0f;
+//     Vector3 toViewer = Vector3Subtract(viewerPos, npcPos);
+//     toViewer.y = 0.0f;
 
-    float lenSq = Vector3DotProduct(toViewer, toViewer);
-    if (lenSq < 0.0001f) return true;
+//     float lenSq = Vector3DotProduct(toViewer, toViewer);
+//     if (lenSq < 0.0001f) return true;
 
-    toViewer = Vector3Scale(toViewer, 1.0f / sqrtf(lenSq));
-    float d = Vector3DotProduct(forward, toViewer);
-    return (d > 0.0f);
-}
+//     toViewer = Vector3Scale(toViewer, 1.0f / sqrtf(lenSq));
+//     float d = Vector3DotProduct(forward, toViewer);
+//     return (d > 0.0f);
+// }
 
 void NPC::Init(Texture2D sheet, int frameW, int frameH, float sc, float /*rotationYParam*/)
 {

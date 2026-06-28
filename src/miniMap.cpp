@@ -218,7 +218,7 @@ void MiniMap::RevealAroundPlayer(Vector3 playerPos)
             Vector2 from = { playerTileX + 0.5f, playerTileY + 0.5f };
             Vector2 to   = { tx + 0.5f,          ty + 0.5f };
 
-            if (TileLineOfSight(from, to, dungeonImg))
+            if (TileLineOfSight(from, to))
             {
                 visible[idx] = 1;
 

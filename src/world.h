@@ -188,3 +188,4 @@ void StartDungeonHallwayIntro();
 void StartIslandIntro();
 void StartIslandWaypointIntro();
 void StartKrakenScene();
+void foo();

@@ -35,7 +35,7 @@ void UpdateLevelMusic(){
 
 }
 
-void UpdateMenuState(Camera3D& camera, Player& player, float deltaTime, float elapsedTime)
+void UpdateMenuState(Camera3D& camera, float deltaTime, float elapsedTime)
 {
     CameraSystem::Get().Update(deltaTime);
 
@@ -61,7 +61,7 @@ void UpdateMenuState(Camera3D& camera, Player& player, float deltaTime, float el
     if (currentGameState == GameState::Quit)
         return;
 
-    RenderMenuFrame(camera, player, deltaTime);
+    RenderMenuFrame(camera);
 }
 
 

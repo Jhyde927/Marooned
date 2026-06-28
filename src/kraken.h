@@ -125,6 +125,7 @@ private:
     float bobTime{0.0f};
     float bobAmplitude{20.0f};
     float bobSpeed{1.6f};
+    float bobOffset = 0.0;
 
     float rockTime{0.0f};
     float rockAmplitudeDeg{10.0f};
