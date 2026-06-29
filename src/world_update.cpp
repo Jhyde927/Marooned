@@ -104,7 +104,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateCannons(dt);
     UpdateKraken(dt);
     UpdateNPCs(dt);
-
+    UpdateDungeonEvents();
     UpdateSlashEffects(dt);
     UpdateBullets(camera, dt);
     GatherFrameLights();

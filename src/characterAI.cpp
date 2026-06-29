@@ -220,9 +220,11 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
             // Transition to chase if player detected
             if (distanceSq < visionEnter && stateTimer > 1.0f && playerVisible) {
 
-                if (type == CharacterType::GiantSpider && levelIndex == 8){ //lock the door when spider sees player
+                if (type == CharacterType::GiantSpider && CurrentLevelIs("Dungeon7")){ //lock the door when spider sees player
                     if (doors[5].isOpen) doors[5].isOpen = false;
                     if (!doors[5].eventLocked) doors[5].eventLocked = true; //event lock the door behind the player until the spider dies. 
+                   
+                    
                 }
 
                 if (!spiderAgro){
@@ -2555,7 +2557,10 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             {
                 if (los && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired)
                 {
-                    FireBullet(position, aimPos, 1500.0f, 3.0f, true, false);
+                    Vector3 muzzle = position;
+                    muzzle.y = isElite ? position.y + 50 : position.y; //move muzzle up for taller enemies. 
+
+                    FireBullet(muzzle, aimPos, 1500.0f, 3.0f, true, false);
                     hasFired = true;
                     attackCooldown = 1.5f;
 

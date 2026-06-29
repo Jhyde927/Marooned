@@ -1794,8 +1794,20 @@ void GenerateBatsFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Bat
                 );
-                bat.maxHealth = 75;
-                bat.currentHealth = 75; //1.5 sword attacks
+
+
+                bat.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
+
+                if (bat.isElite) {
+                    bat.maxHealth = 300;
+                    bat.currentHealth = bat.maxHealth;
+                    bat.scale = 1.2;
+                }else{
+                    bat.maxHealth = 75;
+                    bat.currentHealth = 75; //1.5 sword attacks
+
+                }
+
                 bat.id = gEnemyCounter++;
                 bat.bobPhase = Rand01() * 2.0f * PI; //random starting offset
                 if (EqualsRGB(current, ColorOf(Code::bloatBat))){
@@ -1829,8 +1841,19 @@ void GenerateSpiderFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Spider
                 );
-                spider.maxHealth = 100;
-                spider.currentHealth = 100; //2 sword attacks
+      
+                spider.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
+
+                if (spider.isElite){
+                    spider.maxHealth = 300;
+                    spider.currentHealth = spider.maxHealth;
+                    spider.scale = 1.0;
+                }else{
+                    spider.maxHealth = 100;
+                    spider.currentHealth = 100; //2 sword attacks
+
+                }
+
                 spider.id = gEnemyCounter++;
                 enemies.push_back(spider);
                 enemyPtrs.push_back(&enemies.back()); 
@@ -1957,6 +1980,18 @@ void GenerateGiantSpiderFromImage(float baseY) {
     }
 
 
+}
+
+void UpdateDungeonEvents(){
+    static bool startCutScene = true;
+    if (CurrentLevelIs("Dungeon7")){
+        if (doors[5].isOpen && startCutScene ){
+            startCutScene = false;
+            std::cout << "starting cutscene\n";
+            StartSpiderScene();
+
+        }
+    }
 }
 
 
@@ -2095,6 +2130,7 @@ void GenerateSkeletonsFromImage(float baseY) {
 
             // Look for pure red pixels (255, 0, 0) → Skeleton spawn
             if (EqualsRGB(current, ColorOf(Code::Skeleton))) {
+
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 
                 Character skeleton(
@@ -2106,8 +2142,18 @@ void GenerateSkeletonsFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Skeleton
                 );
-                skeleton.maxHealth = 200;
-                skeleton.currentHealth = 200; //at least 2 shots. 4 sword swings 
+                skeleton.baseScale = 0.8;
+                skeleton.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
+
+                if (skeleton.isElite){
+                    skeleton.maxHealth = 500;
+                    skeleton.currentHealth = 500;
+                    skeleton.scale = 1.2;
+                }else{
+                    skeleton.maxHealth = 200;
+                    skeleton.currentHealth = 200; //at least 2 shots. 4 sword swings 
+                }
+
                 skeleton.id = gEnemyCounter++;
                 
                 enemies.push_back(skeleton);
@@ -2139,10 +2185,20 @@ void GeneratePiratesFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Pirate
                 );
-                
+       
+                pirate.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
 
-                pirate.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
-                pirate.currentHealth = 400;
+                if (pirate.isElite){
+                    
+                    pirate.maxHealth = 800;
+                    pirate.currentHealth = pirate.maxHealth;
+                    pirate.scale = 1.0f;
+                }else{
+                    pirate.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
+                    pirate.currentHealth = 400;
+                }
+
+
                 pirate.id = gEnemyCounter++;
                 enemies.push_back(pirate);
                 enemyPtrs.push_back(&enemies.back()); 
@@ -2196,10 +2252,19 @@ void GenerateWizardsFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Wizard
                 );
-                
 
-                wizard.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
-                wizard.currentHealth = 400;
+                wizard.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
+
+                if (wizard.isElite){
+                    wizard.maxHealth = 1000;
+                    wizard.currentHealth = wizard.maxHealth;
+                    wizard.scale = 0.9f;
+                }else{
+                    wizard.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
+                    wizard.currentHealth = 400;
+                }
+
+
                 wizard.id = gEnemyCounter++;
                 enemies.push_back(wizard);
                 enemyPtrs.push_back(&enemies.back()); 

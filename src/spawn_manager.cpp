@@ -47,6 +47,9 @@ namespace SpawnManager
             startCutscene = true;
             StartKrakenScene();
             gKraken.Rise();
+            for (Tentacle t : tentacles){
+                t.Rise();
+            }
 
         }
 

@@ -5,7 +5,8 @@
 #include "cfloat"
 #include "sound_manager.h"
 #include "pathfinding.h"
-
+#include "world.h"
+#include "kraken.h"
 
 Color krakenPurple = { 60, 25, 70, 255 };
 Color suckerPink = { 170, 90, 140, 255 };
@@ -302,6 +303,11 @@ void Tentacle::Update(float dt, const Vector3& target, Player& player, std::vect
     ResolveTentacleVsShip();
 }
 
+
+void Tentacle::Rise(){
+    ChangeState(TentacleState::Emerging);
+}
+
 void Tentacle::UpdateHidden(float dt)
 {
     (void)dt;
@@ -309,7 +315,8 @@ void Tentacle::UpdateHidden(float dt)
     rootPos = hiddenRootPos;
     visibleSegments = 0;
 
-    if (playerInRange)
+
+    if (playerInRange || gKraken.IsVisible())
     {
         ChangeState(TentacleState::Emerging);
     }
@@ -378,7 +385,7 @@ void Tentacle::UpdateIdle(float dt)
         ChangeState(TentacleState::Windup);
     }
 
-    if (stateTimer > 10.0f && !playerInRange){
+    if (stateTimer > 10.0f && !playerInRange && gKraken.GetState() == Kraken::State::Hidden){
         ChangeState(TentacleState::Withdraw);
     }
 
@@ -479,7 +486,7 @@ void Tentacle::UpdateRecover(float dt)
 
     joints.back() = Vector3Lerp(joints.back(), desiredTip, dt * 1.0f);
 
-    if (!playerInRange && stateTimer > 6.0f)
+    if (!playerInRange && stateTimer > 6.0f && gKraken.GetState() == Kraken::State::Hidden) // only withdraw if head is sumberged.
     {
         ChangeState(TentacleState::Withdraw);
     }

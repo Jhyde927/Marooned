@@ -233,12 +233,25 @@ void StartCutScene(){
 
 }
 
-// static Vector3 LookBetween(Vector3 a, Vector3 b, float lookY, float amount = 0.99f)
-// {
-//     Vector3 p = Vector3Lerp(a, b, amount);
-//     p.y = lookY;
-//     return p;
-// }
+void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
+{
+    if (ceilingMaskTex.id != 0 &&
+        ceilingMaskTex.width  == dungeonWidth &&
+        ceilingMaskTex.height == dungeonHeight)
+    {
+        return;
+    }
+
+    if (ceilingMaskTex.id != 0)
+    {
+        UnloadTexture(ceilingMaskTex);
+        ceilingMaskTex = Texture2D{ 0, 0, 0, 0, 0 };
+    }
+
+    CreateCeilingMaskTexture(dungeonWidth, dungeonHeight);
+}
+
+
 
 void StartIslandIntro(){
     CutsceneDesc intro;
@@ -253,7 +266,7 @@ void StartIslandIntro(){
         Vector3Scale(playerForward, 10000.0f)
     );
 
-    intro.startPos = { -10845.8, 975.138, 2969.99 };
+    intro.startPos = { -10845.8, 2000.0, 2969.99 };
     intro.endPos = playerEyePos;
     intro.endTarget = playerViewTarget;
 
@@ -263,8 +276,8 @@ void StartIslandIntro(){
     intro.lockTarget = true;
 
     intro.duration = 25.0f;
-    intro.arcHeight = 2000.0f;
-    intro.pathType = CutscenePathType::Arc;
+    intro.arcHeight = 5000.0f;
+    intro.pathType = CutscenePathType::ArcY;
     intro.returnToPlayerOnFinish = true;
 
     intro.mergeToPlayerViewAtEnd = true;
@@ -370,9 +383,7 @@ void StartKrakenScene()
 
     Vector3 p0 = DungeonTileCenter(27, 29, dungeonWidth, dungeonHeight, tileSize, camY);
     Vector3 p1 = DungeonTileCenter(24,  21, dungeonWidth, dungeonHeight, tileSize, camY);
-    Vector3 p2 = DungeonTileCenter(43,  21, dungeonWidth, dungeonHeight, tileSize, camY+200);
-
-
+    Vector3 p2 = DungeonTileCenter(14,  21, dungeonWidth, dungeonHeight, tileSize, camY);
 
     Vector3 middleDeck = DungeonTileCenter(24, 21, dungeonWidth, dungeonHeight, tileSize, lookY);
     Vector3 krakenPos = gKraken.startPos;//DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
@@ -415,6 +426,70 @@ void StartKrakenScene()
     desc.points.push_back(w4);
 
     camSys.StartWaypointCutscene(desc);
+}
+
+
+void StartSpiderScene(){
+    GameSettings::drawMinimap = false;
+    CameraSystem& camSys = CameraSystem::Get();
+
+    Vector3 giantSpiderPos;
+    for (Character* gs : enemyPtrs){
+        if (gs->type == CharacterType::GiantSpider){
+            giantSpiderPos = gs->position;
+            break;
+        }
+    }
+
+    Vector3 playerCamPos;
+    Vector3 playerCamTarget;
+    camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
+    const float camY = 300.0f;     // tweak
+    // Player Tile: 28, 17
+    // Player Tile: 27, 23
+    // Player Tile: 21, 23
+    Vector3 p0 = DungeonTileCenter(28, 17, dungeonWidth, dungeonHeight, tileSize, camY);
+    Vector3 p1 = DungeonTileCenter(27,  23, dungeonWidth, dungeonHeight, tileSize, camY);
+    Vector3 p2 = DungeonTileCenter(21,  23, dungeonWidth, dungeonHeight, tileSize, camY);
+
+    WaypointCutsceneDesc desc;
+    desc.snapOnStart = true;
+    desc.returnToPlayerOnFinish = true;
+    desc.hideCeiling = false;
+
+    CameraWaypoint w0;
+    w0.position = p0;
+    w0.target = p1;
+    w0.durationToNext = 9.0f;
+    desc.points.push_back(w0);
+
+    CameraWaypoint w1;
+    w1.position = p1;
+    w1.target = p2;
+    w1.durationToNext = 6.0f;
+    desc.points.push_back(w1);
+
+    CameraWaypoint w2;
+    w2.position = p2;
+    w2.target = giantSpiderPos;
+    w2.durationToNext = 3.0f;
+    desc.points.push_back(w2);
+
+    CameraWaypoint w3;
+    w3.position = p1;
+    w3.target = giantSpiderPos;
+    w3.durationToNext = 3.0f;
+    desc.points.push_back(w3);
+
+    CameraWaypoint w4;
+    w4.position = playerCamPos;
+    w4.target = playerCamTarget;
+    w4.durationToNext = 0.0f;
+    desc.points.push_back(w4);
+
+    camSys.StartWaypointCutscene(desc);
+
+
 }
 
 void StartDungeonHallwayIntro()
@@ -553,43 +628,22 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
 
-
+    
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     InitOverworldWeapons();
     TutorialSetup();
     InitDialogs();
 
-    //ShaderSetup::gSky.skyTransition = 0.0f;
+
     ShaderSetup::ApplyLevelDefaultSky();
+    ShaderSetup::StartLevelSkyCycle();
 
-    if (CurrentLevelIs("MiddleIsland")) //start day night cycle. 
-    {
-        ShaderSetup::StartSkyCycle(
-            30.0f, // day hold
-            30.0f, // night hold
-            15.0f,  // transition
-            0.97f    // outdoor night/twilight amount
-        );
-    }
-
-    if (CurrentLevelIs("River")) //start day night cycle. 
-    {
-        ShaderSetup::StartSkyCycle(
-            30.0f, // day hold
-            120.0f, // night hold
-            15.0f,  // transition
-            0.97f    // outdoor night/twilight amount
-        );
-        
-        ShaderSetup::SetSkyCycleTimer(25.0f); //start night immediatly, but keep day hold at 30 for later. 
-      
-    }
-
-    
 
     if (level.isDungeon){
         isDungeon = true;
         drawCeiling = level.hasCeiling;
+
+       
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
        
@@ -599,18 +653,9 @@ void InitLevel(LevelData& level, Camera& camera) {
         PortalSystem::SetTestRenderPairFromGroup(0); // or whichever group has 2 portals
 
         if (!CurrentLevelIs("Ship")) ShaderSetup::gSky.skyTransition = 1.0f;
+        ApplyLevelLighting(level.name);
         GenerateLightSources(floorHeight);
-
-
-
-        if (ceilingMaskTex.id == 0 ||
-            ceilingMaskTex.width  != dungeonWidth ||
-            ceilingMaskTex.height != dungeonHeight)
-        {
-            if (ceilingMaskTex.id != 0) UnloadTexture(ceilingMaskTex);
-            CreateCeilingMaskTexture(dungeonWidth, dungeonHeight);
-        }
-
+        EnsureCeilingMaskTexture(dungeonWidth, dungeonHeight);
         GenerateFloorTiles(floorHeight);
 
         UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
@@ -640,16 +685,12 @@ void InitLevel(LevelData& level, Camera& camera) {
             GenerateShipLevel();
 
         } 
-
-
-
         //generate enemies.
         GenerateEnemiesFromImage(dungeonEnemyHeight);
         OpenSecrets();   // set wallRuns[idx] enabled = false, player doesn't collide with disabled wallruns. 
 
         if (levelIndex == 4) levels[0].startPosition = {-5484.34, 180, -5910.67}; //exit dungeon 3 to dungeon enterance 2 position.
         
-
         //XZ dynamic lightmap + shader lighting with occlusion
         InitDungeonLights();
         
@@ -665,26 +706,13 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     R.SetShaderValues();
     InitShaders();
-
     R.SetTerrainShaderValues();
-
 
     Vector3 resolvedSpawn = ResolveSpawnPoint(level, isDungeon, first, floorHeight);
     InitPlayer(player, resolvedSpawn); //start at green pixel if there is one. otherwise level.startPos or first startPos
     InitWeaponBar();
 
-    PlayerView pv{
-        player.position,
-        player.rotation.y,
-        player.rotation.x,
-        player.isSwimming,
-        player.onBoard,
-        player_boat.position,
-        0.0f //dip
-        
-    };
-
-    CameraSystem::Get().SyncFromPlayer(pv); //synce to players rotation
+    CameraSystem::Get().InitPlayerView();
 
     hasCrossbow = true;
     player.previousWeapon = WeaponType::Sword;
@@ -1217,9 +1245,21 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
         //std::cout << "generated raptor\n";
 
         Character raptor(spawnPos, R.GetTexture("raptorTexture"), 512, 512, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
-        raptor.scale = 0.18;
-        raptor.maxHealth = 150;
-        raptor.currentHealth = raptor.maxHealth;
+
+        raptor.isElite = (GetRandomValue(0, 99) < 25); // 25% chance
+
+        if (raptor.isElite){
+            raptor.maxHealth = 500;
+            raptor.currentHealth = raptor.maxHealth;
+            raptor.scale = 0.36;
+        }else{
+            raptor.scale = 0.18;
+            raptor.maxHealth = 150;
+            raptor.currentHealth = raptor.maxHealth;
+
+        }
+
+
         raptor.id++;
         enemies.push_back(raptor);
         enemyPtrs.push_back(&enemies.back()); 

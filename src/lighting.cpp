@@ -15,8 +15,6 @@ BakedLightmap gDynamic;
 static std::vector<Color> gStaticBase;   // same w*h as gDynamic
 std::vector<int> StaticLightIndices;
 
-
-
 //lighting control
 LightingConfig lightConfig =
 {
@@ -29,9 +27,6 @@ LightingConfig lightConfig =
 
     // { 0.16f, 0.42f, 0.34f },  // dark teal-green outer
     // { 0.70f, 0.85f, 0.35f },  // yellow-green center
-
-
- 
 
     //ORIGINAL
     { 0.45f, 0.55f, 1.0f },  // cold blue outer falloff
@@ -56,6 +51,52 @@ LightingConfig lightConfig =
     1.25, //dungeon exposure
     0.9 //outside exposure
 };
+
+
+TorchColorCombo GetTorchColorComboForLevel(std::string_view levelName)
+{
+    // Default blue/orange dungeon lighting
+    TorchColorCombo combo;
+    combo.edgeColor = Vector3{ 0.45f, 0.55f, 1.0f };
+    combo.coreColor = Vector3{ 1.0f, 0.55f, 0.25f };
+
+    if (levelName == "Dungeon7")
+    {
+        combo.edgeColor = Vector3{ 0.15f, 0.65f, 0.25f }; // sickly green edge
+        combo.coreColor = Vector3{ 0.70f, 1.00f, 0.35f }; // bright green core
+    }
+    else if (levelName == "Dungeon10")
+    {
+        combo.edgeColor = Vector3{ 0.70f, 0.10f, 0.05f }; // red falloff
+        combo.coreColor = Vector3{ 1.00f, 0.45f, 0.10f }; // orange fire core
+    }
+    else if (levelName == "GhostDungeon")
+    {
+        combo.edgeColor = Vector3{ 0.25f, 0.70f, 1.00f }; // ghostly blue
+        combo.coreColor = Vector3{ 0.70f, 1.00f, 1.00f }; // pale cyan core
+    }
+    else if (levelName == "WizardDungeon")
+    {
+        combo.edgeColor = Vector3{ 0.45f, 0.20f, 0.85f }; // purple edge
+        combo.coreColor = Vector3{ 0.95f, 0.45f, 1.00f }; // magic pink core
+    }
+
+    return combo;
+}
+
+void ApplyLevelLighting(std::string_view levelName)
+{
+    TorchColorCombo combo = GetTorchColorComboForLevel(levelName);
+
+    lightConfig.edgeColor = combo.edgeColor;
+    lightConfig.coreColor = combo.coreColor;
+
+    // Keep these global/default unless you also want per-level intensity/range.
+    // lightConfig.staticIntensity = 1.0f;
+    // lightConfig.staticRadius = 3000.0f;
+}
+
+
 
 
 LightSource MakeStaticTorch(Vector3 pos) { //init static light params

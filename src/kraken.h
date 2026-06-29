@@ -80,7 +80,8 @@ public:
     bool isDead = false;
     bool didHalfHealthReposition = false;
     bool didQuarterHealthReposition = false;
-    bool trigger = false; //trigger rise on cut scene start. 
+    bool trigger = false; //trigger rise on cut scene start.
+    bool belowSurface = true; 
 
 
 

@@ -14,7 +14,8 @@ enum class CinematicKind {
 
 enum class CutscenePathType {
     Line,
-    Arc
+    ArcY,
+    ArcSide     // sideways relative to start -> end direction
 };
 
 struct CutsceneDesc {
@@ -31,7 +32,7 @@ struct CutsceneDesc {
     // If Arc, this is how high the camera rises in the middle.
     float arcHeight = 1500.0f;
 
-    CutscenePathType pathType = CutscenePathType::Arc;
+    CutscenePathType pathType = CutscenePathType::ArcSide;
 
     // If true, camera.target stays locked to target.
     // Later this could become startTarget/endTarget if you want target movement.
@@ -146,6 +147,7 @@ public:
     void AttachToPlayer(const Vector3& pos, const Vector3& forward);
     void SetMode(CamMode m);
     void SnapAllToPlayer();
+    void InitPlayerView();
 
     CamMode GetMode() const;
 

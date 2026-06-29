@@ -78,6 +78,7 @@ public:
     float stateTimer = 0.0f;
     float stepTimer = 0.0f;
     int id = -1;
+    float baseScale = 0.5f;
     float raptorSpeed = 700.0f;
     float raptorSoundCooldown = 0.0f;
     Vector3 patrolTarget{0,0,0};
@@ -161,6 +162,8 @@ public:
 
     float chaseSoundTimer = 0.0f;
     bool wasChasing = false;
+
+    bool isElite = false;
 
     //pirates vs zombies
     Character* target = nullptr;

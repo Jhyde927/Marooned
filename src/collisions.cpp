@@ -1278,6 +1278,7 @@ void TreeCollision(Camera& camera){
 }
 
 
+
 void HandleDoorInteraction(Camera& camera)
 {
     (void)camera;

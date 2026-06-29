@@ -923,6 +923,31 @@ namespace ShaderSetup
         };
     }
 
+    void StartLevelSkyCycle(){
+        if (CurrentLevelIs("MiddleIsland")) //start day night cycle. 
+        {
+            StartSkyCycle(
+                30.0f, // day hold
+                30.0f, // night hold
+                15.0f,  // transition
+                0.97f    // outdoor night/twilight amount
+            );
+        }
+
+        if (CurrentLevelIs("River")) //start day night cycle. 
+        {
+            StartSkyCycle(
+                30.0f, // day hold
+                120.0f, // night hold
+                15.0f,  // transition
+                0.97f    // outdoor night/twilight amount
+            );
+            
+            SetSkyCycleTimer(25.0f); //start night immediatly, but keep day hold at 30 for later. 
+        
+        }
+    }
+
 
 
 

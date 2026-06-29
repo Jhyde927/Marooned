@@ -442,7 +442,5 @@ void UpdateDoorDelayedActions(float dt);
 void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float rotYClosed,bool isOpen, Color tint);
 std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired);
 BoundingBox MakeEntranceDoorBoundingBox(Vector3 position, float rotationY);
-
-
+void UpdateDungeonEvents();
 void ClearDungeon();
-void foo();

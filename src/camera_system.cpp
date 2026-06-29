@@ -7,6 +7,7 @@
 #include "game_settings.h"
 #include "debug_console.h"
 #include "shaderSetup.h"
+#include "boat.h"
 
 DeathCamState deathCam;
 
@@ -86,7 +87,6 @@ Vector3 CameraSystem::GetOrbitCinematicPosition(float angleDeg) const
         focus.z + cosf(ang) * cine.radius
     };
 }
-
 Vector3 CameraSystem::GetCutscenePathPosition(float t) const
 {
     t = Clamp01(t);
@@ -95,12 +95,61 @@ Vector3 CameraSystem::GetCutscenePathPosition(float t) const
 
     Vector3 pos = LerpVec3(cutscene.startPos, cutscene.endPos, e);
 
-    if (cutscene.pathType == CutscenePathType::Arc) {
-        float arc = sinf(t * PI) * cutscene.arcHeight;
-        pos.y += arc;
+    float arc = sinf(t * PI) * cutscene.arcHeight;
+
+    switch (cutscene.pathType)
+    {
+        case CutscenePathType::ArcY:
+        {
+            pos.y += arc;
+        } break;
+
+
+        case CutscenePathType::ArcSide:
+        {
+            Vector3 forward = Vector3Subtract(cutscene.endPos, cutscene.startPos);
+            forward.y = 0.0f;
+
+            float lenSqr = forward.x * forward.x + forward.z * forward.z;
+
+            if (lenSqr > 0.001f)
+            {
+                forward = Vector3Normalize(forward);
+
+                Vector3 up = { 0.0f, 1.0f, 0.0f };
+
+                // Sideways vector perpendicular to the travel direction.
+                Vector3 side = Vector3CrossProduct(up, forward);
+                side = Vector3Normalize(side);
+
+                pos = Vector3Add(pos, Vector3Scale(side, arc));
+            }
+        } break;
+
+        case CutscenePathType::Line:
+        default:
+        {
+            // no arc
+        } break;
     }
 
     return pos;
+}
+
+void CameraSystem::InitPlayerView(){
+    PlayerView pv{
+        player.position,
+        player.rotation.y,
+        player.rotation.x,
+        player.isSwimming,
+        player.onBoard,
+        player_boat.position,
+        0.0f //dip
+        
+    };
+
+    CameraSystem::Get().SyncFromPlayer(pv); //synce to players rotation
+
 }
 
 CameraSystem& CameraSystem::Get() {

@@ -3,6 +3,13 @@
 #include "raylib.h"
 #include "vector"
 #include "dungeonGeneration.h"
+#include <string_view>
+
+struct TorchColorCombo
+{
+    Vector3 edgeColor;
+    Vector3 coreColor;
+};
 
 struct XZBounds { float minX, maxX, minZ, maxZ; };
 
@@ -60,7 +67,7 @@ extern BakedLightmap gDynamic;
 extern std::vector<int> StaticLightIndices;
 
 LightSource MakeStaticTorch(Vector3 pos); 
-
+void ApplyLevelLighting(std::string_view levelName);
 float SmoothFalloff(float d, float radius);
 void GatherFrameLights();
 void InitDynamicLightmap(int res);

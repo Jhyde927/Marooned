@@ -25,7 +25,7 @@ public:
     bool playerInRange = false;
     bool isDead = false;
     bool canDie = false;
-
+    void Rise();   
     void Init(const Vector3& rootPosition, int segmentCount, float segmentLength);
     void Update(float dt, const Vector3& target, Player& player, std::vector<Character*> pirates);
     void Draw() const;

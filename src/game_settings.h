@@ -42,4 +42,6 @@ namespace GameSettings
     inline float instancedFogStart = 3000.0f;
     inline float instancedFogEnd = 20000.0f;
 
+    inline int BossPercentage = 10;
+
 }

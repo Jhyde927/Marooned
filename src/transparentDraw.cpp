@@ -105,21 +105,28 @@ void GatherEnemies(Camera& camera) {
 
         if (enemy->hitTimer > 0.0f) flipX = false; //dont flipX when taking damage. 
 
-        // offset to prevent z-fighting
-        // Vector3 camDir = Vector3Normalize(Vector3Subtract(camera.position, enemy->position));
-        // Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, 10.0f));
-
-        // float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
+        Vector3 drawPos = enemy->position;
 
         Vector3 camToEnemy = Vector3Subtract(camera.position, enemy->position);
 
         float distSqr = Vector3LengthSqr(camToEnemy);
         float dist = sqrtf(distSqr); // only needed because billboard size uses real distance
 
-        Vector3 camDir = Vector3Normalize(camToEnemy);
-        Vector3 offsetPos = Vector3Add(enemy->position, Vector3Scale(camDir, 10.0f));
-
         float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
+
+        // Keep enemy feet/gameplay position the same, but raise the visual sprite
+        // when it is larger than its normal scale.
+        if (enemy->isElite)
+        {
+            float normalHeight = GetAdjustedBillboardSize(enemy->frameHeight * enemy->baseScale, dist);
+            float scaledHeight = GetAdjustedBillboardSize(enemy->frameHeight * enemy->scale, dist);
+
+            drawPos.y += (scaledHeight - normalHeight) * 0.5f;
+        }
+
+        Vector3 camToDrawPos = Vector3Subtract(camera.position, drawPos);
+        Vector3 camDir = Vector3Normalize(camToDrawPos);
+        Vector3 offsetPos = Vector3Add(drawPos, Vector3Scale(camDir, 10.0f));
 
         Color finalTint = WHITE;
         if (enemy->hitTimer > 0.0f) finalTint = {255,50,50,255};

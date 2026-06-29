@@ -290,6 +290,7 @@ void Kraken::UpdateState(float dt, Player& player)
     {
         case State::Rising:
             speed = riseSpeed;
+            
             currentHeightOffset += speed * dt;
             if (currentHeightOffset >= targetHeightOffset)
             {

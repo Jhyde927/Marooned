@@ -373,4 +373,5 @@ namespace ShaderSetup
     void ToggleSkyTransition(float duration);
     Vector3 GetCurrentSkyFogColor();
     Vector3 GetCurrentSkyTopFogColor();
+    void StartLevelSkyCycle();
 }
