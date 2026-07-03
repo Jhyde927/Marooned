@@ -70,10 +70,10 @@ TorchColorCombo GetTorchColorComboForLevel(std::string_view levelName)
         combo.edgeColor = Vector3{ 0.70f, 0.10f, 0.05f }; // red falloff
         combo.coreColor = Vector3{ 1.00f, 0.45f, 0.10f }; // orange fire core
     }
-    else if (levelName == "GhostDungeon")
+    else if (levelName == "Dungeon9")
     {
-        combo.edgeColor = Vector3{ 0.25f, 0.70f, 1.00f }; // ghostly blue
-        combo.coreColor = Vector3{ 0.70f, 1.00f, 1.00f }; // pale cyan core
+        combo.edgeColor = Vector3{ 0.70f, 0.10f, 0.05f }; // red falloff
+        combo.coreColor = Vector3{ 1.00f, 0.45f, 0.10f }; // orange fire core
     }
     else if (levelName == "WizardDungeon")
     {
@@ -801,8 +801,6 @@ void BuildStaticLightmapOnce(const std::vector<LightSource>& dungeonLights)
 {
 
     gStaticBase.assign((size_t)gDynamic.w * gDynamic.h, Color{0, 0, 0, 255});
-
-    
 
     for (const auto& L : dungeonLights)
     {

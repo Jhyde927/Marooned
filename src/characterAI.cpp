@@ -2130,7 +2130,8 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                 
                 if (canSee && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Wizard) {
 
-                    FireFireball(position, player.position, 1350.0f, 2.0f, true, true, true);
+                    Vector3 muzzle = isElite ? Vector3{position.x, position.y + 50, position.z} : position; 
+                    FireFireball(muzzle, player.position, 1350.0f, 2.0f, true, true, true);
                     hasFired = true;
                     attackCooldown = 5.0f;
                     SoundManager::GetInstance().PlaySoundAtPosition("flame1", position, player.position, 1.0, 2000);
@@ -2361,6 +2362,18 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
     }
 }
 
+void PirateOpenDoorWhileChasing(Character& pirate){
+    if (pirate.state == CharacterState::Patrol) return;
+    const float interactionArea = 400*400;
+    Door* door = GetClosestDoor(pirate.position);
+
+    float distSq = Vector3DistanceSqr(door->position, pirate.position);
+    if (!door->isLocked && !door->isOpen &&  distSq < interactionArea){
+
+        door->isOpen = true;
+    }
+}
+
 void Character::UpdatePirateAI(float deltaTime, Player& player) {
     if (isLoadingLevel) return;
 
@@ -2377,7 +2390,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateLeavingFlag(player.position, player.previousPosition);
     UpdateTargeting(deltaTime, player, enemyPtrs);
-   
+    PirateOpenDoorWhileChasing(*this);
     switch (state){
         case CharacterState::Idle: {
             
@@ -2870,8 +2883,8 @@ bool Character::FindRepositionTarget(const Player& player, const Vector3& selfPo
         if (!IsWalkable(tx, ty, dungeonImg)) continue;
         if (IsTileOccupied(tx, ty, nullptr)) continue;
 
-        outTarget = GetDungeonWorldPos(tx, ty, tileSize, dungeonPlayerHeight);
-        outTarget.y += 80.0f;
+        outTarget = GetDungeonWorldPos(tx, ty, tileSize, dungeonEnemyHeight);
+        //outTarget.y += 80.0f;
         return true;
     }
 

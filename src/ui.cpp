@@ -51,8 +51,8 @@ void InitDialogs()
         "hermit_2",
         {
         "Your still alive?",
-        "Here take this",
-        "You need it more than me."
+        "We got to get out of here.",
+        "I'll follow you."
         }
     );
 
@@ -556,6 +556,7 @@ void UpdateMenu(Camera& camera, float dt)
         currentGameState = GameState::Playing;
         drawCeiling = levels[levelIndex].hasCeiling; //turn the ceiling back on if there is one. 
         CameraSystem::Get().StopCinematic();
+        player.canMove = true;
         return;
     }
 

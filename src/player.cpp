@@ -545,6 +545,7 @@ void HandleKeyboardInput(Camera& camera) {
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Sword;
         meleeWeapon.equipDip = 50.0f;   // start low
+        CancelMeleeAttacksForWeaponSwitch(player.previousWeapon);
         
     }
 
@@ -552,18 +553,21 @@ void HandleKeyboardInput(Camera& camera) {
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Crossbow;
         crossbow.reloadDip = 40;
+        CancelMeleeAttacksForWeaponSwitch(player.previousWeapon);
     }
 
     if (IsKeyPressed(KEY_THREE) && hasBlunderbuss && player.activeWeapon != WeaponType::Blunderbuss && !DebugConsole::IsOpen()){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::Blunderbuss;
         weapon.reloadDip = 40;
+        CancelMeleeAttacksForWeaponSwitch(player.previousWeapon);
     }
 
     if (IsKeyPressed(KEY_FOUR) && hasStaff && player.activeWeapon != WeaponType::MagicStaff && !DebugConsole::IsOpen()){
         player.previousWeapon = player.activeWeapon;
         player.activeWeapon = WeaponType::MagicStaff;
         magicStaff.equipDip = 50;
+        CancelMeleeAttacksForWeaponSwitch(player.previousWeapon);
     }
 
     if (IsKeyPressed(KEY_F) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT)){
@@ -711,9 +715,58 @@ void UpdateSwimSounds(float deltaTime){
 
 }
 
+void ClearMeleeVolume()
+{
+    player.meleeVolume.active = false;
+    player.meleeVolume.boxes.clear();
+    player.meleeHitbox = { player.position, player.position };
+}
+
+void CancelSwordAttack()
+{
+    meleeWeapon.swinging = false;
+    meleeWeapon.hitboxActive = false;
+    meleeWeapon.hitboxTimer = 0.0f;
+    meleeWeapon.hitboxTriggered = false;
+
+    // Optional: only reset this if you want weapon swapping to break combos.
+    // meleeWeapon.currentAttack = SwordAttackType::RightSlash;
+}
+
+void CancelMagicStaffSwing()
+{
+    magicStaff.swinging = false;
+    magicStaff.hitboxActive = false;
+    magicStaff.swingTimer = 0.0f;
+    magicStaff.hitboxTriggered = false;
+}
+
+void CancelMeleeAttacksForWeaponSwitch(WeaponType newWeapon)
+{
+    if (newWeapon != WeaponType::Sword)
+    {
+        CancelSwordAttack();
+    }
+
+    if (newWeapon != WeaponType::MagicStaff)
+    {
+        CancelMagicStaffSwing();
+    }
+
+    ClearMeleeVolume();
+}
+
 
 void UpdateMeleeHitbox(Camera& camera)
 {
+
+    if (player.activeWeapon != WeaponType::Sword && player.activeWeapon != WeaponType::MagicStaff){
+        player.meleeVolume.active = false;
+        player.meleeHitbox = { player.position, player.position };
+        player.meleeVolume.boxes.clear();
+        return;
+    }
+
     const bool active = meleeWeapon.hitboxActive || magicStaff.hitboxActive;
 
     player.meleeVolume.active = active;
@@ -1475,7 +1528,7 @@ void DrawPlayer(const Player& player, Camera& camera) {
         }
     }
 
-    //DrawMeleeVolumeDebug(player.meleeVolume);
+    DrawMeleeVolumeDebug(player.meleeVolume);
 
 }
 

@@ -45,7 +45,7 @@ namespace SpawnManager
         if (doors[3].isOpen && !startCutscene) //there is a better way.
         {
             startCutscene = true;
-            StartKrakenScene();
+            Cutscenes::StartKrakenScene();
             gKraken.Rise();
             for (Tentacle t : tentacles){
                 t.Rise();

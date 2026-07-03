@@ -83,7 +83,7 @@ struct Player {
     float lightRange = 400;
     float gravity = 980.0f;
 
-    float height = 240.0f; //stream says make this higher
+    float height = 245.0f; //stream says make this higher
 
     float jumpStrength = 600.0f; 
     float footstepTimer = 0.0f;
@@ -173,3 +173,4 @@ void HandleJumpButton(float timeNow);
 void OnGroundCheck(bool groundedNow, float timeNow);
 void DrawWeapons(const Player& player, Camera& camera);
 const char* WeaponTypeToString(WeaponType weapon);
+void CancelMeleeAttacksForWeaponSwitch(WeaponType newWeapon);

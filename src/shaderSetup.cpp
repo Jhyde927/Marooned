@@ -937,7 +937,7 @@ namespace ShaderSetup
         if (CurrentLevelIs("River")) //start day night cycle. 
         {
             StartSkyCycle(
-                30.0f, // day hold
+                120.0f, // day hold
                 120.0f, // night hold
                 15.0f,  // transition
                 0.97f    // outdoor night/twilight amount

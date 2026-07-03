@@ -162,7 +162,7 @@ void InitMenuLevel(LevelData& level){
 
     if (!isDungeon) ShaderSetup::StartSkyCycle(
         30.0f, // day hold
-        60.0f, // night hold
+        30.0f, // night hold
         30.0f,  // transition
         0.97f    // outdoor night/twilight amount
     );
@@ -217,17 +217,20 @@ void StartCutScene(){
 
     if (CurrentLevelIs("MiddleIsland") && first){ //only show cutscene the first time.
         //hard coded positions
-
-        StartIslandIntro(); 
+        Cutscenes::StartIslandIntro();
+        //StartIslandIntro(); 
         //StartIslandWaypointIntro(); //way point intro
         ShaderSetup::gBloom.letterboxTarget = 0.14f;
 
     }else if (CurrentLevelIs("Dungeon1")){
-        StartDungeonHallwayIntro();
+        Cutscenes::StartDungeonHallwayIntro();
         ShaderSetup::gBloom.letterboxTarget = 0.14f;
 
 
-    }else{
+    }else if (CurrentLevelIs("River")){
+        Cutscenes::StartRiverIntro();
+        ShaderSetup::gBloom.letterboxTarget = 0.14f;
+    } else{
         CameraSystem::Get().SetMode(CamMode::Player);
     }
 
@@ -253,296 +256,295 @@ void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
 
 
 
-void StartIslandIntro(){
-    CutsceneDesc intro;
-    Vector3 playerEyePos = player.position;
-    playerEyePos.y += 40.0f; // or whatever your camera/head offset is
+// void StartIslandIntro(){
+//     CutsceneDesc intro;
+//     Vector3 playerEyePos = player.position;
+//     playerEyePos.y += 40.0f; // or whatever your camera/head offset is
     
-    float yawOffset = 20.0f * DEG2RAD;
-    Vector3 playerForward = GetForwardFromYaw(player.startRotationY + yawOffset);
+//     float yawOffset = 20.0f * DEG2RAD;
+//     Vector3 playerForward = GetForwardFromYaw(player.startRotationY + yawOffset);
 
-    Vector3 playerViewTarget = Vector3Add(
-        playerEyePos,
-        Vector3Scale(playerForward, 10000.0f)
-    );
+//     Vector3 playerViewTarget = Vector3Add(
+//         playerEyePos,
+//         Vector3Scale(playerForward, 10000.0f)
+//     );
 
-    intro.startPos = { -10845.8, 2000.0, 2969.99 };
-    intro.endPos = playerEyePos;
-    intro.endTarget = playerViewTarget;
+//     intro.startPos = { -10845.8, 2000.0, 2969.99 };
+//     intro.endPos = playerEyePos;
+//     intro.endTarget = playerViewTarget;
 
 
-    // This is what the camera looks at for most of the cutscene.
-    intro.target   = { 0.0f, 200.0f, 0.0f };
-    intro.lockTarget = true;
+//     // This is what the camera looks at for most of the cutscene.
+//     intro.target   = { 0.0f, 200.0f, 0.0f };
+//     intro.lockTarget = true;
 
-    intro.duration = 25.0f;
-    intro.arcHeight = 5000.0f;
-    intro.pathType = CutscenePathType::ArcY;
-    intro.returnToPlayerOnFinish = true;
+//     intro.duration = 25.0f;
+//     intro.arcHeight = 5000.0f;
+//     intro.pathType = CutscenePathType::ArcY;
+//     intro.returnToPlayerOnFinish = true;
 
-    intro.mergeToPlayerViewAtEnd = true;
-    intro.mergeStartT = 0.5f;
+//     intro.mergeToPlayerViewAtEnd = true;
+//     intro.mergeStartT = 0.5f;
 
-    CameraSystem::Get().StartCutscene(intro);
+//     CameraSystem::Get().StartCutscene(intro);
 
-}
+// }
 
-void StartOrbitalIntro()
-{
 
-}
+// void StartIslandWaypointIntro()
+// {
+//     CameraSystem& camSys = CameraSystem::Get();
 
-void StartIslandWaypointIntro()
-{
-    CameraSystem& camSys = CameraSystem::Get();
+//     Vector3 playerCamPos;
+//     Vector3 playerCamTarget;
+//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
 
-    Vector3 playerCamPos;
-    Vector3 playerCamTarget;
-    camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
+//     WaypointCutsceneDesc desc;
+//     desc.snapOnStart = true;
+//     desc.returnToPlayerOnFinish = true;
+//     desc.hideCeiling = false;
 
-    WaypointCutsceneDesc desc;
-    desc.snapOnStart = true;
-    desc.returnToPlayerOnFinish = true;
-    desc.hideCeiling = false;
 
+//     //Work In Progress
+//     const float camY = 1800.0f;
+//     //const float lookY = 300.0f;
 
-    //Work In Progress
-    const float camY = 1800.0f;
-    //const float lookY = 300.0f;
+//     //Vector3 startPos    = Vector3{ 5475.0f,   camY, -5665.0f };
+//     //Vector3 rightIsland = Vector3{-8254.4, camY, -8892.74};
+//     Vector3 farIsland   = Vector3{-8722.67, camY, 9487.32 };
+//     //Vector3 leftIsland  = Vector3{ 8281.82, camY, 8645.83};
 
-    //Vector3 startPos    = Vector3{ 5475.0f,   camY, -5665.0f };
-    //Vector3 rightIsland = Vector3{-8254.4, camY, -8892.74};
-    Vector3 farIsland   = Vector3{-8722.67, camY, 9487.32 };
-    //Vector3 leftIsland  = Vector3{ 8281.82, camY, 8645.83};
 
+//     //Vector3(-940.195, 653.18, 840.402)
+//     Vector3 middle = Vector3{ -940.0f, camY, -840.0f};
 
-    //Vector3(-940.195, 653.18, 840.402)
-    Vector3 middle = Vector3{ -940.0f, camY, -840.0f};
 
 
+//     Vector3 p0 = farIsland;
+//     Vector3 p1 = middle;
+//     //Vector3 p2 = startPos;
+//     // Vector3 p3 = leftIsland;
+//     // Vector3 p4 = startPos;
 
-    Vector3 p0 = farIsland;
-    Vector3 p1 = middle;
-    //Vector3 p2 = startPos;
-    // Vector3 p3 = leftIsland;
-    // Vector3 p4 = startPos;
+//     CameraWaypoint w0;
+//     w0.position = p0;
+//     w0.target = Vector3{0, 300, 0};
+//     w0.durationToNext = 15.0f;
+//     desc.points.push_back(w0);
 
-    CameraWaypoint w0;
-    w0.position = p0;
-    w0.target = Vector3{0, 300, 0};
-    w0.durationToNext = 15.0f;
-    desc.points.push_back(w0);
+//     CameraWaypoint w1;
+//     w1.position = p1;
+//     w1.target =  Vector3{0, camY, 0};
+//     w1.durationToNext = 15.0f;
+//     desc.points.push_back(w1);
 
-    CameraWaypoint w1;
-    w1.position = p1;
-    w1.target =  Vector3{0, camY, 0};
-    w1.durationToNext = 15.0f;
-    desc.points.push_back(w1);
-
-    CameraWaypoint w2;
-    w2.position = playerCamPos;
-    w2.target =  playerCamTarget;
-    w2.durationToNext = 0.0f;
-    desc.points.push_back(w2);
-
-    // CameraWaypoint w3;
-    // w3.position = p3;
-    // w3.target =  Vector3{0};
-    // w3.durationToNext = 9.0f;
-    // desc.points.push_back(w3);
-
-    // Circle back near the start before merging.
-    // CameraWaypoint w4;
-    // w4.position = p4;
-    // w4.target = playerCamTarget;
-    // w4.durationToNext = 2.0f;
-    // desc.points.push_back(w4);
-
-    // // Final exact player camera merge.
-    // CameraWaypoint w5;
-    // w5.position = playerCamPos;
-    // w5.target = playerCamTarget;
-    // w5.durationToNext = 0.0f;
-    // desc.points.push_back(w5);
-
-    camSys.StartWaypointCutscene(desc);
-}
-
-void StartKrakenScene()
-{
-    GameSettings::drawMinimap = false;
-    CameraSystem& camSys = CameraSystem::Get();
-
-    Vector3 playerCamPos;
-    Vector3 playerCamTarget;
-    camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
-
-
-    const float camY = 300.0f;     // tweak
-    const float lookY = 260.0f;    // tweak
-
-    Vector3 p0 = DungeonTileCenter(27, 29, dungeonWidth, dungeonHeight, tileSize, camY);
-    Vector3 p1 = DungeonTileCenter(24,  21, dungeonWidth, dungeonHeight, tileSize, camY);
-    Vector3 p2 = DungeonTileCenter(14,  21, dungeonWidth, dungeonHeight, tileSize, camY);
-
-    Vector3 middleDeck = DungeonTileCenter(24, 21, dungeonWidth, dungeonHeight, tileSize, lookY);
-    Vector3 krakenPos = gKraken.startPos;//DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
-
-    WaypointCutsceneDesc desc;
-    desc.snapOnStart = true;
-    desc.returnToPlayerOnFinish = true;
-    desc.hideCeiling = false;
-
-    CameraWaypoint w0;
-    w0.position = p0;
-    w0.target = middleDeck;
-    w0.durationToNext = 9.0f;
-    desc.points.push_back(w0);
-
-    CameraWaypoint w1;
-    w1.position = p1;
-    w1.target = krakenPos;
-    w1.durationToNext = 6.0f;
-    desc.points.push_back(w1);
-
-    CameraWaypoint w2;
-    w2.position = p2;
-    w2.target = krakenPos;
-    w2.durationToNext = 3.0f;
-    desc.points.push_back(w2);
-
-    //w3
-
-    CameraWaypoint w3;
-    w3.position = p1;
-    w3.target = krakenPos;
-    w3.durationToNext = 3.0f;
-    desc.points.push_back(w3);
-
-    CameraWaypoint w4;
-    w4.position = playerCamPos;
-    w4.target = playerCamTarget;
-    w4.durationToNext = 0.0f;
-    desc.points.push_back(w4);
-
-    camSys.StartWaypointCutscene(desc);
-}
-
-
-void StartSpiderScene(){
-    GameSettings::drawMinimap = false;
-    CameraSystem& camSys = CameraSystem::Get();
-
-    Vector3 giantSpiderPos;
-    for (Character* gs : enemyPtrs){
-        if (gs->type == CharacterType::GiantSpider){
-            giantSpiderPos = gs->position;
-            break;
-        }
-    }
-
-    Vector3 playerCamPos;
-    Vector3 playerCamTarget;
-    camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
-    const float camY = 300.0f;     // tweak
-    // Player Tile: 28, 17
-    // Player Tile: 27, 23
-    // Player Tile: 21, 23
-    Vector3 p0 = DungeonTileCenter(28, 17, dungeonWidth, dungeonHeight, tileSize, camY);
-    Vector3 p1 = DungeonTileCenter(27,  23, dungeonWidth, dungeonHeight, tileSize, camY);
-    Vector3 p2 = DungeonTileCenter(21,  23, dungeonWidth, dungeonHeight, tileSize, camY);
-
-    WaypointCutsceneDesc desc;
-    desc.snapOnStart = true;
-    desc.returnToPlayerOnFinish = true;
-    desc.hideCeiling = false;
-
-    CameraWaypoint w0;
-    w0.position = p0;
-    w0.target = p1;
-    w0.durationToNext = 9.0f;
-    desc.points.push_back(w0);
-
-    CameraWaypoint w1;
-    w1.position = p1;
-    w1.target = p2;
-    w1.durationToNext = 6.0f;
-    desc.points.push_back(w1);
-
-    CameraWaypoint w2;
-    w2.position = p2;
-    w2.target = giantSpiderPos;
-    w2.durationToNext = 3.0f;
-    desc.points.push_back(w2);
-
-    CameraWaypoint w3;
-    w3.position = p1;
-    w3.target = giantSpiderPos;
-    w3.durationToNext = 3.0f;
-    desc.points.push_back(w3);
-
-    CameraWaypoint w4;
-    w4.position = playerCamPos;
-    w4.target = playerCamTarget;
-    w4.durationToNext = 0.0f;
-    desc.points.push_back(w4);
-
-    camSys.StartWaypointCutscene(desc);
-
-
-}
-
-void StartDungeonHallwayIntro()
-{
-    GameSettings::drawMinimap = false;
-    CameraSystem& camSys = CameraSystem::Get();
-
-    Vector3 playerCamPos;
-    Vector3 playerCamTarget;
-    camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
-
-
-    const float camY = 300.0f;     // tweak
-    const float lookY = 260.0f;    // tweak
-
-    Vector3 p0 = DungeonTileCenter(30, 1, dungeonWidth, dungeonHeight, tileSize, camY);
-    Vector3 p1 = DungeonTileCenter(8,  1, dungeonWidth, dungeonHeight, tileSize, camY);
-    Vector3 p2 = DungeonTileCenter(2,  7, dungeonWidth, dungeonHeight, tileSize, camY);
-
-    Vector3 lookDownHall = DungeonTileCenter(8, 1, dungeonWidth, dungeonHeight, tileSize, lookY);
-    Vector3 lookLeftRoom = DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
-
-    WaypointCutsceneDesc desc;
-    desc.snapOnStart = true;
-    desc.returnToPlayerOnFinish = true;
-    desc.hideCeiling = false;
-
-    CameraWaypoint w0;
-    w0.position = p0;
-    w0.target = lookDownHall;
-    w0.durationToNext = 9.0f;
-    desc.points.push_back(w0);
-
-    CameraWaypoint w1;
-    w1.position = p1;
-    w1.target = lookLeftRoom;
-    w1.durationToNext = 6.0f;
-    desc.points.push_back(w1);
-
-    CameraWaypoint w2;
-    w2.position = p2;
-    w2.target = playerCamTarget;
-    w2.durationToNext = 3.0f;
-    desc.points.push_back(w2);
-
-    CameraWaypoint w3;
-    w3.position = playerCamPos;
-    w3.target = playerCamTarget;
-    w3.durationToNext = 0.0f;
-    desc.points.push_back(w3);
-
-    camSys.StartWaypointCutscene(desc);
-}
+//     CameraWaypoint w2;
+//     w2.position = playerCamPos;
+//     w2.target =  playerCamTarget;
+//     w2.durationToNext = 0.0f;
+//     desc.points.push_back(w2);
+
+//     // CameraWaypoint w3;
+//     // w3.position = p3;
+//     // w3.target =  Vector3{0};
+//     // w3.durationToNext = 9.0f;
+//     // desc.points.push_back(w3);
+
+//     // Circle back near the start before merging.
+//     // CameraWaypoint w4;
+//     // w4.position = p4;
+//     // w4.target = playerCamTarget;
+//     // w4.durationToNext = 2.0f;
+//     // desc.points.push_back(w4);
+
+//     // // Final exact player camera merge.
+//     // CameraWaypoint w5;
+//     // w5.position = playerCamPos;
+//     // w5.target = playerCamTarget;
+//     // w5.durationToNext = 0.0f;
+//     // desc.points.push_back(w5);
+
+//     camSys.StartWaypointCutscene(desc);
+// }
+
+// void StartKrakenScene()
+// {
+//     GameSettings::drawMinimap = false;
+//     CameraSystem& camSys = CameraSystem::Get();
+
+//     Vector3 playerCamPos;
+//     Vector3 playerCamTarget;
+//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
+
+
+//     const float camY = 300.0f;     // tweak
+//     const float lookY = 260.0f;    // tweak
+
+//     Vector3 p0 = DungeonTileCenter(27, 29, dungeonWidth, dungeonHeight, tileSize, camY);
+//     Vector3 p1 = DungeonTileCenter(24,  21, dungeonWidth, dungeonHeight, tileSize, camY);
+//     Vector3 p2 = DungeonTileCenter(14,  21, dungeonWidth, dungeonHeight, tileSize, camY);
+
+//     Vector3 middleDeck = DungeonTileCenter(24, 21, dungeonWidth, dungeonHeight, tileSize, lookY);
+//     Vector3 krakenPos = gKraken.startPos;//DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
+
+//     WaypointCutsceneDesc desc;
+//     desc.snapOnStart = true;
+//     desc.returnToPlayerOnFinish = true;
+//     desc.hideCeiling = false;
+
+//     CameraWaypoint w0;
+//     w0.position = p0;
+//     w0.target = middleDeck;
+//     w0.durationToNext = 9.0f;
+//     desc.points.push_back(w0);
+
+//     CameraWaypoint w1;
+//     w1.position = p1;
+//     w1.target = krakenPos;
+//     w1.durationToNext = 6.0f;
+//     desc.points.push_back(w1);
+
+//     CameraWaypoint w2;
+//     w2.position = p2;
+//     w2.target = krakenPos;
+//     w2.durationToNext = 3.0f;
+//     desc.points.push_back(w2);
+
+//     //w3
+
+//     CameraWaypoint w3;
+//     w3.position = p1;
+//     w3.target = krakenPos;
+//     w3.durationToNext = 3.0f;
+//     desc.points.push_back(w3);
+
+//     CameraWaypoint w4;
+//     w4.position = playerCamPos;
+//     w4.target = playerCamTarget;
+//     w4.durationToNext = 0.0f;
+//     desc.points.push_back(w4);
+
+//     camSys.StartWaypointCutscene(desc);
+// }
+
+
+// void StartSpiderScene(){
+//     GameSettings::drawMinimap = false;
+//     CameraSystem& camSys = CameraSystem::Get();
+//     ShaderSetup::gBloom.letterboxTarget = 0.14f;
+
+//     Vector3 giantSpiderPos;
+//     for (Character* gs : enemyPtrs){
+//         if (gs->type == CharacterType::GiantSpider){
+//             giantSpiderPos = gs->position;
+//             break;
+//         }
+//     }
+
+//     Vector3 playerCamPos;
+//     Vector3 playerCamTarget;
+//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
+//     const float camY = 300.0f;  
+//     //semi circle the spider. 
+//     Vector3 p0 = DungeonTileCenter(28, 17, dungeonWidth, dungeonHeight, tileSize, camY);
+//     Vector3 p1 = DungeonTileCenter(27,  23, dungeonWidth, dungeonHeight, tileSize, camY);
+//     Vector3 p2 = DungeonTileCenter(21,  23, dungeonWidth, dungeonHeight, tileSize, camY);
+
+//     Vector3 p3 = DungeonTileCenter(14,  24, dungeonWidth, dungeonHeight, tileSize, camY);
+//     Vector3 p4 = DungeonTileCenter(15,  29, dungeonWidth, dungeonHeight, tileSize, camY);
+
+//     WaypointCutsceneDesc desc;
+//     desc.snapOnStart = true;
+//     desc.returnToPlayerOnFinish = true;
+//     desc.hideCeiling = false;
+
+//     CameraWaypoint w0;
+//     w0.position = p0;
+//     w0.target = p1;
+//     w0.durationToNext = 9.0f;
+//     desc.points.push_back(w0);
+
+//     CameraWaypoint w1;
+//     w1.position = p1;
+//     w1.target = p2;
+//     w1.durationToNext = 6.0f;
+//     desc.points.push_back(w1);
+
+//     CameraWaypoint w2;
+//     w2.position = p2;
+//     w2.target = giantSpiderPos;
+//     w2.durationToNext = 6.0f;
+//     desc.points.push_back(w2);
+
+//     CameraWaypoint w3;
+//     w3.position = p3;
+//     w3.target = giantSpiderPos;
+//     w3.durationToNext = 6.0f;
+//     desc.points.push_back(w3);
+
+
+//     CameraWaypoint w4;
+//     w4.position = p4;
+//     w4.target = giantSpiderPos;
+//     w4.durationToNext = 0.0f;
+//     desc.points.push_back(w4);
+
+//     camSys.StartWaypointCutscene(desc);
+
+
+// }
+
+// void StartDungeonHallwayIntro()
+// {
+//     GameSettings::drawMinimap = false;
+//     CameraSystem& camSys = CameraSystem::Get();
+
+//     Vector3 playerCamPos;
+//     Vector3 playerCamTarget;
+//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
+
+
+//     const float camY = 300.0f;     // tweak
+//     const float lookY = 260.0f;    // tweak
+
+//     Vector3 p0 = DungeonTileCenter(30, 1, dungeonWidth, dungeonHeight, tileSize, camY);
+//     Vector3 p1 = DungeonTileCenter(8,  1, dungeonWidth, dungeonHeight, tileSize, camY);
+//     Vector3 p2 = DungeonTileCenter(2,  7, dungeonWidth, dungeonHeight, tileSize, camY);
+
+//     Vector3 lookDownHall = DungeonTileCenter(8, 1, dungeonWidth, dungeonHeight, tileSize, lookY);
+//     Vector3 lookLeftRoom = DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
+
+//     WaypointCutsceneDesc desc;
+//     desc.snapOnStart = true;
+//     desc.returnToPlayerOnFinish = true;
+//     desc.hideCeiling = false;
+
+//     CameraWaypoint w0;
+//     w0.position = p0;
+//     w0.target = lookDownHall;
+//     w0.durationToNext = 9.0f;
+//     desc.points.push_back(w0);
+
+//     CameraWaypoint w1;
+//     w1.position = p1;
+//     w1.target = lookLeftRoom;
+//     w1.durationToNext = 6.0f;
+//     desc.points.push_back(w1);
+
+//     CameraWaypoint w2;
+//     w2.position = p2;
+//     w2.target = playerCamTarget;
+//     w2.durationToNext = 3.0f;
+//     desc.points.push_back(w2);
+
+//     CameraWaypoint w3;
+//     w3.position = playerCamPos;
+//     w3.target = playerCamTarget;
+//     w3.durationToNext = 0.0f;
+//     desc.points.push_back(w3);
+
+//     camSys.StartWaypointCutscene(desc);
+// }
 
 
 
@@ -561,19 +563,15 @@ void InitLevel(LevelData& level, Camera& camera) {
     DebugConsole::Init();
     CameraSystem::Get().StopCinematic();
     CameraSystem::Get().SetMode(CamMode::Cinematic);
-    //CameraSystem::Get().SnapAllToPlayer(); //put freecam at player pos
     
-    //camera.position = player.position; //start as player, not freecam.
     levelIndex = level.levelIndex; //update current level index to new level. 
     gCurrentLevelIndex = levelIndex; //save current level globally so we can tell if we are changing levels or resuming. 
-
-
 
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     if (!CurrentLevelIs("Ship")){  
         terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
-
+        //instanced grass
         Grass::GenerateFromHeightmap(heightmap, terrainScale, 25.0f, 0.80f, 10000);
 
 
@@ -609,10 +607,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     VegetationInstanced::InitShader();
     VegetationInstanced::Generate();
-    // Vector3 grassOffset = {player.position.x, player.position.y + 200.0f, player.position.z};
-    // Grass::GenerateTestPatch(grassOffset, 500);
 
-    //Grass::GenerateTestPatch({ 0.0f, 100.0f, 0.0f }, 500);
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
 
     if (level.name == "River" || level.name == "Swamp"){
@@ -1291,10 +1286,8 @@ void UpdateNPCs(float deltaTime){
 
 void UpdateEnemies(float deltaTime) {
     if (isLoadingLevel) return;
-    // for (Character& e : enemies){
-    //     e.Update(deltaTime, player);
-    // }
-
+    if (CameraSystem::Get().GetMode() == CamMode::Cinematic) return;
+    
     for (Character* e : enemyPtrs){
         e->Update(deltaTime, player);
     }
@@ -1620,7 +1613,7 @@ void InitNPCs() //spawn hermit on island.
 
     // Interaction
     hermit.interactRadius = 400.0f;
-    hermit.dialogId = unlockEntrances ? "hermit_2" : "hermit_intro";
+    hermit.dialogId = CurrentLevelIs("River") ? "hermit_2" : "hermit_intro";//unlockEntrances ? "hermit_2" : "hermit_intro";
     hermit.rotationY = unlockEntrances ? 180.0f : 90.0f;
     hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
     hermit.isInteractable = true;

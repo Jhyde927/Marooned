@@ -659,6 +659,19 @@ void BindSecretWallsToRuns()
     }
 }
 
+Door* GetClosestDoor(Vector3 position){
+    float minDist = std::numeric_limits<float>::max();
+    Door* closestDoor = nullptr;
+    for (Door& door : doors){
+        float distSq = Vector3DistanceSqr(position, door.position);
+        if (distSq < minDist){
+            minDist = distSq;
+            closestDoor = &door;
+        }
+    }
+    return closestDoor;
+}
+
 int GetDoorIndexAtTile(int nx, int nz){
     for (int i = 0; i < (int)doors.size(); i++){
         if (doors[i].tileX == nx && doors[i].tileY == nz){
@@ -1805,6 +1818,7 @@ void GenerateBatsFromImage(float baseY) {
                 }else{
                     bat.maxHealth = 75;
                     bat.currentHealth = 75; //1.5 sword attacks
+                    bat.scale = 0.4;
 
                 }
 
@@ -1987,8 +2001,7 @@ void UpdateDungeonEvents(){
     if (CurrentLevelIs("Dungeon7")){
         if (doors[5].isOpen && startCutScene ){
             startCutScene = false;
-            std::cout << "starting cutscene\n";
-            StartSpiderScene();
+            Cutscenes::StartSpiderScene();
 
         }
     }
@@ -2075,7 +2088,7 @@ void GenerateHermitFromImage(float baseY) {
 
                 // Interaction
                 hermit.interactRadius = 400.0f;
-                hermit.dialogId = unlockEntrances ? "hermit_2" : "hermit_intro"; 
+                //hermit.dialogId = unlockEntrances ? "hermit_2" : "hermit_intro"; 
 
                 //Make a switch. func determine hermitDialog.
 
@@ -2258,7 +2271,7 @@ void GenerateWizardsFromImage(float baseY) {
                 if (wizard.isElite){
                     wizard.maxHealth = 1000;
                     wizard.currentHealth = wizard.maxHealth;
-                    wizard.scale = 0.9f;
+                    wizard.scale = 0.75f;
                 }else{
                     wizard.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
                     wizard.currentHealth = 400;

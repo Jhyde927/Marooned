@@ -213,7 +213,7 @@ void BuildTerrainChunkDrawList(
 
     if (stats)
     {
-        stats->totalChunks = maxChunksToDraw;
+        stats->totalChunks = (int)T.chunks.size();
         stats->visibleChunks = 0;
         stats->candidatesBeforeCap = 0;
     }

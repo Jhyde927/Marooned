@@ -443,4 +443,5 @@ void DrawFlatDoor(Texture2D tex, Vector3 hinge,float width,float height, float r
 std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired);
 BoundingBox MakeEntranceDoorBoundingBox(Vector3 position, float rotationY);
 void UpdateDungeonEvents();
+Door* GetClosestDoor(Vector3 position);
 void ClearDungeon();

@@ -604,7 +604,7 @@ void CameraSystem::StartCinematic(const CinematicDesc& desc) {
 
 void CameraSystem::StopCinematic() {
     cineActive = false;
-    // You choose where to return. Usually menu -> Player.
+
     mode = CamMode::Player;
 }
 

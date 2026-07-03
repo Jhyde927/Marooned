@@ -4,6 +4,16 @@
 #include "raymath.h"
 #include <vector>
 
+namespace Cutscenes 
+{
+    void StartDungeonHallwayIntro();
+    void StartIslandIntro();
+    void StartRiverIntro();
+    void StartIslandWaypointIntro();
+    void StartKrakenScene();
+    void StartSpiderScene();
+}
+
 enum class CamMode { Player, Free, Cinematic, Death};
 
 enum class CinematicKind {
@@ -183,6 +193,8 @@ public:
 
     bool IsCutsceneActive() const { return cutsceneActive; }
     bool aspectSquare = false;
+
+
 
 
 

@@ -17,7 +17,7 @@
 static VegetationInstanceBatch gPalmTreeBatch;
 static VegetationInstanceBatch gBushBatch;
 
-static VegetationInstanceBatch gGrassBatches[4];
+static VegetationInstanceBatch gGrassBatches[4]; //4 different types of grass card. 
 
 // ------------------------------------------------------------
 // Helpers
@@ -144,7 +144,8 @@ namespace VegetationInstanced
 
         
 
-        generateVegetation();
+        generateVegetation(); //old generation code builds vector of tree stuct with position, rotation, scale
+        //before pushing transorms to intanced draw. 
 
         for (const TreeInstance& tree : trees)
         {
