@@ -136,7 +136,6 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
 
 static void UpdateGameplayPresentation(Camera3D& camera, Player& player, float dt)
 {
-    HandleWeaponTints();
 
     if (isDungeon)
     {

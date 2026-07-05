@@ -3,9 +3,12 @@
 #include "raymath.h"
 #include "world.h"
 #include "lighting.h"
+#include "rlgl.h"
 
 namespace ShaderSetup
 {
+
+
 
     PortalShader      gPortal;
     WaterShader       gWater;
@@ -968,4 +971,91 @@ namespace ShaderSetup
 
 
 
+}
+
+namespace WeaponModelSetup
+{
+    static const char* weaponModelKeys[] = {
+        "blunderbuss",
+        "crossbow",
+        "crossbowRest",
+        "swordModel",
+        "staffModel"
+    };
+
+    Shader GetRaylibDefaultShader()
+    {
+        Shader shader;
+        shader.id = rlGetShaderIdDefault();
+        shader.locs = rlGetShaderLocsDefault();
+        return shader;
+    }
+
+
+    void ApplyWeaponDungeonLightingIfReady(bool isDungeon, Shader lightingShader)
+    {
+        if (!isDungeon)
+        {
+            WeaponModelSetup::ResetWeaponShaders();
+            return;
+        }
+
+        if (gDynamic.tex.id == 0)
+        {
+            TraceLog(LOG_WARNING, "Weapon lighting skipped: gDynamic.tex is not ready yet.");
+            return;
+        }
+
+        WeaponModelSetup::SetWeaponShaders(lightingShader);
+        WeaponModelSetup::SetWeaponLightmaps(gDynamic.tex);
+
+        TraceLog(LOG_INFO, "Weapon lighting applied with lightmap texture id %u.", gDynamic.tex.id);
+    }
+
+    void SetModelShader(Model& model, Shader shader)
+    {
+        for (int i = 0; i < model.materialCount; ++i)
+        {
+            model.materials[i].shader = shader;
+        }
+    }
+
+    void SetModelLightmap(Model& model, Texture2D lightmap)
+    {
+
+
+        for (int i = 0; i < model.materialCount; ++i)
+        {
+            model.materials[i].maps[MATERIAL_MAP_EMISSION].texture = lightmap;
+        }
+    }
+
+    void SetWeaponShaders(Shader shader)
+    {
+        for (const char* key : weaponModelKeys)
+        {
+            Model& model = R.GetModel(key);
+            SetModelShader(model, shader);
+        }
+    }
+
+    void ResetWeaponShaders()
+    {
+        Shader defaultShader = GetRaylibDefaultShader();
+
+        for (const char* key : weaponModelKeys)
+        {
+            Model& model = R.GetModel(key);
+            SetModelShader(model, defaultShader);
+        }
+    }
+
+    void SetWeaponLightmaps(Texture2D lightmap)
+    {
+        for (const char* key : weaponModelKeys)
+        {
+            Model& model = R.GetModel(key);
+            SetModelLightmap(model, lightmap);
+        }
+    }
 }

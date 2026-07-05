@@ -633,12 +633,13 @@ void InitLevel(LevelData& level, Camera& camera) {
     ShaderSetup::ApplyLevelDefaultSky();
     ShaderSetup::StartLevelSkyCycle();
 
+    
 
     if (level.isDungeon){
         isDungeon = true;
         drawCeiling = level.hasCeiling;
 
-       
+        
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
        
@@ -652,6 +653,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateLightSources(floorHeight);
         EnsureCeilingMaskTexture(dungeonWidth, dungeonHeight);
         GenerateFloorTiles(floorHeight);
+
 
         UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
@@ -676,6 +678,9 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateHermitFromImage(floorHeight);
         GenerateProps(floorHeight + 20);
 
+
+
+
         if (level.name == "Ship"){
             GenerateShipLevel();
 
@@ -693,8 +698,10 @@ void InitLevel(LevelData& level, Camera& camera) {
         InitDungeonInstancing();
         miniMap.Initialize(4);
         miniMap.SetDrawSize(288.0f);
-    }
 
+
+    }
+   
     InitRaftCollectables(); //generate dungeon before init raft collectables.
     isLoadingLevel = false;
     //R.SetPortalShaderValues();
@@ -709,7 +716,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     CameraSystem::Get().InitPlayerView();
     
-
+    WeaponModelSetup::ApplyWeaponDungeonLightingIfReady(isDungeon, R.GetShader("lightingShader"));
     hasCrossbow = true;
     player.previousWeapon = WeaponType::Sword;
     player.activeWeapon = WeaponType::Crossbow;
@@ -1047,16 +1054,6 @@ float CalculateDarknessFactor(Vector3 playerPos, const std::vector<LightSource>&
 }
 
 
-
-void HandleWeaponTints(){
-    if (!isDungeon){
-        weaponDarkness = 0.0f;
-    }else{
-        weaponDarkness = CalculateDarknessFactor(player.position, dungeonLights);
-    }
-
-
-}
 
 void GenerateEntrances() {
     doors.clear();

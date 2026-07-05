@@ -386,4 +386,14 @@ namespace ShaderSetup
     Vector3 GetCurrentSkyFogColor();
     Vector3 GetCurrentSkyTopFogColor();
     void StartLevelSkyCycle();
+
+}
+
+namespace WeaponModelSetup
+{
+
+    void SetWeaponShaders(Shader shader);
+    void ResetWeaponShaders();
+    void SetWeaponLightmaps(Texture2D lightmap);
+    void ApplyWeaponDungeonLightingIfReady(bool isDungeon, Shader lightingShader);
 }

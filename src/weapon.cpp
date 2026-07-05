@@ -762,7 +762,7 @@ void Weapon::Draw(const Camera& camera) {
             axis,
             angleDeg,
             scale,
-            0.05f,
+            0.05f, //THICKNESS
             Color{ 255, 40, 30, 255 }
         );
 
@@ -776,11 +776,6 @@ void MeleeWeapon::Draw(const Camera& camera) {
     Matrix lookAt = MatrixLookAt(camera.position, camera.target, { 0, 1, 0 });
     Matrix swordRotation = MatrixInvert(lookAt);
     Quaternion q = QuaternionFromMatrix(swordRotation);
-
-    //float angle = 2.0f * acosf(q.w);
-    //float angleDeg = angle * RAD2DEG;
-    //float sinTheta = sqrtf(1.0f - q.w * q.w);
-    //Vector3 axis = (sinTheta < 0.001f) ? Vector3{1, 0, 0} : Vector3{ q.x / sinTheta, q.y / sinTheta, q.z / sinTheta };
 
     Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 camRight = Vector3Normalize(Vector3CrossProduct(camForward, { 0, 1, 0 }));
