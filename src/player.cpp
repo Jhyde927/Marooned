@@ -30,12 +30,11 @@ void InitPlayer(Player& player, Vector3 startPosition) {
 
     player.position = startPosition;
     player.startPosition = startPosition;
-    std:: cout << "player position: \n";
-    DebugPrintVector(player.position);
+
     player.startRotationY = levels[levelIndex].startingRotationY; //save facing direction as well. 
-    player.rotation.y = player.startRotationY; 
+    player.rotation.y = player.startRotationY;
     player.rotation.x = 0.0f;
-    if (levelIndex == 0 && unlockEntrances) player.rotation.y = 90.0f; //face opposite direction when leaving dungeon. 
+    if (levelIndex == 0 && unlockEntrances) player.rotation.y = 90.0f; //face opposite direction when leaving dungeon 3. 
     player.velocity = {0, 0, 0};
     player.grounded = false;
     player.groundY = 0.0;
@@ -50,7 +49,7 @@ void InitPlayer(Player& player, Vector3 startPosition) {
     playerInit = true;
 
     if (first){
-         // player first starting position uses first as well, it's set to false here
+         // player first starting position uses first as well
         player.inventory.AddItem("HealthPotion");
     
     }
@@ -105,7 +104,7 @@ void Player::SpawnBoxInHand(Player& player, Vector3 pilePosition){
         Box box = {BoxType::CannonBall, pilePosition};
         box.state = BoxState::OnGround;
         boxes.push_back(box);
-        //Player will automatically pick up the box, because we spawn it in front of him when he's pressing E.
+        //Player will automatically pick up the ball, because we spawn it in front of him when he's pressing E.
     }
 }
 
@@ -311,11 +310,34 @@ bool ShouldRun(const Vector2& wish, bool canRun)
 
 }
 
+void ApplyPlayerWeaponKickback(const Camera& camera, float kickSpeed)
+{
+    Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+
+    // Keep the kickback flat. No blasting yourself into the ceiling.
+    forward.y = 0.0f;
+
+    if (Vector3LengthSqr(forward) < 0.001f)
+    {
+        return;
+    }
+
+    forward = Vector3Normalize(forward);
+
+    Vector3 kick = Vector3Scale(forward, -kickSpeed);
+
+    // Only affect horizontal movement.
+    player.velocity.x += kick.x;
+    player.velocity.z += kick.z;
+}
+
 
 void HandlePlayerMovement(float deltaTime){
     float dt = deltaTime;
     if (!player.canMove) return;
     if (DebugConsole::IsOpen()) return;
+
+    
 
 
     // --- build desired direction in local space 
@@ -798,6 +820,7 @@ void UpdateMeleeHitbox(Camera& camera)
 
     // const float range = 200.0f;
     // const float arcWidth = 220.0f;
+    const float hitboxYOffset = -25.0f;
 
     const Vector3 boxSize = { 45.0f, 60.0f, 45.0f };
 
@@ -817,6 +840,8 @@ void UpdateMeleeHitbox(Camera& camera)
     auto PushBox = [&](Vector3 center)
     {
         BoundingBox box;
+
+        center.y += hitboxYOffset;
 
         box.min = {
             center.x - boxSize.x * 0.5f,
@@ -890,11 +915,6 @@ void UpdateMeleeHitbox(Camera& camera)
         case SwordAttackType::Stab:
         {
             // Three boxes straight forward.
-            // This makes the stab feel narrow but deep.
-            // const int stabBoxCount = 3;
-            // const float startDist = 80.0f;
-            // const float spacing = 55.0f;
-
             const int stabBoxCount = 3;
             const float startDist = 115.0f;
             const float spacing = 65.0f;
@@ -969,6 +989,8 @@ void InitCrossbow()
 
 
 }
+
+
 
 
 

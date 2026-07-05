@@ -2390,7 +2390,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateLeavingFlag(player.position, player.previousPosition);
     UpdateTargeting(deltaTime, player, enemyPtrs);
-    PirateOpenDoorWhileChasing(*this);
+    //PirateOpenDoorWhileChasing(*this); //pirates open doors within 1.5 tiles if not patrolling, it should be if not idle as well.
     switch (state){
         case CharacterState::Idle: {
             

@@ -266,6 +266,7 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("dinoBite", "assets/sounds/bite.ogg");
     SoundManager::GetInstance().LoadSound("reload", "assets/sounds/reload.ogg");
     SoundManager::GetInstance().LoadSound("shotgun", "assets/sounds/shotgun.ogg");
+    SoundManager::GetInstance().LoadSound("doubleShot", "assets/sounds/doubleShot.ogg");
 
     SoundManager::GetInstance().LoadSound("step1", "assets/sounds/step1.ogg");
     SoundManager::GetInstance().LoadSound("step2", "assets/sounds/step2.ogg");

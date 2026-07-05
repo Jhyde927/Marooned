@@ -8,6 +8,7 @@
 #include "player.h"
 #include "world.h"
 #include "ui.h"
+#include "shaderSetup.h"
 
 void MeleeWeapon::Init()
 {
@@ -172,35 +173,40 @@ void Crossbow::Reload()
 }
 
 
-void Weapon::Fire(Camera& camera) {
+void Weapon::Fire(Camera& camera) 
+{
+    float now = (float)GetTime();
 
-    if (GetTime() - lastFired >= fireCooldown) {
-        SoundManager::GetInstance().Play("shotgun");
-        
+    if (now - lastFired >= fireCooldown) 
+    {
+        const bool wasDoubleLoaded = doubleLoaded;
+
         recoil = recoilAmount;
-        lastFired = GetTime();
+        lastFired = now;
+
+        const float muzzleFlashLifetime = wasDoubleLoaded ? 0.12f : 0.10f;
+        const float muzzleFlashSize = wasDoubleLoaded ? flashSize * 1.4f : flashSize;
 
         activeMuzzleFlashes.push_back({
             muzzlePos,
             R.GetTexture("muzzleFlash"),
-            flashSize,
-            0.1f  // lifetime in seconds
+            muzzleFlashSize,
+            muzzleFlashLifetime
         });
 
-        
         // Schedule reload sound
         reloadScheduled = true;
         reloadTimer = 0.0f;
 
-        //offset bulletOrigin to weapon position. 
+        // Offset bulletOrigin to weapon position.
         Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-        Vector3 camRight = Vector3Normalize(Vector3CrossProduct(camForward, { 0, 1, 0 }));
-        Vector3 camUp = { 0, 1, 0 };
+        Vector3 camRight = Vector3Normalize(Vector3CrossProduct(camForward, Vector3{ 0.0f, 1.0f, 0.0f }));
+        Vector3 camUp = Vector3{ 0.0f, 1.0f, 0.0f };
 
         // Offsets in local space
         float forwardOffset = -50.0f;
         float sideOffset = 30.0f;
-        float verticalOffset = -30.0f; // down
+        float verticalOffset = -30.0f;
 
         // Final origin for bullets in world space
         Vector3 bulletOrigin = camera.position;
@@ -208,20 +214,53 @@ void Weapon::Fire(Camera& camera) {
         bulletOrigin = Vector3Add(bulletOrigin, Vector3Scale(camRight, sideOffset));
         bulletOrigin = Vector3Add(bulletOrigin, Vector3Scale(camUp, verticalOffset));
 
+        int finalPelletCount = 7;
 
+        if (wasDoubleLoaded)
+        {
+            doubleLoaded = false;
 
-        FireBlunderbuss(
-            bulletOrigin,
-            camForward,
-            player.spreadDegrees,    // spreadDegrees 
-            7,        // pelletCount
-            2000.0f,   // bulletSpeed //anymore than 2k seems to tunnel through enemies. Maybe we could do something about that. if faster bullets feels better. 
-            3.0f,      // lifetimeSeconds
-            false
-        );
+            SoundManager::GetInstance().Play("doubleShot");
+
+            FireBlunderbuss(
+                bulletOrigin,
+                camForward,
+                player.spreadDegrees,
+                finalPelletCount,
+                1700.0f,
+                3.0f,
+                false
+            );
+
+            FireBlunderbuss(
+                bulletOrigin,
+                camForward,
+                player.spreadDegrees * 2.5f,
+                finalPelletCount,
+                2000.0f,
+                3.0f,
+                false
+            );
+
+            recoil += recoilAmount * 0.75f;
+
+            ApplyPlayerWeaponKickback(camera, 850.0f);
+        }
+        else
+        {
+            SoundManager::GetInstance().Play("shotgun");
+
+            FireBlunderbuss(
+                bulletOrigin,
+                camForward,
+                player.spreadDegrees,
+                finalPelletCount,
+                2000.0f,
+                3.0f,
+                false
+            );
+        }
     }
-
-
 }
 
 void Crossbow::Update(float dt)
@@ -502,10 +541,27 @@ static float Approach(float v, float target, float delta)
     else            return (v - delta < target) ? target : v - delta;
 }
 
+void StartBlunderbussDoubleLoad(Weapon& weapon)
+{
+    if (player.activeWeapon != WeaponType::Blunderbuss) return;
+
+    // Already primed or currently priming.
+    if (weapon.doubleLoaded || weapon.doubleLoadScheduled) return;
+
+    // Optional: don't allow double-load during normal reload sound scheduling.
+    // Remove this if you want the player to be able to prime any time.
+    if (weapon.reloadScheduled) return;
+
+    weapon.doubleLoadScheduled = true;
+    weapon.doubleLoadTimer = 0.0f;
+
+}
+
+
 
 
 void Weapon::Update(float deltaTime) {
-    weapon.isMoving = player.isMoving;
+    isMoving = player.isMoving;
     float targetBloom = 0.0f;
 
     if (!isMoving)               targetBloom = 0.0f;   // stopped
@@ -516,10 +572,36 @@ void Weapon::Update(float deltaTime) {
 
     player.crosshairBloom = Approach(player.crosshairBloom, targetBloom, rate * deltaTime);
 
+    // Right-click primes the blunderbuss for a double shot.
+    if (player.activeWeapon == WeaponType::Blunderbuss &&
+        IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
+    {
+        StartBlunderbussDoubleLoad(*this);
+    }
+
+    // Handle double-load animation/timer.
+    if (doubleLoadScheduled)
+    {
+        doubleLoadTimer += deltaTime;
+
+        // Keep the weapon dipping while loading.
+        reloadDip = Lerp(reloadDip, doubleLoadDipAmount, deltaTime * 20.0f);
+
+        if (doubleLoadTimer >= doubleLoadDelay)
+        {
+            doubleLoadScheduled = false;
+            doubleLoaded = true;
+            doubleLoadTimer = 0.0f;
+
+            // Optional: a second little confirmation click/sound.
+            SoundManager::GetInstance().Play("reload");
+        }
+    }
+
 
     // Handle delayed reload sound
     if (reloadScheduled) {
-        reloadTimer += deltaTime; //you can still reload while weapon isn't equipped
+        reloadTimer += deltaTime; //you can still reload while weapon isn't equipped, this is by design
         if (reloadTimer >= reloadDelay) {
 
             SoundManager::GetInstance().Play("reload");
@@ -573,7 +655,65 @@ void Weapon::Update(float deltaTime) {
 }
 
 
+void DrawModelOutlinePass(
+    Model& model,
+    Shader& outlineShader,
+    int locOutlineWidth,
+    int locOutlineColor,
+    Vector3 position,
+    Vector3 rotationAxis,
+    float rotationAngle,
+    Vector3 scale,
+    float outlineWidth,
+    Color outlineColor
+)
+{
+    SetShaderValue(
+        outlineShader,
+        locOutlineWidth,
+        &outlineWidth,
+        SHADER_UNIFORM_FLOAT
+    );
 
+    Vector4 color = ColorNormalize(outlineColor);
+
+    SetShaderValue(
+        outlineShader,
+        locOutlineColor,
+        &color,
+        SHADER_UNIFORM_VEC4
+    );
+
+    std::vector<Shader> oldShaders;
+    oldShaders.resize((size_t)model.materialCount);
+
+    for (int i = 0; i < model.materialCount; ++i)
+    {
+        oldShaders[(size_t)i] = model.materials[i].shader;
+        model.materials[i].shader = outlineShader;
+    }
+
+    rlEnableBackfaceCulling();
+    rlSetCullFace(RL_CULL_FACE_FRONT);
+
+    DrawModelEx(
+        model,
+        position,
+        rotationAxis,
+        rotationAngle,
+        scale,
+        WHITE
+    );
+
+    rlSetCullFace(RL_CULL_FACE_BACK);
+
+    for (int i = 0; i < model.materialCount; ++i)
+    {
+        model.materials[i].shader = oldShaders[(size_t)i];
+    }
+    rlDisableBackfaceCulling();
+    rlSetCullFace(RL_CULL_FACE_BACK);
+}
 
 
 
@@ -612,7 +752,21 @@ void Weapon::Draw(const Camera& camera) {
     // === Muzzle position and drawing ===
     muzzlePos = Vector3Add(gunPos, Vector3Scale(camForward, 40.0f));
     Color tint = TintFromDarkness(weaponDarkness);
+    if (doubleLoaded){
+        DrawModelOutlinePass(
+            model,
+            ShaderSetup::gOutline.shader,
+            ShaderSetup::gOutline.locOutlineWidth,
+            ShaderSetup::gOutline.locOutlineColor,
+            gunPos,
+            axis,
+            angleDeg,
+            scale,
+            0.05f,
+            Color{ 255, 40, 30, 255 }
+        );
 
+    }
 
     DrawModelEx(model, gunPos, axis, angleDeg, scale, tint);
 

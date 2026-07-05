@@ -64,6 +64,8 @@ void debugControls(Camera& camera, float deltaTime){
 
 void HandleMouseLook()
 {
+
+    if (CameraSystem::Get().GetMode() != CamMode::Player) return;
     Vector2 mouseDelta = GetMouseDelta();
 
     player.rotation.y -= mouseDelta.x * GameSettings::mouseSensitivity;

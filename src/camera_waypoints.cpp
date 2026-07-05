@@ -56,12 +56,12 @@ namespace Cutscenes {
         intro.lockTarget = true;
 
         intro.duration = 25.0f;
-        intro.arcHeight = 3000.0f;
-        intro.pathType = CutscenePathType::ArcSide;
+        intro.arcHeight = 2500.0f;
+        intro.pathType = CutscenePathType::ArcY;
         intro.returnToPlayerOnFinish = true;
 
         intro.mergeToPlayerViewAtEnd = true;
-        intro.mergeStartT = 0.5f;
+        intro.mergeStartT = 0.7f;
 
         CameraSystem::Get().StartCutscene(intro);
 

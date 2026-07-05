@@ -18,7 +18,24 @@ namespace ShaderSetup
     SkyCycle          gSkyCycle;
     AlphaCutoutShader gAlpha;
     ShadowShader      gShadow;
+    WeaponOutlineFx   gOutline;
 
+
+    //weapon_outline shader
+
+    void InitWeaponOutlineFx()
+    {
+        gOutline.shader = R.GetShader("weapon_outline");
+
+        gOutline.shader.locs[SHADER_LOC_MATRIX_MVP] =
+            GetShaderLocation(gOutline.shader, "mvp");
+
+        gOutline.locOutlineWidth =
+            GetShaderLocation(gOutline.shader, "outlineWidth");
+
+        gOutline.locOutlineColor =
+            GetShaderLocation(gOutline.shader, "outlineColor");
+    }
 
     //Shadow Shader
     static void CacheShadowLocations(ShadowShader& ss)

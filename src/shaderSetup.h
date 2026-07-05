@@ -18,6 +18,15 @@ namespace ShaderSetup
         ToDay
     };
 
+    struct WeaponOutlineFx
+    {
+        Shader shader;
+        int locOutlineWidth = -1;
+        int locOutlineColor = -1;
+    };
+
+
+
     struct ShadowShader 
     {
         Shader* shader = nullptr;
@@ -316,6 +325,7 @@ namespace ShaderSetup
     extern CeilingShader gCeiling;
     extern AlphaCutoutShader gAlpha;
     extern ShadowShader gShadow;
+    extern WeaponOutlineFx gOutline;
 
     //sky shader
     void InitSkyShader(Shader& shader, SkyShader& out, Model& skyModel, bool isDungeon);
@@ -334,6 +344,8 @@ namespace ShaderSetup
     void SetBloomTonemap(BloomShader& bs, bool isDungeon, float islandExposure, float dungeonExposure);
     void SetBloomStrength(BloomShader& bs, float strength);
     void UpdateBloomShaderPerFrame(BloomShader& bs, float dt);
+
+    void InitWeaponOutlineFx();
 
     //enemy shadows
     void InitShadowShader(ShadowShader& ss);

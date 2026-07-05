@@ -708,6 +708,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     InitWeaponBar();
 
     CameraSystem::Get().InitPlayerView();
+    
 
     hasCrossbow = true;
     player.previousWeapon = WeaponType::Sword;

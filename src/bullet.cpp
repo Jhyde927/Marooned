@@ -825,6 +825,7 @@ void FireCrossbowHarpoon(Vector3 origin, Vector3 forward, float speed, float lif
 }
 
 void FireBlunderbuss(Vector3 origin, Vector3 forward, float spreadDegrees, int pelletCount, float speed, float lifetime, bool enemy) {
+    if (weapon.doubleLoadScheduled) return;
     for (int i = 0; i < pelletCount; ++i) {
         
         // Convert spread from degrees to radians

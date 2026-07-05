@@ -174,3 +174,4 @@ void OnGroundCheck(bool groundedNow, float timeNow);
 void DrawWeapons(const Player& player, Camera& camera);
 const char* WeaponTypeToString(WeaponType weapon);
 void CancelMeleeAttacksForWeaponSwitch(WeaponType newWeapon);
+void ApplyPlayerWeaponKickback(const Camera& camera, float kickSpeed);

@@ -142,7 +142,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/MiddleIsland.png", //heightmap
         "",//dungeon path
         {-5404.0f, 318.0f, -6064.0f}, //Entrance 2 position
-        -90.0f, //starting player rotation
+        -45.0f, //starting player rotation
         {0, 0, 0}, //raptor spawn center
         5, //raptor count
         false, //isDungeon

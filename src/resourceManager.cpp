@@ -381,6 +381,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("ghostShader",    "assets/shaders/ghost_raft.vs",         "assets/shaders/ghost_raft.fs");
     R.LoadShader("floorInstancedLightingShader", "assets/shaders/floor_instanced_lighting.vs", "assets/shaders/floor_instanced_lighting.fs");
     R.LoadShader("tree_instanced", "assets/shaders/tree_instanced.vs",     "assets/shaders/tree_instanced.fs");
+    R.LoadShader("weapon_outline", "assets/shaders/weapon_outline.vs",     "assets/shaders/weapon_outline.fs");
 
 }
 
@@ -391,6 +392,7 @@ void ResourceManager::SetShaderValues(){
     ShaderSetup::InitGhostShader(ShaderSetup::gGhost);
     ShaderSetup::InitAlphaCutout(ShaderSetup::gAlpha);
     ShaderSetup::InitShadowShader(ShaderSetup::gShadow);
+    ShaderSetup::InitWeaponOutlineFx();
 
 }
 
@@ -508,6 +510,10 @@ void ResourceManager::SetLightingShaderValues()
     Model& stool         = R.GetModel("stool");
     Model& bonePile      = R.GetModel("bonePile");
     Model& candelabra    = R.GetModel("candelabra");
+    // Model& blunderbuss = R.GetModel("blunderbuss");
+    // Model& crossbow = R.GetModel("crossbow");
+    // Model& sword = R.GetModel("swordModel");
+    // Model& staff = R.GetModel("staffModel");
 
 
     //apply texture to cratePile. Find a better place for this. 
@@ -533,6 +539,14 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < stool.materialCount;   ++i) stool.materials[i].shader   = lightingShader;
     for (int i = 0; i < bonePile.materialCount;   ++i) bonePile.materials[i].shader   = lightingShader;
     for (int i = 0; i < candelabra.materialCount;   ++i) candelabra.materials[i].shader   = lightingShader;
+    // if (isDungeon){
+    //     for (int i = 0; i < blunderbuss.materialCount;   ++i) blunderbuss.materials[i].shader   = lightingShader;
+    //     for (int i = 0; i < crossbow.materialCount;   ++i) crossbow.materials[i].shader   = lightingShader;
+    //     for (int i = 0; i < sword.materialCount;   ++i) sword.materials[i].shader   = lightingShader;
+    //     for (int i = 0; i < staff.materialCount;   ++i) staff.materials[i].shader   = lightingShader;
+
+    // }
+
 
     // Bind the lightmap texture to EMISSION slot for each model material
     auto setLightmap = [&](Model& m){
@@ -558,6 +572,14 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(stool);
     setLightmap(bonePile);
     setLightmap(candelabra);
+    // if (isDungeon){
+    //     setLightmap(blunderbuss);
+    //     setLightmap(crossbow);
+    //     setLightmap(sword);
+    //     setLightmap(staff);
+
+    // }
+
     // Per-level uniforms for lighting shader
     Shader& use = windowModel.materials[0].shader;
 
