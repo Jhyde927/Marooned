@@ -127,7 +127,7 @@ void UpdateFade(Camera& camera, float deltaTime);
 void removeAllCharacters();
 void generateRaptors(int amount, Vector3 centerPos, float radius);
 void generateDactyls(int amount, Vector3 centerPos, float radius);
-void generateTrex(int amount, Vector3 centerPos, float radius);
+void generateTrex(int amount, Vector3 centerPos, float radius, float minPlayerDistance);
 
 void GenerateEntrances();
 void HandleWaves(Camera& camera);

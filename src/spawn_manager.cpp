@@ -42,7 +42,7 @@ namespace SpawnManager
 
 
         //first play the cut scene
-        if (doors[3].isOpen && !startCutscene) //there is a better way.
+        if (doors[4].isOpen && !startCutscene) //there is a better way.
         {
             startCutscene = true;
             Cutscenes::StartKrakenScene();

@@ -5,6 +5,62 @@
 
 namespace Cutscenes {
 
+    static Vector3 GetTrexPos(){
+        Vector3 trexPos = Vector3 {0, 0, 0};
+        for (const Character* trex : enemyPtrs){
+            if (trex == nullptr) continue;
+            if (trex->type != CharacterType::Trex) continue;
+            if (trex->isDead) continue;
+
+            trexPos = trex->position;
+            break;
+        }
+
+        return trexPos;
+    }
+
+    static Vector3 GetTrexCamStartPos()
+    {
+
+        Vector3 finalPosition = player.position;
+        if (!CurrentLevelIs("River"))
+        {
+            return finalPosition;
+        }
+
+        const float dirOffset = 1600.0f;
+
+        for (const Character* trex : enemyPtrs)
+        {
+            if (trex == nullptr) continue;
+            if (trex->type != CharacterType::Trex) continue;
+            if (trex->isDead) continue;
+
+            // Direction from T-rex toward player.
+            Vector3 dir = Vector3Subtract(player.position, trex->position);
+            dir.y = 0.0f;
+
+            if (Vector3LengthSqr(dir) < 0.001f)
+            {
+                dir = { 0.0f, 0.0f, 1.0f };
+            }
+            else
+            {
+                dir = Vector3Normalize(dir);
+            }
+
+            // Put camera between player and T-rex, near the T-rex.
+            finalPosition = Vector3Add(trex->position, Vector3Scale(dir, dirOffset));
+
+            // Raise it so it is not on the ground.
+            finalPosition.y += 0.0f;
+
+            break;
+        }
+
+        return finalPosition;
+    }
+
     void StartRiverIntro(){
         CutsceneDesc intro;
 
@@ -15,17 +71,17 @@ namespace Cutscenes {
             Vector3Scale(playerForward, 10000.0f)
         );
 
-        intro.startPos = { -10845.8, 2000.0, 2969.99 };
+        intro.startPos = GetTrexCamStartPos();//{ -10845.8, 2000.0, 2969.99 };
         intro.endPos = player.position;
         intro.endTarget = playerViewTarget;
 
 
         // This is what the camera looks at for most of the cutscene.
-        intro.target   = player.position;//{ 0.0f, 200.0f, 0.0f };
+        intro.target   = GetTrexPos();//{ 0.0f, 200.0f, 0.0f };
         intro.lockTarget = true;
 
         intro.duration = 25.0f;
-        intro.arcHeight = 4000.0f;
+        intro.arcHeight = 1000.0f;
         intro.pathType = CutscenePathType::ArcY;
         intro.returnToPlayerOnFinish = true;
 

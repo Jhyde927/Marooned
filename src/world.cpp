@@ -255,299 +255,6 @@ void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
 }
 
 
-
-// void StartIslandIntro(){
-//     CutsceneDesc intro;
-//     Vector3 playerEyePos = player.position;
-//     playerEyePos.y += 40.0f; // or whatever your camera/head offset is
-    
-//     float yawOffset = 20.0f * DEG2RAD;
-//     Vector3 playerForward = GetForwardFromYaw(player.startRotationY + yawOffset);
-
-//     Vector3 playerViewTarget = Vector3Add(
-//         playerEyePos,
-//         Vector3Scale(playerForward, 10000.0f)
-//     );
-
-//     intro.startPos = { -10845.8, 2000.0, 2969.99 };
-//     intro.endPos = playerEyePos;
-//     intro.endTarget = playerViewTarget;
-
-
-//     // This is what the camera looks at for most of the cutscene.
-//     intro.target   = { 0.0f, 200.0f, 0.0f };
-//     intro.lockTarget = true;
-
-//     intro.duration = 25.0f;
-//     intro.arcHeight = 5000.0f;
-//     intro.pathType = CutscenePathType::ArcY;
-//     intro.returnToPlayerOnFinish = true;
-
-//     intro.mergeToPlayerViewAtEnd = true;
-//     intro.mergeStartT = 0.5f;
-
-//     CameraSystem::Get().StartCutscene(intro);
-
-// }
-
-
-// void StartIslandWaypointIntro()
-// {
-//     CameraSystem& camSys = CameraSystem::Get();
-
-//     Vector3 playerCamPos;
-//     Vector3 playerCamTarget;
-//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
-
-//     WaypointCutsceneDesc desc;
-//     desc.snapOnStart = true;
-//     desc.returnToPlayerOnFinish = true;
-//     desc.hideCeiling = false;
-
-
-//     //Work In Progress
-//     const float camY = 1800.0f;
-//     //const float lookY = 300.0f;
-
-//     //Vector3 startPos    = Vector3{ 5475.0f,   camY, -5665.0f };
-//     //Vector3 rightIsland = Vector3{-8254.4, camY, -8892.74};
-//     Vector3 farIsland   = Vector3{-8722.67, camY, 9487.32 };
-//     //Vector3 leftIsland  = Vector3{ 8281.82, camY, 8645.83};
-
-
-//     //Vector3(-940.195, 653.18, 840.402)
-//     Vector3 middle = Vector3{ -940.0f, camY, -840.0f};
-
-
-
-//     Vector3 p0 = farIsland;
-//     Vector3 p1 = middle;
-//     //Vector3 p2 = startPos;
-//     // Vector3 p3 = leftIsland;
-//     // Vector3 p4 = startPos;
-
-//     CameraWaypoint w0;
-//     w0.position = p0;
-//     w0.target = Vector3{0, 300, 0};
-//     w0.durationToNext = 15.0f;
-//     desc.points.push_back(w0);
-
-//     CameraWaypoint w1;
-//     w1.position = p1;
-//     w1.target =  Vector3{0, camY, 0};
-//     w1.durationToNext = 15.0f;
-//     desc.points.push_back(w1);
-
-//     CameraWaypoint w2;
-//     w2.position = playerCamPos;
-//     w2.target =  playerCamTarget;
-//     w2.durationToNext = 0.0f;
-//     desc.points.push_back(w2);
-
-//     // CameraWaypoint w3;
-//     // w3.position = p3;
-//     // w3.target =  Vector3{0};
-//     // w3.durationToNext = 9.0f;
-//     // desc.points.push_back(w3);
-
-//     // Circle back near the start before merging.
-//     // CameraWaypoint w4;
-//     // w4.position = p4;
-//     // w4.target = playerCamTarget;
-//     // w4.durationToNext = 2.0f;
-//     // desc.points.push_back(w4);
-
-//     // // Final exact player camera merge.
-//     // CameraWaypoint w5;
-//     // w5.position = playerCamPos;
-//     // w5.target = playerCamTarget;
-//     // w5.durationToNext = 0.0f;
-//     // desc.points.push_back(w5);
-
-//     camSys.StartWaypointCutscene(desc);
-// }
-
-// void StartKrakenScene()
-// {
-//     GameSettings::drawMinimap = false;
-//     CameraSystem& camSys = CameraSystem::Get();
-
-//     Vector3 playerCamPos;
-//     Vector3 playerCamTarget;
-//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
-
-
-//     const float camY = 300.0f;     // tweak
-//     const float lookY = 260.0f;    // tweak
-
-//     Vector3 p0 = DungeonTileCenter(27, 29, dungeonWidth, dungeonHeight, tileSize, camY);
-//     Vector3 p1 = DungeonTileCenter(24,  21, dungeonWidth, dungeonHeight, tileSize, camY);
-//     Vector3 p2 = DungeonTileCenter(14,  21, dungeonWidth, dungeonHeight, tileSize, camY);
-
-//     Vector3 middleDeck = DungeonTileCenter(24, 21, dungeonWidth, dungeonHeight, tileSize, lookY);
-//     Vector3 krakenPos = gKraken.startPos;//DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
-
-//     WaypointCutsceneDesc desc;
-//     desc.snapOnStart = true;
-//     desc.returnToPlayerOnFinish = true;
-//     desc.hideCeiling = false;
-
-//     CameraWaypoint w0;
-//     w0.position = p0;
-//     w0.target = middleDeck;
-//     w0.durationToNext = 9.0f;
-//     desc.points.push_back(w0);
-
-//     CameraWaypoint w1;
-//     w1.position = p1;
-//     w1.target = krakenPos;
-//     w1.durationToNext = 6.0f;
-//     desc.points.push_back(w1);
-
-//     CameraWaypoint w2;
-//     w2.position = p2;
-//     w2.target = krakenPos;
-//     w2.durationToNext = 3.0f;
-//     desc.points.push_back(w2);
-
-//     //w3
-
-//     CameraWaypoint w3;
-//     w3.position = p1;
-//     w3.target = krakenPos;
-//     w3.durationToNext = 3.0f;
-//     desc.points.push_back(w3);
-
-//     CameraWaypoint w4;
-//     w4.position = playerCamPos;
-//     w4.target = playerCamTarget;
-//     w4.durationToNext = 0.0f;
-//     desc.points.push_back(w4);
-
-//     camSys.StartWaypointCutscene(desc);
-// }
-
-
-// void StartSpiderScene(){
-//     GameSettings::drawMinimap = false;
-//     CameraSystem& camSys = CameraSystem::Get();
-//     ShaderSetup::gBloom.letterboxTarget = 0.14f;
-
-//     Vector3 giantSpiderPos;
-//     for (Character* gs : enemyPtrs){
-//         if (gs->type == CharacterType::GiantSpider){
-//             giantSpiderPos = gs->position;
-//             break;
-//         }
-//     }
-
-//     Vector3 playerCamPos;
-//     Vector3 playerCamTarget;
-//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
-//     const float camY = 300.0f;  
-//     //semi circle the spider. 
-//     Vector3 p0 = DungeonTileCenter(28, 17, dungeonWidth, dungeonHeight, tileSize, camY);
-//     Vector3 p1 = DungeonTileCenter(27,  23, dungeonWidth, dungeonHeight, tileSize, camY);
-//     Vector3 p2 = DungeonTileCenter(21,  23, dungeonWidth, dungeonHeight, tileSize, camY);
-
-//     Vector3 p3 = DungeonTileCenter(14,  24, dungeonWidth, dungeonHeight, tileSize, camY);
-//     Vector3 p4 = DungeonTileCenter(15,  29, dungeonWidth, dungeonHeight, tileSize, camY);
-
-//     WaypointCutsceneDesc desc;
-//     desc.snapOnStart = true;
-//     desc.returnToPlayerOnFinish = true;
-//     desc.hideCeiling = false;
-
-//     CameraWaypoint w0;
-//     w0.position = p0;
-//     w0.target = p1;
-//     w0.durationToNext = 9.0f;
-//     desc.points.push_back(w0);
-
-//     CameraWaypoint w1;
-//     w1.position = p1;
-//     w1.target = p2;
-//     w1.durationToNext = 6.0f;
-//     desc.points.push_back(w1);
-
-//     CameraWaypoint w2;
-//     w2.position = p2;
-//     w2.target = giantSpiderPos;
-//     w2.durationToNext = 6.0f;
-//     desc.points.push_back(w2);
-
-//     CameraWaypoint w3;
-//     w3.position = p3;
-//     w3.target = giantSpiderPos;
-//     w3.durationToNext = 6.0f;
-//     desc.points.push_back(w3);
-
-
-//     CameraWaypoint w4;
-//     w4.position = p4;
-//     w4.target = giantSpiderPos;
-//     w4.durationToNext = 0.0f;
-//     desc.points.push_back(w4);
-
-//     camSys.StartWaypointCutscene(desc);
-
-
-// }
-
-// void StartDungeonHallwayIntro()
-// {
-//     GameSettings::drawMinimap = false;
-//     CameraSystem& camSys = CameraSystem::Get();
-
-//     Vector3 playerCamPos;
-//     Vector3 playerCamTarget;
-//     camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
-
-
-//     const float camY = 300.0f;     // tweak
-//     const float lookY = 260.0f;    // tweak
-
-//     Vector3 p0 = DungeonTileCenter(30, 1, dungeonWidth, dungeonHeight, tileSize, camY);
-//     Vector3 p1 = DungeonTileCenter(8,  1, dungeonWidth, dungeonHeight, tileSize, camY);
-//     Vector3 p2 = DungeonTileCenter(2,  7, dungeonWidth, dungeonHeight, tileSize, camY);
-
-//     Vector3 lookDownHall = DungeonTileCenter(8, 1, dungeonWidth, dungeonHeight, tileSize, lookY);
-//     Vector3 lookLeftRoom = DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
-
-//     WaypointCutsceneDesc desc;
-//     desc.snapOnStart = true;
-//     desc.returnToPlayerOnFinish = true;
-//     desc.hideCeiling = false;
-
-//     CameraWaypoint w0;
-//     w0.position = p0;
-//     w0.target = lookDownHall;
-//     w0.durationToNext = 9.0f;
-//     desc.points.push_back(w0);
-
-//     CameraWaypoint w1;
-//     w1.position = p1;
-//     w1.target = lookLeftRoom;
-//     w1.durationToNext = 6.0f;
-//     desc.points.push_back(w1);
-
-//     CameraWaypoint w2;
-//     w2.position = p2;
-//     w2.target = playerCamTarget;
-//     w2.durationToNext = 3.0f;
-//     desc.points.push_back(w2);
-
-//     CameraWaypoint w3;
-//     w3.position = playerCamPos;
-//     w3.target = playerCamTarget;
-//     w3.durationToNext = 0.0f;
-//     desc.points.push_back(w3);
-
-//     camSys.StartWaypointCutscene(desc);
-// }
-
-
-
 void InitLevel(LevelData& level, Camera& camera) {
     (void)camera; //we may need this later. 
     //Make sure we end texture mode, was causing problems with terrain.
@@ -559,7 +266,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     //Called when starting game and changing level. init the level you pass it. the level is chosen by menu or door's linkedLevelIndex. 
     ClearLevel();//clears everything.
     enemies.reserve(100); 
-
+    decals.reserve(1024);
     DebugConsole::Init();
     CameraSystem::Get().StopCinematic();
     CameraSystem::Get().SetMode(CamMode::Cinematic);
@@ -621,7 +328,9 @@ void InitLevel(LevelData& level, Camera& camera) {
         InitNPCs();
     }
 
-    if (level.name == "River") generateTrex(1, level.raptorSpawnCenter, 10000.0f); //generate 1 t-rex on river level. 
+    //Vector3(183.531, 322.5, 5095.51)
+    Vector3 trexPos = {183.0f, 332.0f, 5095.0f};
+    if (level.name == "River") generateTrex(1, trexPos, 10000.0f, 5000.0f); //generate 1 t-rex on river level. 
 
     
     InitBoat(player_boat,Vector3{0.0, -75, 0.0});
@@ -1114,52 +823,67 @@ void GenerateEntrances() {
 }
 
 
-void generateTrex(int amount, Vector3 centerPos, float radius) {
-
+void generateTrex(int amount, Vector3 centerPos, float radius, float minPlayerDistance)
+{
     int spawned = 0;
     int attempts = 0;
-    const int maxAttempts = 1000;
-    //try 1000 times to spawn all the raptors either above 80 on heightmap or on empty floor tiles in dungeon. 
-    while (spawned < amount && attempts < maxAttempts) {
+
+    const int maxAttempts = 2000;
+    const float minCenterDistance = 2000.0f;
+    const float minPlayerDistanceSqr = minPlayerDistance * minPlayerDistance;
+
+    while (spawned < amount && attempts < maxAttempts)
+    {
         ++attempts;
 
         float angle = GetRandomValue(0, 360) * DEG2RAD;
-        float distance = GetRandomValue(500, (int)radius);
+        float distance = (float)GetRandomValue((int)minCenterDistance, (int)radius);
+
         float x = centerPos.x + cosf(angle) * distance;
         float z = centerPos.z + sinf(angle) * distance;
 
-        Vector3 spawnPos = { x, 0.0f, z }; //random x, z  get height diferrently for dungeon
-        
-        if (isDungeon) {
-            // Convert world x,z to dungeon tile coordinates
-            const float tileSize = 200.0f; 
-            int gridX = (int)(x / tileSize);
-            int gridY = (int)(z / tileSize);
+        Vector3 spawnPos = { x, 0.0f, z };
 
-            if (!IsDungeonFloorTile(gridX, gridY)) continue; //try again
+        // Keep T-Rex far enough from player, ignoring height.
+        Vector3 toPlayer = Vector3Subtract(spawnPos, player.position);
+        toPlayer.y = 0.0f;
 
-            float dh = 85.0f;
-            float spriteHeight = 200 * 0.5f;
-            spawnPos.y = dh + spriteHeight / 2.0f;
-
-        } else {
-            float terrainHeight = GetHeightAtWorldPosition(spawnPos, heightmap, terrainScale);
-            if (terrainHeight <= 80.0f) continue; //try again
-
-            float spriteHeight = 200 * 0.5f;
-            spawnPos.y = terrainHeight + spriteHeight / 2.0f;
+        if (Vector3LengthSqr(toPlayer) < minPlayerDistanceSqr)
+        {
+            continue;
         }
 
-        //std::cout << "generated T-Rex\n";
-        Character Trex(spawnPos, R.GetTexture("trexSheet"), 300, 300, 1, 0.5f, 1.0, 0, CharacterType::Trex);
+        float terrainHeight = GetHeightAtWorldPosition(spawnPos, heightmap, terrainScale);
+
+        if (terrainHeight <= 80.0f)
+        {
+            continue;
+        }
+
+        float spriteHeight = 300.0f;
+        spawnPos.y = terrainHeight + spriteHeight / 2.0f;
+
+        Character Trex(
+            spawnPos,
+            R.GetTexture("trexSheet"),
+            300,
+            300,
+            1,
+            0.5f,
+            1.0f,
+            0,
+            CharacterType::Trex
+        );
+
         Trex.maxHealth = 2000;
         Trex.currentHealth = Trex.maxHealth;
+        std::cout << "spawning Trex\n";
         enemies.push_back(Trex);
-        enemyPtrs.push_back(&enemies.back()); 
+
+        enemyPtrs.push_back(&enemies.back());
+
         ++spawned;
     }
-
-
 }
 
 void generateDactyls(int amount, Vector3 centerPos, float radius) {
@@ -1852,6 +1576,7 @@ void ClearLevel() {
     ClearDungeonInstancingSources();
     ClearDungeonProps();
     EventLockAllDoors(false);
+
     VegetationInstanced::Clear();
     SpawnManager::Clear();
     activeBullets.clear();

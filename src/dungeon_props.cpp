@@ -9,6 +9,7 @@
 #include "debug_console.h"
 #include "pathfinding.h"
 #include <cmath>
+#include <iostream>
 
 using namespace dungeonColors;
 
@@ -254,7 +255,7 @@ void GenerateProps(float baseY) {
     std::string seedString = std::to_string(gLastPropSeed);
 
     DebugConsole::Log("Prop Seed: " + seedString);
-    std::cout << "Prop seed: " << gLastPropSeed << "\n";
+
     
     SetRandomSeed(gLastPropSeed);
 
@@ -284,6 +285,44 @@ void GenerateProps(float baseY) {
 
 static int GetAutoCornerSpawnChance(DungeonPropType type)
 {
+    if (CurrentLevelIs("Shop"))
+    {
+        switch (type)
+        {
+            case DungeonPropType::CratePile:
+                return 100;
+
+            case DungeonPropType::Stool:
+                return 20;
+
+            case DungeonPropType::Candelabra:
+                return 80;
+
+            case DungeonPropType::SpiderWebCorner:
+            case DungeonPropType::BonePile:
+                return 0;
+
+            default:
+                return 0;
+        }
+    }
+
+    if (CurrentLevelIs("Dungeon7"))
+    {
+        switch (type)
+        {
+            case DungeonPropType::SpiderWebCorner:
+                return 100;
+
+            case DungeonPropType::BonePile:
+                return 30;
+
+            default:
+                return 0;
+        }
+    }
+
+    // Default dungeon prop chances
     switch (type)
     {
         case DungeonPropType::SpiderWebCorner:
@@ -433,7 +472,7 @@ void GenerateAutoCornerProps(float baseY)
         DungeonPropType type = PickAutoCornerPropType();
         if (type == DungeonPropType::None) return;
 
-        int spawnChancePercent = GetAutoCornerSpawnChance(type);
+        int spawnChancePercent = GetAutoCornerSpawnChance(type); // 
 
         if (GetRandomValue(1, 100) > spawnChancePercent) return;
         

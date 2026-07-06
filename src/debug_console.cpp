@@ -10,6 +10,7 @@
 #include <iomanip>
 #include "vegetation_instanced.h"
 #include "dungeon_props.h"
+#include <iostream>
 
 namespace DebugConsole
 {

@@ -1625,6 +1625,7 @@ void GenerateBarrels(float baseY) {
 
 
 void GenerateChests(float baseY) {
+    //unused kept for future reference. ModelAnimation example
     chestInstances.clear();
     int chestID = 0;
     for (int y = 0; y < dungeonHeight; y++) {

@@ -893,7 +893,7 @@ void CheckBulletHits(Camera& camera) {
                 }else{
                     DamageSpiderEgg(egg, 25 * qDamage, player.position);
                     Vector3 n = AABBHitNormal(egg.collider, b.position);
-                    TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy. 
+                    b.alive = TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy. 
                     break;
 
                 }

@@ -397,7 +397,7 @@ void Character::TakeDamage(int amount) {
         }
         
         
-        AlertNearbySkeletons(position, 3000.0f);
+        //AlertNearbySkeletons(position, 3000.0f);
         PlayDamageSounds();
 
         //dont stagger if your frozen. 
