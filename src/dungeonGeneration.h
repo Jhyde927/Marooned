@@ -75,6 +75,7 @@ struct Fire {
     int fireFrame = 0;
     float fireAnimTimer = 0.0f;
     const float fireFrameDuration = 1.0f / 16.0f; // 16 slightly slower fps to match the bootleg aesthetic
+    Vector3 tint;
 };
 
 struct LightSample {

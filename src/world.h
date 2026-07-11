@@ -181,3 +181,4 @@ void KillEnemies();
 void TeleportPlayerToEnd();
 void ToggleVSync();
 void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo);
+int GetParticleCount();

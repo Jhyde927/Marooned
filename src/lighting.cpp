@@ -75,7 +75,7 @@ TorchColorCombo GetTorchColorComboForLevel(std::string_view levelName)
         combo.edgeColor = Vector3{ 0.70f, 0.10f, 0.05f }; // red falloff
         combo.coreColor = Vector3{ 1.00f, 0.45f, 0.10f }; // orange fire core
     }
-    else if (levelName == "WizardDungeon")
+    else if (levelName == "Shop")
     {
         combo.edgeColor = Vector3{ 0.45f, 0.20f, 0.85f }; // purple edge
         combo.coreColor = Vector3{ 0.95f, 0.45f, 1.00f }; // magic pink core
@@ -86,6 +86,7 @@ TorchColorCombo GetTorchColorComboForLevel(std::string_view levelName)
 
 void ApplyLevelLighting(std::string_view levelName)
 {
+
     TorchColorCombo combo = GetTorchColorComboForLevel(levelName);
 
     lightConfig.edgeColor = combo.edgeColor;
@@ -726,76 +727,6 @@ static void StampDynamicLight(const Vector3& lightPos, float radius, Color color
         }
     }
 }
-
-// void OnDoorToggled_RebakeStaticLights(const Vector3& doorWorldPos,
-//                                       const std::vector<int>& affectedStaticLightIndices)
-// {
-//     // Safety: nothing to do
-//     if (affectedStaticLightIndices.empty()){
-//         return;
-
-//     }
-//     const int w = gDynamic.w;
-//     const int h = gDynamic.h;
-
-
-//     // Use a radius that matches the “zone that could change”.
-//     // You can use 2200, or better: the max range of affected lights.
-//     float patchRadius = 800.0f;
-
-//     RectI region = ComputeDoorAffectedRegion_LightmapPixels_UsingStamperMapping(
-//         doorWorldPos, w, h, patchRadius);
-
-
-//     // EXTREME DEBUG: paint the region bright magenta
-//     // for (int y = region.y0; y <= region.y1; ++y) {
-//     //     for (int x = region.x0; x <= region.x1; ++x) {
-//     //         gStaticBase[y * w + x] = (Color){255, 0, 255, 255};
-//     //     }
-//     // }
-//     // std::cout << "DEBUG: painted region magenta\n";
-//     // return; // <-- return early so stamping doesn't overwrite it
-
-
-//     // empty region guard (depending on your rect convention)
-//     if (region.x0 > region.x1 || region.y0 > region.y1){
-
-//         return;
-
-//     }
-
-
-//     // --- Clear only that region of the static base ---
-//     ClearStaticBaseRegion(gStaticBase, w, h, region);
-
-//     // --- Restamp only affected static lights, clipped to region ---
-//     for (int idx : affectedStaticLightIndices)
-//     {
-//         if (idx < 0 || idx >= (int)dungeonLights.size())
-//             continue;
-
-//         const LightSource& L = dungeonLights[idx];
-
-//         Color c = {
-//             (unsigned char)Clamp(L.colorTint.x * 255.0f * L.intensity, 0.0f, 255.0f),
-//             (unsigned char)Clamp(L.colorTint.y * 255.0f * L.intensity, 0.0f, 255.0f),
-//             (unsigned char)Clamp(L.colorTint.z * 255.0f * L.intensity, 0.0f, 255.0f),
-//             255
-//         };
-
-//         StampLight_StaticBase_Subtile2x2_ToBuffer_Clipped(
-//             gStaticBase, w, h,
-//             L.position, L.range, c,
-//             region
-//         );
-//     }
-
-//     // No headroom pass (per your preference).
-//     // Your regular render/update path should copy gStaticBase -> gDynamic each frame,
-//     // so this patch will show up immediately on the next dynamic build.
-// }
-
-
 
 void BuildStaticLightmapOnce(const std::vector<LightSource>& dungeonLights)
 {

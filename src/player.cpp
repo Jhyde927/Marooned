@@ -337,9 +337,6 @@ void HandlePlayerMovement(float deltaTime){
     if (!player.canMove) return;
     if (DebugConsole::IsOpen()) return;
 
-    
-
-
     // --- build desired direction in local space 
     Vector2 wish = {0,0};
     if (IsKeyDown(KEY_W)) wish.y += 1;
@@ -411,7 +408,7 @@ void HandlePlayerMovement(float deltaTime){
     // --- gravity
     if (player.state != PlayerState::Grappling){
 
-        float g = falling ? player.GRAVITY * 2 : player.GRAVITY;               // e.g. 2400 (your units)
+        float g = falling ? player.GRAVITY * 2 : player.GRAVITY * 2;               // e.g. 2400 (your units)
         //if (falling) g = player.GRAVITY*2.5;     // e.g. 2.2f
 
         player.velocity.y -= g * dt;
@@ -1008,12 +1005,13 @@ void HandleJumpButton(float timeNow){
 }
 
 void TryQueuedJump(){
-    float now = GetTime(); // or your own clock
+    float now = GetTime();
     bool canCoyote = (now - player.lastGroundedTime) <= player.COYOTE_TIME;
     bool buffered  = (now - player.lastJumpPressedTime) <= player.JUMP_BUFFER;
 
     if (buffered && canCoyote) {
-        player.velocity.y = player.jumpStrength;
+
+        player.velocity.y = player.jumpStrength * 1.5;
         player.grounded = false;
         // consume buffer so we don’t multi-fire
         player.lastJumpPressedTime = -999.f;

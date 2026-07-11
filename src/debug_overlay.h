@@ -14,6 +14,9 @@ struct DebugOverlayInfo {
     const char* levelName = "None";
     int activeEnemies;
     int activeBullets;
+    int maxParticles;
+    int activeParticles;
+
     int staticLights;
     int dynamicLights;
 

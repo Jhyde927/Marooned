@@ -35,6 +35,8 @@ public:
     void SetCanBurst(bool value);
     void SetParticleType(ParticleType type) { particleType = type; }
     void UpdateTrail(float dt);
+    std::size_t GetActiveParticleCount() const;
+    int GetMaxParticleCount() const;
 
 private:
     Vector3 position;

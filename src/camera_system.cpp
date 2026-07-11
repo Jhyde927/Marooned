@@ -374,7 +374,6 @@ void CameraSystem::GetPlayerCameraPose(Vector3& outPos, Vector3& outTarget) cons
 
 void CameraSystem::UpdatePlayerCam(float dt)
 {
-    
 
     Vector3 basePos = pv.onBoard
         ? Vector3Add(pv.boatPos, Vector3{0, 200.0f, 0})
@@ -400,7 +399,7 @@ void CameraSystem::UpdatePlayerCam(float dt)
 
     // Tune: higher = tighter camera, lower = smoother float
     const float followSpeedXZ = 22.0f;
-    const float followSpeedY  = 10.0f;
+    const float followSpeedY  = 22.0f;//10.0f;
 
     float aXZ = 1.0f - expf(-followSpeedXZ * dt);
     float aY  = 1.0f - expf(-followSpeedY  * dt);

@@ -53,13 +53,13 @@ void debugControls(Camera& camera, float deltaTime){
         ControlPlayerWhileFreeCam(deltaTime); //move the player around with the arrow keys while controlling free cam. 
     }
 
-    if (IsKeyPressed(KEY_V)){
-        ToggleVSync();
-    }
+    // if (IsKeyPressed(KEY_V)){
+    //     ToggleVSync();
+    // }
 
-    if (IsKeyPressed(KEY_F8)){
-        GenerateProps(floorHeight + 20);
-    }
+    // if (IsKeyPressed(KEY_F8)){
+    //     GenerateProps(floorHeight + 20);
+    // }
 }
 
 void HandleMouseLook()

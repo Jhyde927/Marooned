@@ -314,19 +314,7 @@ void Character::SpawnGibs(){
 
 }
 
-
-void Character::TakeDamage(int amount) {
-    if (isDead) return;
-    if (amount <= 0) return;
-    
-    currentHealth -= amount;
-
-    accumulateDamage += amount;
-
-
-
-    SpawnGibs();
-
+void Character::HandleSpiderAgro(){
     if (accumulateDamage >= 200 && type == CharacterType::GiantSpider){
         //run away until you take 200 damage
         if (!spiderAgro){
@@ -343,6 +331,20 @@ void Character::TakeDamage(int amount) {
 
         }
     }
+}
+
+
+void Character::TakeDamage(int amount) {
+    if (isDead) return;
+    if (amount <= 0) return;
+    
+    currentHealth -= amount;
+
+    accumulateDamage += amount;
+
+    SpawnGibs();
+
+    HandleSpiderAgro();
 
     if (currentHealth <= 0) { //die
 

@@ -78,6 +78,7 @@ void GatherGrapplePoint(Camera& camera) {
     }
 }
 
+
 void GatherEnemies(Camera& camera) {
     for (Character* enemy : enemyPtrs) {
         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
@@ -374,6 +375,9 @@ void GatherDungeonFires(Camera& camera, float deltaTime) {
         Vector3 firePos = pillar.position;
         firePos.y += 130;
 
+        Color fireColor = V3ToColor(fire.tint); //tint the fire sprites depending on color of lightsource. 
+        //
+
         // Add to billboard requests
         float dist = Vector3DistanceSqr(camera.position, firePos);
         billboardRequests.push_back({
@@ -382,7 +386,7 @@ void GatherDungeonFires(Camera& camera, float deltaTime) {
             R.GetTexture("fireSheet"),
             sourceRect,
             Vector2{100.0f, 100.0f},
-            WHITE,
+            fireColor,
             dist,
             0.0f,
             false,

@@ -215,7 +215,7 @@ namespace Cutscenes {
 
         Vector3 p0 = DungeonTileCenter(27, 29, dungeonWidth, dungeonHeight, tileSize, camY);
         Vector3 p1 = DungeonTileCenter(24,  21, dungeonWidth, dungeonHeight, tileSize, camY);
-        Vector3 p2 = DungeonTileCenter(14,  21, dungeonWidth, dungeonHeight, tileSize, camY);
+        Vector3 p2 = DungeonTileCenter(17,  21, dungeonWidth, dungeonHeight, tileSize, camY-100);
 
         Vector3 middleDeck = DungeonTileCenter(24, 21, dungeonWidth, dungeonHeight, tileSize, lookY);
         Vector3 krakenPos = gKraken.startPos;//DungeonTileCenter(2, 7, dungeonWidth, dungeonHeight, tileSize, lookY);
@@ -239,7 +239,8 @@ namespace Cutscenes {
 
         CameraWaypoint w2;
         w2.position = p2;
-        w2.target = krakenPos;
+        Vector3 krakenOffset = {krakenPos.x, krakenPos.y + 200, krakenPos.z};
+        w2.target = krakenOffset;
         w2.durationToNext = 3.0f;
         desc.points.push_back(w2);
 

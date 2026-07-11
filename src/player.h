@@ -76,7 +76,7 @@ struct Player {
     float displayedGold = 0.0f;
 
     bool running = false;
-    float runSpeed = 850.0f; // faster than walk speed
+    float runSpeed = 950.0f; // 850 faster than walk speed
     float walkSpeed = 500.0f; // regular speed
     float startingRotationY = 0.0f; // in degrees
     float lightIntensity = 0.5f;

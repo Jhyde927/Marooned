@@ -2469,8 +2469,15 @@ void GenerateLightSources(float baseY) {
                 box.max = Vector3Add(pos, Vector3{50.0f, 200.0f, 50.0f});
 
                 pillars.push_back({ pos, 1.0f, box });
-
+                Vector3 fireTint = Vector3{1.0f, 1.0f, 1.0f};
+                if (lightConfig.coreColor == Vector3{ 1.0f, 0.55f, 0.25f }){
+                    //regular fires, leave white
+                    
+                }else{
+                    fireTint = L.coreColor;
+                }
                 Fire newFire;
+                newFire.tint = fireTint;
                 newFire.fireFrame = GetRandomValue(0, 59);
                 fires.push_back(newFire);
             }

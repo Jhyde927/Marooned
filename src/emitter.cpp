@@ -49,6 +49,8 @@ void Emitter::UpdateTrail(float dt){
 
 }
 
+
+
 void Emitter::Update(float dt) { 
 
     for (auto& p : particles) {
@@ -100,6 +102,26 @@ void Emitter::EmitBlood(Vector3 pos, int count, Color color) {
             }
         }
     }
+}
+
+int Emitter::GetMaxParticleCount() const
+{
+    return (int)particles.size();
+}
+
+std::size_t Emitter::GetActiveParticleCount() const
+{
+    std::size_t count = 0;
+
+    for (const Particle& p : particles)
+    {
+        if (p.active)
+        {
+            ++count;
+        }
+    }
+
+    return count;
 }
 
 

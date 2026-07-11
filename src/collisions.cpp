@@ -893,7 +893,8 @@ void CheckBulletHits(Camera& camera) {
                 }else{
                     DamageSpiderEgg(egg, 25 * qDamage, player.position);
                     Vector3 n = AABBHitNormal(egg.collider, b.position);
-                    b.alive = TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy. 
+                    b.alive = TryBulletRicochet(b, n, 0.6f, 500, 0.9); //0.9 cosign makes headon bullets get absorbed by enemy.
+                    b.exploded = b.alive; 
                     break;
 
                 }
@@ -977,6 +978,7 @@ void CheckBulletHits(Camera& camera) {
                 // Default bullets: try ricochet
                 Vector3 n = AABBHitNormal(w.bounds, b.position);
                 b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);//returns false if no ricochet.
+                b.exploded = b.alive;
 
                 break;
             }
@@ -995,6 +997,7 @@ void CheckBulletHits(Camera& camera) {
                     //default bullets
                     Vector3 n = AABBHitNormal(d.collider, b.position);
                     b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f); //returns false if no ricochet.
+                    b.exploded = b.alive;
                     break;
 
                 }
@@ -1008,7 +1011,7 @@ void CheckBulletHits(Camera& camera) {
                     }else{
                         Vector3 n = AABBHitNormal(side, b.position);
                         b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 1.0f); //always bounce off side colliders to avoid them tunneling through
-                        //BulletParticleRicochetNormal(b, n, GRAY);
+                        b.exploded = b.alive;
                         break;
 
                     }
@@ -1026,6 +1029,7 @@ void CheckBulletHits(Camera& camera) {
                     
                     Vector3 n = AABBHitNormal(box.bounds, b.position);
                     b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                    b.exploded = b.alive;
                     break;
 
                 }
@@ -1042,6 +1046,7 @@ void CheckBulletHits(Camera& camera) {
                 }else{
                     Vector3 n = AABBHitNormal(pillar.bounds, b.position);
                     b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                    b.exploded = b.alive;
                     break;
 
                 }
@@ -1056,7 +1061,8 @@ void CheckBulletHits(Camera& camera) {
                     break;
                 }else{
                     Vector3 n = AABBHitNormal(web.bounds, b.position);
-                    TryBulletRicochet(b, n, 0.6f, 80.0f, 0.9f);
+                    b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.9f);
+                    b.exploded = b.alive;
                     break;
 
                 }
@@ -1091,6 +1097,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
             {
                 Vector3 n = AABBHitNormal(barrel.bounds, b.position);
                 b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                b.exploded = b.alive;
 
             }
 
@@ -1237,7 +1244,8 @@ void CheckBulletsAgainstTrees(std::vector<TreeInstance>& trees,
 
                     }else{
                         Vector3 n = AABBHitNormal(GetTreeAABB(tree), bullet.position);
-                        TryBulletRicochet(bullet, n, 0.6f, 80.0f, 0.9f);
+                        bullet.alive = TryBulletRicochet(bullet, n, 0.6f, 80.0f, 0.9f);
+                        bullet.exploded = bullet.alive;
                     } 
 
                     break; // stop checking this tree for this frame

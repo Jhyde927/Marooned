@@ -236,6 +236,65 @@ void StartCutScene(){
 
 }
 
+int GetMaxParticleCount()
+{
+    int total = 0;
+
+    for (const Character* enemy : enemyPtrs)
+    {
+        if (!enemy) continue;
+
+        total += enemy->bloodEmitter.GetMaxParticleCount();
+    }
+
+    for (const Bullet& b : activeBullets)
+    {
+        total += b.fireEmitter.GetMaxParticleCount();
+        total += b.sparkEmitter.GetMaxParticleCount();
+    }
+
+    for (const Decal& d : decals)
+    {
+        total += d.bloodEmitter.GetMaxParticleCount();
+    }
+
+    for (const SpiderEgg& s : eggs)
+    {
+        total += s.gooEmitter.GetMaxParticleCount();
+    }
+
+    total += gKraken.bloodEmitter.GetMaxParticleCount();
+
+    return total;
+}
+
+int GetParticleCount(){
+    int total = 0;
+    for (const Character* enemy : enemyPtrs){
+        total += enemy->bloodEmitter.GetActiveParticleCount();
+    }
+
+    for (const Bullet& b : activeBullets){
+        total += b.fireEmitter.GetActiveParticleCount();
+        total += b.sparkEmitter.GetActiveParticleCount();
+    }
+
+    for (const Decal& d : decals){
+        total += d.bloodEmitter.GetActiveParticleCount();
+    }
+
+    for (const SpiderEgg& s : eggs){
+        total += s.gooEmitter.GetActiveParticleCount();
+    }
+
+    total += gKraken.bloodEmitter.GetActiveParticleCount();
+
+
+
+    return total;
+
+}
+
 void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
 {
     if (ceilingMaskTex.id != 0 &&
@@ -963,12 +1022,12 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
 
         Character raptor(spawnPos, R.GetTexture("raptorTexture"), 512, 512, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
 
-        raptor.isElite = (GetRandomValue(0, 99) < 25); // 25% chance
-
+        raptor.isElite = (GetRandomValue(0, 99) < 15); // 15% chance
+        raptor.baseScale = 0.3; //hack for raptors specifically. 
         if (raptor.isElite){
             raptor.maxHealth = 500;
             raptor.currentHealth = raptor.maxHealth;
-            raptor.scale = 0.36;
+            raptor.scale = 0.3;
         }else{
             raptor.scale = 0.18;
             raptor.maxHealth = 150;
@@ -1450,6 +1509,8 @@ void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
     overlayInfo.skyTransition = ShaderSetup::gSky.skyTransition;
     overlayInfo.activeEnemies = enemyPtrs.size();
     overlayInfo.activeBullets = activeBullets.size();
+    overlayInfo.maxParticles = GetMaxParticleCount();
+    overlayInfo.activeParticles = GetParticleCount();
     overlayInfo.currentWeapon = WeaponTypeToString(player.activeWeapon);
     overlayInfo.showFreeCameraHint = true;
 
@@ -1459,7 +1520,10 @@ void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
 void ToggleFreeCam(){
     auto m = CameraSystem::Get().GetMode();
     if (m == CamMode::Free){
+        GameSettings::drawMinimap = true;
         player.position = CameraSystem::Get().Active().position; //teleport player to free cam position. 
+    }else{
+        GameSettings::drawMinimap = false;
     }
     CameraSystem::Get().SetMode(m == CamMode::Player ? CamMode::Free : CamMode::Player);
     CameraSystem::Get().SnapAllToPlayer();
