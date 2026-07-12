@@ -130,7 +130,7 @@ struct Player {
 
     float lastSafeGroundY   = 100.0f; 
 
-    bool debugShowFootSamples = false;
+    bool debugShowFootSamples = true;
 
     bool canRun = true;
     bool canMove = true;

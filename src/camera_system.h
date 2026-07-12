@@ -14,7 +14,12 @@ namespace Cutscenes
     void StartSpiderScene();
 }
 
-enum class CamMode { Player, Free, Cinematic, Death};
+enum class CamMode { 
+    Player, 
+    Free,
+    ThirdPerson, 
+    Cinematic, 
+    Death};
 
 enum class CinematicKind {
     Orbit,
@@ -204,6 +209,7 @@ private:
     PlayerView pv{};
     void UpdateCutsceneCam(float dt);
     void UpdatePlayerCam(float dt);
+    void UpdateThirdPersonCam(const PlayerView& view);
     void UpdateFreeCam(float dt);
     void UpdateCinematicCam(float dt);
     void UpdateOrbitCinematicCam(float dt);
@@ -237,6 +243,11 @@ private:
     int waypointIndex = 0;
     float waypointT = 0.0f;
     bool waypointActive = false;
+
+    //third person
+    float thirdPersonDistance = 450.0f;
+    float thirdPersonHeight   = 180.0f;
+    float thirdPersonLookY    = 80.0f;
     
 
 };

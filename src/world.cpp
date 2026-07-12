@@ -135,6 +135,17 @@ void EnterMenu() {
     
 }
 
+void InitBootScreen(float screenWidth, float screenHeight){
+    // Force the first visible frame to be black
+    Font titleFont = LoadFont("assets/fonts/PiecesOfEight.ttf");
+    BeginDrawing();
+    ClearBackground(BLACK);
+    float textSize = MeasureTextEx(titleFont, "Loading...", 64, 4).x/2;
+    Vector2 textPos = Vector2{(float)screenWidth/2 - textSize, (float)screenHeight/2};
+    DrawTextEx(titleFont, "Loading...", textPos, 64, 4, WHITE);
+    EndDrawing();
+}
+
 void InitMenuLevel(LevelData& level){
     ClearLevel();
     isDungeon = false;
@@ -1599,6 +1610,7 @@ void UpdateWorldFrame(float dt, Player& player) {
         0.0f //dip
         
     };
+
     CameraSystem::Get().SyncFromPlayer(pv); //synce to players rotation
 
     // Update camera (handles free vs player internally)

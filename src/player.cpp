@@ -331,6 +331,78 @@ void ApplyPlayerWeaponKickback(const Camera& camera, float kickSpeed)
     player.velocity.z += kick.z;
 }
 
+static void ApplyAirAcceleration(
+    Vector3& velocity,
+    Vector3 wishDir,
+    float maxSpeed,
+    float airControl,
+    float dt)
+{
+    wishDir.y = 0.0f;
+
+    if (Vector3LengthSqr(wishDir) < 0.001f)
+    {
+        return;
+    }
+
+    wishDir = Vector3Normalize(wishDir);
+
+    Vector3 horizontalVelocity = {
+        velocity.x,
+        0.0f,
+        velocity.z
+    };
+
+    float horizontalSpeed = Vector3Length(horizontalVelocity);
+
+    float alignment = 0.0f;
+
+    if (horizontalSpeed > 0.001f)
+    {
+        Vector3 velocityDir =
+            Vector3Scale(horizontalVelocity, 1.0f / horizontalSpeed);
+
+        alignment = Vector3DotProduct(velocityDir, wishDir);
+    }
+
+    float currentSpeed =
+        Vector3DotProduct(horizontalVelocity, wishDir);
+
+    float control = airControl;
+
+    // Normal sideways correction.
+    float targetSpeed = maxSpeed * 0.15f;
+
+    // Input is mostly aligned with current momentum:
+    // allow a small forward speed increase.
+    if (alignment > 0.5f)
+    {
+        targetSpeed = maxSpeed * 1.10f;
+    }
+    // Input opposes current momentum:
+    // make midair braking much weaker.
+    else if (alignment < -0.5f)
+    {
+        control *= 0.25f;
+    }
+
+    float addSpeed = targetSpeed - currentSpeed;
+
+    if (addSpeed <= 0.0f)
+    {
+        return;
+    }
+
+    float accelSpeed = control * maxSpeed * dt;
+
+    if (accelSpeed > addSpeed)
+    {
+        accelSpeed = addSpeed;
+    }
+
+    velocity.x += wishDir.x * accelSpeed;
+    velocity.z += wishDir.z * accelSpeed;
+}
 
 void HandlePlayerMovement(float deltaTime){
     float dt = deltaTime;
@@ -368,16 +440,35 @@ void HandlePlayerMovement(float deltaTime){
     const float maxSpeed = player.running ? player.runSpeed : player.walkSpeed;
 
 
-    Vector3 desiredVel = {0,0,0};
-    if (wish.x != 0 || wish.y != 0) {
-        float yaw = DEG2RAD * player.rotation.y;
-        Vector3 f = { sinf(yaw), 0, cosf(yaw) };
-        Vector3 r = { f.z, 0, -f.x };
-        Vector3 moveDir = Vector3Normalize({ r.x*wish.x + f.x*wish.y, 0, r.z*wish.x + f.z*wish.y });
+    Vector3 desiredVel = { 0.0f, 0.0f, 0.0f };
+
+    if (wish.x != 0.0f || wish.y != 0.0f)
+    {
+        float yaw = player.rotation.y * DEG2RAD;
+
+        Vector3 f = {
+            sinf(yaw),
+            0.0f,
+            cosf(yaw)
+        };
+
+        Vector3 r = {
+            f.z,
+            0.0f,
+            -f.x
+        };
+
+        Vector3 moveDir = Vector3Normalize({
+            r.x * wish.x + f.x * wish.y,
+            0.0f,
+            r.z * wish.x + f.z * wish.y
+        });
+
         desiredVel = Vector3Scale(moveDir, maxSpeed);
         player.isMoving = true;
-        player.forward = f;
-    } else {
+    }
+    else
+    {
         player.isMoving = false;
     }
 
@@ -390,11 +481,52 @@ void HandlePlayerMovement(float deltaTime){
         else                    return target;
     };
 
-    float accel   = player.grounded ? player.ACCEL_GROUND : player.ACCEL_AIR;
-    float decel   = player.grounded ? player.DECEL_GROUND : player.FRICTION_AIR;
+    // float accel   = player.grounded ? player.ACCEL_GROUND : player.ACCEL_AIR;
+    // float decel   = player.grounded ? player.DECEL_GROUND : player.FRICTION_AIR;
 
-    player.velocity.x = approach(player.velocity.x, desiredVel.x, (fabsf(desiredVel.x) > 0.001f) ? accel : decel, dt);
-    player.velocity.z = approach(player.velocity.z, desiredVel.z, (fabsf(desiredVel.z) > 0.001f) ? accel : decel, dt);
+    // player.velocity.x = approach(player.velocity.x, desiredVel.x, (fabsf(desiredVel.x) > 0.001f) ? accel : decel, dt);
+    // player.velocity.z = approach(player.velocity.z, desiredVel.z, (fabsf(desiredVel.z) > 0.001f) ? accel : decel, dt);
+
+    if (player.grounded)
+    {
+        player.velocity.x = approach(
+            player.velocity.x,
+            desiredVel.x,
+            (fabsf(desiredVel.x) > 0.001f)
+                ? player.ACCEL_GROUND
+                : player.DECEL_GROUND,
+            dt
+        );
+
+        player.velocity.z = approach(
+            player.velocity.z,
+            desiredVel.z,
+            (fabsf(desiredVel.z) > 0.001f)
+                ? player.ACCEL_GROUND
+                : player.DECEL_GROUND,
+            dt
+        );
+    }
+    else
+    {
+        Vector3 wishDir = {0.0f, 0.0f, 0.0f};
+        const float quakeAirAccel = 5.0f;
+
+        if (Vector3LengthSqr(desiredVel) > 0.001f)
+        {
+            wishDir = Vector3Normalize(desiredVel);
+        }
+
+        ApplyAirAcceleration(
+            player.velocity,
+            wishDir,
+            maxSpeed,
+            quakeAirAccel,
+            dt
+        );
+    }
+
+
 
     const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
     float halfHeight = (player.height * 0.5);
@@ -1505,17 +1637,11 @@ void DrawMeleeVolumeDebug(const MeleeHitVolume& volume)
     }
 }
 
-void DrawPlayer(const Player& player, Camera& camera) {
-    (void)camera;
-    if (CameraSystem::Get().GetMode() == CamMode::Free){
-        DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
-        DrawBoundingBox(player.GetBoundingBox(), RED);
-
-    }
+void DrawPlayerDebug(const Player& player) {
 
     if (player.debugShowFootSamples)
     {
-        float footOff = 1.0f; // try 10–40 depending on your tile size / player radius
+        float footOff = 10.0f; // try 10–40 depending on your tile size / player radius
 
         Vector3 samples[9] = {
             FootSample(player,  0,        0),        // center
@@ -1548,7 +1674,45 @@ void DrawPlayer(const Player& player, Camera& camera) {
         }
     }
 
-    //DrawMeleeVolumeDebug(player.meleeVolume);
+    Vector3 arrowStart = player.position;
+    arrowStart.y += 40.0f;
+
+    // Looking direction
+    DrawLine3D(
+        arrowStart,
+        Vector3Add(arrowStart, Vector3Scale(player.forward, 200.0f)),
+        RED
+    );
+
+    // Movement velocity direction
+    Vector3 horizontalVelocity = {
+        player.velocity.x,
+        0.0f,
+        player.velocity.z
+    };
+
+    if (Vector3LengthSqr(horizontalVelocity) > 0.001f)
+    {
+        horizontalVelocity = Vector3Normalize(horizontalVelocity);
+
+        DrawLine3D(
+            arrowStart,
+            Vector3Add(arrowStart, Vector3Scale(horizontalVelocity, 200.0f)),
+            BLUE
+        );
+    }
+
+    DrawMeleeVolumeDebug(player.meleeVolume);
+}
+
+void DrawPlayer(const Player& player, Camera& camera) {
+    (void)camera;
+    if (CameraSystem::Get().GetMode() == CamMode::Free || CameraSystem::Get().GetMode() == CamMode::ThirdPerson){
+        DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
+        DrawBoundingBox(player.GetBoundingBox(), RED);
+    }
+    
+    //DrawPlayerDebug(player);
 
 }
 

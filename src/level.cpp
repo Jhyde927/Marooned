@@ -431,9 +431,9 @@ std::vector<LevelData> levels = {
     },
 
         {
-        "Shop", 
+        "dungeon19", 
         "assets/heightmaps/blank.png",
-        "assets/maps/shop.png",
+        "assets/maps/dungeon19.png",
         {5475.0f, 300.0f, -5665.0f}, //original player start position
         0.0f,
         {0.0f, 0.0f, 0.0f},

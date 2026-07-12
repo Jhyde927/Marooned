@@ -221,13 +221,35 @@ void CameraSystem::SetFarClip(float farClip) {
     freeRig.farClip   = farClip;
 }
 
-Camera3D& CameraSystem::Active() {
-    if (mode == CamMode::Player)      { playerRig.cam.fovy = GameSettings::fovY; return playerRig.cam; }
-    else if (mode == CamMode::Free)   { freeRig.cam.fovy   = freeRig.fov;   return freeRig.cam;  }
-    else                              { cinematicRig.cam.fovy = cinematicRig.fov; return cinematicRig.cam; }
+Camera3D& CameraSystem::Active()
+{
+    switch (mode)
+    {
+        case CamMode::Player:
+        case CamMode::ThirdPerson:
+            return playerRig.cam;
+
+        case CamMode::Free:
+            return freeRig.cam;
+
+        case CamMode::Cinematic:
+            return cinematicRig.cam;
+
+        case CamMode::Death:
+            return playerRig.cam;
+    }
+
+    return playerRig.cam;
 }
 
+// Camera3D& CameraSystem::Active() {
+//     if (mode == CamMode::Player)      { playerRig.cam.fovy = GameSettings::fovY; return playerRig.cam; }
+//     else if (mode == CamMode::Free)   { freeRig.cam.fovy   = freeRig.fov;   return freeRig.cam;  }
+//     else                              { cinematicRig.cam.fovy = cinematicRig.fov; return cinematicRig.cam; }
+// }
+
 const Camera3D& CameraSystem::Active() const {
+    if (mode == CamMode::ThirdPerson) return playerRig.cam;
     if (mode == CamMode::Player) return playerRig.cam;
     if (mode == CamMode::Free)   return freeRig.cam;
 
@@ -370,6 +392,39 @@ void CameraSystem::GetPlayerCameraPose(Vector3& outPos, Vector3& outTarget) cons
     outTarget = Vector3Add(basePos, Vector3Scale(forward, 1000.0f));
 }
 
+
+void CameraSystem::UpdateThirdPersonCam(const PlayerView& view)
+{
+    
+    float yaw = view.yawDeg * DEG2RAD;
+
+    // Horizontal direction the player is facing.
+    Vector3 forward = {
+        sinf(yaw),
+        0.0f,
+        cosf(yaw)
+    };
+
+    Vector3 playerPos = view.position;
+
+    // Place camera behind and above the player.
+    Vector3 cameraPos = Vector3Subtract(
+        playerPos,
+        Vector3Scale(forward, thirdPersonDistance)
+    );
+
+    cameraPos.y += thirdPersonHeight;
+
+    // Look slightly above the player's origin.
+    Vector3 target = playerPos;
+    target.y += thirdPersonLookY;
+
+    playerRig.cam.position = cameraPos;
+    playerRig.cam.target = target;
+    playerRig.cam.up = { 0.0f, 1.0f, 0.0f };
+    playerRig.cam.projection = CAMERA_PERSPECTIVE;
+
+}
 
 
 void CameraSystem::UpdatePlayerCam(float dt)
@@ -619,6 +674,11 @@ void CameraSystem::Update(float dt) {
     {
         case CamMode::Player:
             if (!player.dying) UpdatePlayerCam(dt);
+            break;
+
+        case CamMode::ThirdPerson:
+            
+            UpdateThirdPersonCam(pv);
             break;
 
         case CamMode::Free:

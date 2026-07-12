@@ -34,13 +34,7 @@ int main() {
 
     InitWindow(screenWidth, screenHeight, "Marooned");
 
-    // Force the first visible frame to be black
-    Font titleFont = LoadFont("assets/fonts/PiecesOfEight.ttf");
-    BeginDrawing();
-    ClearBackground(BLACK);
-    Vector2 textPos = Vector2{(float)screenWidth/2 - MeasureText("Loading...", 20)/2, (float)screenHeight/2};
-    DrawTextEx(titleFont, "Loading...", textPos, 64, 4, WHITE);
-    EndDrawing();
+    InitBootScreen(screenWidth, screenHeight);
 
     InitAudioDevice();
     //SetTargetFPS(60); //using vsync instead.

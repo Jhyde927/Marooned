@@ -53,28 +53,65 @@ void debugControls(Camera& camera, float deltaTime){
         ControlPlayerWhileFreeCam(deltaTime); //move the player around with the arrow keys while controlling free cam. 
     }
 
-    // if (IsKeyPressed(KEY_V)){
-    //     ToggleVSync();
-    // }
+    if (IsKeyPressed(KEY_F3))
+    {
+    
+        if (CameraSystem::Get().GetMode() != CamMode::ThirdPerson){
+            CameraSystem::Get().SetMode(CamMode::ThirdPerson);
+            std::cout << "third person view\n";
+        }else{
+            CameraSystem::Get().SetMode(CamMode::Player);
+        }
+    }
 
-    // if (IsKeyPressed(KEY_F8)){
-    //     GenerateProps(floorHeight + 20);
-    // }
 }
 
 void HandleMouseLook()
 {
+    CameraSystem& cameraSystem = CameraSystem::Get();
+    CamMode mode = cameraSystem.GetMode();
 
-    if (CameraSystem::Get().GetMode() != CamMode::Player) return;
+    const bool look =
+        mode == CamMode::Player ||
+        mode == CamMode::ThirdPerson;
+
+    if (!look) return;
+
     Vector2 mouseDelta = GetMouseDelta();
 
-    player.rotation.y -= mouseDelta.x * GameSettings::mouseSensitivity;
-    player.rotation.x -= mouseDelta.y * GameSettings::mouseSensitivity;
+    float sensitivity = GameSettings::mouseSensitivity;
+
+    if (mode == CamMode::ThirdPerson)
+    {
+        sensitivity *= 1.0f;
+    }
+
+    player.rotation.y -= mouseDelta.x * sensitivity;
+    player.rotation.x -= mouseDelta.y * sensitivity;
     player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
 
-    float yaw = DEG2RAD * player.rotation.y;
-    player.forward = Vector3Normalize({ sinf(yaw), 0.0f, cosf(yaw) });
+    float yaw = player.rotation.y * DEG2RAD;
+
+    player.forward = Vector3Normalize({
+        sinf(yaw),
+        0.0f,
+        cosf(yaw)
+    });
 }
+
+// void HandleMouseLook()
+// {
+//     const bool look = CameraSystem::Get().GetMode() == CamMode::Player ||  CameraSystem::Get().GetMode() == CamMode::ThirdPerson;
+//     if (!look) return;
+//     Vector2 mouseDelta = GetMouseDelta();
+
+//     player.rotation.y -= mouseDelta.x * GameSettings::mouseSensitivity;
+//     player.rotation.x -= mouseDelta.y * GameSettings::mouseSensitivity;
+//     player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
+
+//     float yaw = DEG2RAD * player.rotation.y;
+//     player.forward = Vector3Normalize({ sinf(yaw), 0.0f, cosf(yaw) });
+// }
 
 
 float Expo(float x)
