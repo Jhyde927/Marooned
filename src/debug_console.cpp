@@ -274,6 +274,10 @@ namespace DebugConsole
         {
             CommandFreecam();
         }
+        else if (command == "thirdperson")
+        {
+            CommandThirdPerson();
+        }
         else if (command == "ceiling")
         {
             CommandCeiling();
@@ -297,9 +301,9 @@ namespace DebugConsole
             Log("Commands:");
             LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props");
             LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog");
-            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "Clear");
-            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "Exit");
-            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",              "");
+            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson");
+            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "Clear");
+            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",              "Exit");
 
         }
         else
@@ -645,6 +649,12 @@ namespace DebugConsole
 
         player.inventory.AddItemAmount("ManaPotion", amount);
         SoundManager::GetInstance().Play("clink");
+
+    }
+
+    void CommandThirdPerson(){
+        Log("Toggle Third Person.");
+        ToggleThirdPerson();
 
     }
 

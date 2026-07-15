@@ -183,3 +183,4 @@ void ToggleVSync();
 void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo);
 int GetParticleCount();
 void InitBootScreen(float screenWidth, float screenHeight);
+void ToggleThirdPerson();

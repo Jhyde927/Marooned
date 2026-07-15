@@ -24,14 +24,8 @@
 #include "game_settings.h"
 #include "dungeon_props.h"
 #include "dungeonInstancing.h"
-// std::vector<Matrix> grayFloorTransforms;
-// std::vector<Matrix> woodFloorTransforms;
+#include "load_timer.h"
 
-// FloorInstancing gGrayFloorInstancing;
-// FloorInstancing gWoodFloorInstancing;
-
-// FloorInstancing gFloorInstancing;
-//std::vector<FloorInstanceSource> gFloorInstanceSources;
 
 Texture2D ceilingVoidMaskTex;
 Texture2D ceilingMaskTex;
@@ -545,6 +539,7 @@ void UpdateCeilingMaskTextureFromCPU()
 
 void GenerateFloorTiles(float baseY)
 {
+
     //floorTiles.clear();
     lavaTiles.clear();
     //gFloorInstanceSources.clear();
@@ -737,6 +732,7 @@ void GenerateInvisibleWalls(float baseY)
 
 
 void GenerateWallTiles(float baseY) {
+    LoadTimer timer("GenerateWalls");
     wallInstances.clear();
     wallRunColliders.clear();
 

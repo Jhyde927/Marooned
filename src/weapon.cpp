@@ -93,6 +93,56 @@ float MeleeWeapon::GetCurrentDamage() const
     return 25.0f;
 }
 
+static Vector3 GetPlayerViewForward(const Player& player)
+{
+    float yaw   = player.rotation.y * DEG2RAD;
+    float pitch = player.rotation.x * DEG2RAD;
+
+    return Vector3Normalize({
+        cosf(pitch) * sinf(yaw),
+        sinf(pitch),
+        cosf(pitch) * cosf(yaw)
+    });
+}
+
+static Vector3 GetPlayerMuzzlePosition(const Player& player)
+{
+    Vector3 viewForward = GetPlayerViewForward(player);
+
+    // Flatten this only for positioning the muzzle around the player.
+    Vector3 flatForward = {
+        viewForward.x,
+        0.0f,
+        viewForward.z
+    };
+
+    if (Vector3LengthSqr(flatForward) < 0.001f)
+    {
+        flatForward = { 0.0f, 0.0f, 1.0f };
+    }
+
+    flatForward = Vector3Normalize(flatForward);
+
+    Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+
+    Vector3 right = Vector3Normalize(
+        Vector3CrossProduct(flatForward, worldUp)
+    );
+
+    // Use the same position that your first-person camera considers
+    // the player's eye position.
+    Vector3 muzzle = player.position;
+
+    // Only add this if player.position is located at the player's feet.
+    // muzzle.y += player.height;
+
+    muzzle = Vector3Add(muzzle, Vector3Scale(flatForward, 40.0f));
+    muzzle = Vector3Add(muzzle, Vector3Scale(right, 15.0f));
+    muzzle = Vector3Add(muzzle, Vector3Scale(worldUp, -20.0f));
+
+    return muzzle;
+}
+
 
 SwordAttackType GetComboAttack(int comboIndex)
 {
@@ -106,6 +156,7 @@ SwordAttackType GetComboAttack(int comboIndex)
 }
 
 void Crossbow::FireHarpoon(Camera& camera) {
+    (void)camera;
     if (!hasHarpoon) return;
     if (!harpoonReady) return;
     float now = GetTime();
@@ -126,8 +177,8 @@ void Crossbow::FireHarpoon(Camera& camera) {
     reloadPhase       = 0.0f;
     swappedModelMidDip = false;
     harpoonTimer = 0.0f;
-    Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-    FireCrossbowHarpoon(muzzlePos, camForward, 2000.0f, 4.0f, false);
+    //Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    FireCrossbowHarpoon(GetPlayerMuzzlePosition(player), player.lookForward, 2000.0f, 4.0f, false);
     SoundManager::GetInstance().Play("crossbowFire");
     SoundManager::GetInstance().Play("harpoon");
 
@@ -138,6 +189,7 @@ void Crossbow::FireHarpoon(Camera& camera) {
 
 void Crossbow::Fire(Camera& camera)
 {
+    (void)camera;
     float now = GetTime();
     if (now - lastFired < fireCooldown) return;
     if (isReloading || state != CrossbowState::Loaded) return;
@@ -152,11 +204,12 @@ void Crossbow::Fire(Camera& camera)
     reloadPhase        = 0.0f;
     swappedModelMidDip = false;
 
-    Vector2 ret = { GetScreenWidth()*0.5f, GetScreenHeight()*0.5f + 50.0f };
-    Ray r = GetMouseRay(ret, camera);
+    // Vector2 ret = { GetScreenWidth()*0.5f, GetScreenHeight()*0.5f + 50.0f };
+    // Ray r = GetMouseRay(ret, camera);
 
-    Vector3 boltDir = Vector3Normalize(r.direction);
-    FireCrossbow(muzzlePos, boltDir, 4000.0f, 5.0f, false);
+    // Vector3 boltDir = Vector3Normalize(r.direction);
+    Vector3 offset = {0.0, -40.0f, 0.0f};
+    FireCrossbow(GetPlayerMuzzlePosition(player)+offset, player.lookForward, 4000.0f, 5.0f, false);
 
     SoundManager::GetInstance().Play("crossbowFire");
 
@@ -198,21 +251,8 @@ void Weapon::Fire(Camera& camera)
         reloadScheduled = true;
         reloadTimer = 0.0f;
 
-        // Offset bulletOrigin to weapon position.
-        Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-        Vector3 camRight = Vector3Normalize(Vector3CrossProduct(camForward, Vector3{ 0.0f, 1.0f, 0.0f }));
-        Vector3 camUp = Vector3{ 0.0f, 1.0f, 0.0f };
-
-        // Offsets in local space
-        float forwardOffset = -50.0f;
-        float sideOffset = 30.0f;
-        float verticalOffset = -30.0f;
-
-        // Final origin for bullets in world space
-        Vector3 bulletOrigin = camera.position;
-        bulletOrigin = Vector3Add(bulletOrigin, Vector3Scale(camForward, forwardOffset));
-        bulletOrigin = Vector3Add(bulletOrigin, Vector3Scale(camRight, sideOffset));
-        bulletOrigin = Vector3Add(bulletOrigin, Vector3Scale(camUp, verticalOffset));
+        Vector3 bulletOrigin = GetPlayerMuzzlePosition(player);
+        Vector3 shotDirection = GetPlayerViewForward(player);
 
         int finalPelletCount = 7;
 
@@ -224,7 +264,7 @@ void Weapon::Fire(Camera& camera)
 
             FireBlunderbuss(
                 bulletOrigin,
-                camForward,
+                shotDirection,
                 player.spreadDegrees,
                 finalPelletCount,
                 1700.0f,
@@ -234,7 +274,7 @@ void Weapon::Fire(Camera& camera)
 
             FireBlunderbuss(
                 bulletOrigin,
-                camForward,
+                shotDirection,
                 player.spreadDegrees * 2.5f,
                 finalPelletCount,
                 2000.0f,
@@ -252,7 +292,7 @@ void Weapon::Fire(Camera& camera)
 
             FireBlunderbuss(
                 bulletOrigin,
-                camForward,
+                shotDirection,
                 player.spreadDegrees,
                 finalPelletCount,
                 2000.0f,
@@ -715,9 +755,112 @@ void DrawModelOutlinePass(
     rlSetCullFace(RL_CULL_FACE_BACK);
 }
 
+void Weapon::DrawThirdPerson()
+{
+    // Use yaw-only forward for where the weapon sits relative to the body.
+    Vector3 bodyForward = player.forward;
+    bodyForward.y = 0.0f;
+    bodyForward = Vector3Normalize(bodyForward);
+
+    Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+
+    Vector3 bodyRight = Vector3Normalize(
+        Vector3CrossProduct(bodyForward, worldUp)
+    );
+
+    // Use lookForward for the weapon's aiming rotation.
+    Vector3 aimForward = Vector3Normalize(player.lookForward);
+
+    // Separate third-person offsets. These will need tuning.
+    const float thirdPersonForward = 10.0f;
+    const float thirdPersonSide = 10.0f;
+    const float thirdPersonHeight = 0.0f;
+
+    Vector3 gunPos = player.position;
+    gunPos = Vector3Add(
+        gunPos,
+        Vector3Scale(bodyForward, thirdPersonForward)
+    );
+    gunPos = Vector3Add(
+        gunPos,
+        Vector3Scale(bodyRight, thirdPersonSide)
+    );
+    gunPos.y += thirdPersonHeight;
+
+    // Rotate the weapon toward the player's aim direction,
+    // rather than toward the camera.
+    Matrix lookAt = MatrixLookAt(
+        gunPos,
+        Vector3Add(gunPos, aimForward),
+        worldUp
+    );
+
+    Matrix gunRotation = MatrixInvert(lookAt);
+    Quaternion q = QuaternionFromMatrix(gunRotation);
+
+    float clampedW = Clamp(q.w, -1.0f, 1.0f);
+    float angle = 2.0f * acosf(clampedW);
+    float angleDeg = angle * RAD2DEG;
+
+    float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - clampedW * clampedW));
+
+    Vector3 axis = {
+        1.0f,
+        0.0f,
+        0.0f
+    };
+
+    if (sinTheta >= 0.001f)
+    {
+        axis = {
+            q.x / sinTheta,
+            q.y / sinTheta,
+            q.z / sinTheta
+        };
+    }
+
+    muzzlePos = Vector3Add(
+        gunPos,
+        Vector3Scale(aimForward, 40.0f)
+    );
+
+    Color tint = TintFromDarkness(weaponDarkness);
+
+    // Third-person scale will probably need to differ considerably
+    // from the first-person viewmodel scale.
+    const Vector3 thirdPersonScale = Vector3Scale(scale, 0.6f);
+
+    if (doubleLoaded)
+    {
+        DrawModelOutlinePass(
+            model,
+            ShaderSetup::gOutline.shader,
+            ShaderSetup::gOutline.locOutlineWidth,
+            ShaderSetup::gOutline.locOutlineColor,
+            gunPos,
+            axis,
+            angleDeg,
+            thirdPersonScale,
+            0.05f,
+            Color{ 255, 40, 30, 255 }
+        );
+    }
+
+    DrawModelEx(
+        model,
+        gunPos,
+        axis,
+        angleDeg,
+        thirdPersonScale,
+        tint
+    );
+}
 
 
-void Weapon::Draw(const Camera& camera) {
+
+
+
+void Weapon::DrawFirstPerson(const Camera& camera) {
     // === Camera rotation math ===
     Matrix lookAt = MatrixLookAt(camera.position, camera.target, { 0, 1, 0 });
     Matrix gunRotation = MatrixInvert(lookAt);
@@ -772,7 +915,143 @@ void Weapon::Draw(const Camera& camera) {
 
 }
 
+void MeleeWeapon::DrawThirdPerson()
+{
+    Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+
+    // Yaw-only direction keeps the sword attached to the player's body.
+    Vector3 bodyForward = player.forward;
+    bodyForward.y = 0.0f;
+
+    if (Vector3LengthSqr(bodyForward) < 0.001f)
+    {
+        bodyForward = { 0.0f, 0.0f, 1.0f };
+    }
+
+    bodyForward = Vector3Normalize(bodyForward);
+
+    Vector3 bodyRight = Vector3Normalize(
+        Vector3CrossProduct(bodyForward, worldUp)
+    );
+
+    // These are separate from the first-person offsets.
+    // Tune these based on the size of the eventual player model.
+    const float thirdPersonForwardOffset = 50.0f;
+    const float thirdPersonSideOffset = 20.0f;
+    const float thirdPersonVerticalOffset = 0.0f;
+
+    // Keep your existing pose blending.
+    float blendedForward = Lerp(
+        thirdPersonForwardOffset,
+        thirdPersonForwardOffset + blockForwardOffset,
+        blockLerp
+    );
+
+    float blendedSide = Lerp(
+        thirdPersonSideOffset,
+        thirdPersonSideOffset + blockSideOffset,
+        blockLerp
+    );
+
+    float blendedVertical = Lerp(
+        thirdPersonVerticalOffset,
+        thirdPersonVerticalOffset + blockVerticalOffset,
+        blockLerp
+    );
+
+    // Reuse the existing animation offsets.
+    blendedForward += swingOffset;
+    blendedSide += horizontalSwingOffset;
+    blendedVertical += verticalSwingOffset;
+
+    blendedForward += attackForwardOffset;
+    blendedSide += attackSideOffset;
+    blendedVertical += attackVerticalOffset;
+
+    // Bob will probably need to be reduced or removed in third person.
+    blendedVertical += bobVertical * 0.25f;
+    blendedSide += bobSide * 0.25f;
+
+    blendedVertical -= equipDip;
+
+    Vector3 swordPos = player.position;
+
+    swordPos = Vector3Add(
+        swordPos,
+        Vector3Scale(bodyForward, blendedForward)
+    );
+
+    swordPos = Vector3Add(
+        swordPos,
+        Vector3Scale(bodyRight, blendedSide)
+    );
+
+    swordPos = Vector3Add(
+        swordPos,
+        Vector3Scale(worldUp, blendedVertical)
+    );
+
+    // Build the basic sword rotation from the player's facing direction.
+    Matrix lookAt = MatrixLookAt(
+        swordPos,
+        Vector3Add(swordPos, bodyForward),
+        worldUp
+    );
+
+    Matrix playerRotation = MatrixInvert(lookAt);
+
+    // Keep your current permanent and attack-specific rotations.
+    Matrix baseRoll = MatrixRotateZ(baseRollDeg * DEG2RAD);
+    Matrix attackYaw = MatrixRotateY(attackYawDeg * DEG2RAD);
+    Matrix attackRoll = MatrixRotateZ(attackRollDeg * DEG2RAD);
+
+    Matrix extraRot = MatrixMultiply(baseRoll, attackYaw);
+    extraRot = MatrixMultiply(attackRoll, extraRot);
+
+    Matrix finalRot = MatrixMultiply(extraRot, playerRotation);
+    Quaternion finalQ = QuaternionFromMatrix(finalRot);
+
+    float clampedW = Clamp(finalQ.w, -1.0f, 1.0f);
+    float finalAngle = 2.0f * acosf(clampedW);
+    float finalAngleDeg = finalAngle * RAD2DEG;
+
+    float finalSinTheta = sqrtf(
+        fmaxf(0.0f, 1.0f - clampedW * clampedW)
+    );
+
+    Vector3 finalAxis = { 1.0f, 0.0f, 0.0f };
+
+    if (finalSinTheta >= 0.001f)
+    {
+        finalAxis = {
+            finalQ.x / finalSinTheta,
+            finalQ.y / finalSinTheta,
+            finalQ.z / finalSinTheta
+        };
+    }
+
+    Color tint = TintFromDarkness(weaponDarkness);
+
+    // The first-person sword may be intentionally oversized.
+    Vector3 thirdPersonScale = Vector3Scale(scale, 0.6f);
+
+    DrawModelEx(
+        model,
+        swordPos,
+        finalAxis,
+        finalAngleDeg,
+        thirdPersonScale,
+        tint
+    );
+}
+
 void MeleeWeapon::Draw(const Camera& camera) {
+
+    if (CameraSystem::Get().GetMode() == CamMode::ThirdPerson)
+    {
+        DrawThirdPerson();
+        return;
+    }
     Matrix lookAt = MatrixLookAt(camera.position, camera.target, { 0, 1, 0 });
     Matrix swordRotation = MatrixInvert(lookAt);
     Quaternion q = QuaternionFromMatrix(swordRotation);
@@ -839,7 +1118,16 @@ void MeleeWeapon::Draw(const Camera& camera) {
 
 }
 
+void Weapon::Draw(const Camera& camera)
+{
+    if (CameraSystem::Get().GetMode() == CamMode::ThirdPerson)
+    {
+        DrawThirdPerson();
+        return;
+    }
 
+    DrawFirstPerson(camera);
+}
 
 void MeleeWeapon::StartBlock() {
     blocking = true;
@@ -923,8 +1211,10 @@ void MagicStaff::Fire(const Camera& camera) {
             0.1f  // lifetime in seconds
     });
 
-    Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-    Vector3 targetPoint = Vector3Add(camera.position, Vector3Scale(camForward, 1000.0f));
+    //Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    Vector3 targetPoint = Vector3Add(camera.position, Vector3Scale(player.lookForward, 1000.0f));
+
+    muzzlePos = GetPlayerMuzzlePosition(player);
     
     if (magicType == MagicType::Fireball){
         FireFireball(muzzlePos, targetPoint, 2000, 10.0f, false, false, false);

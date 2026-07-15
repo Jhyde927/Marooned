@@ -17,6 +17,7 @@
 
 WeaponBar gWeaponBar;
 std::vector<SlashEffect> gSlashEffects;
+float levelLoadProgress = 0.0f;
 
 static HintManager hints;   // one global-ish instance, private to UI.cpp
 static DialogManager dialogManager;
@@ -872,6 +873,90 @@ void SpawnSwordSlashForAttack(SwordAttackType attackType)
     }
 
     gSlashEffects.push_back(slash);
+}
+
+void UpdateLoadingScreen(float progress, const char* message)
+{
+
+    levelLoadProgress = Clamp(progress, 0.0f, 1.0f);
+
+    BeginDrawing();
+    ClearBackground(BLACK);
+
+    const float barWidth = 500.0f;
+    const float barHeight = 24.0f;
+    const float barX = (GetScreenWidth() - barWidth) * 0.5f;
+    const float barY = GetScreenHeight() * 0.65f;
+    Font font = R.GetFont("Pieces");
+
+    // --- Large "Loading..." title ---
+    // const char* loadingTitle = "Loading...";
+    // const float titleFontSize = 48.0f;
+    // const float titleSpacing = 2.0f;
+
+    // Vector2 titleSize = MeasureTextEx(
+    //     font,
+    //     loadingTitle,
+    //     titleFontSize,
+    //     titleSpacing
+    // );
+
+    // Vector2 titlePosition = {
+    //     (GetScreenWidth() - titleSize.x) * 0.5f,
+    //     barY - 115.0f
+    // };
+
+    // DrawTextEx(
+    //     font,
+    //     loadingTitle,
+    //     titlePosition,
+    //     titleFontSize,
+    //     titleSpacing,
+    //     RAYWHITE
+    // );
+
+    // --- Smaller progress message ---
+    const float messageFontSize = 34.0f;
+    const float messageSpacing = 2.0f;
+
+    Vector2 messageSize = MeasureTextEx(
+        font,
+        message,
+        messageFontSize,
+        messageSpacing
+    );
+
+    Vector2 messagePosition = {
+        (GetScreenWidth() - messageSize.x) * 0.5f,
+        barY - 45.0f
+    };
+
+    DrawTextEx(
+        font,
+        message,
+        messagePosition,
+        messageFontSize,
+        messageSpacing,
+        RAYWHITE
+    );
+
+    DrawRectangleLinesEx(
+        {barX, barY, barWidth, barHeight},
+        2.0f,
+        RAYWHITE
+    );
+
+    DrawRectangleRec(
+        {
+            barX + 4.0f,
+            barY + 4.0f,
+            (barWidth - 8.0f) * levelLoadProgress,
+            barHeight - 8.0f
+        },
+        RAYWHITE
+    );
+
+    EndDrawing();
 }
 
 

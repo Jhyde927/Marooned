@@ -4,6 +4,8 @@
 #include "raymath.h"
 #include <vector>
 
+extern std::vector<BoundingBox> cameraCollisionBoxes;
+
 namespace Cutscenes 
 {
     void StartDungeonHallwayIntro();
@@ -194,6 +196,8 @@ public:
 
     bool IsPlayerMode() const { return GetMode() == CamMode::Player; }
 
+    bool IsThirdPersonMode() const { return GetMode() == CamMode::ThirdPerson; }
+
     void StartWaypointCutscene(const WaypointCutsceneDesc& desc);
 
     bool IsCutsceneActive() const { return cutsceneActive; }
@@ -245,8 +249,8 @@ private:
     bool waypointActive = false;
 
     //third person
-    float thirdPersonDistance = 450.0f;
-    float thirdPersonHeight   = 180.0f;
+    float thirdPersonDistance = 300.0f;
+    float thirdPersonHeight   = 110.0f;//180
     float thirdPersonLookY    = 80.0f;
     
 

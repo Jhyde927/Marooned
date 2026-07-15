@@ -6,6 +6,8 @@
 #include <array>
 #include "NPC.h"
 
+extern float levelLoadProgress;
+
 struct SlashEffect
 {
     bool active = false;
@@ -110,3 +112,4 @@ void DrawUI();
 void UpdateInteractionNPC();
 int FindHermitIndex(const std::vector<NPC>& npcs);
 void RemoveSlashEffects();
+void UpdateLoadingScreen(float progress, const char* message);

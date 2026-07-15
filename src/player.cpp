@@ -331,6 +331,41 @@ void ApplyPlayerWeaponKickback(const Camera& camera, float kickSpeed)
     player.velocity.z += kick.z;
 }
 
+static bool IsDangerousEdgeAhead()
+{
+    Vector3 horizontalVelocity = {
+        player.velocity.x,
+        0.0f,
+        player.velocity.z
+    };
+
+    float speedSqr = Vector3LengthSqr(horizontalVelocity);
+
+    if (speedSqr < 1.0f)
+        return false;
+
+    Vector3 moveDir = Vector3Normalize(horizontalVelocity);
+
+    constexpr float LOOK_AHEAD = 50.0f;
+
+    Vector3 probePos = Vector3Add(
+        player.position,
+        Vector3Scale(moveDir, LOOK_AHEAD)
+    );
+
+    Vector2 tile = WorldToImageCoords(probePos);
+
+    // Replace these with your existing dungeon coordinate functions.
+    int tileX = tile.x;//WorldToDungeonTileX(probePos.x);
+    int tileY = tile.y;//WorldToDungeonTileY(probePos.z);
+
+    if (!InBounds(tileX, tileY, dungeonWidth, dungeonHeight))
+        return true;
+
+    return IsLava(tileX, tileY) ||
+           IsVoid(tileX, tileY);
+}
+
 static void ApplyAirAcceleration(
     Vector3& velocity,
     Vector3 wishDir,
@@ -489,12 +524,23 @@ void HandlePlayerMovement(float deltaTime){
 
     if (player.grounded)
     {
+        // const bool hasMoveInput =
+        //     Vector3LengthSqr(desiredVel) > 0.001f;
+
+        float groundDecel = player.DECEL_GROUND;
+
+        // Extra braking when coasting toward an edge.
+        if (IsDangerousEdgeAhead())
+        {
+            groundDecel *= 10.0f;
+        }
+
         player.velocity.x = approach(
             player.velocity.x,
             desiredVel.x,
             (fabsf(desiredVel.x) > 0.001f)
                 ? player.ACCEL_GROUND
-                : player.DECEL_GROUND,
+                : groundDecel,
             dt
         );
 
@@ -503,7 +549,7 @@ void HandlePlayerMovement(float deltaTime){
             desiredVel.z,
             (fabsf(desiredVel.z) > 0.001f)
                 ? player.ACCEL_GROUND
-                : player.DECEL_GROUND,
+                : groundDecel,
             dt
         );
     }
@@ -525,7 +571,6 @@ void HandlePlayerMovement(float deltaTime){
             dt
         );
     }
-
 
 
     const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
@@ -1600,16 +1645,11 @@ void DrawWeapons(const Player& player, Camera& camera) {
                 break;
             case WeaponType::Sword:
                 meleeWeapon.Draw(camera);
-                if (meleeWeapon.hitboxActive) {
-                    // DrawBoundingBox(player.meleeHitbox, RED);
-                }
-                if (player.blocking) {
-                    // DrawBoundingBox(player.blockHitbox, RED);
-                }
+
                 break;
             case WeaponType::MagicStaff:
                 magicStaff.Draw(camera);
-                //DrawBoundingBox(player.meleeHitbox, RED);
+
                 break;
 
             case WeaponType::Crossbow:
@@ -1680,7 +1720,7 @@ void DrawPlayerDebug(const Player& player) {
     // Looking direction
     DrawLine3D(
         arrowStart,
-        Vector3Add(arrowStart, Vector3Scale(player.forward, 200.0f)),
+        Vector3Add(arrowStart, Vector3Scale(player.lookForward, 200.0f)),
         RED
     );
 
@@ -1708,7 +1748,8 @@ void DrawPlayerDebug(const Player& player) {
 void DrawPlayer(const Player& player, Camera& camera) {
     (void)camera;
     if (CameraSystem::Get().GetMode() == CamMode::Free || CameraSystem::Get().GetMode() == CamMode::ThirdPerson){
-        DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
+        //DrawCapsule(player.position, Vector3 {player.position.x, player.height/2, player.position.z}, 5, 4, 4, RED);
+
         DrawBoundingBox(player.GetBoundingBox(), RED);
     }
     

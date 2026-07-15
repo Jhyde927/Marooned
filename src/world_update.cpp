@@ -147,7 +147,7 @@ static void UpdateGameplayPresentation(Camera3D& camera, Player& player, float d
 
     GatherTransparentDrawRequests(camera, dt);
 
-    controlPlayer = CameraSystem::Get().IsPlayerMode();
+    controlPlayer = CameraSystem::Get().IsPlayerMode() || CameraSystem::Get().IsThirdPersonMode();
 
     UpdateWorldFrame(dt, player);
     UpdatePlayer(player, dt, camera);

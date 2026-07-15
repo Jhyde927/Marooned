@@ -31,7 +31,7 @@
 #include "grass.h"
 #include "dungeon_props.h"
 #include "dungeonInstancing.h"
-
+#include "load_timer.h"
 
 GameState currentGameState = GameState::Menu;
 MainMenu::State gMenu;
@@ -147,26 +147,28 @@ void InitBootScreen(float screenWidth, float screenHeight){
 }
 
 void InitMenuLevel(LevelData& level){
+    UpdateLoadingScreen(.10, "Initializing Menu Level");
     ClearLevel();
     isDungeon = false;
     InitShaders();
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
+    UpdateLoadingScreen(.80, "Building Terrain From Heightmap");
     terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls.
     Grass::GenerateFromHeightmap(heightmap, terrainScale, 40.0f, 0.90f, 5000);
     GenerateEntrances();
+    UpdateLoadingScreen(.10, "Generating Vegetation");
     VegetationInstanced::Generate();
     VegetationInstanced::InitShader();
     //generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances.
-
+    UpdateLoadingScreen(.10, "Initializing Boat");
     InitBoat(player_boat,Vector3{0.0, -25, 0.0});
+    UpdateLoadingScreen(.10, "Setting Shader Values");
     R.SetShaderValues();
 
     //R.SetBloomShaderValues();
     ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
     if (!isDungeon) R.SetTerrainShaderValues();
-
-   
 
     CinematicDesc cd = CameraSystem::Get().MakeStartupMenuCinematic();
     CameraSystem::Get().StartCinematic(cd);
@@ -325,6 +327,8 @@ void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
 }
 
 
+
+
 void InitLevel(LevelData& level, Camera& camera) {
     (void)camera; //we may need this later. 
     //Make sure we end texture mode, was causing problems with terrain.
@@ -347,8 +351,10 @@ void InitLevel(LevelData& level, Camera& camera) {
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     if (!CurrentLevelIs("Ship")){  
+        UpdateLoadingScreen(0.80f, "Building Terrain");
         terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
         //instanced grass
+        UpdateLoadingScreen(0.10f, "Instancing Grass");
         Grass::GenerateFromHeightmap(heightmap, terrainScale, 25.0f, 0.80f, 10000);
 
 
@@ -362,6 +368,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     if (heightmap.data != NULL && heightmap.width > 0)
     {
+        UpdateLoadingScreen(0.10f, "Building NavGrid");
         float navSeaLevel = 60/255.0f; // match your actual sea level
 
         gIslandNav = HeightmapPathfinding::BuildNavGridFromHeightmap(
@@ -417,7 +424,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     if (level.isDungeon){
         isDungeon = true;
         drawCeiling = level.hasCeiling;
-
+        UpdateLoadingScreen(.10, "Initializing Dungeon");
         
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
@@ -431,17 +438,24 @@ void InitLevel(LevelData& level, Camera& camera) {
         ApplyLevelLighting(level.name);
         GenerateLightSources(floorHeight);
         EnsureCeilingMaskTexture(dungeonWidth, dungeonHeight);
+
+        UpdateLoadingScreen(.10, "Generating Floors");
         GenerateFloorTiles(floorHeight);
 
 
         UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
+        UpdateLoadingScreen(.25, "Generating walls");
         GenerateWallTiles(wallHeight); //model is 400 tall with origin at it's center, so wallHeight is floorHeight + model height/2. 270
         GenerateSecrets(wallHeight);
         BindSecretWallsToRuns(); //assign wallrun index,     
         GenerateInvisibleWalls(floorHeight);
+        UpdateLoadingScreen(.55, "Generating Doors");
         GenerateDoorways(floorHeight - 20, levelIndex); //calls generate doors from archways
+        UpdateLoadingScreen(.65, "Generating Skirts");
         GenerateLavaSkirtsFromMask(floorHeight);
+        UpdateLoadingScreen(.75, "Generating Barrels");
         GenerateBarrels(floorHeight);
+        
         GenerateLaunchers(floorHeight);
         GenerateSpiderWebs(floorHeight);
         GenerateChests(floorHeight);
@@ -455,12 +469,14 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateBoxesFromImage(floorHeight);
 
         GenerateHermitFromImage(floorHeight);
+        UpdateLoadingScreen(.85, "Generating Props");
         GenerateProps(floorHeight + 20);
 
 
 
 
         if (level.name == "Ship"){
+            UpdateLoadingScreen(.10, "Generating Ship");
             GenerateShipLevel();
 
         } 
@@ -471,9 +487,11 @@ void InitLevel(LevelData& level, Camera& camera) {
         if (levelIndex == 4) levels[0].startPosition = {-5484.34, 180, -5910.67}; //exit dungeon 3 to dungeon enterance 2 position.
         
         //XZ dynamic lightmap + shader lighting with occlusion
+        UpdateLoadingScreen(.95, "Init Dungeon Lights");
         InitDungeonLights();
         
         //init lights first then floor instance. 
+        UpdateLoadingScreen(.99, "Init Dungeon Instancing");
         InitDungeonInstancing();
         miniMap.Initialize(4);
         miniMap.SetDrawSize(288.0f);
@@ -484,7 +502,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     InitRaftCollectables(); //generate dungeon before init raft collectables.
     isLoadingLevel = false;
     //R.SetPortalShaderValues();
-
+    UpdateLoadingScreen(.10, "Set Shader Values");
     R.SetShaderValues();
     InitShaders();
     R.SetTerrainShaderValues();
@@ -652,9 +670,12 @@ void InitRaftCollectables(){
 
 
 void InitDungeonLights(){
-    
+    LoadTimer timer("Init Lights");
+    UpdateLoadingScreen(.95, "Build Dynamic Lightmap");
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
+    UpdateLoadingScreen(.98, "Build Static Lightmap");
     BuildStaticLightmapOnce(dungeonLights);
+
     BuildDynamicLightmapFromFrameLights(frameLights); // build dynamic light map once for good luck.
 
     R.SetLightingShaderValues();
@@ -802,6 +823,14 @@ void removeAllCharacters(){
     enemyPtrs.clear();
     gNPCs.clear();
 
+}
+
+void ToggleThirdPerson(){
+    if (CameraSystem::Get().GetMode() != CamMode::ThirdPerson){
+        CameraSystem::Get().SetMode(CamMode::ThirdPerson);
+    }else{
+        CameraSystem::Get().SetMode(CamMode::Player);
+    }
 }
 
 

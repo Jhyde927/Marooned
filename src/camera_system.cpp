@@ -8,8 +8,187 @@
 #include "debug_console.h"
 #include "shaderSetup.h"
 #include "boat.h"
+#include "dungeonGeneration.h"
 
 DeathCamState deathCam;
+
+std::vector<BoundingBox> cameraCollisionBoxes;
+
+void GatherCameraCollisionBoxes()
+{
+    if (!isDungeon) return;
+    cameraCollisionBoxes.clear();
+
+    cameraCollisionBoxes.reserve(
+        wallRunColliders.size() + doorways.size() * 2
+    );
+
+    for (const WallRun& wall : wallRunColliders)
+    {
+        if (!wall.enabled) continue;
+
+        cameraCollisionBoxes.push_back(wall.bounds);
+    }
+
+    for (const DoorwayInstance& doorway : doorways)
+    {
+        // Replace these names with your actual doorway collider fields.
+
+        cameraCollisionBoxes.push_back(doorway.sideColliders[0]);
+        cameraCollisionBoxes.push_back(doorway.sideColliders[1]);
+
+    }
+
+    for (const Door& door : doors){
+        if (!door.isOpen){
+            cameraCollisionBoxes.push_back(door.collider);
+        }
+    }
+}
+
+float GetThirdPersonCameraDistance(
+    Vector3 cameraAnchor,
+    Vector3 desiredCameraPos,
+    const std::vector<BoundingBox>& collisionBoxes,
+    float cameraRadius)
+{
+    Vector3 offset = Vector3Subtract(
+        desiredCameraPos,
+        cameraAnchor
+    );
+
+    float desiredDistance = Vector3Length(offset);
+
+    if (desiredDistance < 0.001f)
+    {
+        return 30.0f;
+    }
+
+    Vector3 direction = Vector3Scale(
+        offset,
+        1.0f / desiredDistance
+    );
+
+    Ray ray = {
+        cameraAnchor,
+        direction
+    };
+
+    float nearestDistance = desiredDistance;
+
+    for (const BoundingBox& bounds : collisionBoxes)
+    {
+        BoundingBox expandedBounds = {
+            {
+                bounds.min.x - cameraRadius,
+                bounds.min.y - cameraRadius,
+                bounds.min.z - cameraRadius
+            },
+            {
+                bounds.max.x + cameraRadius,
+                bounds.max.y + cameraRadius,
+                bounds.max.z + cameraRadius
+            }
+        };
+
+        RayCollision hit = GetRayCollisionBox(
+            ray,
+            expandedBounds
+        );
+
+        if (hit.hit &&
+            hit.distance >= 0.0f &&
+            hit.distance < nearestDistance)
+        {
+            nearestDistance = hit.distance;
+        }
+    }
+
+    constexpr float wallPadding = 5.0f;
+    constexpr float minCameraDistance = 30.0f;
+
+    if (nearestDistance < desiredDistance)
+    {
+        nearestDistance -= wallPadding;
+    }
+
+    return fmaxf(nearestDistance, minCameraDistance);
+}
+
+// float GetThirdPersonCameraDistance(
+//     Vector3 cameraAnchor,
+//     Vector3 desiredCameraPos,
+//     const std::vector<BoundingBox>& collisionBoxes,
+//     float cameraRadius)
+// {
+//     Vector3 offset = Vector3Subtract(
+//         desiredCameraPos,
+//         cameraAnchor
+//     );
+
+//     float desiredDistance = Vector3Length(offset);
+
+//     if (collisionBoxes.empty()){
+//         return desiredDistance;
+//     }
+
+//     if (desiredDistance < 0.001f)
+//     {
+//         return 0.0f;
+//     }
+
+//     Vector3 direction = Vector3Scale(
+//         offset,
+//         1.0f / desiredDistance
+//     );
+
+//     Ray ray = {
+//         cameraAnchor,
+//         direction
+//     };
+
+//     float nearestDistance = desiredDistance;
+
+//     for (const BoundingBox& bounds : collisionBoxes)
+//     {
+//         BoundingBox expandedBounds = {
+//             {
+//                 bounds.min.x - cameraRadius,
+//                 bounds.min.y - cameraRadius,
+//                 bounds.min.z - cameraRadius
+//             },
+//             {
+//                 bounds.max.x + cameraRadius,
+//                 bounds.max.y + cameraRadius,
+//                 bounds.max.z + cameraRadius
+//             }
+//         };
+
+//         RayCollision hit = GetRayCollisionBox(
+//             ray,
+//             expandedBounds
+//         );
+
+//         if (hit.hit &&
+//             hit.distance >= 0.0f &&
+//             hit.distance < nearestDistance)
+//         {
+//             nearestDistance = hit.distance;
+//         }
+//     }
+
+//     constexpr float wallPadding = 5.0f;
+
+//     if (nearestDistance < desiredDistance)
+//     {
+//         nearestDistance = fmaxf(
+//             nearestDistance - wallPadding,
+//             0.0f
+//         );
+//     }
+//     std::cout << nearestDistance << "\n";
+//     return nearestDistance;
+// }
 
 CinematicDesc CameraSystem::MakeStartupMenuCinematic()
 {
@@ -395,35 +574,99 @@ void CameraSystem::GetPlayerCameraPose(Vector3& outPos, Vector3& outTarget) cons
 
 void CameraSystem::UpdateThirdPersonCam(const PlayerView& view)
 {
-    
-    float yaw = view.yawDeg * DEG2RAD;
+    constexpr float cameraRadius = 20.0f;
+    constexpr float ceilingHeight = 480.0f;
+    constexpr float maxCameraY = ceilingHeight - cameraRadius;
+    constexpr float lookDistance = 1000.0f;
 
-    // Horizontal direction the player is facing.
-    Vector3 forward = {
-        sinf(yaw),
-        0.0f,
-        cosf(yaw)
-    };
-
+    Vector3 forward = player.lookForward;
     Vector3 playerPos = view.position;
 
-    // Place camera behind and above the player.
-    Vector3 cameraPos = Vector3Subtract(
+    // This remains the collision/pivot anchor.
+    Vector3 cameraAnchor = playerPos;
+    cameraAnchor.y += thirdPersonLookY;
+
+    // Unobstructed camera position.
+    Vector3 desiredCameraPos = Vector3Subtract(
         playerPos,
         Vector3Scale(forward, thirdPersonDistance)
     );
 
-    cameraPos.y += thirdPersonHeight;
+    desiredCameraPos.y += thirdPersonHeight;
 
-    // Look slightly above the player's origin.
-    Vector3 target = playerPos;
-    target.y += thirdPersonLookY;
+    // Save the camera's intended viewing direction before collision
+    // or ceiling clamping changes its position.
+    Vector3 intendedLookDirection = Vector3Subtract(
+        cameraAnchor,
+        desiredCameraPos
+    );
+
+    if (Vector3LengthSqr(intendedLookDirection) > 0.001f)
+    {
+        intendedLookDirection = Vector3Normalize(
+            intendedLookDirection
+        );
+    }
+    else
+    {
+        intendedLookDirection = forward;
+    }
+
+    const bool clampToCeiling = drawCeiling;
+
+    if (clampToCeiling)
+    {
+        desiredCameraPos.y = fminf(
+            desiredCameraPos.y,
+            maxCameraY
+        );
+    }
+
+    float safeDistance = GetThirdPersonCameraDistance(
+        cameraAnchor,
+        desiredCameraPos,
+        cameraCollisionBoxes,
+        cameraRadius
+    );
+
+    Vector3 cameraDirection = Vector3Subtract(
+        desiredCameraPos,
+        cameraAnchor
+    );
+
+    if (Vector3LengthSqr(cameraDirection) > 0.001f)
+    {
+        cameraDirection = Vector3Normalize(cameraDirection);
+    }
+    else
+    {
+        cameraDirection = Vector3Negate(intendedLookDirection);
+    }
+
+    Vector3 cameraPos = Vector3Add(
+        cameraAnchor,
+        Vector3Scale(cameraDirection, safeDistance)
+    );
+
+    if (clampToCeiling)
+    {
+        cameraPos.y = fminf(
+            cameraPos.y,
+            maxCameraY
+        );
+    }
+
+    // Preserve the original pitch instead of continuing to look
+    // directly at the rising camera anchor.
+    Vector3 finalTarget = Vector3Add(
+        cameraPos,
+        Vector3Scale(intendedLookDirection, lookDistance)
+    );
 
     playerRig.cam.position = cameraPos;
-    playerRig.cam.target = target;
+    playerRig.cam.target = finalTarget;
     playerRig.cam.up = { 0.0f, 1.0f, 0.0f };
     playerRig.cam.projection = CAMERA_PERSPECTIVE;
-
 }
 
 
@@ -677,7 +920,7 @@ void CameraSystem::Update(float dt) {
             break;
 
         case CamMode::ThirdPerson:
-            
+            GatherCameraCollisionBoxes();
             UpdateThirdPersonCam(pv);
             break;
 

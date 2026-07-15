@@ -107,7 +107,7 @@ struct MeleeWeapon {
     void PlaySwipe();
     void Update(float deltaTime);
     void Draw(const Camera& camera);
-
+    void DrawThirdPerson();
     void UpdateRightSlashMotion(float t);
     void UpdateLeftSlashMotion(float t);
     void UpdateStabMotion(float t);
@@ -162,6 +162,8 @@ struct Weapon {
     void Fire(Camera& camera);
     void Update(float deltaTime);
     void Draw(const Camera& camera);
+    void DrawThirdPerson();
+    void DrawFirstPerson(const Camera& camera);
 };
 
 

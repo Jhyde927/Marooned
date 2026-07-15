@@ -8,7 +8,7 @@
 #include "world.h"
 #include "utilities.h"
 #include "dungeonColors.h"
-
+#include "ui.h"
 
 BakedLightmap gDynamic; 
 
@@ -728,25 +728,48 @@ static void StampDynamicLight(const Vector3& lightPos, float radius, Color color
     }
 }
 
-void BuildStaticLightmapOnce(const std::vector<LightSource>& dungeonLights)
+void BuildStaticLightmapOnce(
+    const std::vector<LightSource>& dungeonLights)
 {
+    gStaticBase.assign(
+        static_cast<size_t>(gDynamic.w) * gDynamic.h,
+        Color{0, 0, 0, 255}
+    );
 
-    gStaticBase.assign((size_t)gDynamic.w * gDynamic.h, Color{0, 0, 0, 255});
+    const size_t totalLights = dungeonLights.size();
 
-    for (const auto& L : dungeonLights)
+    for (size_t i = 0; i < totalLights; ++i)
     {
+        const LightSource& L = dungeonLights[i];
+
         StampLight_StaticBase_Subtile2x2_ToBuffer(
             gStaticBase,
             gDynamic.w,
             gDynamic.h,
             L.position,
             L.range,
-            L.edgeColor, //static lights have a gradiant between two colors. for solid color, make them the same. 
+            L.edgeColor,
             L.coreColor,
             L.intensity
         );
+
+        // Updating the screen after every light may add unnecessary overhead.
+        if (i % 5 == 0 || i + 1 == totalLights)
+        {
+            const float lightProgress =
+                static_cast<float>(i + 1) /
+                static_cast<float>(totalLights);
+
+            UpdateLoadingScreen(
+                lightProgress,
+                TextFormat(
+                    "Baking Static Lights... %d / %d",
+                    static_cast<int>(i + 1),
+                    static_cast<int>(totalLights)
+                )
+            );
+        }
     }
-        
 }
 
 

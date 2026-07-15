@@ -46,6 +46,8 @@ void ControlPlayerWhileFreeCam(float deltaTime){
     }
 }
 
+
+
 void debugControls(Camera& camera, float deltaTime){
     //use console. 
     (void)camera;
@@ -55,13 +57,7 @@ void debugControls(Camera& camera, float deltaTime){
 
     if (IsKeyPressed(KEY_F3))
     {
-    
-        if (CameraSystem::Get().GetMode() != CamMode::ThirdPerson){
-            CameraSystem::Get().SetMode(CamMode::ThirdPerson);
-            std::cout << "third person view\n";
-        }else{
-            CameraSystem::Get().SetMode(CamMode::Player);
-        }
+        ToggleThirdPerson();
     }
 
 }
@@ -91,6 +87,13 @@ void HandleMouseLook()
     player.rotation.x = Clamp(player.rotation.x, -30.0f, 30.0f);
 
     float yaw = player.rotation.y * DEG2RAD;
+    float pitch = player.rotation.x * DEG2RAD;
+
+    player.lookForward = Vector3Normalize({
+        cosf(pitch) * sinf(yaw),
+        sinf(pitch),
+        cosf(pitch) * cosf(yaw)
+    });
 
     player.forward = Vector3Normalize({
         sinf(yaw),

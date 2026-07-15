@@ -582,10 +582,10 @@ void Bullet::Draw(Camera& camera) const {
 bool Bullet::IsDone() 
 {
 
-    if (!alive && exploded) return true; //will this break everyting
+    if (!alive && exploded) return true; //
 
         
-    if (type == BulletType::Fireball || type == BulletType::Iceball){ //we may not be removing fireballs, I think lifetiem maybe set to 999 or something when explosion happens. 
+    if (type == BulletType::Fireball || type == BulletType::Iceball){
         if (lifeTime <= 0){
             return true;
         }else{
