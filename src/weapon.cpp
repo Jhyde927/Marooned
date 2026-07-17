@@ -1324,7 +1324,136 @@ void MagicStaff::Update(float deltaTime) {
 
 }
 
+void MagicStaff::DrawThirdPerson()
+{
+    const Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+
+    // Yaw-only body direction for positioning the staff.
+    Vector3 bodyForward = player.forward;
+    bodyForward.y = 0.0f;
+
+    if (Vector3LengthSqr(bodyForward) < 0.001f)
+    {
+        bodyForward = { 0.0f, 0.0f, 1.0f };
+    }
+
+    bodyForward = Vector3Normalize(bodyForward);
+
+    Vector3 bodyRight = Vector3Normalize(
+        Vector3CrossProduct(bodyForward, worldUp)
+    );
+
+    // Full pitch/yaw direction for aiming the staff.
+    Vector3 aimForward = player.lookForward;
+
+    if (Vector3LengthSqr(aimForward) < 0.001f)
+    {
+        aimForward = bodyForward;
+    }
+
+    aimForward = Vector3Normalize(aimForward);
+
+    // Third-person base position.
+    // Tune these until the staff appears near the player's hand.
+    const float thirdPersonForwardOffset = 25.0f;
+    const float thirdPersonSideOffset = 32.0f;
+    const float thirdPersonVerticalOffset = 0.0f;
+
+    const float animationScale = 0.5f;
+    const float bobScale = 0.25f;
+
+    float finalForward =
+        thirdPersonForwardOffset +
+        swingOffset * animationScale -
+        recoil * animationScale;
+
+    float finalSide =
+        thirdPersonSideOffset +
+        horizontalSwingOffset * animationScale +
+        bobSide * bobScale;
+
+    float finalVertical =
+        thirdPersonVerticalOffset +
+        verticalSwingOffset * animationScale -
+        reloadDip * animationScale +
+        bobVertical * bobScale -
+        equipDip * animationScale;
+
+    Vector3 staffPos = player.position;
+
+    staffPos = Vector3Add(
+        staffPos,
+        Vector3Scale(bodyForward, finalForward)
+    );
+
+    staffPos = Vector3Add(
+        staffPos,
+        Vector3Scale(bodyRight, finalSide)
+    );
+
+    staffPos = Vector3Add(
+        staffPos,
+        Vector3Scale(worldUp, finalVertical)
+    );
+
+    // Point the staff toward the player's aim.
+    Matrix lookAt = MatrixLookAt(
+        staffPos,
+        Vector3Add(staffPos, aimForward),
+        worldUp
+    );
+
+    Matrix staffRotation = MatrixInvert(lookAt);
+    Quaternion q = QuaternionFromMatrix(staffRotation);
+
+    float clampedW = Clamp(q.w, -1.0f, 1.0f);
+
+    float angle = 2.0f * acosf(clampedW);
+    float angleDeg = angle * RAD2DEG;
+
+    float sinTheta = sqrtf(
+        fmaxf(0.0f, 1.0f - clampedW * clampedW)
+    );
+
+    Vector3 axis = { 1.0f, 0.0f, 0.0f };
+
+    if (sinTheta >= 0.001f)
+    {
+        axis = {
+            q.x / sinTheta,
+            q.y / sinTheta,
+            q.z / sinTheta
+        };
+    }
+
+    // Spawn magic slightly ahead of the staff.
+    muzzlePos = Vector3Add(
+        staffPos,
+        Vector3Scale(aimForward, 40.0f)
+    );
+
+    Color tint = TintFromDarkness(weaponDarkness);
+
+    // First-person models are often oversized.
+    Vector3 thirdPersonScale = Vector3Scale(scale, 0.6f);
+
+    DrawModelEx(
+        model,
+        staffPos,
+        axis,
+        angleDeg,
+        thirdPersonScale,
+        tint
+    );
+}
+
 void MagicStaff::Draw(const Camera& camera) {
+
+    if (CameraSystem::Get().GetMode() == CamMode::ThirdPerson)
+    {
+        DrawThirdPerson();
+        return;
+    }
     // Camera orientation basis
     Matrix lookAt = MatrixLookAt(camera.position, camera.target, { 0, 1, 0 });
     Matrix staffRotation = MatrixInvert(lookAt);
@@ -1362,8 +1491,100 @@ void MagicStaff::Draw(const Camera& camera) {
 
 }
 
+void Crossbow::DrawThirdPerson()
+{
+    Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+
+    // Body-facing direction for where the weapon sits on the player.
+    Vector3 bodyForward = player.forward;
+    bodyForward.y = 0.0f;
+
+    if (Vector3LengthSqr(bodyForward) < 0.001f)
+    {
+        bodyForward = { 0.0f, 0.0f, 1.0f };
+    }
+
+    bodyForward = Vector3Normalize(bodyForward);
+
+    Vector3 bodyRight = Vector3Normalize(
+        Vector3CrossProduct(bodyForward, worldUp)
+    );
+
+    // Aim direction for where the crossbow points.
+    Vector3 aimForward = player.lookForward;
+
+    if (Vector3LengthSqr(aimForward) < 0.001f)
+    {
+        aimForward = bodyForward;
+    }
+
+    aimForward = Vector3Normalize(aimForward);
+
+    // These are new third-person attachment offsets.
+    // Tune until it looks like it sits near the player's hands/chest.
+    const float thirdPersonForwardOffset = 10.0f;
+    const float thirdPersonSideOffset = 24.0f;
+    const float thirdPersonVerticalOffset = 0.0f;
+
+    // Tone down first-person animation a bit for third person.
+    float dynamicForward = thirdPersonForwardOffset - (recoil * 0.5f);
+    float dynamicSide = thirdPersonSideOffset + (bobSide * 0.25f);
+    float dynamicVertical = thirdPersonVerticalOffset + (bobVertical * 0.25f) - (reloadDip * 0.5f);
+
+    Vector3 weaponPos = player.position;
+    weaponPos = Vector3Add(weaponPos, Vector3Scale(bodyForward, dynamicForward));
+    weaponPos = Vector3Add(weaponPos, Vector3Scale(bodyRight, dynamicSide));
+    weaponPos = Vector3Add(weaponPos, Vector3Scale(worldUp, dynamicVertical));
+
+    // Rotate the model toward where the player is aiming.
+    Matrix lookAt = MatrixLookAt(
+        weaponPos,
+        Vector3Add(weaponPos, aimForward),
+        worldUp
+    );
+
+    Matrix weaponRotation = MatrixInvert(lookAt);
+    Quaternion q = QuaternionFromMatrix(weaponRotation);
+
+    float clampedW = Clamp(q.w, -1.0f, 1.0f);
+    float angle = 2.0f * acosf(clampedW);
+    float angleDeg = angle * RAD2DEG;
+
+    float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - clampedW * clampedW));
+
+    Vector3 axis = { 1.0f, 0.0f, 0.0f };
+    if (sinTheta >= 0.001f)
+    {
+        axis = {
+            q.x / sinTheta,
+            q.y / sinTheta,
+            q.z / sinTheta
+        };
+    }
+
+    // For now, just put the muzzle a little way forward along the aim vector.
+    // This is often easier than trying to rotate a local offset until the model is finalized.
+    muzzlePos = Vector3Add(weaponPos, Vector3Scale(aimForward, 40.0f));
+
+    Color tint = TintFromDarkness(weaponDarkness);
+
+    Model& m = (state == CrossbowState::Loaded) ? loadedModel : restModel;
+
+    // Viewmodel scale is often too large for third person.
+    Vector3 thirdPersonScale = Vector3Scale(scale, 0.6f);
+
+    DrawModelEx(m, weaponPos, axis, angleDeg, thirdPersonScale, tint);
+}
+
 
 void Crossbow::Draw(const Camera& camera) {
+
+    if (CameraSystem::Get().GetMode() == CamMode::ThirdPerson)
+    {
+        DrawThirdPerson();
+        return;
+    }
+
     // === Camera rotation math ===
     Matrix lookAt = MatrixLookAt(camera.position, camera.target, { 0, 1, 0 });
     Matrix gunRotation = MatrixInvert(lookAt);
@@ -1414,28 +1635,5 @@ void Crossbow::Draw(const Camera& camera) {
     DrawModelEx(m, weaponPos, axis, angleDeg, scale, tint);
 }
 
-
-
-
-// void Crossbow::Draw(const Camera& camera)
-// {
-//     // Rifle-style viewmodel placement
-//     Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-//     Vector3 right   = Vector3Normalize(Vector3CrossProduct(forward, {0,1,0}));
-
-//     Vector3 pos = camera.position;
-//     pos = Vector3Add(pos, Vector3Scale(forward, forwardOffset + recoil));
-//     pos = Vector3Add(pos, Vector3Scale(right,   sideOffset + bobSide));
-//     pos.y += verticalOffset + bobVertical;
-
-//     DrawModelEx(
-//         model,
-//         pos,
-//         {0,1,0},         // axis
-//         0.0f,            // no rotation here
-//         scale,
-//         WHITE
-//     );
-// }
 
 

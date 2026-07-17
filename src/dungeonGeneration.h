@@ -384,6 +384,7 @@ void GenerateGrapplePoints(float baseY);
 void DebugDrawGrappleBox();
 void DrawDungeonBarrels();
 void DrawLaunchers();
+Vector2 GetDungeonCornerOffset(int tileX, int tileY, float inset);
 
 int Idx(int x, int y); 
 

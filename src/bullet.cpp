@@ -231,7 +231,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
     if (type == BulletType::Harpoon && retracting)
     {
         
-        Vector3 anchor = GetHarpoonAnchor(camera); 
+        Vector3 anchor = GetHarpoonAnchor(); 
 
         Vector3 toA = Vector3Subtract(anchor, retractTip);
         float d = Vector3Length(toA);
@@ -390,17 +390,9 @@ inline void EndBulletTransform()
 }
 
 
-Vector3 GetHarpoonAnchor(const Camera& cam)
+Vector3 GetHarpoonAnchor()
 {
-    Vector3 f = Vector3Normalize(Vector3Subtract(cam.target, cam.position));
-    Vector3 r = Vector3Normalize(Vector3CrossProduct(f, cam.up));
-    Vector3 u = Vector3Normalize(cam.up);
-
-    Vector3 p = cam.position;
-    p = Vector3Add(p, Vector3Scale(r,  25.0f));
-    p = Vector3Add(p, Vector3Scale(u, -20.0f));
-    p = Vector3Add(p, Vector3Scale(f,  60.0f));
-    return p;
+    return crossbow.muzzlePos;
 }
 
 
@@ -476,6 +468,7 @@ void DrawSpiralRope(Vector3 anchor, Vector3 tip, float timeSec)
 
 void DrawHarpoon(const Bullet& b, const Camera& camera)
 {
+    (void)camera;
     if (b.type != BulletType::Harpoon) return;
 
     // quaternion → axis/angle (same as DrawBolt)
@@ -500,7 +493,7 @@ void DrawHarpoon(const Bullet& b, const Camera& camera)
     );
 
     // Rope
-    Vector3 anchor = GetHarpoonAnchor(camera);
+    Vector3 anchor = GetHarpoonAnchor();
 
     Vector3 tip = b.position;
 

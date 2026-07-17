@@ -342,7 +342,7 @@ std::vector<LevelData> levels = {
         "assets/heightmaps/blank.png",
         "assets/maps/dungeon11.png",
         {0.0f, 300.0f, 0.0f},
-        -90.0f,
+        90.0f,
         {0.0f, 0.0f, 0.0f},
         0, 
         true, //isDungeon is true
@@ -350,7 +350,7 @@ std::vector<LevelData> levels = {
         12, 
         13, 
         {}, 
-        false,// ceiling
+        true,// ceiling
     },
         {
         "Dungeon12", 
@@ -430,21 +430,21 @@ std::vector<LevelData> levels = {
         false,// ceiling
     },
 
-        {
-        "Dungeon19", 
-        "assets/heightmaps/blank.png",
-        "assets/maps/dungeon19.png",
-        {5475.0f, 300.0f, -5665.0f}, //original player start position
-        45.0f,
-        {0.0f, 0.0f, 0.0f},
-        0, 
-        true, //isDungeon is true
-        {},
-        18, 
-        0, //exit to middle island
-        {}, 
-        false,// ceiling
-    },
+    //     {
+    //     "Dungeon19", 
+    //     "assets/heightmaps/blank.png",
+    //     "assets/maps/dungeon19.png",
+    //     {5475.0f, 300.0f, -5665.0f}, //original player start position
+    //     45.0f,
+    //     {0.0f, 0.0f, 0.0f},
+    //     0, 
+    //     true, //isDungeon is true
+    //     {},
+    //     18, 
+    //     0, //exit to middle island
+    //     {}, 
+    //     true,// ceiling
+    // },
 
 };
 

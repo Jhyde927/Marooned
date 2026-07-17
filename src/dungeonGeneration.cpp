@@ -1561,6 +1561,52 @@ void GenerateSpawners(float baseY){
 
 }
 
+Vector2 GetDungeonCornerOffset(int tileX, int tileY, float inset)
+{
+    auto GetPixelSafe = [&](int x, int y) -> Color
+    {
+        if (x < 0 || y < 0 || x >= dungeonWidth || y >= dungeonHeight)
+            return Color{ 0, 0, 0, 0 };
+
+        return dungeonPixels[y * dungeonWidth + x];
+    };
+
+    auto IsSolidWall = [&](Color c)
+    {
+        if (c.a == 0) return false;
+        if (!IsWallColor(c)) return false;
+        if (IsBarrelColor(c)) return false;
+
+        return true;
+    };
+
+    bool north = IsSolidWall(GetPixelSafe(tileX,     tileY - 1));
+    bool south = IsSolidWall(GetPixelSafe(tileX,     tileY + 1));
+    bool west  = IsSolidWall(GetPixelSafe(tileX - 1, tileY));
+    bool east  = IsSolidWall(GetPixelSafe(tileX + 1, tileY));
+
+    bool nw = IsSolidWall(GetPixelSafe(tileX - 1, tileY - 1));
+    bool ne = IsSolidWall(GetPixelSafe(tileX + 1, tileY - 1));
+    bool sw = IsSolidWall(GetPixelSafe(tileX - 1, tileY + 1));
+    bool se = IsSolidWall(GetPixelSafe(tileX + 1, tileY + 1));
+
+    // These signs match your existing corner-prop placement.
+    if (north && west && nw)
+        return Vector2{ inset, inset };
+
+    if (north && east && ne)
+        return Vector2{ -inset, inset };
+
+    if (south && west && sw)
+        return Vector2{ inset, -inset };
+
+    if (south && east && se)
+        return Vector2{ -inset, -inset };
+
+    // Not in a corner.
+    return Vector2{ 0.0f, 0.0f };
+}
+
 
 
 void GenerateBarrels(float baseY) {
@@ -1572,6 +1618,10 @@ void GenerateBarrels(float baseY) {
 
             if (EqualsRGB(current, ColorOf(Code::Barrel))) { // Blue = Barrel
                 Vector3 pos = GetDungeonWorldPos(x, y, tileSize, baseY);
+
+                Vector2 cornerOffset = GetDungeonCornerOffset(x, y, 100.0f); //push toward corner half a tile.
+                pos.x += cornerOffset.x;
+                pos.z += cornerOffset.y;
 
                 // Define bounding box as 100x100x100 cube centered on pos, tileSize is 200 so half tile size centered. 
                 float halfSize = 50.0f;
@@ -1600,6 +1650,8 @@ void GenerateBarrels(float baseY) {
                     willContainGold = true;       // 35 - 84 → 50%
                 }
                 // 85 - 99 → 15% chance barrel contains nothing
+                
+
                 
                 barrelInstances.push_back({
                     pos,

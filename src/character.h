@@ -107,7 +107,7 @@ public:
     float skeleSpeed = 650;
     bool playerVisible = false;
     float timeSinceLastSeen = 9999.0f;  // Large to start
-    float forgetTime = 10.0f;           // After 3 seconds of no visibility, give up
+    float forgetTime = 5.0f;           // After 3 seconds of no visibility, give up
     Vector3 lastKnownPlayerPos;
     bool hasLastKnownPlayerPos = false;
     bool canBleed = true;

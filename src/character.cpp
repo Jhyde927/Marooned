@@ -296,17 +296,43 @@ void Character::SpawnGibs(){
         SpawnFlyingGib(position, DecalType::ZombieGib, "zombieGib", true);
     }
 
-    if (type == CharacterType::Zombie && accumulateDamage >= 100 && canLoseLimb) {
+    if (type == CharacterType::Zombie &&
+        accumulateDamage >= 100 &&
+        canLoseLimb)
+    {
+        // Prevent this zombie from rolling again on every subsequent hit.
         canLoseLimb = false;
-        lostLimb = true;
 
-        if (GetRandomValue(0, 1) == 1) {
-            texture = R.GetTexture("zombieSheetArmless");
-            SpawnFlyingGib(position, DecalType::ZombieArm, "armSpin", true);
-        } else {
-            texture = R.GetTexture("zombieSheetHeadless");
-            Vector3 headPos = Vector3Add(position, {0, 50, 0});
-            SpawnFlyingGib(headPos, DecalType::ZombieHead, "headSpin", true);
+        if (GetRandomValue(0, 1) == 1) // One 50% roll
+        {
+            lostLimb = true;
+
+            if (GetRandomValue(0, 1) == 1)
+            {
+                texture = R.GetTexture("zombieSheetArmless");
+                SpawnFlyingGib(
+                    position,
+                    DecalType::ZombieArm,
+                    "armSpin",
+                    true
+                );
+            }
+            else
+            {
+                texture = R.GetTexture("zombieSheetHeadless");
+
+                Vector3 headPos = Vector3Add(
+                    position,
+                    Vector3{ 0.0f, 50.0f, 0.0f }
+                );
+
+                SpawnFlyingGib(
+                    headPos,
+                    DecalType::ZombieHead,
+                    "headSpin",
+                    true
+                );
+            }
         }
     }
 
@@ -1020,10 +1046,11 @@ void Character::ChangeState(CharacterState next) {
 
     }
 
-    if (state == CharacterState::Attack && type != CharacterType::Zombie) attackCooldown = 0.0f;
+    if (state == CharacterState::Attack && type != CharacterType::Zombie) attackCooldown = 0.0f; //why?
 
     const AnimDesc a = GetAnimFor(type, state);
     SetAnimation(a.row, a.frames, a.frameTime, a.loop);
+
 }
 
 

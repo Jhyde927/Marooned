@@ -168,12 +168,14 @@ void Character::UpdatePlayerVisibility(const Vector3& playerPos, float deltaTime
     canSee = HasWorldLineOfSight(position, playerPos, epsilon);
     if (canSee) {
         lastKnownPlayerPos = playerPos;
+        hasLastKnownPlayerPos = true;
         playerVisible = true;
         timeSinceLastSeen = 0.0f;
     } else {
         timeSinceLastSeen += deltaTime;
         if (timeSinceLastSeen > forgetTime) {
             playerVisible = false;
+            hasLastKnownPlayerPos = false;
         }
     }
 }
@@ -816,7 +818,12 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                 currentWorldPath.clear();
 
                 SetPath(start);
+                break;
+
             }
+
+
+
 
             // Wander if idle too long
             else if (stateTimer > 10.0f) {
@@ -838,59 +845,84 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
         case CharacterState::Chase:
         {
-
-            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+            pathCooldownTimer =
+                std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateChaseSound(deltaTime, player);
-            // Decide who we're chasing this frame
-            Vector3 chasePos    = player.position;
-            float   chaseDist   = distanceSq;   // your existing distance-to-player
-            bool    chaseCanSee = canSee;     // your existing LOS-to-player
-            bool    chasingPirate = false;
 
-            if (type == CharacterType::Zombie && target && !target->isDead)
+            Vector3 chasePos = player.position;
+            float chaseDist = distanceSq;
+            bool chaseCanSee = canSee;
+            bool chasingPirate = false;
+
+            // Prefer the zombie's living pirate target.
+            if (type == CharacterType::Zombie && target && !target->isDead && target->type == CharacterType::Pirate)
             {
-                chasingPirate = (target->type == CharacterType::Pirate);
-                chasePos      = target->position;
-                chaseDist     = targetDist;
-                chaseCanSee   = targetCanSee;
+                chasingPirate = true;
+                chasePos = target->position;
+                chaseDist = targetDist;
+                chaseCanSee = targetCanSee;
             }
 
-            // Enter attack when close + LOS
+            // Only update the remembered location while the target is visible.
+            if (chaseCanSee)
+            {
+                lastKnownPlayerPos = chasePos;
+                hasLastKnownPlayerPos = true;
+            }
+
             if (chaseDist < attackEnter && chaseCanSee)
             {
                 ChangeState(CharacterState::Attack);
                 break;
             }
-            else if (chaseDist > visionEnter)
+
+            if (chaseDist > visionEnter && !hasLastKnownPlayerPos)
             {
                 ChangeState(CharacterState::Idle);
                 break;
             }
-            else
+
+            if (pathCooldownTimer <= 0.0f)
             {
-                if (pathCooldownTimer <= 0.0f)
+                pathCooldownTimer = RandomFloat(0.3f, 0.9f);
+
+                if (hasLastKnownPlayerPos)
                 {
-                    pathCooldownTimer = RandomFloat(0.3, 0.9); //dont all act at the same time. 
-
-                    // Repath to pirate target if we have one, otherwise to player (your old behavior)
-                    if (chasingPirate)
-                    {
-                        SetPathTo(chasePos);
-                    }
-                    else
-                    {
-                        const Vector2 start = WorldToImageCoords(position);
-                        SetPath(start); // your existing path-to-player BFS behavior
-                    }
+                    // Works for either the player's or pirate's remembered position.
+                    SetPathTo(lastKnownPlayerPos);
                 }
-
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 200);
-                float speed = 5.0f;
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
+                else if (chasingPirate)
+                {
+                    SetPathTo(chasePos);
+                }
+                else
+                {
+                    // Initial fallback if the zombie has no remembered position yet.
+                    const Vector2 start = WorldToImageCoords(position);
+                    SetPath(start);
+                }
             }
 
-        } break;
+            Vector3 repel = ComputeRepulsionForce(
+                enemyPtrs,
+                300.0f,
+                200.0f
+            );
+
+            float speed = 5.0f;
+
+            MoveAlongPath(
+                currentWorldPath,
+                position,
+                rotationY,
+                skeleSpeed,
+                deltaTime,
+                speed,
+                repel
+            );
+        }
+        break;
 
         case CharacterState::MeleeAttack:{break;}
 
@@ -1197,6 +1229,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
             }
             else {
+                //chase
                 const Vector2 curTile = WorldToImageCoords(player.position);
                 if (pathCooldownTimer <= 0.0f){
                 
@@ -1207,7 +1240,7 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
                 
                 }
                 Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
-                float speed = (type == CharacterType::Zombie) ? 50.0f : 100.0f;
+                float speed = 100.0f;
                 // Move along current path
                 MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
             }
@@ -2427,103 +2460,136 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
 
         case CharacterState::Chase:
         {
-            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+            pathCooldownTimer =
+                std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateChaseSound(deltaTime, player);
             UpdateMovementAnim();
 
-            // --- Update pirate target selection (zombies) ---
-            // This sets: target, targetDist, targetCanSee
-            //UpdateTargeting(deltaTime, player, enemyPtrs);
+            // Default target is the player.
+            Vector3 chasePos    = player.position;
+            float chaseDist     = distanceSq;
+            bool chaseCanSee    = canSee;
+            bool chasingZombie  = false;
 
-            // --- Pick who we're chasing/attacking this tick ---
-            // Default = player
-            Vector3 chasePos      = player.position;
-            float   chaseDist     = distanceSq;   // your existing distance-to-player
-            bool    chaseCanSee   = canSee;     // your existing LOS-to-player
-            bool    chasingZombie = false;
-
-            if ((type == CharacterType::Pirate || type == CharacterType::Captain) && target && !target->isDead)
+            // Pirates and captains can target zombies.
+            if ((type == CharacterType::Pirate ||
+                type == CharacterType::Captain) &&
+                target &&
+                !target->isDead)
             {
                 chasingZombie = true;
-                chasePos    = target->position;
-                chaseDist   = targetDist;
-                chaseCanSee = targetCanSee;
-
+                chasePos       = target->position;
+                chaseDist      = targetDist;
+                chaseCanSee    = targetCanSee;
             }
 
-            // --- MELEE: super close -> melee (same rule, but uses chaseDist now) ---
+            // Melee attack.
             if (chaseDist < PIRATE_MELEE_ENTER && chaseCanSee)
             {
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
 
-            // --- GUN ATTACK: within enter range + LOS ---
+            // Gun attack.
             if (chaseDist < PIRATE_ATTACK_ENTER && chaseCanSee)
             {
                 ChangeState(CharacterState::Attack);
                 break;
             }
 
-            // --- LEASH: too far -> idle (same behavior) ---
-            if (chaseDist > VISION_ENTER)
+            // Give up only when outside vision range and there is
+            // no remembered player position.
+            if (chaseDist > VISION_ENTER &&
+                !chasingZombie &&
+                !hasLastKnownPlayerPos)
             {
-                ChangeState(CharacterState::Idle);
-
-                // Only drop player memory when we were actually chasing the player
-                if (!chasingZombie)
-                    playerVisible = false;
-
+                playerVisible = false;
                 currentWorldPath.clear();
+
+                ChangeState(CharacterState::Idle);
                 break;
             }
 
-            // --- PATHING ---
+            // Generate or refresh the path.
             if (pathCooldownTimer <= 0.0f)
             {
-                // If chasing a zombie, just go directly to it (no "memory" logic)
                 if (chasingZombie)
                 {
                     SetPathTo(chasePos);
                     pathCooldownTimer = 0.4f;
                 }
-                else
+                else if (canSee)
                 {
-                    // Original player memory behavior
-                    if (canSee)
-                    {
-                        SetPath(start); // your existing start->player BFS call
-                        // or: SetPathTo(player.position);
-                        pathCooldownTimer = 0.4f;
-                    }
-                    else if (playerVisible)
-                    {
-                        SetPathTo(lastKnownPlayerPos);
-                        pathCooldownTimer = 0.4f;
-                    }
+                    // Keep this if "start" is the starting tile for your BFS.
+                    SetPath(start);
+                    pathCooldownTimer = 0.4f;
+                }
+                else if (hasLastKnownPlayerPos)
+                {
+                    SetPathTo(lastKnownPlayerPos);
+                    pathCooldownTimer = 0.4f;
                 }
             }
 
-            // --- ADVANCE ---
-            if (!currentWorldPath.empty() && state != CharacterState::Stagger)
+            // Follow the path when one exists.
+            if (!currentWorldPath.empty() &&
+                state != CharacterState::Stagger)
             {
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500);
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
+                Vector3 repel =
+                    ComputeRepulsionForce(enemyPtrs, 300, 500);
 
-                // Reached the end but still no LOS? stop chasing (player-only rule)
-                if (currentWorldPath.empty() && !chaseCanSee)
+                MoveAlongPath(
+                    currentWorldPath,
+                    position,
+                    rotationY,
+                    skeleSpeed,
+                    deltaTime,
+                    100.0f,
+                    repel
+                );
+            }
+
+            // This must be outside the previous block. Otherwise an
+            // initially empty path is never examined.
+            if (currentWorldPath.empty() && !chaseCanSee)
+            {
+                if (chasingZombie)
                 {
-                    if (!chasingZombie)
+                    // Zombie died, escaped, or cannot be reached.
+                    ChangeState(CharacterState::Idle);
+                    break;
+                }
+
+                if (hasLastKnownPlayerPos)
+                {
+                    constexpr float arrivalDistance = 150.0f;
+                    constexpr float arrivalDistanceSq =
+                        arrivalDistance * arrivalDistance;
+
+                    const float distanceToMemorySq =
+                        Vector3DistanceSqr(
+                            position,
+                            lastKnownPlayerPos
+                        );
+
+                    // Only give up if we actually reached the remembered
+                    // position. An empty path while far away probably means
+                    // path generation failed, so remain in Chase and retry.
+                    if (distanceToMemorySq <= arrivalDistanceSq)
                     {
+                        hasLastKnownPlayerPos = false;
                         playerVisible = false;
+
                         ChangeState(CharacterState::Idle);
+                        break;
                     }
-                    else
-                    {
-                        // Zombie target lost / unreachable -> just idle or repick next tick
-                        ChangeState(CharacterState::Idle);
-                    }
+                }
+                else
+                {
+                    playerVisible = false;
+                    ChangeState(CharacterState::Idle);
+                    break;
                 }
             }
 

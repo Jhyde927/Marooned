@@ -227,6 +227,7 @@ struct MagicStaff {
     void Update(float deltaTime);
     void Fire(const Camera& camera);
     void Draw(const Camera& camera);
+    void DrawThirdPerson();
     void PlaySwipe();
 };
 
@@ -283,6 +284,7 @@ struct Crossbow {
     void FireHarpoon(Camera& camera);
     void Reload();     // optional manual reload trigger
     void Draw(const Camera& camera);
+    void DrawThirdPerson();
 };
 
 

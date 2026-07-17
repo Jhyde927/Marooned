@@ -351,7 +351,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     heightmap = LoadImage(level.heightmapPath.c_str());
     ImageFormat(&heightmap, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
     if (!CurrentLevelIs("Ship")){  
-        UpdateLoadingScreen(0.80f, "Building Terrain");
+        UpdateLoadingScreen(0.80f, "Building Terrain From Heightmap");
         terrain = BuildTerrainGridFromHeightmap(heightmap, terrainScale, 193, true); //193 bigger chunks less draw calls. 
         //instanced grass
         UpdateLoadingScreen(0.10f, "Instancing Grass");
