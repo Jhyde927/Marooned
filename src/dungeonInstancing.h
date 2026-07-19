@@ -35,6 +35,7 @@ struct DungeonInstancingBatch
     Material material;
 
     std::vector<Matrix> transforms;
+    DungeonInstanceKind kind = DungeonInstanceKind::FloorGray;
 
     bool initialized = false;
 };

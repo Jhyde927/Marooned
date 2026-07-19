@@ -63,7 +63,9 @@ struct LightingConfig
 
 // Global instance (defined in lightingConfig.cpp)
 extern LightingConfig lightConfig;
-extern BakedLightmap gDynamic; 
+extern BakedLightmap gDynamic;
+extern BakedLightmap gWallDynamic;
+ 
 extern std::vector<int> StaticLightIndices;
 
 LightSource MakeStaticTorch(Vector3 pos); 
@@ -71,6 +73,7 @@ void ApplyLevelLighting(std::string_view levelName);
 float SmoothFalloff(float d, float radius);
 void GatherFrameLights();
 void InitDynamicLightmap(int res);
+void InitWallDynamicLightmap(int res);
 void BuildStaticLightmapOnce(const std::vector<LightSource>& dungeonLights);
 void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLights);
 std::vector<int> GetStaticLightIndices(const Vector3& doorPos);

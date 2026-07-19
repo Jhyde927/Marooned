@@ -60,7 +60,12 @@ static void SetDungeonInstancingShaderValues(DungeonInstancingBatch& batch)
 
     // Do NOT overwrite diffuse.
     // Only refresh the runtime lightmap/emission texture.
-    batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+    if (batch.kind == DungeonInstanceKind::WallStone && GameSettings::useDDALighting){
+        batch.material.maps[MATERIAL_MAP_EMISSION].texture = gWallDynamic.tex;
+    }else{
+        batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+    }
+
 
     int locGrid   = GetShaderLocation(sh, "gridBounds");
     int locDynStr = GetShaderLocation(sh, "dynStrength");
@@ -138,12 +143,14 @@ static Matrix MakeFloorTransform(const Vector3& pos)
 static void InitDungeonInstancingBatch(
     DungeonInstancingBatch& batch,
     const char* modelKey,
-    const char* shaderKey
+    const char* shaderKey,
+    DungeonInstanceKind kind
 )
 {
     if (batch.initialized) return;
-
+    
     batch.shader = R.GetShader(shaderKey);
+    batch.kind = kind;
 
     batch.shader.locs[SHADER_LOC_MATRIX_MVP] =
         GetShaderLocation(batch.shader, "mvp");
@@ -235,7 +242,12 @@ static void DrawDungeonInstancingBatch(DungeonInstancingBatch& batch)
     if (batch.transforms.empty()) return;
 
     // Important if gDynamic gets recreated/reloaded between levels.
-    batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+    if (batch.kind == DungeonInstanceKind::WallStone && GameSettings::useDDALighting){
+        batch.material.maps[MATERIAL_MAP_EMISSION].texture = gWallDynamic.tex;
+    }else{
+        batch.material.maps[MATERIAL_MAP_EMISSION].texture = gDynamic.tex;
+    }
+    
 
     SetDungeonInstancingShaderValues(batch);
 
@@ -264,31 +276,36 @@ void InitDungeonInstancing()
     InitDungeonInstancingBatch(
         gGrayFloorInstancing,
         "floorTileGray",
-        "floorInstancedLightingShader"
+        "floorInstancedLightingShader",
+        DungeonInstanceKind::FloorGray
     );
 
     InitDungeonInstancingBatch(
         gWoodFloorInstancing,
         "woodFloor",
-        "floorInstancedLightingShader"
+        "floorInstancedLightingShader",
+        DungeonInstanceKind::FloorWood
     );
 
     InitDungeonInstancingBatch(
         gStoneWallInstancing,
         "wallSegment",
-        "floorInstancedLightingShader"
+        "floorInstancedLightingShader",
+        DungeonInstanceKind::WallStone
     );
 
     InitDungeonInstancingBatch(
         gWoodWallInstancing,
         "woodWall",
-        "floorInstancedLightingShader"
+        "floorInstancedLightingShader",
+        DungeonInstanceKind::WallWood
     );
 
     InitDungeonInstancingBatch(
         gWoodHalfWallInstancing,
         "woodWallHalf",
-        "floorInstancedLightingShader"
+        "floorInstancedLightingShader",
+        DungeonInstanceKind::WallWoodHalf
     );
 }
 

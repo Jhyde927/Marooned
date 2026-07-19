@@ -294,6 +294,13 @@ bool IsSeeThroughForLOS(int x, int y)
     if (EqualsRGB(current, ColorOf(Code::Light))){
         return true;
     }
+    if (EqualsRGB(current, ColorOf(Code::Barrel))){
+        return true;
+    }
+
+    if (EqualsRGB(current, ColorOf(Code::Box))){
+        return true;
+    }
 
 
     // Normal case: walkable = see-through
@@ -758,7 +765,7 @@ bool DDAHasLineOfSight(Vector2 start, Vector2 end)
         // Reaching the destination tile is allowed even if it is opaque.
         if (tileX == endTileX && tileY == endTileY)
         {
-            return true;
+            return IsSeeThroughForLOS(tileX, tileY);
         }
 
         if (!IsSeeThroughForLOS(tileX, tileY))
@@ -766,7 +773,7 @@ bool DDAHasLineOfSight(Vector2 start, Vector2 end)
             // Equivalent to the old 3D endpoint epsilon:
             // if this blocker is extremely close to the receiving point,
             // assume it is the receiving wall itself.
-            constexpr float ENDPOINT_EPSILON_TILES = -0.5f;
+            constexpr float ENDPOINT_EPSILON_TILES = 0.01f;
 
             if (IsEndpointNearTile(
                     end,

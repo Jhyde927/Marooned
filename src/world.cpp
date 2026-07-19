@@ -669,6 +669,7 @@ void InitDungeonLights(){
     LoadTimer timer("Init Lights");
     UpdateLoadingScreen(.95, "Build Dynamic Lightmap");
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
+    InitWallDynamicLightmap(dungeonWidth * 4);
     UpdateLoadingScreen(.98, "Build Static Lightmap");
     BuildStaticLightmapOnce(dungeonLights);
 

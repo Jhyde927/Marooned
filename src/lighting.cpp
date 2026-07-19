@@ -14,8 +14,11 @@
 using namespace dungeonColors;
 
 BakedLightmap gDynamic; 
+BakedLightmap gWallDynamic;
 
 static std::vector<Color> gStaticBase;   // same w*h as gDynamic
+std::vector<Color> gStaticWallBase;
+
 std::vector<int> StaticLightIndices;
 
 //lighting control
@@ -890,6 +893,43 @@ static void ComputeDungeonXZBounds(int dungeonWidth, int dungeonHeight, float ti
     outSizeZ = (maxZ - minZ);
 }
 
+void InitWallDynamicLightmap(int res)
+{
+    gStaticBase.clear();
+    // If re-initting, free the old GPU texture to avoid leaks
+    if (gWallDynamic.tex.id != 0){
+        UnloadTexture(gWallDynamic.tex);
+    } 
+
+    // Resolution
+    gWallDynamic.w = res;
+    gWallDynamic.h = res;
+
+    gStaticBase.assign((size_t)gWallDynamic.w * gWallDynamic.h, (Color){0,0,0,255});
+
+    // World-space mapping for this level (XZ bounds)
+    ComputeDungeonXZBounds(dungeonWidth, dungeonHeight, tileSize, floorHeight,
+                           gWallDynamic.minX, gWallDynamic.minZ, gWallDynamic.sizeX, gWallDynamic.sizeZ);
+
+    // CPU buffer (black = no light)
+    gWallDynamic.pixels.assign(gWallDynamic.w * gWallDynamic.h, (Color){0,0,0,255});
+
+    // GPU texture
+    Image img = GenImageColor(gWallDynamic.w, gWallDynamic.h, BLACK);
+    ImageFormat(&img, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8); // <- ensure RGBA8
+    gWallDynamic.tex = LoadTextureFromImage(img);
+    UnloadImage(img);
+
+    SetTextureFilter(gWallDynamic.tex, TEXTURE_FILTER_BILINEAR);
+    SetTextureWrap(gWallDynamic.tex, TEXTURE_WRAP_CLAMP);
+
+    TraceLog(LOG_INFO, "InitDynamicLightmap: w=%d h=%d tile=%.1f floorY=%.1f",
+         dungeonWidth, dungeonHeight, tileSize, floorHeight);
+
+    TraceLog(LOG_INFO, "Bounds: minX=%.1f minZ=%.1f sizeX=%.1f sizeZ=%.1f",
+         gWallDynamic.minX, gWallDynamic.minZ, gWallDynamic.sizeX, gWallDynamic.sizeZ);
+}
+
 
 
 void InitDynamicLightmap(int res)
@@ -1170,13 +1210,17 @@ void BuildStaticLightmapOnce(
 
     if (GameSettings::useDDALighting){
             // Run once after every light has been baked.
-        DilateLightIntoWalls(
-            gStaticBase,
-            gDynamic.tex.width,
-            gDynamic.tex.height,
-            3,
-            0.5f
-        );
+            // Preserve the accurate, non-bleeding DDA result for floors.
+            gStaticWallBase = gStaticBase;
+
+            // Only the wall version gets dilation.
+            DilateLightIntoWalls(
+                gStaticWallBase,
+                gWallDynamic.tex.width,
+                gWallDynamic.tex.height,
+                3,
+                0.9f
+            );
 
     }
 
@@ -1187,6 +1231,7 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
 {
     // Start from the static base. Copy the static light values every frame.
     gDynamic.pixels = gStaticBase;
+    gWallDynamic.pixels = gStaticWallBase;
 
     //skip the player light for now. looks bad when getting close to static lights, makes it too orange.
 
@@ -1223,6 +1268,8 @@ void BuildDynamicLightmapFromFrameLights(const std::vector<LightSample>& frameLi
     }
 
     UpdateTexture(gDynamic.tex, gDynamic.pixels.data());
+
+    UpdateTexture(gWallDynamic.tex, gWallDynamic.pixels.data());
 
 }
 

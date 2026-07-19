@@ -527,8 +527,6 @@ void ResourceManager::SetLightingShaderValues()
         cratePile.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = crateTex;
     }
 
-    
-
     //for (int i = 0; i < wallModel.materialCount;    ++i) wallModel.materials[i].shader    = lightingShader;
     for (int i = 0; i < windowModel.materialCount;  ++i) windowModel.materials[i].shader  = lightingShader;
     for (int i = 0; i < doorwayModel.materialCount; ++i) doorwayModel.materials[i].shader = lightingShader;
@@ -546,15 +544,6 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < bonePile.materialCount;   ++i) bonePile.materials[i].shader   = lightingShader;
     for (int i = 0; i < candelabra.materialCount;   ++i) candelabra.materials[i].shader   = lightingShader;
 
-    // if (isDungeon){
-    //     for (int i = 0; i < blunderbuss.materialCount;   ++i) blunderbuss.materials[i].shader   = lightingShader;
-    //     for (int i = 0; i < crossbow.materialCount;   ++i) crossbow.materials[i].shader   = lightingShader;
-    //     for (int i = 0; i < sword.materialCount;   ++i) sword.materials[i].shader   = lightingShader;
-    //     for (int i = 0; i < staff.materialCount;   ++i) staff.materials[i].shader   = lightingShader;
-    //     for (int i = 0; i < crossbowRest.materialCount;   ++i) crossbowRest.materials[i].shader   = lightingShader;
-
-    // }
-
 
     // Bind the lightmap texture to EMISSION slot for each model material
     auto setLightmap = [&](Model& m){
@@ -563,10 +552,20 @@ void ResourceManager::SetLightingShaderValues()
         }
     };
 
+    if (GameSettings::useDDALighting){
+        for (int i = 0; i < doorwayModel.materialCount; ++i){ //doorways use gWallDynamic.tex where light reaches further.
+                doorwayModel.materials[i].maps[MATERIAL_MAP_EMISSION].texture = gWallDynamic.tex;
+        }
+    }else{
+        setLightmap(doorwayModel); //normal raycast lighting
+    }
+
+
+
     //setLightmap(floorModel);
     //setLightmap(wallModel);
     setLightmap(windowModel);
-    setLightmap(doorwayModel);
+
     setLightmap(launcherModel);
     setLightmap(barrelModel);
     setLightmap(brokeModel);

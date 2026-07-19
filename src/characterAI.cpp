@@ -3147,6 +3147,9 @@ Vector3 Character::ComputeRepulsionForce(const std::vector<Character*>& allRapto
 
 void Character::AlertNearbySkeletons(const Vector3& alertOrigin, float radius)
 {
+
+    return; //testing if this fixes crashing.
+    
     float radiusSq = radius * radius;
 
     for (Character* other : enemyPtrs)
