@@ -8,6 +8,9 @@
 #include "character.h"
 #include "utilities.h"
 #include "dungeonColors.h"
+#include <cmath>
+#include <limits>
+#include "lighting.h"
 
 using namespace dungeonColors;
 std::vector<std::vector<bool>> walkable; //grid of bools that mark walkabe/unwalkable tiles. 
@@ -127,11 +130,106 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
     }
 }
 
+bool IsEndpointNearTile(
+    Vector2 endpoint,
+    int tileX,
+    int tileY,
+    float epsilonTiles)
+{
+    // Find the closest point inside this tile to the endpoint.
+    const float closestX = std::clamp(
+        endpoint.x,
+        static_cast<float>(tileX),
+        static_cast<float>(tileX + 1)
+    );
+
+    const float closestY = std::clamp(
+        endpoint.y,
+        static_cast<float>(tileY),
+        static_cast<float>(tileY + 1)
+    );
+
+    const float dx = endpoint.x - closestX;
+    const float dy = endpoint.y - closestY;
+
+    return dx * dx + dy * dy <=
+           epsilonTiles * epsilonTiles;
+}
+
+void CheckContinuousConversion(Vector3 worldPos)
+{
+    const Vector2 oldCoords =
+        WorldToImageCoords(worldPos);
+
+    const Vector2 continuousCoords =
+        WorldToImageCoordsContinuous(worldPos);
+
+    const int continuousX =
+        static_cast<int>(floorf(continuousCoords.x));
+
+    const int continuousY =
+        static_cast<int>(floorf(continuousCoords.y));
+
+    if (continuousX != static_cast<int>(oldCoords.x) ||
+        continuousY != static_cast<int>(oldCoords.y))
+    {
+        TraceLog(
+            LOG_WARNING,
+            "Coordinate mismatch: "
+            "world=(%.1f, %.1f) "
+            "old=(%.0f, %.0f) "
+            "continuous=(%.3f, %.3f) floor=(%d, %d)",
+            worldPos.x,
+            worldPos.z,
+            oldCoords.x,
+            oldCoords.y,
+            continuousCoords.x,
+            continuousCoords.y,
+            continuousX,
+            continuousY
+        );
+    }
+}
+
+
+Vector2 WorldToImageCoordsContinuous(Vector3 worldPos)
+{
+    if (!isDungeon || dungeonWidth <= 0 || dungeonHeight <= 0)
+    {
+        return { -1.0f, -1.0f };
+    }
+
+    // Continuous coordinates in the world-tile grid.
+    const float worldTileX =
+        (worldPos.x - gDynamic.minX) / tileSize;
+
+    const float worldTileY =
+        (worldPos.z - gDynamic.minZ) / tileSize;
+
+    // Your image axes are reversed relative to the world grid.
+    // Do not subtract another 0.5 here.
+    const float imageX =
+        static_cast<float>(dungeonWidth) - worldTileX;
+
+    const float imageY =
+        static_cast<float>(dungeonHeight) - worldTileY;
+
+    if (imageX < 0.0f ||
+        imageX >= static_cast<float>(dungeonWidth) ||
+        imageY < 0.0f ||
+        imageY >= static_cast<float>(dungeonHeight))
+    {
+        return { -1.0f, -1.0f };
+    }
+
+    return { imageX, imageY };
+}
+
 
 
 Vector2 WorldToImageCoords(Vector3 worldPos)
 {
-    if (!isDungeon) // or currentLevel.isDungeon, level.isDungeon, etc.
+    if (!isDungeon)
     {
         return { -1.0f, -1.0f };
     }
@@ -191,6 +289,12 @@ bool IsSeeThroughForLOS(int x, int y)
     // Out of bounds = blocks LOS
     if (x < 0 || x >= (int)walkable.size())  return false;
     if (y < 0 || y >= (int)walkable[0].size()) return false;
+
+    Color current = dungeonPixels[y * dungeonWidth + x];
+    if (EqualsRGB(current, ColorOf(Code::Light))){
+        return true;
+    }
+
 
     // Normal case: walkable = see-through
     if (walkable[x][y]) return true;
@@ -560,6 +664,124 @@ bool IsLavaTile(int x, int y)
             c.r == 200 &&
             c.g == 0 &&
             c.b == 0);
+}
+
+
+
+bool DDAHasLineOfSightWorld(Vector3 start, Vector3 end)
+{
+    const Vector2 startImage = WorldToImageCoordsContinuous(start);
+    const Vector2 endImage   = WorldToImageCoordsContinuous(end);
+
+    if (startImage.x < 0.0f || startImage.y < 0.0f ||
+        endImage.x < 0.0f || endImage.y < 0.0f)
+    {
+        return false;
+    }
+
+    return DDAHasLineOfSight(startImage, endImage);
+}
+
+bool DDAHasLineOfSight(Vector2 start, Vector2 end)
+{
+    int tileX = static_cast<int>(floorf(start.x));
+    int tileY = static_cast<int>(floorf(start.y));
+
+    const int endTileX = static_cast<int>(floorf(end.x));
+    const int endTileY = static_cast<int>(floorf(end.y));
+
+    const float rayX = end.x - start.x;
+    const float rayY = end.y - start.y;
+
+    // Start and end are effectively the same point.
+    if (fabsf(rayX) < 0.000001f &&
+        fabsf(rayY) < 0.000001f)
+    {
+        return true;
+    }
+
+    const int stepX = (rayX > 0.0f) ? 1 : -1;
+    const int stepY = (rayY > 0.0f) ? 1 : -1;
+
+    const float infinity = std::numeric_limits<float>::infinity();
+
+    // How far along the ray we must travel to cross one entire tile
+    // horizontally or vertically.
+    const float deltaX =
+        (fabsf(rayX) > 0.000001f) ? fabsf(1.0f / rayX) : infinity;
+
+    const float deltaY =
+        (fabsf(rayY) > 0.000001f) ? fabsf(1.0f / rayY) : infinity;
+
+    // Distance along the ray to the first X tile boundary.
+    float sideX;
+
+    if (rayX > 0.0f)
+        sideX = (static_cast<float>(tileX + 1) - start.x) * deltaX;
+    else if (rayX < 0.0f)
+        sideX = (start.x - static_cast<float>(tileX)) * deltaX;
+    else
+        sideX = infinity;
+
+    // Distance along the ray to the first Y tile boundary.
+    float sideY;
+
+    if (rayY > 0.0f)
+        sideY = (static_cast<float>(tileY + 1) - start.y) * deltaY;
+    else if (rayY < 0.0f)
+        sideY = (start.y - static_cast<float>(tileY)) * deltaY;
+    else
+        sideY = infinity;
+
+    while (tileX != endTileX || tileY != endTileY)
+    {
+        if (sideX < sideY)
+        {
+            sideX += deltaX;
+            tileX += stepX;
+        }
+        else if (sideY < sideX)
+        {
+            sideY += deltaY;
+            tileY += stepY;
+        }
+        else
+        {
+            // Permit light through an exact tile corner.
+            sideX += deltaX;
+            sideY += deltaY;
+
+            tileX += stepX;
+            tileY += stepY;
+        }
+
+        // Reaching the destination tile is allowed even if it is opaque.
+        if (tileX == endTileX && tileY == endTileY)
+        {
+            return true;
+        }
+
+        if (!IsSeeThroughForLOS(tileX, tileY))
+        {
+            // Equivalent to the old 3D endpoint epsilon:
+            // if this blocker is extremely close to the receiving point,
+            // assume it is the receiving wall itself.
+            constexpr float ENDPOINT_EPSILON_TILES = -0.5f;
+
+            if (IsEndpointNearTile(
+                    end,
+                    tileX,
+                    tileY,
+                    ENDPOINT_EPSILON_TILES))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    return true;
 }
 
 

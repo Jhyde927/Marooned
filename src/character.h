@@ -165,6 +165,8 @@ public:
 
     bool isElite = false;
 
+    bool iceWizard = false;
+
     //pirates vs zombies
     Character* target = nullptr;
     float targetDist = 99999999.0f;

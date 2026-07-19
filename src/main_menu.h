@@ -42,7 +42,7 @@ namespace MainMenu
 
     struct Layout
     {
-        Rectangle selectable[5]; // Start, Level, Controls, Fullscreen, Quit, 
+        Rectangle selectable[6]; // Start, Level, Controls, Fullscreen, Quit, 
     };
 
     struct ControlsPanel

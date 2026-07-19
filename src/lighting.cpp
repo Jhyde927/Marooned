@@ -9,6 +9,9 @@
 #include "utilities.h"
 #include "dungeonColors.h"
 #include "ui.h"
+#include "game_settings.h"
+
+using namespace dungeonColors;
 
 BakedLightmap gDynamic; 
 
@@ -157,72 +160,49 @@ static inline RectI IntersectInclusive(const RectI& a, const RectI& b)
     return r;
 }
 
-// static RectI ClampRectToMap(RectI r, int w, int h)
-// {
-//     if (r.x0 < 0) r.x0 = 0;
-//     if (r.y0 < 0) r.y0 = 0;
-//     if (r.x1 > w) r.x1 = w;
-//     if (r.y1 > h) r.y1 = h;
-//     if (r.x1 < r.x0) r.x1 = r.x0;
-//     if (r.y1 < r.y0) r.y1 = r.y0;
-//     return r;
-// }
+bool IsWallLightmapTexel(
+    int texelX,
+    int texelY,
+    int bufferWidth,
+    int bufferHeight)
+{
+    if (bufferWidth <= 0 || bufferHeight <= 0 ||
+        dungeonWidth <= 0 || dungeonHeight <= 0)
+    {
+        return false;
+    }
 
-// static RectI ComputeDoorAffectedRegion_LightmapPixels_UsingStamperMapping(
-//     const Vector3& doorPos,
-//     int bufW, int bufH,
-//     float radius) // world units (e.g., 2200)
-// {
-//     const int tppX = bufW / dungeonWidth;
-//     const int tppZ = bufH / dungeonHeight;
+    // Convert lightmap texel to the world-oriented dungeon tile.
+    int worldTileX =
+        (texelX * dungeonWidth) / bufferWidth;
 
-//     // Door world -> tile indices using SAME origin as stamper
-//     const int tx = (int)floorf((doorPos.x - gDynamic.minX) / tileSize);
-//     const int tz = (int)floorf((doorPos.z - gDynamic.minZ) / tileSize);
+    int worldTileZ =
+        (texelY * dungeonHeight) / bufferHeight;
 
-//     // If door is outside dungeon bounds, return empty rect
-//     if (tx < 0 || tz < 0 || tx >= dungeonWidth || tz >= dungeonHeight) {
-//         return RectI{0,0,-1,-1}; // empty (x0 > x1)
-//     }
+    worldTileX = Clamp(
+        worldTileX,
+        0,
+        dungeonWidth - 1
+    );
 
-//     // Door tile -> lightmap pixel center (roughly center of that tile in texels)
-//     const int cx = tx * tppX + (tppX / 2);
-//     const int cy = tz * tppZ + (tppZ / 2);
+    worldTileZ = Clamp(
+        worldTileZ,
+        0,
+        dungeonHeight - 1
+    );
 
-//     // Radius in tiles -> radius in pixels
-//     const int Rtiles = (int)ceilf(radius / tileSize);
-//     const int RpxX   = Rtiles * tppX;
-//     const int RpxY   = Rtiles * tppZ;
+    // The dungeon PNG axes are reversed relative to the lightmap.
+    const int imageX =
+        dungeonWidth - 1 - worldTileX;
 
-//     RectI r;
-//     r.x0 = cx - RpxX;
-//     r.y0 = cy - RpxY;
-//     r.x1 = cx + RpxX;
-//     r.y1 = cy + RpxY;
+    const int imageY =
+        dungeonHeight - 1 - worldTileZ;
 
-//     // Clamp to buffer bounds (inclusive)
-//     if (r.x0 < 0) r.x0 = 0;
-//     if (r.y0 < 0) r.y0 = 0;
-//     if (r.x1 > bufW - 1) r.x1 = bufW - 1;
-//     if (r.y1 > bufH - 1) r.y1 = bufH - 1;
-
-//     return r;
-// }
-
-
-// static void ClearStaticBaseRegion(std::vector<Color>& buf, int w, int h, const RectI& r)
-// {
-//     if (r.x0 == r.x1 || r.y0 == r.y1) return;
-
-//     for (int y = r.y0; y < r.y1; ++y) {
-//         int row = y * w;
-//         for (int x = r.x0; x < r.x1; ++x) {
-//             buf[row + x] = (Color){0,0,0,255};
-//         }
-//     }
-
-
-// }
+    const Color tileColor =
+        dungeonPixels[imageY * dungeonWidth + imageX];
+    
+    return IsWallColor(tileColor);
+}
 
 void StampLight_StaticBase_Subtile2x2_ToBuffer_Clipped(std::vector<Color>& outBuf, int bufW, int bufH,
                                                        const Vector3& lightPos, float radius, Color color,
@@ -380,7 +360,316 @@ static float TileVisibilityWorldRay(const Vector3& lightPos,
     return (float)visible / (float)rays;
 }
 
-// --- 2×2 sub-tile visibility using your world-ray LOS fan ---
+constexpr int LIGHT_SUBTILES = 4;
+
+void SubtileVis4x4(
+    float vis[LIGHT_SUBTILES][LIGHT_SUBTILES],
+    const Vector3& lightPos,
+    float cx,
+    float cz,
+    float tileSize,
+    float floorY)
+{
+    for (int sy = 0; sy < LIGHT_SUBTILES; ++sy)
+    {
+        for (int sx = 0; sx < LIGHT_SUBTILES; ++sx)
+        {
+            // Produces:
+            // -0.375, -0.125, +0.125, +0.375
+            const float offsetX =
+                ((sx + 0.5f) / LIGHT_SUBTILES - 0.5f) *
+                tileSize;
+
+            const float offsetZ =
+                ((sy + 0.5f) / LIGHT_SUBTILES - 0.5f) *
+                tileSize;
+
+            const Vector3 subCenter = {
+                cx + offsetX,
+                floorY,
+                cz + offsetZ
+            };
+
+            vis[sy][sx] =
+                DDAHasLineOfSightWorld(lightPos, subCenter)
+                ? 1.0f
+                : 0.0f;
+        }
+    }
+}
+
+// --- Static bake: tile-first stamping with 4×4 sub-tile DDA LOS ---
+void StampLight_Static_DDA4x4_ToBuffer(
+    std::vector<Color>& outBuf,
+    int bufW,
+    int bufH,
+    const Vector3& lightPos,
+    float radius,
+    Vector3 edgeColor,
+    Vector3 coreColor,
+    float intensity)
+{
+    constexpr int SUBTILES = 4;
+
+    if (static_cast<int>(outBuf.size()) != bufW * bufH)
+    {
+        outBuf.assign(
+            static_cast<size_t>(bufW) * bufH,
+            Color{0, 0, 0, 255}
+        );
+    }
+
+    const int tppX = bufW / dungeonWidth;
+    const int tppZ = bufH / dungeonHeight;
+
+    const int lx = static_cast<int>(
+        floorf((lightPos.x - gDynamic.minX) / tileSize)
+    );
+
+    const int lz = static_cast<int>(
+        floorf((lightPos.z - gDynamic.minZ) / tileSize)
+    );
+
+    const int R = static_cast<int>(
+        ceilf(radius / tileSize)
+    );
+
+    const float radiusSquared = radius * radius;
+
+    const int tx0 = std::max(0, lx - R);
+    const int tx1 = std::min(dungeonWidth - 1, lx + R);
+
+    const int tz0 = std::max(0, lz - R);
+    const int tz1 = std::min(dungeonHeight - 1, lz + R);
+
+    for (int tz = tz0; tz <= tz1; ++tz)
+    {
+        for (int tx = tx0; tx <= tx1; ++tx)
+        {
+            const float cx =
+                gDynamic.minX + (tx + 0.5f) * tileSize;
+
+            const float cz =
+                gDynamic.minZ + (tz + 0.5f) * tileSize;
+
+            // Quick circle cull using the tile center.
+            const float centerDX = cx - lightPos.x;
+            const float centerDZ = cz - lightPos.z;
+
+            const float expandedRadius =
+                radius + 0.75f * tileSize;
+
+            if (centerDX * centerDX + centerDZ * centerDZ >
+                expandedRadius * expandedRadius)
+            {
+                continue;
+            }
+
+            // Calculate sixteen DDA visibility samples for this tile.
+            float vis4x4[SUBTILES][SUBTILES];
+
+            SubtileVis4x4(
+                vis4x4,
+                lightPos,
+                cx,
+                cz,
+                tileSize,
+                floorHeight
+            );
+
+            // If every sub-tile is blocked, skip the entire tile.
+            bool allBlocked = true;
+
+            for (int sy = 0; sy < SUBTILES && allBlocked; ++sy)
+            {
+                for (int sx = 0; sx < SUBTILES; ++sx)
+                {
+                    if (vis4x4[sy][sx] > 0.0f)
+                    {
+                        allBlocked = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allBlocked)
+            {
+                continue;
+            }
+
+            // Texel bounds for this dungeon tile.
+            const int x0 = tx * tppX;
+            const int x1 = x0 + tppX - 1;
+
+            const int y0 = tz * tppZ;
+            const int y1 = y0 + tppZ - 1;
+
+            for (int y = y0; y <= y1; ++y)
+            {
+                const float texV =
+                    (y + 0.5f) / static_cast<float>(bufH);
+
+                const float worldZ =
+                    gDynamic.minZ + texV * gDynamic.sizeZ;
+
+                for (int x = x0; x <= x1; ++x)
+                {
+                    const float texU =
+                        (x + 0.5f) / static_cast<float>(bufW);
+
+                    const float worldX =
+                        gDynamic.minX + texU * gDynamic.sizeX;
+
+                    const float dx = worldX - lightPos.x;
+                    const float dz = worldZ - lightPos.z;
+
+                    const float distanceSquared =
+                        dx * dx + dz * dz;
+
+                    if (distanceSquared > radiusSquared)
+                    {
+                        continue;
+                    }
+
+                    // Normalized distance:
+                    // 0 at light center, 1 at outer radius.
+                    const float u =
+                        sqrtf(distanceSquared) / radius;
+
+                    if (u > 1.0f)
+                    {
+                        continue;
+                    }
+
+                    // Base falloff.
+                    const float t = 1.0f - u * u;
+
+                    const float base =
+                        t * t * (3.0f - 2.0f * t);
+
+                    // Optional center glow.
+                    const float ringPosition = 0.0f;
+                    const float ringWidth    = 0.2f;
+                    const float ringAmount   = 0.7f;
+
+                    const float ringDistance =
+                        u - ringPosition;
+
+                    const float ring =
+                        expf(
+                            -(ringDistance * ringDistance) /
+                            (2.0f * ringWidth * ringWidth)
+                        );
+
+                    float weight =
+                        base + ringAmount * ring;
+
+                    // Select the 4×4 visibility region containing this
+                    // lightmap texel.
+                    int subtileX =
+                        ((x - x0) * SUBTILES) / tppX;
+
+                    int subtileY =
+                        ((y - y0) * SUBTILES) / tppZ;
+
+                    subtileX = Clamp(
+                        subtileX,
+                        0,
+                        SUBTILES - 1
+                    );
+
+                    subtileY = Clamp(
+                        subtileY,
+                        0,
+                        SUBTILES - 1
+                    );
+
+                    const float visibility =
+                        vis4x4[subtileY][subtileX];
+
+                    if (visibility <= 0.0f)
+                    {
+                        continue;
+                    }
+
+                    weight *= visibility;
+
+                    if (weight <= 0.0f)
+                    {
+                        continue;
+                    }
+
+                    // Color gradient:
+                    // edgeColor at outer falloff, coreColor near center.
+                    const float centerAmount =
+                        1.0f - u;
+
+                    const float corePower = 2.0f;
+
+                    const float coreT =
+                        powf(centerAmount, corePower);
+
+                    const Vector3 mixedColor = {
+                        edgeColor.x +
+                            (coreColor.x - edgeColor.x) * coreT,
+
+                        edgeColor.y +
+                            (coreColor.y - edgeColor.y) * coreT,
+
+                        edgeColor.z +
+                            (coreColor.z - edgeColor.z) * coreT
+                    };
+
+                    Color& pixel =
+                        outBuf[y * bufW + x];
+
+                    const int red =
+                        pixel.r +
+                        static_cast<int>(
+                            mixedColor.x *
+                            255.0f *
+                            intensity *
+                            weight
+                        );
+
+                    const int green =
+                        pixel.g +
+                        static_cast<int>(
+                            mixedColor.y *
+                            255.0f *
+                            intensity *
+                            weight
+                        );
+
+                    const int blue =
+                        pixel.b +
+                        static_cast<int>(
+                            mixedColor.z *
+                            255.0f *
+                            intensity *
+                            weight
+                        );
+
+                    pixel.r = static_cast<unsigned char>(
+                        std::min(red, 255)
+                    );
+
+                    pixel.g = static_cast<unsigned char>(
+                        std::min(green, 255)
+                    );
+
+                    pixel.b = static_cast<unsigned char>(
+                        std::min(blue, 255)
+                    );
+
+                    pixel.a = 255;
+                }
+            }
+        }
+    }
+}
+
+//--- 2×2 sub-tile visibility using your world-ray LOS fan ---
 void SubtileVis2x2(float vis[2][2],
                           const Vector3& lightPos,
                           float cx, float cz, float tileSize, float floorY)
@@ -418,6 +707,8 @@ void StampLight_StaticBase_Subtile2x2_ToBuffer(
     {
         outBuf.assign((size_t)bufW * bufH, Color{0, 0, 0, 255});
     }
+
+
 
     const int tppX = bufW / dungeonWidth;     // texels-per-tile X
     const int tppZ = bufH / dungeonHeight;    // texels-per-tile Z
@@ -684,6 +975,96 @@ XZBounds ComputeXZFromTiles(const std::vector<FloorTile>& tiles, float tileSize)
 
 }
 
+void DilateLightIntoWalls(
+    std::vector<Color>& buffer,
+    int width,
+    int height,
+    int passes,
+    float dilationStrength)
+{
+    if (static_cast<int>(buffer.size()) != width * height)
+        return;
+
+    dilationStrength = Clamp(
+        dilationStrength,
+        0.0f,
+        1.0f
+    );
+
+    const std::vector<Color> original = buffer;
+    std::vector<Color> source;
+
+    for (int pass = 0; pass < passes; ++pass)
+    {
+        source = buffer;
+
+        for (int y = 1; y < height - 1; ++y)
+        {
+            for (int x = 1; x < width - 1; ++x)
+            {
+                if (!IsWallLightmapTexel(x, y, width, height))
+                    continue;
+
+                Color maxNeighbor = source[y * width + x];
+
+                const Color neighbors[] = {
+                    source[y * width + x - 1],
+                    source[y * width + x + 1],
+                    source[(y - 1) * width + x],
+                    source[(y + 1) * width + x]
+                };
+
+                for (const Color& neighbor : neighbors)
+                {
+                    maxNeighbor.r =
+                        std::max(maxNeighbor.r, neighbor.r);
+
+                    maxNeighbor.g =
+                        std::max(maxNeighbor.g, neighbor.g);
+
+                    maxNeighbor.b =
+                        std::max(maxNeighbor.b, neighbor.b);
+                }
+
+                Color& destination = buffer[y * width + x];
+
+                destination.r = static_cast<unsigned char>(
+                    destination.r +
+                    (maxNeighbor.r - destination.r) *
+                    dilationStrength
+                );
+
+                destination.g = static_cast<unsigned char>(
+                    destination.g +
+                    (maxNeighbor.g - destination.g) *
+                    dilationStrength
+                );
+
+                destination.b = static_cast<unsigned char>(
+                    destination.b +
+                    (maxNeighbor.b - destination.b) *
+                    dilationStrength
+                );
+
+                destination.a = 255;
+            }
+        }
+    }
+
+    // Absolute guarantee that logical floor texels remain unchanged.
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            if (!IsWallLightmapTexel(x, y, width, height))
+            {
+                buffer[y * width + x] =
+                    original[y * width + x];
+            }
+        }
+    }
+}
+
 
 
 static void StampDynamicLight(const Vector3& lightPos, float radius, Color color) {
@@ -742,16 +1123,32 @@ void BuildStaticLightmapOnce(
     {
         const LightSource& L = dungeonLights[i];
 
-        StampLight_StaticBase_Subtile2x2_ToBuffer(
-            gStaticBase,
-            gDynamic.w,
-            gDynamic.h,
-            L.position,
-            L.range,
-            L.edgeColor,
-            L.coreColor,
-            L.intensity
-        );
+        if (GameSettings::useDDALighting){
+            // FOR FAST LIGHT LOADS, ENABLE THIS.  
+            StampLight_Static_DDA4x4_ToBuffer(
+                gStaticBase,
+                gDynamic.w,
+                gDynamic.h,
+                L.position,
+                L.range,
+                L.edgeColor,
+                L.coreColor,
+                L.intensity
+            );
+
+        }else{
+            StampLight_StaticBase_Subtile2x2_ToBuffer(
+                gStaticBase,
+                gDynamic.w,
+                gDynamic.h,
+                L.position,
+                L.range,
+                L.edgeColor,
+                L.coreColor,
+                L.intensity
+            );
+
+        }
 
         // Updating the screen after every light may add unnecessary overhead.
         if (i % 5 == 0 || i + 1 == totalLights)
@@ -770,6 +1167,19 @@ void BuildStaticLightmapOnce(
             );
         }
     }
+
+    if (GameSettings::useDDALighting){
+            // Run once after every light has been baked.
+        DilateLightIntoWalls(
+            gStaticBase,
+            gDynamic.tex.width,
+            gDynamic.tex.height,
+            3,
+            0.5f
+        );
+
+    }
+
 }
 
 

@@ -220,7 +220,7 @@ void Bullet::Update(Camera& camera, float deltaTime) {
         lifeTime -= deltaTime;
     }
 
-    if (lifeTime <= 0 && type != BulletType::Fireball && type != BulletType::Harpoon){ //fireball laucnher fireball need to live longer. 
+    if (lifeTime <= 0 && type != BulletType::Fireball && type != BulletType::Harpoon){
         exploded = true;
         alive = false;
     }
@@ -540,7 +540,7 @@ void Bullet::Draw(Camera& camera) const {
         
     }else if (type == BulletType::Iceball){
         //actual bullet size is 75, render at 25, maybe iceballs should look bigger as well. 
-        DrawModelEx(R.GetModel("iceballModel"), position, { 0, 1, 0 }, spinAngle, { 25.0f, 25.0f, 25.0f }, WHITE);
+        DrawModelEx(R.GetModel("iceballModel"), position, { 0, 1, 0 }, spinAngle, { 20.0f, 20.0f, 20.0f }, WHITE);
             
     }else if (type == BulletType::Bolt){
 
@@ -898,7 +898,7 @@ void FireIceball(Vector3 origin, Vector3 target, float speed, float lifetime, bo
     Vector3 direction = Vector3Normalize(Vector3Subtract(target, origin));
     Vector3 velocity = Vector3Scale(direction, speed);
 
-    Bullet& b = activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Iceball, 75.0f, launcher); //larger radius 75, so you can't avoid in hallways
+    Bullet& b = activeBullets.emplace_back(origin, velocity, lifetime, enemy, BulletType::Iceball, 20.0f, launcher); //larger radius 75, so you can't avoid in hallways
 
     b.light.active     = true;
     b.light.color      = lightConfig.dynamicIceColor;

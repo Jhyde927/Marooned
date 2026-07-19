@@ -47,3 +47,16 @@ Vector3 WanderXZ(float& wanderAngle, float wanderTurnRate, float wanderSpeed, fl
 
 bool StopAtWaterEdge(const Vector3& pos,Vector3& desiredVel, float waterLevel);
 bool IsWaterAtXZ(float x, float z, float waterLevel);
+
+bool DDAHasLineOfSight(Vector2 start, Vector2 end);
+bool DDAHasLineOfSightWorld(Vector3 start, Vector3 end);
+Vector2 WorldToImageCoordsContinuous(Vector3 worldPos);
+void CheckContinuousConversion(Vector3 worldPos);
+
+void SubtileVis4x4(
+    float vis[4][4],
+    const Vector3& lightPos,
+    float cx,
+    float cz,
+    float tileSize,
+    float floorY);

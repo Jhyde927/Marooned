@@ -87,6 +87,7 @@ enum class Code {
     captain,                  // (255, 100, 255) light magenta
     spawner,                  // (255, 64, 128) bright orange pink
     tableSet,                 // (127, 0, 0) //red 127
+    iceWizard,                // (0, 211, 211) wizard blue
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -175,6 +176,7 @@ constexpr Color ColorOf(Code c) {
         case Code::captain:                return Make(255, 100, 255); 
         case Code::spawner:                return Make(255, 64, 128);
         case Code::tableSet:               return Make(127, 0 , 0);
+        case Code::iceWizard:              return Make(0, 211, 211);
         
 
 

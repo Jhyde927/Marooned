@@ -270,6 +270,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("dactylSheet",        "assets/sprites/dactylSheet.png");
     R.LoadTexture("ceilingTexture",     "assets/textures/ceilingTilesTexture.png");
     R.LoadTexture("wizardSheet",        "assets/sprites/wizardSheet.png");
+    R.LoadTexture("IceWizardSheet",     "assets/sprites/IceWizardSheet.png");
     R.LoadTexture("skeletonKey",        "assets/sprites/skeletonKey.png");
     R.LoadTexture("batSheet",           "assets/sprites/batSheet.png");
     R.LoadTexture("hermitSheet",        "assets/sprites/hermitSheet.png");

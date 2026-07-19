@@ -1191,7 +1191,7 @@ void MeleeWeapon::PlaySwipe(){
 }
 
 void MagicStaff::Fire(const Camera& camera) {
-
+    (void)camera;
     if (GetTime() - lastFired < fireCooldown) return;
 
     if (player.currentMana >= 10){
@@ -1212,7 +1212,7 @@ void MagicStaff::Fire(const Camera& camera) {
     });
 
     //Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-    Vector3 targetPoint = Vector3Add(camera.position, Vector3Scale(player.lookForward, 1000.0f));
+    Vector3 targetPoint = Vector3Add(player.position, Vector3Scale(player.lookForward, 1000.0f));
 
     muzzlePos = GetPlayerMuzzlePosition(player);
     

@@ -2164,7 +2164,13 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                 if (canSee && attackCooldown <= 0.0f && currentFrame == 1 && !hasFired && type == CharacterType::Wizard) {
 
                     Vector3 muzzle = isElite ? Vector3{position.x, position.y + 50, position.z} : position; 
-                    FireFireball(muzzle, player.position, 1350.0f, 2.0f, true, true, true);
+
+                    if (iceWizard){
+                        FireIceball(muzzle, player.position, 1350, 2.0, true, true);
+                    }else{
+                        FireFireball(muzzle, player.position, 1350.0f, 2.0f, true, true, true);
+                    }
+                    
                     hasFired = true;
                     attackCooldown = 5.0f;
                     SoundManager::GetInstance().PlaySoundAtPosition("flame1", position, player.position, 1.0, 2000);
@@ -2414,7 +2420,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
     
     float distanceSq = Vector3DistanceSqr(position, player.position);
 
-    Vector2 start = WorldToImageCoords(position);
+    //Vector2 start = WorldToImageCoords(position);
     constexpr float VISION_ENTER = 4000.0f * 4000.0f;
     constexpr float PIRATE_ATTACK_ENTER = 800.0f * 800.0f; // start attacking when closer than this
     constexpr float PIRATE_ATTACK_EXIT  = 900.0f * 900.0f; // stop attacking when farther than this
@@ -2439,7 +2445,8 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             if (distanceSq < VISION_ENTER && stateTimer > 1.0f && (playerVisible)) {
                 AlertNearbySkeletons(position, 3000.0f);
                 ChangeState(CharacterState::Chase);
-                SetPath(start);
+                //SetPath(start);
+                SetPathTo(player.position);
 
             }
             // Wander if idle too long
@@ -2521,8 +2528,8 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 }
                 else if (canSee)
                 {
-                    // Keep this if "start" is the starting tile for your BFS.
-                    SetPath(start);
+                    
+                    SetPathTo(player.position);
                     pathCooldownTimer = 0.4f;
                 }
                 else if (hasLastKnownPlayerPos)

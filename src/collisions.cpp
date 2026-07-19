@@ -854,10 +854,14 @@ void CheckBulletHits(Camera& camera) {
 
 
                 }else if (b.type == BulletType::Iceball){
+                    if (enemy->type != CharacterType::Wizard){ //wizard imune to iceballs
+                        enemy->ChangeState(CharacterState::Freeze);
+                        b.pendingExplosion = true;
+                        b.explosionTimer = 0.04f;
+
+                    }
  
-                    enemy->ChangeState(CharacterState::Freeze);
-                    b.pendingExplosion = true;
-                    b.explosionTimer = 0.04f;
+
                     break;
 
                     

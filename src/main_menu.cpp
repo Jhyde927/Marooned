@@ -217,10 +217,9 @@ MainMenu::Layout MainMenu::ComputeOptionsLayout(float menuX, float baseY, float 
     L.selectable[0] = MakeButtonRect(cx, baseY + 50.0f,  sliderW, sliderH); // Mouse Sensitivity
     L.selectable[1] = MakeButtonRect(cx, baseY + 150.0f, sliderW, sliderH); // Draw Distance
     L.selectable[2] = MakeButtonRect(cx, baseY + 250.0f, sliderW, sliderH); // FOV
-
-    L.selectable[3] = MakeButtonRect(cx, baseY + 310.0f, sliderW, sliderH); // VSync checkbox
-
-    L.selectable[4] = MakeButtonRect(cx, baseY + 395.0f, btnW, btnH);       // Back
+    L.selectable[3] = MakeButtonRect(cx, baseY + 300.0f, sliderW, sliderH); // VSync checkbox
+    L.selectable[4] = MakeButtonRect(cx, baseY + 350.0f, btnW, btnH);
+    L.selectable[5] = MakeButtonRect(cx, baseY + 410.0f, btnW, btnH);       // Back
 
     return L;
 }
@@ -850,6 +849,10 @@ namespace MainMenu
                         return Action::None;
 
                     case 4:
+                        GameSettings::useDDALighting = !GameSettings::useDDALighting;
+                        return Action::None;
+                    
+                    case 5:
                         return Action::Back;
                 }
 
@@ -1248,21 +1251,23 @@ namespace MainMenu
         {
             Rectangle oPanel = ComputeOptionsPanelRect(rStart, rQuit);
             DrawOptionsPanelAsButton(oPanel);
-
+            float optionButtonHeight = 50.0f;
             // Recreate the same options layout for drawing
-            Layout optL = ComputeOptionsLayout(menuX - btnW * 0.5f, baseY, gapY, btnW, btnH);
+            Layout optL = ComputeOptionsLayout(menuX - btnW * 0.5f, baseY, gapY, btnW, optionButtonHeight);
 
             Rectangle rSensitivity = optL.selectable[0];
             Rectangle rDrawDist    = optL.selectable[1];
             Rectangle rFov         = optL.selectable[2];
             Rectangle rVsync       = optL.selectable[3];
-            Rectangle rBack        = optL.selectable[4];
+            Rectangle rDDA         = optL.selectable[4];
+            Rectangle rBack        = optL.selectable[5];
 
             bool selSensitivity = (s.selectedOption == 0);
             bool selDrawDist    = (s.selectedOption == 1);
             bool selFov         = (s.selectedOption == 2);
             bool selVsync       = (s.selectedOption == 3);
-            bool selBack        = (s.selectedOption == 4);
+            bool selDDA         = (s.selectedOption == 4);
+            bool selBack        = (s.selectedOption == 5);
 
             DrawSlider(
                 pieces,
@@ -1304,8 +1309,9 @@ namespace MainMenu
                 selVsync
             );
 
+            DrawCheckbox(pieces, rDDA, "DDA Lighting", GameSettings::useDDALighting, selDDA);
             DrawMenuButtonRounded(rBack, selBack);
-            DrawCarvedText(pieces, "Back", rBack, menuFontSizeF, menuSpacing, false, selBack);
+            DrawCarvedText(pieces, "Back", rBack, menuFontSizeF/2, menuSpacing, false, selBack);
 
             // Optional controls panel on the side
             Rectangle rPanel = ComputeControlsPanelRect(rStart, rQuit);
@@ -1318,17 +1324,18 @@ namespace MainMenu
 
             DrawLevelPreviewPanel(rPanel, s.currentPreview);
         }
-        // if (s.showPreview) {
-        //     const PreviewInfo* preview = GetPreviewForSelectionIndex(levelIndex);
-        //     DrawLevelPreviewPanel(rPanel, preview);
 
-        // }
 
         if (s.showMenu){
 
             // Draw selectable buttons (highlight only these)
             DrawMenuButtonRounded(rStart, selStart);
-            //DrawMenuButtonRounded(rLevel, selLevel); //split this into two buttons some how. 
+
+            // Draw center "Level" button + mini +/- buttons
+            DrawMenuButtonRounded(rLevelCenter, selLevelCenter);
+            DrawMenuButtonRounded(rLevelMinus,  selLevelMinus);
+            DrawMenuButtonRounded(rLevelPlus,   selLevelPlus);
+            
             DrawMenuButtonRounded(rControls, selControls);
             DrawMenuButtonRounded(rFull,  selFull);
             DrawMenuButtonRounded(rQuit,  selQuit);
@@ -1341,10 +1348,7 @@ namespace MainMenu
             DrawCarvedText(pieces, lblFull,  rFull,  menuFontSizeF, menuSpacing, false, selFull);
             DrawCarvedText(pieces, lblQuit,  rQuit,  menuFontSizeF, menuSpacing, false, selQuit);
 
-            // Draw center "Level" button + mini +/- buttons
-            DrawMenuButtonRounded(rLevelCenter, selLevelCenter);
-            DrawMenuButtonRounded(rLevelMinus,  selLevelMinus);
-            DrawMenuButtonRounded(rLevelPlus,   selLevelPlus);
+
 
             // Center label
             DrawCarvedText(pieces, lblLevel, rLevelCenter, menuFontSizeF, menuSpacing, false, selLevelCenter);

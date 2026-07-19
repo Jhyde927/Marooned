@@ -2296,18 +2296,17 @@ void GeneratePiratesFromImage(float baseY) {
 
 void GenerateWizardsFromImage(float baseY) {
 
-
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
-
+            bool iceWizard = EqualsRGB(current, ColorOf(Code::iceWizard));
             // Look for magenta pixels (148, 0, 211) → wizard spawn
-            if (EqualsRGB(current, ColorOf(Code::Wizard))) {
+            if (EqualsRGB(current, ColorOf(Code::Wizard)) || iceWizard) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
-
+                std::string sheet = iceWizard ? "IceWizardSheet" : "wizardSheet";
                 Character wizard(
                     spawnPos,
-                    R.GetTexture("wizardSheet"), 
+                    R.GetTexture(sheet), 
                     400, 400,         // frame width, height 
                     1,                // max frames, set when setting animations
                     0.25f, 0.35f,       // speed, scale 
@@ -2316,6 +2315,8 @@ void GenerateWizardsFromImage(float baseY) {
                 );
 
                 wizard.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
+
+                if (iceWizard) wizard.iceWizard = true;
 
                 if (wizard.isElite){
                     wizard.maxHealth = 1000;

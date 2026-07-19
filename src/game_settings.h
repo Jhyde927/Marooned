@@ -27,6 +27,9 @@ namespace GameSettings
     //Distant FOG:
     inline bool useFog = true;
 
+    //Lighting mode
+    inline bool useDDALighting = false;
+
     //outdoor props, entrances
     inline float treefogStartMenu = 8000.0f; 
     inline float treeFogStart = 8000.0f;

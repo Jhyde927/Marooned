@@ -231,8 +231,6 @@ void StartCutScene(){
     if (CurrentLevelIs("MiddleIsland") && first){ //only show cutscene the first time.
         //hard coded positions
         Cutscenes::StartIslandIntro();
-        //StartIslandIntro(); 
-        //StartIslandWaypointIntro(); //way point intro
         ShaderSetup::gBloom.letterboxTarget = 0.14f;
 
     }else if (CurrentLevelIs("Dungeon1")){
@@ -356,8 +354,6 @@ void InitLevel(LevelData& level, Camera& camera) {
         //instanced grass
         UpdateLoadingScreen(0.10f, "Instancing Grass");
         Grass::GenerateFromHeightmap(heightmap, terrainScale, 25.0f, 0.80f, 10000);
-
-
 
     }else{
         Grass::Clear();
