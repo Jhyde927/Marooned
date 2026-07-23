@@ -300,17 +300,24 @@ void GatherPowerUps(Camera& camera, const std::vector<PowerUpPickup>& powerUps) 
     }
 }
 
-void GatherCollectables(Camera& camera, const std::vector<Collectable>& collectables) {
+void GatherCollectables(const Camera& camera, const std::vector<Collectable>& collectables) {
     for (const Collectable& c : collectables) {
+        if (c.visualType != CollectableVisualType::Billboard)
+            continue;
+
         float dist = Vector3DistanceSqr(camera.position, c.position);
-        
 
         billboardRequests.push_back({
-            Billboard_FacingCamera, 
+            Billboard_FacingCamera,
             c.position,
             c.icon,
-            Rectangle{0, 0, (float)c.icon.width, (float)c.icon.height},
-            Vector2{c.scale,c.scale},
+            Rectangle{
+                0.0f,
+                0.0f,
+                static_cast<float>(c.icon.width),
+                static_cast<float>(c.icon.height)
+            },
+            Vector2{c.scale, c.scale},
             WHITE,
             dist,
             0.0f,
@@ -320,6 +327,27 @@ void GatherCollectables(Camera& camera, const std::vector<Collectable>& collecta
         });
     }
 }
+
+// void GatherCollectables(Camera& camera, const std::vector<Collectable>& collectables) {
+//     for (const Collectable& c : collectables) {
+//         float dist = Vector3DistanceSqr(camera.position, c.position);
+        
+
+//         billboardRequests.push_back({
+//             Billboard_FacingCamera, 
+//             c.position,
+//             c.icon,
+//             Rectangle{0, 0, (float)c.icon.width, (float)c.icon.height},
+//             Vector2{c.scale,c.scale},
+//             WHITE,
+//             dist,
+//             0.0f,
+//             false,
+//             false,
+//             false
+//         });
+//     }
+// }
 
 void GatherSpiderEggDrawRequests(Camera& camera)
 {

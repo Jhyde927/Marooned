@@ -251,12 +251,7 @@ static void DrawDungeonInstancingBatch(DungeonInstancingBatch& batch)
 
     SetDungeonInstancingShaderValues(batch);
 
-    DrawMeshInstanced(
-        batch.mesh,
-        batch.material,
-        batch.transforms.data(),
-        (int)batch.transforms.size()
-    );
+    DrawMeshInstanced(batch.mesh, batch.material, batch.transforms.data(), (int)batch.transforms.size());
 }
 
 // ------------------------------------------------------------

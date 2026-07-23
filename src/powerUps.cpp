@@ -71,21 +71,15 @@ void PowerUpPickup::Draw(const Camera3D& camera)
 
     if (useModel)
     {
-        // --------------------------------------------------
-        // FUTURE 3D MODEL DRAWING
-        // --------------------------------------------------
-        // For later:
-        // DrawModelEx(
-        //     model,
-        //     drawPos,
-        //     Vector3{ 0.0f, 1.0f, 0.0f },   // rotation axis
-        //     rotationY,
-        //     Vector3{ scale, scale, scale },
-        //     WHITE
-        // );
-        //
-        // You could also tint based on type here.
-        // --------------------------------------------------
+
+        DrawModelEx(
+            model,
+            drawPos,
+            Vector3{ 0.0f, 1.0f, 0.0f },   // rotation axis
+            rotationY,
+            Vector3{ scale, scale, scale },
+            DARKGRAY //hardcoded for cannonballs. 
+        );
     }
     else
     {
@@ -119,8 +113,19 @@ bool PowerUpPickup::CheckPickup(Player& player, float pickupRadius)
     float distanceSq = Vector3DistanceSqr(position, player.position);
     float pickupRadiusSq = pickupRadius * pickupRadius;
 
-    if (distanceSq > pickupRadiusSq)
+    if (distanceSq > pickupRadiusSq){
         return false;
+    }
+
+    if (type == PowerUpType::DoubleShot){
+        if (!hasDoubleShot){
+            isCollected = true;
+            hasDoubleShot = true;
+            SoundManager::GetInstance().Play("reload");
+
+        }
+
+    }
 
     PowerUpType oldPowerUp = player.currentPowerUp; //if your currently holding a power up. Swap them. 
     PowerUpType newPowerUp = type;

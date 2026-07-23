@@ -24,8 +24,6 @@
 //As above, so below.
 
 int main() { 
-    //square res and show tutorial are now in game settings. 
-
     if (GameSettings::useVsync) SetConfigFlags(FLAG_VSYNC_HINT); //disable for uncapped frame rate
     
     int screenWidth = GameSettings::squareRes ? 1024 : 1600; //square resolution for youtube shorts...
@@ -49,7 +47,7 @@ int main() {
     ResourceManager::Get().LoadAllResources();
     SoundManager::GetInstance().LoadSounds();
     SoundManager::GetInstance().InitMusic();
-    controlPlayer = true; //start as player //hit ~ for debug mode, hit Tab for freecam in debug mode. 
+    controlPlayer = true; 
 
     float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
     float fovy   = (aspect < (16.0f/9.0f)) ? 50.0f : 45.0f; //bump up FOV if it's narrower than 16x9

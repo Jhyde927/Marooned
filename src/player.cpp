@@ -863,7 +863,7 @@ void PlaySwimOnce()
 
 
 void Player::PlayFootstepSound() {
-    if (player.isSwimming) return;
+    //if (player.isSwimming) return;
     static std::vector<std::string> footstepKeys = { "step1", "step2", "step3", "step4" };
     static int lastIndex = -1;
 
@@ -874,25 +874,28 @@ void Player::PlayFootstepSound() {
 
     lastIndex = index;
     std::string stepKey = footstepKeys[index];
-
+    std::cout << "playing step" << stepKey << "\n";
     SoundManager::GetInstance().Play(stepKey);
 }
 
-void UpdateFootsteps(float deltaTime){
-
-    if (player.isMoving && player.grounded && !player.onBoard) {
+void UpdateFootsteps(float deltaTime)
+{
+    if (player.isMoving && player.grounded && !player.onBoard)
+    {
         player.footstepTimer += deltaTime;
 
-        float interval = player.running ? 0.4f : 0.6f;
+        const float interval = player.running ? 0.2f : 0.3f;
 
-        if (player.footstepTimer >= interval) {
+        if (player.footstepTimer >= interval)
+        {
             player.PlayFootstepSound();
-            player.footstepTimer = 0.0f;
+            player.footstepTimer -= interval;
         }
-    } else {
+    }
+    else if (!player.isMoving || player.onBoard)
+    {
         player.footstepTimer = 0.0f;
     }
-
 }
 
 void UpdateSwimSounds(float deltaTime){

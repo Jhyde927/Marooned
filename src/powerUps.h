@@ -10,7 +10,8 @@ enum class PowerUpType {
     QuadDamage,
     Haste,
     OverHealth,
-    Invulnerability
+    Invulnerability,
+    DoubleShot
 };
 
 struct PowerUpPickup {

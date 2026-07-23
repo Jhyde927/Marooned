@@ -613,7 +613,7 @@ void Weapon::Update(float deltaTime) {
     player.crosshairBloom = Approach(player.crosshairBloom, targetBloom, rate * deltaTime);
 
     // Right-click primes the blunderbuss for a double shot.
-    if (player.activeWeapon == WeaponType::Blunderbuss &&
+    if (hasDoubleShot && player.activeWeapon == WeaponType::Blunderbuss &&
         IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
     {
         StartBlunderbussDoubleLoad(*this);

@@ -148,10 +148,10 @@ std::vector<LevelData> levels = {
         false, //isDungeon
         {entranceToDungeon1, entranceToDungeon3, entranceToDungeon4}, //add entrance struct to level's vector of entrances. 
         0, //current level
-        1, //next level, index 1 for new levels
+        1, //next level,
         {
             { PropType::FirePit,  Vector3{5200.f, 0.0f, -5600.f},  0.f, 100.0f }, // outdoor props
-            { PropType::Boat,     Vector3{-4368.62, -20, -4036.75}}, //Vector3{-3767.0f,-20, 5199.0f}}
+            { PropType::Boat,     Vector3{-4368.62, -20, -4036.75}},
             
         },
         true, //ceiling default is true. doesn't matter for islands. 
@@ -171,7 +171,7 @@ std::vector<LevelData> levels = {
         1, //current level index
         2, //next level index 
         {}, //outdoor props
-        true,
+        true, //ceiling
 
     },
 
@@ -447,24 +447,6 @@ std::vector<LevelData> levels = {
     // },
 
 };
-
-
-    //     {
-    //     "Swamp", 
-    //     "assets/heightmaps/Noise4.png",
-    //     "",
-    //     {5475.0f, 300.0f, -5665.0f},
-    //     0.0f,
-    //     {0.0f, 0, 0.0f},
-    //     5,//raptor count
-    //     false,
-    //     {entranceToDungeon24},
-    //     19, 
-    //     0,
-    //     {{ PropType::Boat,-1343.15, 103.922, -1524.03}},
-    //     false, //ceiling
-   
-    // },
 
 
 

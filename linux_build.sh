@@ -5,7 +5,7 @@ rm -rf build/* Marooned/* Marooned_Linux_x86_64.tar.gz
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 cp -r assets Marooned/
-cp build/marooned Marooned/
+cp build/Marooned Marooned/
 cp credits.txt Marooned/
 
 # Copy Linux libraries

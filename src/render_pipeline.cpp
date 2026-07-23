@@ -153,8 +153,6 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             VegetationInstanced::Draw(camera);
             DrawDungeonGeometry(camera, GameSettings::maxDrawDist);
             DrawOverworldProps();
-
-            // Water only needs this if it is actually transparent/blended.
             DrawWaterPlane();
 
             // Transparent ghost raft LAST-ish
@@ -200,6 +198,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         DrawBullets(camera);
         DrawCollectableWeapons();
         DrawPowerUps(camera);
+        DrawCollectableModels(collectables);
         // transparency last
 
         DrawTransparentDrawRequests(camera);

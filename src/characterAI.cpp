@@ -797,7 +797,6 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 void Character::UpdateZombieAI(float deltaTime, Player& player) {
     float distanceSq = Vector3DistanceSqr(position, player.position);
 
-
     UpdatePlayerVisibility(player.position, deltaTime, 0.0f);
     UpdateTargeting(deltaTime, player, enemyPtrs);
     if (state != CharacterState::Chase) chaseSoundTimer = 0.0f;
@@ -820,6 +819,13 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                 SetPath(start);
                 break;
 
+            }
+
+            if (target && targetCanSee){ //pirate detected, chase pirate. 
+                ChangeState(CharacterState::Chase);
+                currentWorldPath.clear();
+                SetPathTo(target->position);
+                break;
             }
 
 
@@ -2441,6 +2447,11 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 break;
             }
 
+            if (target && targetCanSee){ //zombie target, chase zombie. 
+                ChangeState(CharacterState::Chase);
+                break;
+            }
+
             // Transition to chase if player detected
             if (distanceSq < VISION_ENTER && stateTimer > 1.0f && (playerVisible)) {
                 AlertNearbySkeletons(position, 3000.0f);
@@ -3149,7 +3160,7 @@ void Character::AlertNearbySkeletons(const Vector3& alertOrigin, float radius)
 {
 
     return; //testing if this fixes crashing.
-    
+
     float radiusSq = radius * radius;
 
     for (Character* other : enemyPtrs)

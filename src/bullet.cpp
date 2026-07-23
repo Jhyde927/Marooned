@@ -518,12 +518,6 @@ void DrawHarpoon(const Bullet& b, const Camera& camera)
 }
 
 
-
-
-
-
-
-
 void Bullet::Draw(Camera& camera) const {
     fireEmitter.Draw(camera); //explosion particles
     sparkEmitter.Draw(camera); //firetrail
@@ -539,7 +533,7 @@ void Bullet::Draw(Camera& camera) const {
         
         
     }else if (type == BulletType::Iceball){
-        //actual bullet size is 75, render at 25, maybe iceballs should look bigger as well. 
+        
         DrawModelEx(R.GetModel("iceballModel"), position, { 0, 1, 0 }, spinAngle, { 20.0f, 20.0f, 20.0f }, WHITE);
             
     }else if (type == BulletType::Bolt){
@@ -671,7 +665,7 @@ float Bullet::ComputeDamage()
 
 void Bullet::Explode(Camera& camera) {
     if (!alive) return; 
-    if (type == BulletType::Default) return; //we were calling explode on default bullets some how. likely recycled bullets didn't get reset to defaults
+    if (type == BulletType::Default) return; 
 
     if (!explosionTriggered){
         explosionTriggered = true;

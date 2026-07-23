@@ -194,6 +194,14 @@ void GeneratePowerUps(float Height) {
                 g_powerUps.push_back(powerUp);
             }
 
+            if (EqualsRGB(current, ColorOf(Code::doubleShot))){
+                Vector3 pos = GetDungeonWorldPos(x, y, tileSize, pHeight);
+                PowerUpPickup powerUp = {PowerUpType::DoubleShot, pos, R.GetModel("cannonBalls")};
+                powerUp.useModel = true;
+                powerUp.scale = 10.0f;
+                g_powerUps.push_back(powerUp);
+            }
+
 
 
         }

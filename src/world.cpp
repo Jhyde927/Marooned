@@ -84,6 +84,7 @@ bool hasStaff = false;
 bool hasBlunderbuss = false;
 bool hasCrossbow = false;
 bool hasHarpoon = false;
+bool hasDoubleShot = false;
 float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
@@ -1104,7 +1105,7 @@ void UpdateNPCs(float deltaTime){
 
 void UpdateEnemies(float deltaTime) {
     if (isLoadingLevel) return;
-    if (CameraSystem::Get().GetMode() == CamMode::Cinematic) return;
+    if (CameraSystem::Get().GetMode() == CamMode::Cinematic) return; //dont update enemies when in cutscenes. 
     
     for (Character* e : enemyPtrs){
         e->Update(deltaTime, player);
@@ -1189,6 +1190,23 @@ void DrawKraken(Camera& camera){
 
     for (Tentacle& t : tentacles){
         t.Draw();
+    }
+}
+
+void DrawCollectableModels(const std::vector<Collectable>& collectables)
+{
+    for (const Collectable& c : collectables) {
+        if (c.visualType != CollectableVisualType::Model)
+            continue;
+
+        DrawModelEx(
+            c.model,
+            c.position,
+            Vector3{0.0f, 1.0f, 0.0f},
+            c.modelRotation,
+            Vector3{c.modelScale, c.modelScale, c.modelScale},
+            WHITE
+        );
     }
 }
 
@@ -1690,10 +1708,6 @@ void ClearLevel() {
     cannons.clear();
     g_powerUps.clear();
     player_boat = {};
-
-
-
-
     
      //unload mesh and heightmap when switching levels. if they exist
     if (heightmap.data != nullptr) UnloadImage(heightmap); 
