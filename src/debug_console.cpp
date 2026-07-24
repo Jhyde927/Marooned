@@ -65,7 +65,8 @@ namespace DebugConsole
         const std::string& b,
         const std::string& c,
         const std::string& d,
-        const std::string& e
+        const std::string& e,
+        const std::string& f
     )
     {
         std::string line;
@@ -75,6 +76,7 @@ namespace DebugConsole
         line += PadRight(c, 16);
         line += PadRight(d, 16);
         line += PadRight(e, 16);
+        line += PadRight(f, 16);
         Log(line);
     }
 
@@ -278,6 +280,10 @@ namespace DebugConsole
         {
             CommandThirdPerson();
         }
+        else if (command == "doubleshot")
+        {
+            CommandDoubleShot();
+        }
         else if (command == "ceiling")
         {
             CommandCeiling();
@@ -299,11 +305,11 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:");
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog");
-            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson");
-            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "Clear");
-            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",              "Exit");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",       "Exit");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",         "");
+            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson", "");
+            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "DoubleShot",  "");
+            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "Clear",       "");
 
         }
         else
@@ -600,6 +606,11 @@ namespace DebugConsole
     void CommandOverHealth(){
         Log("Powerup Over Health");
         player.currentPowerUp = PowerUpType::OverHealth;
+    }
+
+    void CommandDoubleShot(){
+        Log("Powerup double shot");
+        hasDoubleShot = true;
     }
 
     void CommandStamina(){

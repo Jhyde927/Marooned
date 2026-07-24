@@ -874,7 +874,6 @@ void Player::PlayFootstepSound() {
 
     lastIndex = index;
     std::string stepKey = footstepKeys[index];
-    std::cout << "playing step" << stepKey << "\n";
     SoundManager::GetInstance().Play(stepKey);
 }
 
@@ -884,7 +883,7 @@ void UpdateFootsteps(float deltaTime)
     {
         player.footstepTimer += deltaTime;
 
-        const float interval = player.running ? 0.2f : 0.3f;
+        const float interval = player.running ? 0.3f : 0.5f;
 
         if (player.footstepTimer >= interval)
         {
@@ -1579,7 +1578,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     }
     else
     {
-        const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
+        const bool falling = (player.velocity.y <= 0.0f);
 
         // Optional extra safety: don't allow snapping UP more than MAX_STEP_UP
         float targetY = player.groundY + player.height / 2.0f;
@@ -1598,6 +1597,7 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
             player.grounded = false;
         }
     }
+
 
     player.previousPosition = player.position;
 

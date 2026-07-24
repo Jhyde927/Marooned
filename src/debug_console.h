@@ -40,6 +40,7 @@ namespace DebugConsole
     void CommandFog();
     void CommandHaste();
     void CommandOverHealth();
+    void CommandDoubleShot();
     void CommandStats();
     void CommandProps();
     void CommandFreecam();

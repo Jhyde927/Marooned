@@ -1597,6 +1597,7 @@ void GiveWeapons(){
     hasCrossbow = true;
     hasHarpoon = true;
     hasStaff = true;
+    hasDoubleShot = true;
     player.activeWeapon = WeaponType::Blunderbuss;
     SoundManager::GetInstance().Play("reload");
 }
