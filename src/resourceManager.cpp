@@ -513,6 +513,7 @@ void ResourceManager::SetLightingShaderValues()
     Model& stool         = R.GetModel("stool");
     Model& bonePile      = R.GetModel("bonePile");
     Model& candelabra    = R.GetModel("candelabra");
+    Model& cannonballs   = R.GetModel("cannonBalls");
     // Model& blunderbuss   = R.GetModel("blunderbuss");
     // Model& crossbow      = R.GetModel("crossbow");
     // Model& crossbowRest  = R.GetModel("crossbowRest");
@@ -543,6 +544,7 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < stool.materialCount;   ++i) stool.materials[i].shader   = lightingShader;
     for (int i = 0; i < bonePile.materialCount;   ++i) bonePile.materials[i].shader   = lightingShader;
     for (int i = 0; i < candelabra.materialCount;   ++i) candelabra.materials[i].shader   = lightingShader;
+    for (int i = 0; i < cannonballs.materialCount;   ++i) cannonballs.materials[i].shader   = lightingShader;
 
 
     // Bind the lightmap texture to EMISSION slot for each model material
@@ -579,6 +581,7 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(stool);
     setLightmap(bonePile);
     setLightmap(candelabra);
+    setLightmap(cannonballs);
     // if (isDungeon){
     //     setLightmap(blunderbuss);
     //     setLightmap(crossbow);

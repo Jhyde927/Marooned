@@ -78,7 +78,7 @@ void PowerUpPickup::Draw(const Camera3D& camera)
             Vector3{ 0.0f, 1.0f, 0.0f },   // rotation axis
             rotationY,
             Vector3{ scale, scale, scale },
-            DARKGRAY //hardcoded for cannonballs. 
+            GRAY //hardcoded for cannonballs. 
         );
     }
     else

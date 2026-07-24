@@ -144,8 +144,17 @@ void HintManager::UpdateTutorial(){
         Clear();
     }
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && player.activeWeapon == WeaponType::Crossbow){
+  
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && (player.activeWeapon == WeaponType::Crossbow || player.activeWeapon == WeaponType::Blunderbuss)){
         Clear();
+    }
+
+    //DoubleShot
+    if (hasDoubleShot && !doubleShotPickup){
+        doubleShotPickup = true;
+        SetMessage("RIGHT CLICK WITH BLUNDERBUSS TO DOUBLE LOAD");
+
     }
 
     
