@@ -52,8 +52,6 @@ namespace SpawnManager
             }
 
         }
-
-
         // gKraken.trigger is set by door[2] opening. This gets rid of the anti chamber we had where the player could safely respawn. 
         if (cutSceneFinished && !startSpawning){  
             startSpawning = true;

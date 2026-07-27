@@ -40,7 +40,8 @@ enum class CharacterState {
 
 enum class SpawnSource {
     Map,
-    Spawner
+    Spawner,
+    Player
 };
 
 struct AnimDesc {

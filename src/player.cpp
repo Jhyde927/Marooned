@@ -1604,7 +1604,10 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 }
 
 void Player::TakeDamage(int amount){
-    if (godMode) return;
+    if (godMode){
+        std::cout << "damage averted\n";
+        return;
+    } 
 
     CameraSystem::Get().Shake(0.004f, 0.25f); // 0.004 barely perceptable
 

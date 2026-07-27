@@ -109,7 +109,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateBullets(camera, dt);
     GatherFrameLights();
     EraseBullets();
-
+    UpdateAggro();
     UpdateDecals(dt);
     UpdateMuzzleFlashes(dt);
 
@@ -178,8 +178,10 @@ void UpdatePlayingFrame(Camera3D& camera, Player& player, float dt, float elapse
     UpdateLevelMusic();
 
     player.godMode = false;
-    if (player.dying || CameraSystem::Get().GetMode() == CamMode::Free)
+    if (player.dying || CameraSystem::Get().GetMode() == CamMode::Free || GameSettings::setGodMode){
         player.godMode = true;
+    }
+
 
     UpdateWeaponBarLayoutOnResize();
     debugControls(camera, dt);

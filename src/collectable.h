@@ -62,10 +62,7 @@ public:
         float modelRotation = 0.0f
     );
 
-    //Texture2d needs to be not a reference, needs to be a copy for transparentDraw
-    //Collectable(CollectableType type, Vector3 position, Texture2D icon, float scale = 100.0f);
     void RebuildBoxes();
-    //void Update(float deltaTime);
     void Update(float dt, const Vector3& playerPos);
     bool CheckPickup(const Vector3& playerPos, float pickupRadius) const;
 };

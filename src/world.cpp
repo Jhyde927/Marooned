@@ -869,8 +869,6 @@ void GenerateEntrances() {
         const DungeonEntrance& e = dungeonEntrances[i];
         Door d{};
         d.position = e.position;
-        // float doorModelOffset = 90.0f * DEG2RAD;
-        // d.rotationY = e.rotationY + doorModelOffset;
         
         d.doorTexture = R.GetTexture("doorTexture");
         d.isOpen = false;
@@ -1105,13 +1103,12 @@ void UpdateNPCs(float deltaTime){
 
 void UpdateEnemies(float deltaTime) {
     if (isLoadingLevel) return;
+    if (GameSettings::freezeAI) return;
     if (CameraSystem::Get().GetMode() == CamMode::Cinematic) return; //dont update enemies when in cutscenes. 
     
     for (Character* e : enemyPtrs){
         e->Update(deltaTime, player);
     }
-
-
 }
 
 void UpdateMuzzleFlashes(float deltaTime) {
@@ -1155,6 +1152,23 @@ void EraseBullets() {
             [](Bullet& b) { return b.IsDone();}),
         activeBullets.end()
     );
+}
+
+
+
+void UpdateAggro(){
+    if (GameSettings::forceGlobalAggro){
+        for (Character* enemy : enemyPtrs){
+            enemy->lastKnownPlayerPos = player.position;
+            enemy->timeSinceLastSeen = 0.0f;
+            // Only wake enemies that aren't already fighting.
+            if (enemy->state == CharacterState::Idle ||
+                enemy->state == CharacterState::Patrol)
+            {
+                enemy->ChangeState(CharacterState::Chase);
+            }
+        }
+    }
 }
 
 

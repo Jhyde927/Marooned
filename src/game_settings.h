@@ -6,6 +6,9 @@ namespace GameSettings
     inline bool showTutorial = true;
     inline bool useVsync = true;
     inline bool drawMinimap = true;
+    inline bool freezeAI = false;
+    inline bool forceGlobalAggro = false;
+    inline bool setGodMode = false;
 
     inline float mouseSensitivity = 0.05f;
 
@@ -45,7 +48,7 @@ namespace GameSettings
     inline float instancedFogStart = 3000.0f;
     inline float instancedFogEnd = 20000.0f;
 
-    //randomized boss mobs. 5 percent chance for a large version of the enemy. 
-    inline int BossPercentage = 5;
+    //randomized boss mobs. 3 percent chance for a large version of the enemy. 
+    inline int BossPercentage = 3;
 
 }

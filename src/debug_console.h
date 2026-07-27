@@ -26,10 +26,13 @@ namespace DebugConsole
     void CommandGod();
     void CommandVegetation();
     void CommandPosition();
+    void CommandChangeLevel(int idx);
     void CommandHealth(int amount);
     void CommandMana(int amount);
     void CommandDoors();
+    void CommandOpenDoors();
     void CommandStamina();
+    void CommandForceAgro();
     void CommandEnemies();
     void CommandStart();
     void CommandEnd();
@@ -46,6 +49,7 @@ namespace DebugConsole
     void CommandFreecam();
     void CommandCeiling();
     void CommandWeapons();
+    void CommandFreezeAI();
     void CommandClear();
     void CommandExit();
 

@@ -186,6 +186,19 @@ namespace DebugConsole
 
             CommandSky(duration);
         }
+        else if (command == "level"){
+            int idx = 0;
+
+            if (words.size() >= 2){
+                if (!TryParseInt(words[1], idx))
+                {
+                    Log("Invalid Index: " + words[1]);
+                    return;
+                }
+            }
+            CommandChangeLevel(idx);
+
+        }
         else if (command == "health")
         {
             int amount = 1; // default amount
@@ -227,6 +240,10 @@ namespace DebugConsole
         else if (command == "doors")
         {
             CommandDoors();
+        }
+        else if (command == "opendoors")
+        {
+            CommandOpenDoors();
         }
         else if (command == "quad")
         {
@@ -276,6 +293,10 @@ namespace DebugConsole
         {
             CommandFreecam();
         }
+        else if (command == "forceaggro")
+        {
+            CommandForceAgro();
+        }
         else if (command == "thirdperson")
         {
             CommandThirdPerson();
@@ -291,7 +312,12 @@ namespace DebugConsole
         else if (command == "weapons")
         {
             CommandWeapons();
-        }else if (command == "fog"){
+        }
+        else if (command == "freezeai")
+        {
+            CommandFreezeAI();
+        }
+        else if (command == "fog"){
             CommandFog();
         }
         else if (command == "clear")
@@ -305,11 +331,11 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:");
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",       "Exit");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",         "");
-            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson", "");
-            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "DoubleShot",  "");
-            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "Clear",       "");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",       "level [index]");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",         "OpenDoors");
+            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson", "ForceAggro");
+            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "DoubleShot",  "Clear");
+            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "FreezeAI",    "Exit");
 
         }
         else
@@ -589,8 +615,16 @@ namespace DebugConsole
     }
 
     void CommandGod(){
-        Log("Toggle God Mode");
-        player.godMode = !player.godMode;
+        GameSettings::setGodMode = !GameSettings::setGodMode;
+
+        Log(std::string("Toggle God Mode: ") +
+            (GameSettings::setGodMode ? "True" : "False"));
+    }
+
+    void CommandOpenDoors()
+    {
+        Log("Opening All Doors");
+        DebugOpenAllDoors();
     }
 
     void CommandQuadDamage(){
@@ -643,6 +677,24 @@ namespace DebugConsole
         Log("Give Keys.");
         GiveKeys();
 
+    }
+
+    void CommandForceAgro(){
+ 
+        GameSettings::forceGlobalAggro = !GameSettings::forceGlobalAggro;
+        Log(std::string("Force Enemy Aggression: ") + 
+            (GameSettings::forceGlobalAggro ? "True" : "False"));
+    }
+
+    void CommandChangeLevel(int idx)
+    {
+        previousLevelIndex = levelIndex;
+
+        pendingLevelIndex = idx;
+        StartFadeOutToLevel(pendingLevelIndex);
+
+        isLoadingLevel = true;
+        currentGameState = GameState::LoadingLevel;
     }
 
     void CommandHealth(int amount)
@@ -701,6 +753,13 @@ namespace DebugConsole
     {
         Log("Give All Weapons.");
         GiveWeapons();
+
+    }
+
+    void CommandFreezeAI()
+    {
+        Log("Toggle Freeze Enemy AI");
+        GameSettings::freezeAI = !GameSettings::freezeAI;
 
     }
 
