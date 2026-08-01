@@ -39,6 +39,10 @@ void UpdateCollectableWeapons(float deltaTime){
             if (cw.type == WeaponType::MagicStaff){
                 hasStaff = true;
                 SoundManager::GetInstance().Play("flame1");
+
+                JournalData::Progress::DiscoverJournalEntry(
+                    JournalData::JournalEntryID::FoundStaff
+                );
             }else if (cw.type == WeaponType::Crossbow){
                 hasCrossbow = true;
                 SoundManager::GetInstance().Play("crossbowReload");
@@ -46,6 +50,10 @@ void UpdateCollectableWeapons(float deltaTime){
             }else if (cw.type == WeaponType::Blunderbuss){
                 hasBlunderbuss = true;
                 SoundManager::GetInstance().Play("reload");
+
+                JournalData::Progress::DiscoverJournalEntry(
+                    JournalData::JournalEntryID::FoundBlunderbuss
+                );
             }
 
             if (player.activeWeapon == WeaponType::None) {

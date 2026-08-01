@@ -238,5 +238,6 @@ public:
     void UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos);
     void AddSwordDecal();
     void HandleSpiderAgro();
+    void UnlockCreature(CharacterType type);
 };
 

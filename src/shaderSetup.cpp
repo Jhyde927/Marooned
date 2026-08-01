@@ -7,9 +7,6 @@
 
 namespace ShaderSetup
 {
-
-
-
     PortalShader      gPortal;
     WaterShader       gWater;
     LavaShader        gLava;
@@ -22,7 +19,60 @@ namespace ShaderSetup
     AlphaCutoutShader gAlpha;
     ShadowShader      gShadow;
     WeaponOutlineFx   gOutline;
+    JournalShader     gJournal;
 
+    //journal_page.fs shader
+
+    void InitJournalShader()
+    {
+        gJournal.shader = R.GetShader("journalShader");
+
+        gJournal.curveAmountLoc =
+            GetShaderLocation(gJournal.shader, "curveAmount");
+
+        gJournal.gutterShadowLoc =
+            GetShaderLocation(gJournal.shader, "gutterShadow");
+
+        gJournal.edgeShadowLoc =
+            GetShaderLocation(gJournal.shader, "edgeShadow");
+
+        gJournal.pageLayersLoc =
+            GetShaderLocation(gJournal.shader, "pageLayers");
+
+
+        float curveAmount = 0.025f;
+        float gutterShadow = 0.075f;
+        float edgeShadow = 0.035f;
+        float pageLayers = 0.025f;
+
+        SetShaderValue(
+            gJournal.shader,
+            gJournal.curveAmountLoc,
+            &curveAmount,
+            SHADER_UNIFORM_FLOAT
+        );
+
+        SetShaderValue(
+            gJournal.shader,
+            gJournal.gutterShadowLoc,
+            &gutterShadow,
+            SHADER_UNIFORM_FLOAT
+        );
+
+        SetShaderValue(
+            gJournal.shader,
+            gJournal.edgeShadowLoc,
+            &edgeShadow,
+            SHADER_UNIFORM_FLOAT
+        );
+
+        SetShaderValue(
+            gJournal.shader,
+            gJournal.pageLayersLoc,
+            &pageLayers,
+            SHADER_UNIFORM_FLOAT
+        );
+    }
 
     //weapon_outline shader
 

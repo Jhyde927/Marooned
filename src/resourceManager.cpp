@@ -291,6 +291,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("grassCard4",          "assets/textures/grassCard4.png");
     R.LoadTexture("cratePile",           "assets/textures/cratePile.png");
     R.LoadTexture("wallBanner",          "assets/sprites/wallBanner.png");
+    R.LoadTexture("paper",               "assets/textures/paper.png");
 
     R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
     R.LoadTexture("raftBody", "assets/sprites/raftBody.png");
@@ -383,6 +384,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("floorInstancedLightingShader", "assets/shaders/floor_instanced_lighting.vs", "assets/shaders/floor_instanced_lighting.fs");
     R.LoadShader("tree_instanced", "assets/shaders/tree_instanced.vs",     "assets/shaders/tree_instanced.fs");
     R.LoadShader("weapon_outline", "assets/shaders/weapon_outline.vs",     "assets/shaders/weapon_outline.fs");
+    R.LoadShader("grayscale",      "",                                     "assets/shaders/grayscale.fs");
+    R.LoadShader("journalShader",  "",                                     "assets/shaders/journal_page.fs");
 
 }
 
@@ -394,6 +397,7 @@ void ResourceManager::SetShaderValues(){
     ShaderSetup::InitAlphaCutout(ShaderSetup::gAlpha);
     ShaderSetup::InitShadowShader(ShaderSetup::gShadow);
     ShaderSetup::InitWeaponOutlineFx();
+    ShaderSetup::InitJournalShader();
 
 }
 

@@ -40,6 +40,7 @@ namespace DebugConsole
     void CommandThirdPerson();
     void CommandKeys();
     void CommandQuadDamage();
+    void CommandUnlockJournal();
     void CommandFog();
     void CommandHaste();
     void CommandOverHealth();

@@ -317,6 +317,10 @@ namespace DebugConsole
         {
             CommandFreezeAI();
         }
+        else if (command == "journal")
+        {
+            CommandUnlockJournal();
+        }
         else if (command == "fog"){
             CommandFog();
         }
@@ -330,9 +334,9 @@ namespace DebugConsole
         }
         else if (command == "help")
         {
-            Log("Commands:");
+            Log("Commands:"); //OpenDoors not shown
             LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",       "level [index]");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",         "OpenDoors");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",         "Journal");
             LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson", "ForceAggro");
             LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "DoubleShot",  "Clear");
             LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "FreezeAI",    "Exit");
@@ -716,16 +720,19 @@ namespace DebugConsole
     }
 
     void CommandThirdPerson(){
-        Log("Toggle Third Person.");
+
         ToggleThirdPerson();
+        CamMode camMode = CameraSystem::Get().GetMode();
+        Log(std::string("Toggle Third Person: ") + 
+            (camMode == CamMode::ThirdPerson ? "True" : "False"));
 
     }
 
     void CommandStats()
     {
-        Log("Toggle Stats.");
-
         showStats = !showStats;
+        Log(std::string("Toggle Stats: ") + 
+            (showStats ? "True" : "False"));
         
     }
 
@@ -737,16 +744,18 @@ namespace DebugConsole
 
     void CommandFreecam()
     {
-        Log("Toggle Freecam.");
         ToggleFreeCam();
+        CamMode camMode = CameraSystem::Get().GetMode();
+        Log(std::string("Toggle Third Person: ") + 
+            (camMode == CamMode::Free ? "True" : "False"));
 
     }
 
     void CommandCeiling()
     {
-        Log("Toggle Ceiling");
         drawCeiling = !drawCeiling;
-
+        Log(std::string("Toggle Ceiling: ") + 
+            (drawCeiling ? "True" : "False"));
     }
 
     void CommandWeapons()
@@ -758,9 +767,16 @@ namespace DebugConsole
 
     void CommandFreezeAI()
     {
-        Log("Toggle Freeze Enemy AI");
         GameSettings::freezeAI = !GameSettings::freezeAI;
+        Log(std::string("Freeze Enemies: ") + 
+            (GameSettings::freezeAI ? "True" : "False"));
 
+    }
+
+    void CommandUnlockJournal()
+    {
+        JournalData::Progress::UnlockAll();
+        Log("Unlocked all journal and creature entries");
     }
 
     void CommandClear(){

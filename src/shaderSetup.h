@@ -26,6 +26,16 @@ namespace ShaderSetup
     };
 
 
+    struct JournalShader
+    {
+        Shader shader;
+        int curveAmountLoc = -1;
+        int gutterShadowLoc = -1;
+        int edgeShadowLoc = -1;
+        int pageLayersLoc = -1;
+
+    };
+
 
     struct ShadowShader 
     {
@@ -326,6 +336,7 @@ namespace ShaderSetup
     extern AlphaCutoutShader gAlpha;
     extern ShadowShader gShadow;
     extern WeaponOutlineFx gOutline;
+    extern JournalShader   gJournal;
 
     //sky shader
     void InitSkyShader(Shader& shader, SkyShader& out, Model& skyModel, bool isDungeon);
@@ -345,6 +356,7 @@ namespace ShaderSetup
     void SetBloomStrength(BloomShader& bs, float strength);
     void UpdateBloomShaderPerFrame(BloomShader& bs, float dt);
 
+    void InitJournalShader();
     void InitWeaponOutlineFx();
 
     //enemy shadows

@@ -163,6 +163,7 @@ void HintManager::UpdateTutorial(){
     if (!harpoonPickup && hasHarpoon){
         harpoonPickup = true;
         SetMessage("RIGHT CLICK WITH CROSSBOW TO FIRE HARPOON");
+        
     }
     //boat 
     if (player_boat.active && player_boat.showMessage && 
@@ -185,6 +186,10 @@ void HintManager::UpdateTutorial(){
             {
                 SetMessage("E TO INTERACT");
                 showingDungeonEntranceHint = true;
+
+                JournalData::Progress::DiscoverJournalEntry(
+                    JournalData::JournalEntryID::FoundRuins
+                );
             }
             else if (showingDungeonEntranceHint && distance > 600.0f)
             {

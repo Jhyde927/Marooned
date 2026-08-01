@@ -630,6 +630,8 @@ void WeaponDip(){
 
 void HandleKeyboardInput(Camera& camera) {
 
+    if (GameSettings::showJournal) return;
+
     player.runSpeed = player.haste ? 1400.0f : 850.0f;
     player.walkSpeed = player.haste ? 1000.0f : 500.0f;
 

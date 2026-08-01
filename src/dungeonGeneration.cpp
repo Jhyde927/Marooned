@@ -2164,7 +2164,7 @@ void GenerateZombiesFromImage(float baseY) {
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
-            
+
             if (EqualsRGB(current, ColorOf(Code::Zombie))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 
@@ -2177,9 +2177,6 @@ void GenerateZombiesFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Zombie
                 );
-
-                zombie.maxHealth = 200;
-                zombie.currentHealth = 200; //at least 2 shots. 4 sword swings 
 
                 zombie.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 3% chance
 

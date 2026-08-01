@@ -359,6 +359,49 @@ void Character::HandleSpiderAgro(){
     }
 }
 
+void Character::UnlockCreature(CharacterType type){
+    switch (type)
+    {
+    case CharacterType::Raptor:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Raptor);
+        break;
+    case CharacterType::Skeleton:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Skeleton);
+        break;
+    case CharacterType::Pirate:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Pirate);
+        break;
+    case CharacterType::Bat:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Bat);
+        break;
+    case CharacterType::Spider:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Spider);
+        break;
+    case CharacterType::GiantSpider:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::GiantSpider);
+        break;
+    case CharacterType::Wizard:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Wizard);
+        break;
+    case CharacterType::Zombie:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Zombie);
+        break;
+    case CharacterType::Trex:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Trex);
+        break;
+    case CharacterType::Pterodactyl:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Dactyl);
+        break;
+    case CharacterType::Ghost:
+        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Ghost);
+        break;
+    
+    default:
+        break;
+    }
+
+}
+
 
 void Character::TakeDamage(int amount) {
     if (isDead) return;
@@ -403,6 +446,8 @@ void Character::TakeDamage(int amount) {
         }
 
         ChangeState(CharacterState::Death);
+
+        UnlockCreature(type);
 
         PlayDeathSound();
 

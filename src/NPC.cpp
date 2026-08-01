@@ -850,6 +850,10 @@ void NPC::PlayTalkLoopForSeconds(float seconds)
     returnRow = 0;
     returnFrame = 0;
     state = NPCState::Talk;
+
+    JournalData::Progress::DiscoverJournalEntry(
+        JournalData::JournalEntryID::MetHermit
+    );
 }
 
 void NPC::PlayTalkOneShot()

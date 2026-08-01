@@ -31,7 +31,7 @@
 #include "grass.h"
 #include "dungeon_props.h"
 #include "dungeonInstancing.h"
-#include "load_timer.h"
+
 
 GameState currentGameState = GameState::Menu;
 MainMenu::State gMenu;
@@ -117,6 +117,7 @@ std::vector<PreviewInfo> levelPreviews;
 
 Raft raft;
 MiniMap miniMap;
+JournalUI journalUI;
 
 using namespace dungeonColors;
 
@@ -335,6 +336,8 @@ void InitLevel(LevelData& level, Camera& camera) {
     DisableCursor();
     isLoadingLevel = true;
     isDungeon = false;
+
+
     
     //Called when starting game and changing level. init the level you pass it. the level is chosen by menu or door's linkedLevelIndex. 
     ClearLevel();//clears everything.
@@ -382,6 +385,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
 
 
+    journalUI.Init();
     dungeonEntrances = level.entrances; //get level entrances from level data
     GenerateEntrances();
     //generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances. 
@@ -667,7 +671,7 @@ void InitRaftCollectables(){
 
 
 void InitDungeonLights(){
-    LoadTimer timer("Init Lights");
+
     UpdateLoadingScreen(.95, "Build Dynamic Lightmap");
     InitDynamicLightmap(dungeonWidth * 4); //128 for 32 pixel map. keep same ratio if bigger map. 
     InitWallDynamicLightmap(dungeonWidth * 4);
@@ -972,7 +976,7 @@ void generateTrex(int amount, Vector3 centerPos, float radius, float minPlayerDi
 
         Trex.maxHealth = 2000;
         Trex.currentHealth = Trex.maxHealth;
-        std::cout << "spawning Trex\n";
+
         enemies.push_back(Trex);
 
         enemyPtrs.push_back(&enemies.back());
@@ -1260,6 +1264,9 @@ void UpdateCollectables(float deltaTime) {
             } else if (collectables[i].type == CollectableType::Harpoon) {
                 hasHarpoon = true;
                 SoundManager::GetInstance().Play("ratchet");
+                JournalData::Progress::DiscoverJournalEntry(
+                    JournalData::JournalEntryID::FoundHarpoon
+                );
 
             } else if (collectables[i].type == CollectableType::raftMast) {
                 raft.hasMast = true;

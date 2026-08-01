@@ -9,6 +9,7 @@ namespace GameSettings
     inline bool freezeAI = false;
     inline bool forceGlobalAggro = false;
     inline bool setGodMode = false;
+    inline bool showJournal = false;
 
     inline float mouseSensitivity = 0.05f;
 

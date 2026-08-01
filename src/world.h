@@ -25,6 +25,7 @@
 #include "cannon.h"
 #include "cannonballPile.h"
 #include "debug_overlay.h"
+#include "JournalUI.h"
 
 enum class GameState {
     Menu,
@@ -51,6 +52,7 @@ extern Vector3 bottomPos;
 
 extern MiniMap miniMap;
 extern Raft raft;
+extern JournalUI journalUI;
 
 extern bool showStats;
 extern bool controlPlayer;

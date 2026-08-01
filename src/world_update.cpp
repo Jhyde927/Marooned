@@ -16,6 +16,7 @@
 #include "debug_console.h"
 #include "grass.h"
 #include "transparentDraw.h"
+#include "JournalUI.h"
 
 
 
@@ -100,6 +101,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     miniMap.Update(dt, player.position);
     PortalSystem::Update(player.position, player.radius, dt);
     DebugConsole::Update(dt);
+    journalUI.Update(dt);
     UpdateEnemies(dt);
     UpdateCannons(dt);
     UpdateKraken(dt);
@@ -144,6 +146,8 @@ static void UpdateGameplayPresentation(Camera3D& camera, Player& player, float d
 
         HandleDungeonTints();
     }
+
+
 
     GatherTransparentDrawRequests(camera, dt);
 

@@ -1,0 +1,372 @@
+#include "journalData.h"
+#include <unordered_set>
+#include <optional>
+
+namespace JournalData
+{
+    namespace
+    {
+        bool hasNewEntry = false;
+        std::unordered_set<CreatureEntryID> discoveredCreatures;
+        std::unordered_set<JournalEntryID> discoveredJournalEntries;
+        std::optional<CreatureEntryID> lastDiscoveredCreature;
+
+        const std::vector<JournalEntry> journalEntries = {
+            {
+                JournalEntryID::WashedAshore,
+                "Washed Ashore",
+                "I've washed ashore on some godforsaken island. "
+                "My ship is gone, and something is moving beyond the trees. "
+                "Luckily I found this crossbow. "
+            },
+            {
+                JournalEntryID::MetHermit,
+                "The Hermit",
+                "I spoke with an old castaway near the campfire. "
+                "He seems half-mad, but he knows these islands better "
+                "than anyone."
+            },
+            {
+                JournalEntryID::FoundRuins,
+                "Beneath the Ruins",
+                "There is something ancient buried beneath this island. "
+                "The entrance descends farther than I can see."
+            },
+            {
+                JournalEntryID::FoundBlunderbuss,
+                "The Blunderbuss",
+                "I found an old blunderbuss. "
+                "It is slow to reload and nearly useless at a distance, but at close range "
+                "its spread shot should tear through almost anything."
+            },
+            {
+                JournalEntryID::FoundHarpoon,
+                "The Harpoon",
+                "I found an attachment for the crossbow. "
+                "It appears to be a harpoon with a rope. "
+                "I could pull enemies toward me, or pull myself toward grapple points! "
+            },
+            {
+                JournalEntryID::FoundStaff,
+                "The Magic Staff",
+                "This old stick is imbued with some kind of elemental magic. "
+                "Casting magic consumes mana. "
+                "Press T to switch from fire to ice. "
+            },
+    
+        };
+
+        const std::vector<CreatureEntry> creatureEntries = {
+            {
+                CreatureEntryID::Raptor,
+                "Raptor",
+                "A fast and highly aggressive predator.Circles its prey before attacking and is rarely found alone.",
+                "",
+                "Low",
+                "Very Fast",
+                "Moderate",
+                "A close blunderbuss blast",
+                "raptorTexture",
+                512,
+                512
+            },
+            {
+                CreatureEntryID::Skeleton,
+                "Skeleton",
+                "The animated remains of some long-dead sailor. Relentlessly Pursues once it catches sight of its target",
+                "", //looks better as one wrapped line. 
+                "Moderate",
+                "Moderate",
+                "Moderate",
+                "Heavy melee attacks",
+                "skeletonSheet",
+                200,
+                200
+            },
+            {
+                CreatureEntryID::Pirate,
+                "Pirate",
+                "A pirate likely searching the dungeons for treasure. fires a musket and attempts to reposition during combat. ",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Attack while it is repositioning",
+                "pirateSheet",
+                200, 
+                200
+            },
+            {
+                CreatureEntryID::Bat,
+                "Bat",
+                "A vampire bat. These things infest the dungeons. Flying targets are harder to hit. ",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "batSheet",
+                200, 
+                200
+            },
+
+            {
+                CreatureEntryID::Zombie,
+                "Zombie",
+                "The animated corps of some poor soul. Zombies may reanimate after death. Unless they are missing a head.",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "zombieSheet",
+                200, 
+                200
+            },
+            {
+                CreatureEntryID::Spider,
+                "Spider",
+                "An abnormally large spider. Spiders have a nasty bite, and may hatch from eggs. ",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "spiderSheet",
+                200, 
+                200
+            },
+            {
+                CreatureEntryID::GiantSpider,
+                "Giant Spider",
+                "An extremely large spider. Giant spider can lay eggs, and retreats when in trouble.",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "GiantSpiderSheet",
+                300, 
+                300
+            },
+            {
+                CreatureEntryID::Wizard,
+                "Wizard",
+                "Insane cultists who practice fire magic. Wizards throw fireballs, and attack with a staff when close. ",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "wizardSheet",
+                400, 
+                400
+            },
+            {
+                CreatureEntryID::Trex,
+                "Tyrannosaurus Rex",
+                "A terrible lizard",
+                "Keep your distance from this fearsome predator. ",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "trexSheet",
+                300, 
+                300
+            },
+            {
+                CreatureEntryID::Dactyl,
+                "Pterodactyl",
+                "A flying dinosaur. Pterodactyls dive bomb you, then retreat back up to altitude.",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "dactylSheet",
+                512, 
+                512
+        
+            },
+            {
+                CreatureEntryID::Ghost,
+                "Ghost",
+                "The spirit of some one long dead. Ghosts attacks siphon health.",
+                "",
+                "Moderate",
+                "Moderate",
+                "High",
+                "Use the sword",
+                "ghostSheet",
+                200, 
+                200
+        
+            },
+
+        };
+    }
+
+
+
+    std::vector<const JournalEntry*> GetDiscoveredJournalEntries()
+    {
+        std::vector<const JournalEntry*> discoveredEntries;
+
+        for (const JournalEntry& entry : journalEntries)
+        {
+            if (Progress::IsJournalEntryDiscovered(entry.id))
+            {
+                discoveredEntries.push_back(&entry);
+            }
+        }
+
+        return discoveredEntries;
+    }
+
+    std::vector<const CreatureEntry*> GetDiscoveredCreatureEntries()
+    {
+        std::vector<const CreatureEntry*> discoveredEntries;
+
+        for (const CreatureEntry& entry : creatureEntries)
+        {
+            if (Progress::IsCreatureDiscovered(entry.id))
+            {
+                discoveredEntries.push_back(&entry);
+            }
+        }
+
+        return discoveredEntries;
+    }
+
+
+    const std::vector<JournalEntry>& GetJournalEntries()
+    {
+        return journalEntries;
+    }
+
+
+
+    bool DiscoverCreature(CreatureEntryID id)
+    {
+        bool newlyDiscovered = discoveredCreatures.insert(id).second;
+
+        if (newlyDiscovered)
+        {
+            lastDiscoveredCreature = id;
+            hasNewEntry = true;
+        }
+
+        return newlyDiscovered;
+    }
+
+    const std::vector<CreatureEntry>& GetCreatureEntries()
+    {
+        return creatureEntries;
+    }
+
+    const JournalEntry* GetJournalEntry(JournalEntryID id)
+    {
+        for (const JournalEntry& entry : journalEntries)
+        {
+            if (entry.id == id)
+                return &entry;
+        }
+
+        return nullptr;
+    }
+
+    const CreatureEntry* GetCreatureEntry(CreatureEntryID id)
+    {
+        for (const CreatureEntry& entry : creatureEntries)
+        {
+            if (entry.id == id)
+                return &entry;
+        }
+
+        return nullptr;
+    }
+
+
+    namespace Progress
+    {
+
+        bool HasNewEntry()
+        {
+            return hasNewEntry;
+        }
+
+        void MarkEntriesSeen()
+        {
+            hasNewEntry = false;
+        }
+
+
+        void UnlockAll()
+        {
+            for (const JournalEntry& entry : journalEntries)
+            {
+                discoveredJournalEntries.insert(entry.id);
+            }
+
+            for (const CreatureEntry& entry : creatureEntries)
+            {
+                discoveredCreatures.insert(entry.id);
+            }
+
+            if (!creatureEntries.empty())
+            {
+                lastDiscoveredCreature = creatureEntries.back().id;
+            }
+        }
+
+
+
+        bool DiscoverJournalEntry(JournalEntryID id)
+        {
+            bool newlyDiscovered = discoveredJournalEntries.insert(id).second;
+
+            if (newlyDiscovered){
+                hasNewEntry = true;
+            }
+
+            return newlyDiscovered;
+        }
+
+        bool IsJournalEntryDiscovered(JournalEntryID id)
+        {
+            return discoveredJournalEntries.count(id) != 0;
+        }
+
+        bool DiscoverCreature(CreatureEntryID id)
+        {
+
+            bool newlyDiscovered = discoveredCreatures.insert(id).second;
+
+            if (newlyDiscovered)
+            {
+                lastDiscoveredCreature = id;
+                hasNewEntry = true;
+            }
+
+            return newlyDiscovered;
+    
+        }
+
+        bool IsCreatureDiscovered(CreatureEntryID id)
+        {
+            return discoveredCreatures.count(id) != 0;
+        }
+
+        const CreatureEntry* GetLastDiscoveredCreature()
+        {
+            if (!lastDiscoveredCreature.has_value())
+            {
+                return nullptr;
+            }
+
+            return GetCreatureEntry(*lastDiscoveredCreature);
+        }
+
+    }
+}
