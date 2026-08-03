@@ -346,6 +346,7 @@ void InitLevel(LevelData& level, Camera& camera) {
     DebugConsole::Init();
     CameraSystem::Get().StopCinematic();
     CameraSystem::Get().SetMode(CamMode::Cinematic);
+    InitTextureSettings(); //set filters on specific textures
     
     levelIndex = level.levelIndex; //update current level index to new level. 
     gCurrentLevelIndex = levelIndex; //save current level globally so we can tell if we are changing levels or resuming. 
@@ -399,11 +400,24 @@ void InitLevel(LevelData& level, Camera& camera) {
        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);     
     }
 
-    if (level.name == "Dungeon1") enteredDungeon1 = true;
+    if (level.name == "Dungeon1"){
+        enteredDungeon1 = true;
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::FoundRuins);
+    } 
+    if (level.name == "Dungeon2"){
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::DeeperStill);
+    }
+
     if (level.name == "Dungeon3") unlockEntrances = true; // unlock entrance 3, lock entrance 1 
+
+
+    if (level.name == "MiddleIsland" && unlockEntrances){
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::Resurface);
+    }
 
     if (level.name == "MiddleIsland" || level.name == "River"){
         InitNPCs();
+
     }
 
     //Vector3(183.531, 322.5, 5095.51)
@@ -1551,8 +1565,51 @@ void DrawReticle(WeaponType& weaponType){
         DrawLineV({ret.x - 6, ret.y}, {ret.x + 6, ret.y}, RAYWHITE);
         DrawLineV({ret.x, ret.y - 6}, {ret.x, ret.y + 6}, RAYWHITE);
     }
-
     
+}
+
+float GetMaxFrameTimeMs()
+{
+    static float maxFrameTimeMs = 0.0f;
+    static float displayedMaxMs = 0.0f;
+    static float timer = 0.0f;
+
+    float deltaTime = GetFrameTime();
+    float frameTimeMs = deltaTime * 1000.0f;
+
+    if (frameTimeMs > maxFrameTimeMs)
+    {
+        maxFrameTimeMs = frameTimeMs;
+    }
+
+    timer += deltaTime;
+
+    if (timer >= 1.0f)
+    {
+        displayedMaxMs = maxFrameTimeMs;
+        maxFrameTimeMs = 0.0f;
+        timer -= 1.0f;
+    }
+
+    return displayedMaxMs;
+}
+
+void InitTextureSettings(){
+    SetTextureFilter(
+        R.GetTexture("borderLeft"),
+        TEXTURE_FILTER_BILINEAR
+    );
+
+    SetTextureFilter(
+        R.GetTexture("borderRight"),
+        TEXTURE_FILTER_BILINEAR
+    );
+
+    SetTextureFilter(
+        R.GetTexture("paper"),
+        TEXTURE_FILTER_BILINEAR
+    );
+
 }
 
 void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
@@ -1564,7 +1621,7 @@ void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
     overlayInfo.useVsync = GameSettings::useVsync;
     overlayInfo.showCeiling = drawCeiling;
     overlayInfo.fps = GetFPS();
-    
+    overlayInfo.maxFrameTimeMs = GetMaxFrameTimeMs();
     overlayInfo.levelName = levels[gCurrentLevelIndex].name.c_str();
     overlayInfo.levelIndex = gCurrentLevelIndex;
     overlayInfo.drawDistance = GameSettings::maxDrawDist;

@@ -181,6 +181,7 @@ void DrawDebugOverlay(const DebugOverlayInfo& info) {
     };
 
     DrawRow("FPS", TextFormat("%d", info.fps));
+    DrawRow("MaxFrameTime", TextFormat("%.2f", info.maxFrameTimeMs));
     DrawRow("UPTIME", FormatTime(info.elapsedTime));
     DrawRow("VSync", info.useVsync ? "true" : "false");
     DrawRow("FreeCam", info.freeCam ? "true" : "false");

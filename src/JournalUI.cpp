@@ -101,38 +101,7 @@ void JournalUI::OpenCreatureSection()
     }
 }
 
-void JournalUI::ShowJournalEntry(JournalData::JournalEntryID id)
-{
-    currentJournalEntry = JournalData::GetJournalEntry(id);
 
-    if (currentJournalEntry == nullptr)
-    {
-        TraceLog(
-            LOG_WARNING,
-            "Journal entry could not be found: %d",
-            static_cast<int>(id)
-        );
-
-        return;
-    }
-}
-
-// journalUI.cpp
-void JournalUI::ShowCreatureEntry(JournalData::CreatureEntryID id)
-{
-    currentCreatureEntry = JournalData::GetCreatureEntry(id);
-
-    if (currentCreatureEntry == nullptr)
-    {
-        TraceLog(
-            LOG_WARNING,
-            "Creature entry could not be found: %d",
-            static_cast<int>(id)
-        );
-
-        return;
-    }
-}
 
 void JournalUI::PreviousJournalPage()
 {
@@ -276,6 +245,8 @@ void JournalUI::Update(float deltaTime)
     }
 }
 
+
+
 void JournalUI::DrawJournalPrompt()
 {
     if (CameraSystem::Get().GetMode() != CamMode::Player) return;
@@ -356,8 +327,9 @@ void JournalUI::Draw()
     }
 
     Font& pieces = R.GetFont("Pieces");
-    //Font& terminal = R.GetFont("terminal");
     Texture2D& paper = R.GetTexture("paper");
+    Texture2D& borderLeft  = R.GetTexture("borderLeft");
+    Texture2D& borderRight = R.GetTexture("borderRight");
 
     float pageWidth = 550.0f;
     float pageHeight = 650.0f;
@@ -506,22 +478,63 @@ void JournalUI::Draw()
         );
 
         // Main visible pages.
-        DrawTexturePro(
-            paper,
-            source,
-            leftPage,
-            Vector2{0.0f, 0.0f},
+        DrawTexturePro(paper, source, leftPage, {0.0f, 0.0f}, 0.0f, WHITE);
+        DrawTexturePro(paper, source, rightPage, {0.0f, 0.0f}, 0.0f, WHITE);
+
+        // Decorative upper outside corners.
+
+
+
+        Rectangle borderLeftSource{
             0.0f,
-            WHITE
+            0.0f,
+            static_cast<float>(borderLeft.width),
+            static_cast<float>(borderLeft.height)
+        };
+
+        Rectangle borderRightSource{
+            0.0f,
+            0.0f,
+            static_cast<float>(borderRight.width),
+            static_cast<float>(borderRight.height)
+        };
+
+        const float borderSize = 400.0f;
+        const float borderInset  = 0.0f;
+
+
+        Rectangle borderLeftDestination{
+            leftPage.x + borderInset,
+            leftPage.y + borderInset,
+            borderSize,
+            borderSize
+        };
+
+        Rectangle borderRightDestination{
+            rightPage.x + rightPage.width - borderSize - borderInset,
+            rightPage.y + borderInset,
+            borderSize,
+            borderSize
+        };
+
+        Color borderTint{92, 61, 34, 150};
+
+        DrawTexturePro(
+            borderLeft,
+            borderLeftSource,
+            borderLeftDestination,
+            {0.0f, 0.0f},
+            0.0f,
+            borderTint
         );
 
         DrawTexturePro(
-            paper,
-            source,
-            rightPage,
-            Vector2{0.0f, 0.0f},
+            borderRight,
+            borderRightSource,
+            borderRightDestination,
+            {0.0f, 0.0f},
             0.0f,
-            WHITE
+            borderTint
         );
 
 
@@ -943,7 +956,7 @@ void JournalUI::Draw()
         float horizontalMargin = 65.0f * scaleX;
 
         Vector2 bodyPosition{
-            leftPageScreen.x + horizontalMargin,
+            leftPageScreen.x + horizontalMargin + 30.0f * scaleX,
             leftPageScreen.y + 220.0f * scaleY
         };
 
@@ -961,7 +974,7 @@ void JournalUI::Draw()
 
     DrawTextEx(
         pieces,
-        "Q  Previous          Next  E",
+        "<- Q                  E ->",
         Vector2{
             leftPageScreen.x + 65.0f * scaleX,
             leftPageScreen.y + leftPageScreen.height - 55.0f * scaleY
@@ -973,7 +986,7 @@ void JournalUI::Draw()
 
     DrawTextEx(
         pieces,
-        "<  Previous            Next  >",
+        "{<-}                     {->}",
         Vector2{
             rightPageScreen.x + 65.0f * scaleX,
             rightPageScreen.y + rightPageScreen.height - 55.0f * scaleY

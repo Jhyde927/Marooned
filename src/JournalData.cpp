@@ -17,7 +17,8 @@ namespace JournalData
                 "Washed Ashore",
                 "I've washed ashore on some godforsaken island. "
                 "My ship is gone, and something is moving beyond the trees. "
-                "Luckily I found this crossbow. "
+                "Luckily I found this crossbow and sword "
+                "I still have my journal. I should keep a record of my encounters on this strange island."
             },
             {
                 JournalEntryID::MetHermit,
@@ -28,9 +29,10 @@ namespace JournalData
             },
             {
                 JournalEntryID::FoundRuins,
-                "Beneath the Ruins",
-                "There is something ancient buried beneath this island. "
-                "The entrance descends farther than I can see."
+                "Beneath The Island ", 
+                "I found a passage beneath the old ruins. "
+                "The cells suggest this place was once a prison. "
+                "though the tunnels seem far older than the fortress above. Perhaps there is another way out below. "
             },
             {
                 JournalEntryID::FoundBlunderbuss,
@@ -39,6 +41,17 @@ namespace JournalData
                 "It is slow to reload and nearly useless at a distance, but at close range "
                 "its spread shot should tear through almost anything."
             },
+
+
+            {
+                JournalEntryID::DeeperStill,
+                "Deeper Still",
+                "How deep do these dungeons go? "
+                "I thought I had found the exit, but the passage only led farther underground. "
+                "Theres nothing to do now but keep descending."
+            },
+
+
             {
                 JournalEntryID::FoundHarpoon,
                 "The Harpoon",
@@ -46,6 +59,25 @@ namespace JournalData
                 "It appears to be a harpoon with a rope. "
                 "I could pull enemies toward me, or pull myself toward grapple points! "
             },
+
+            //return to surface
+            {
+                JournalEntryID::Resurface,
+                "Resurface",
+                "I found the exit, and made my way to the surface."
+                "I came out on the other side of the island. "
+                "I should investigate the other islands.  "
+            },
+
+           {
+                JournalEntryID::DoubleShot,
+                "Double Load",
+                "I can now double load the blunderbuss. "
+                "It's dangerous, and takes some extra time to load. "
+                "But it should shred anything in its path.  "
+            },
+                
+
             {
                 JournalEntryID::FoundStaff,
                 "The Magic Staff",

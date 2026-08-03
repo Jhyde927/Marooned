@@ -189,3 +189,4 @@ void InitBootScreen(float screenWidth, float screenHeight);
 void ToggleThirdPerson();
 void DrawCollectableModels(const std::vector<Collectable>& collectables);
 void UpdateAggro();
+void InitTextureSettings();

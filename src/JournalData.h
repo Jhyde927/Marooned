@@ -12,7 +12,10 @@ namespace JournalData
         MetHermit,
         FoundRuins,
         FoundBlunderbuss,
+        DeeperStill,
         FoundHarpoon,
+        Resurface,
+        DoubleShot,
         FoundStaff,
 
         Count

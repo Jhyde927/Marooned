@@ -6,6 +6,7 @@
 
 struct DebugOverlayInfo {
     // Core
+    float maxFrameTimeMs = 0.0f;
     float elapsedTime = 0.0f;
     bool freeCam = false;
     bool useVsync = false;

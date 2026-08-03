@@ -94,7 +94,10 @@ namespace Cutscenes {
 
     void StartIslandIntro(){
         CutsceneDesc intro;
+        //Vector3(13422.7, 1958.22, -10663)
 
+        Vector3 oceanStart = {15422.0f, 2000.0f, -12663.0f};
+        //Vector3 islandStart = { -10845.8, 2000.0, 2969.99 };
         Vector3 playerForward = GetForwardFromYaw(player.startRotationY);
 
         Vector3 playerViewTarget = Vector3Add(
@@ -102,7 +105,7 @@ namespace Cutscenes {
             Vector3Scale(playerForward, 10000.0f)
         );
 
-        intro.startPos = { -10845.8, 2000.0, 2969.99 };
+        intro.startPos = oceanStart;//{ -10845.8, 2000.0, 2969.99 };
         intro.endPos = player.position;
         intro.endTarget = playerViewTarget;
 
@@ -113,7 +116,7 @@ namespace Cutscenes {
 
         intro.duration = 25.0f;
         intro.arcHeight = 2500.0f;
-        intro.pathType = CutscenePathType::ArcY;
+        intro.pathType = CutscenePathType::Line;
         intro.returnToPlayerOnFinish = true;
 
         intro.mergeToPlayerViewAtEnd = true;

@@ -12,8 +12,6 @@ public:
     void DrawJournalPrompt();
     void OpenCreatureSection();
     void OpenJournalSection();
-    void ShowJournalEntry(JournalData::JournalEntryID id);
-    void ShowCreatureEntry(JournalData::CreatureEntryID id);
 
     void PreviousJournalPage();
     void NextJournalPage();

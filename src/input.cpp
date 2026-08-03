@@ -60,11 +60,7 @@ void debugControls(Camera& camera, float deltaTime){
         ToggleThirdPerson();
     }
 
-    if (IsKeyPressed(KEY_L)) {
-        journalUI.ShowJournalEntry(
-            JournalData::JournalEntryID::MetHermit
-        );
-    }
+
 
 
 

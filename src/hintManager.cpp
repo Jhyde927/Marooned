@@ -154,6 +154,7 @@ void HintManager::UpdateTutorial(){
     if (hasDoubleShot && !doubleShotPickup){
         doubleShotPickup = true;
         SetMessage("RIGHT CLICK WITH BLUNDERBUSS TO DOUBLE LOAD");
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::DoubleShot);
 
     }
 
@@ -187,9 +188,6 @@ void HintManager::UpdateTutorial(){
                 SetMessage("E TO INTERACT");
                 showingDungeonEntranceHint = true;
 
-                JournalData::Progress::DiscoverJournalEntry(
-                    JournalData::JournalEntryID::FoundRuins
-                );
             }
             else if (showingDungeonEntranceHint && distance > 600.0f)
             {
