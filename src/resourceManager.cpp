@@ -231,7 +231,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("doorTexture",        "assets/sprites/Door.png");
     R.LoadTexture("healthPotTexture",   "assets/sprites/Healthpot.png");
     R.LoadTexture("keyTexture",         "assets/sprites/key.png");
-    R.LoadTexture("swordBloody",        "assets/textures/swordBloody.png");
+    R.LoadTexture("swordBloody",        "assets/textures/swordBloody2.png");
     R.LoadTexture("swordClean",         "assets/textures/swordClean.png");
     R.LoadTexture("fireSheet",          "assets/sprites/fireSheet.png");
     R.LoadTexture("pirateSheet",        "assets/sprites/pirateSheet.png");
@@ -388,10 +388,6 @@ void ResourceManager::LoadAllResources() {
     R.LoadShader("weapon_outline", "assets/shaders/weapon_outline.vs",     "assets/shaders/weapon_outline.fs");
     R.LoadShader("grayscale",      "",                                     "assets/shaders/grayscale.fs");
     R.LoadShader("journalShader",  "",                                     "assets/shaders/journal_page.fs");
-
-
-    
-
 
 }
 

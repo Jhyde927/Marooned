@@ -5,13 +5,13 @@
 
 class Player;
 
-enum class PowerUpType {
-    None,
-    QuadDamage,
-    Haste,
-    OverHealth,
-    Invulnerability,
-    DoubleShot
+enum class PowerUpType
+{
+    None       = 0,
+    QuadDamage = 1,
+    Haste      = 2,
+    OverHealth = 3,
+    DoubleShot = 4
 };
 
 struct PowerUpPickup {

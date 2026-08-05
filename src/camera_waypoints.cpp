@@ -282,13 +282,10 @@ namespace Cutscenes {
         Vector3 playerCamTarget;
         camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
         const float camY = 300.0f;  
-        //semi circle the spider. 
+        
         Vector3 p0 = DungeonTileCenter(28, 17, dungeonWidth, dungeonHeight, tileSize, camY);
         Vector3 p1 = DungeonTileCenter(27,  23, dungeonWidth, dungeonHeight, tileSize, camY);
         Vector3 p2 = DungeonTileCenter(21,  23, dungeonWidth, dungeonHeight, tileSize, camY);
-
-        Vector3 p3 = DungeonTileCenter(14,  24, dungeonWidth, dungeonHeight, tileSize, camY);
-        Vector3 p4 = DungeonTileCenter(15,  29, dungeonWidth, dungeonHeight, tileSize, camY);
 
         WaypointCutsceneDesc desc;
         desc.snapOnStart = true;
@@ -314,15 +311,15 @@ namespace Cutscenes {
         desc.points.push_back(w2);
 
         CameraWaypoint w3;
-        w3.position = p3;
+        w3.position = p1;
         w3.target = giantSpiderPos;
         w3.durationToNext = 6.0f;
         desc.points.push_back(w3);
 
 
         CameraWaypoint w4;
-        w4.position = p4;
-        w4.target = giantSpiderPos;
+        w4.position = p0;
+        w4.target = p1;
         w4.durationToNext = 0.0f;
         desc.points.push_back(w4);
 

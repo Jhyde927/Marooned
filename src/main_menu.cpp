@@ -7,6 +7,55 @@
 #include "raylib.h"
 #include "rlgl.h"
 #include "game_settings.h"
+#include <algorithm>
+#include "saveGame.h"
+
+void CycleDiscoveredLevel(int& levelIndex, int direction, int levelsCount)
+{
+    // Remove invalid saved indices, or simply ignore them here.
+    std::vector<int> availableLevels;
+
+    for (int index : save.discoveredLevels)
+    {
+        if (index >= 0 && index < levelsCount)
+        {
+            availableLevels.push_back(index);
+        }
+    }
+
+    // A new or damaged save should at least allow Middle Island.
+    if (availableLevels.empty())
+    {
+        availableLevels.push_back(0);
+    }
+
+    auto it = std::find(
+        availableLevels.begin(),
+        availableLevels.end(),
+        levelIndex);
+
+    int selection = 0;
+
+    if (it != availableLevels.end())
+    {
+        selection = static_cast<int>(
+            std::distance(availableLevels.begin(), it));
+    }
+
+    selection += direction;
+
+    if (selection < 0)
+    {
+        selection = static_cast<int>(availableLevels.size()) - 1;
+    }
+    else if (selection >= static_cast<int>(availableLevels.size()))
+    {
+        selection = 0;
+    }
+
+    // Convert the menu position back into the real levels[] index.
+    levelIndex = availableLevels[selection];
+}
 
 static float optionsInputLockTimer = 0.0f;
 
@@ -746,8 +795,6 @@ namespace MainMenu
 
     std::vector<PreviewInfo> gLevelPreviews;
 
-
-
     MainMenu::Action Update(State& s, float dt, int optionsCount, int& levelIndex, int levelsCount, const Layout& L)
     {
 
@@ -869,6 +916,9 @@ namespace MainMenu
                     //Handled below. Special case for splitting button into 3. 
                     //if (levelsCount > 0) levelIndex = (levelIndex + 1) % levelsCount;
                     //if (!s.showPreview) s.showPreview = true;
+
+                    CycleDiscoveredLevel(levelIndex, 1, levelsCount);
+                    gMenu.currentPreview = GetPreviewForSelectionIndex(levelIndex);
                     return Action::CycleLevel;
                 case 2: 
                     s.showMenu = false;
@@ -935,7 +985,9 @@ namespace MainMenu
                 if (CheckCollisionPointRec(m, rMinus))
                 {
                     // back
-                    levelIndex = (levelIndex - 1 + levelsCount) % levelsCount;
+                    //levelIndex = (levelIndex - 1 + levelsCount) % levelsCount;
+
+                    CycleDiscoveredLevel(levelIndex, -1, levelsCount);
                     if (!s.showPreview) s.showPreview = true;
                     gMenu.currentPreview = GetPreviewForSelectionIndex(levelIndex);
                     TriggerPress();
@@ -944,7 +996,9 @@ namespace MainMenu
                 else if (CheckCollisionPointRec(m, rPlus))
                 {
                     // forward
-                    levelIndex = (levelIndex + 1) % levelsCount;
+                    //levelIndex = (levelIndex + 1) % levelsCount;
+
+                    CycleDiscoveredLevel(levelIndex, 1, levelsCount);
                     if (!s.showPreview) s.showPreview = true;
                     gMenu.currentPreview = GetPreviewForSelectionIndex(levelIndex);
                     TriggerPress();

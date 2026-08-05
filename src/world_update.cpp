@@ -17,7 +17,7 @@
 #include "grass.h"
 #include "transparentDraw.h"
 #include "JournalUI.h"
-
+#include "saveGame.h"
 
 
 void UpdateLevelMusic(){
@@ -63,6 +63,8 @@ void UpdateMenuState(Camera3D& camera, float deltaTime, float elapsedTime)
         return;
 
     RenderMenuFrame(camera);
+
+
 }
 
 
@@ -70,6 +72,13 @@ bool HandleFadeLevelSwap(Camera3D& camera)
 {
     if (gFadePhase != FadePhase::Swapping)
         return false;
+
+    StorePlayerData();
+    StoreJournalData();
+    
+    DiscoverLevel(pendingLevelIndex);
+    save.levelIndex = pendingLevelIndex;
+    SaveGame::Save(save);
 
     InitLevel(levels[pendingLevelIndex], camera);
     pendingLevelIndex = -1;
@@ -102,6 +111,10 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     PortalSystem::Update(player.position, player.radius, dt);
     DebugConsole::Update(dt);
     journalUI.Update(dt);
+
+    CamMode mode = CameraSystem::Get().GetMode(); //dont show fog in cinematic camera. 
+    GameSettings::useFog = (mode != CamMode::Cinematic) ? true : false;
+
     UpdateEnemies(dt);
     UpdateCannons(dt);
     UpdateKraken(dt);

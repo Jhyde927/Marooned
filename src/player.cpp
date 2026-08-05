@@ -865,7 +865,8 @@ void PlaySwimOnce()
 
 
 void Player::PlayFootstepSound() {
-    //if (player.isSwimming) return;
+    if (CameraSystem::Get().GetMode() != CamMode::Player) return; //only play footsteps when in player mode. 
+
     static std::vector<std::string> footstepKeys = { "step1", "step2", "step3", "step4" };
     static int lastIndex = -1;
 

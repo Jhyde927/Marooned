@@ -14,6 +14,7 @@
 #include "sound_manager.h"
 #include "algorithm"
 #include "shaderSetup.h"
+#include "saveGame.h"
 
 WeaponBar gWeaponBar;
 std::vector<SlashEffect> gSlashEffects;
@@ -559,6 +560,14 @@ void UpdateMenu(Camera& camera, float dt)
         CameraSystem::Get().StopCinematic();
         player.canMove = true;
         return;
+    }
+
+    if (IsKeyPressed(KEY_F8))
+    {
+        save = SaveData{};
+        SaveGame::Save(save);
+
+        TraceLog(LOG_INFO, "Save data reset");
     }
 
     // MUST use the same constants as in main_menu.cpp

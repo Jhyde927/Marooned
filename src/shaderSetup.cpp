@@ -1058,8 +1058,6 @@ namespace WeaponModelSetup
 
         WeaponModelSetup::SetWeaponShaders(lightingShader);
         WeaponModelSetup::SetWeaponLightmaps(gDynamic.tex);
-
-        TraceLog(LOG_INFO, "Weapon lighting applied with lightmap texture id %u.", gDynamic.tex.id);
     }
 
     void SetModelShader(Model& model, Shader shader)

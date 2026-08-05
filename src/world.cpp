@@ -31,6 +31,7 @@
 #include "grass.h"
 #include "dungeon_props.h"
 #include "dungeonInstancing.h"
+#include "saveGame.h"
 
 
 GameState currentGameState = GameState::Menu;
@@ -326,7 +327,93 @@ void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
     CreateCeilingMaskTexture(dungeonWidth, dungeonHeight);
 }
 
+void LoadJournalData()
+{
+    for (int value : save.discoveredJournal)
+    {
+        JournalData::Progress::DiscoverJournalEntry(
+            static_cast<JournalData::JournalEntryID>(value));
+    }
 
+    for (int value : save.discoveredCreatures)
+    {
+        JournalData::Progress::DiscoverCreature(
+            static_cast<JournalData::CreatureEntryID>(value));
+    }
+}
+
+void StoreJournalData()
+{
+    save.discoveredJournal.clear();
+    save.discoveredCreatures.clear();
+
+    for (const JournalData::JournalEntry* entry :
+         JournalData::GetDiscoveredJournalEntries())
+    {
+        save.discoveredJournal.push_back(
+            static_cast<int>(entry->id));
+    }
+
+    for (const JournalData::CreatureEntry* entry :
+         JournalData::GetDiscoveredCreatureEntries())
+    {
+        save.discoveredCreatures.push_back(
+            static_cast<int>(entry->id));
+    }
+}
+
+void StorePlayerData()
+{
+    save.healthPotions = player.inventory.GetItemCount("HealthPotion");
+    save.manaPotions = player.inventory.GetItemCount("ManaPotion");
+    save.gold = player.gold;
+
+    save.swordUnlocked = true;
+    save.crossbowUnlocked = hasCrossbow;
+    save.blunderbussUnlocked = hasBlunderbuss;
+    save.magicStaffUnlocked = hasStaff;
+    save.harpoonUnlocked = hasHarpoon;
+    save.doubleShotUnlocked = hasDoubleShot;
+    save.currentPowerUp = static_cast<int>(player.currentPowerUp);
+    save.entrancesUnlocked = unlockEntrances;
+}
+
+void LoadPlayerData(){
+
+    player.inventory.AddItemAmount("HealthPotion", save.healthPotions);
+    player.inventory.AddItemAmount("ManaPotion", save.manaPotions);
+    player.gold = save.gold;
+
+    hasCrossbow = save.crossbowUnlocked;
+    hasBlunderbuss = save.blunderbussUnlocked;
+    hasStaff = save.magicStaffUnlocked;
+    hasDoubleShot = save.doubleShotUnlocked;
+    hasHarpoon = save.harpoonUnlocked;
+
+    if (save.currentPowerUp >= static_cast<int>(PowerUpType::None) &&
+        save.currentPowerUp <= static_cast<int>(PowerUpType::DoubleShot))
+    {
+        player.currentPowerUp =
+            static_cast<PowerUpType>(save.currentPowerUp);
+    }
+    else
+    {
+        player.currentPowerUp = PowerUpType::None;
+    }
+
+    unlockEntrances = save.entrancesUnlocked;
+}
+
+void DiscoverLevel(int levelIndex)
+{
+    if (std::find(
+            save.discoveredLevels.begin(),
+            save.discoveredLevels.end(),
+            levelIndex) == save.discoveredLevels.end())
+    {
+        save.discoveredLevels.push_back(levelIndex);
+    }
+}
 
 
 void InitLevel(LevelData& level, Camera& camera) {
@@ -337,8 +424,6 @@ void InitLevel(LevelData& level, Camera& camera) {
     isLoadingLevel = true;
     isDungeon = false;
 
-
-    
     //Called when starting game and changing level. init the level you pass it. the level is chosen by menu or door's linkedLevelIndex. 
     ClearLevel();//clears everything.
     enemies.reserve(100); 
@@ -384,20 +469,20 @@ void InitLevel(LevelData& level, Camera& camera) {
             hasIslandNav = true;
     }
 
-
-
     journalUI.Init();
     dungeonEntrances = level.entrances; //get level entrances from level data
     GenerateEntrances();
-    //generateVegetation(); //vegetation checks entrance positions. generate after assinging entrances. 
 
     VegetationInstanced::InitShader();
     VegetationInstanced::Generate();
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
 
-    if (level.name == "River" || level.name == "Swamp"){
-       generateDactyls(5, level.raptorSpawnCenter, 6000.0f);     
+    if (level.name == "River"){
+        Vector3 trexPos = {183.0f, 332.0f, 5095.0f};
+        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);  
+        generateTrex(1, trexPos, 10000.0f, 5000.0f); //generate 1 t-rex on river level.  
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::River); 
     }
 
     if (level.name == "Dungeon1"){
@@ -413,6 +498,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     if (level.name == "MiddleIsland" && unlockEntrances){
         JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::Resurface);
+        InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     }
 
     if (level.name == "MiddleIsland" || level.name == "River"){
@@ -420,21 +506,12 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     }
 
-    //Vector3(183.531, 322.5, 5095.51)
-    Vector3 trexPos = {183.0f, 332.0f, 5095.0f};
-    if (level.name == "River") generateTrex(1, trexPos, 10000.0f, 5000.0f); //generate 1 t-rex on river level. 
-
-    
-    InitBoat(player_boat,Vector3{0.0, -75, 0.0});
     InitOverworldWeapons();
     TutorialSetup();
     InitDialogs();
 
-
     ShaderSetup::ApplyLevelDefaultSky();
     ShaderSetup::StartLevelSkyCycle();
-
-    
 
     if (level.isDungeon){
         isDungeon = true;
@@ -443,11 +520,10 @@ void InitLevel(LevelData& level, Camera& camera) {
         
         LoadDungeonLayout(level.dungeonPath);
         ConvertImageToWalkableGrid(dungeonImg);
-       
-        //CreateVoidMaskTexture(dungeonWidth, dungeonHeight);
+    
         PortalSystem::GenerateFromDungeon(dungeonImg, dungeonWidth, dungeonHeight, tileSize, floorHeight);
-        PortalSystem::InitPortalRender(512, 512);
-        PortalSystem::SetTestRenderPairFromGroup(0); // or whichever group has 2 portals
+        // PortalSystem::InitPortalRender(512, 512);
+        // PortalSystem::SetTestRenderPairFromGroup(0); // or whichever group has 2 portals
 
         if (!CurrentLevelIs("Ship")) ShaderSetup::gSky.skyTransition = 1.0f;
         ApplyLevelLighting(level.name);
@@ -539,6 +615,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     StartCutScene();
 
+    
     first = false;
     
 
@@ -738,14 +815,6 @@ void DrawDungeonWaterPlane(){
 
 void DrawWaterPlane()
 {
-    // float dungeonWorldWidth  = dungeonWidth  * tileSize;
-    // float dungeonWorldHeight = dungeonHeight * tileSize;
-
-    // Vector3 dungeonCenter = {
-    //     dungeonWorldWidth  * 0.5f,
-    //     -8.0f,
-    //     dungeonWorldHeight * 0.5f
-    // };
 
     DrawModel(R.GetModel("waterModel"), Vector3{0, 0, 0}, 1.0f, WHITE);
 }

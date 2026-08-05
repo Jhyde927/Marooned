@@ -77,7 +77,7 @@ void main()
     // This usually blends better with horizon/sky.
     //vec3 finalRGB = mix(waterColor, skyColor, fade * 0.65);
 
-    vec3 finalRGB = mix(waterColor, skyColor, fade);
+    vec3 finalRGB = waterColor;//mix(waterColor, skyColor, fade);
 
 
     finalColor = vec4(finalRGB, 1.0);

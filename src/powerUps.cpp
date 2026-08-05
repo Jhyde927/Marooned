@@ -71,8 +71,6 @@ void PowerUpPickup::Draw(const Camera3D& camera)
 
     if (useModel)
     {
-
-
         //outline shader
         DrawModelEx(
             model,

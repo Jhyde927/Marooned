@@ -20,6 +20,7 @@
 #include "spawn_manager.h"
 #include "world_update.h"
 #include "game_settings.h"
+#include "saveGame.h"
 
 //As above, so below.
 
@@ -58,9 +59,15 @@ int main() {
 
     MainMenu::gLevelPreviews = BuildLevelPreviews(true);
     InitMenuLevel(levels[0]);
-    levelIndex = LoadLastLevel();
+    //levelIndex = LoadLastLevel();
 
-    if (LoadLastLevel() > 0){//dont show preview for middle island. 
+    save = SaveGame::Load();
+    levelIndex = save.levelIndex;
+    LoadPlayerData();
+    LoadJournalData();
+    
+
+    if (levelIndex > 0){//dont show preview for middle island. 
         MainMenu::InitLevelPreviewFromSavedLevel();
     }
 
@@ -103,8 +110,8 @@ int main() {
     }
 
 
-    SaveLastLevel(gCurrentLevelIndex); //last level that was actually loaded.
-
+    //SaveLastLevel(gCurrentLevelIndex); //last level that was actually loaded.
+    save.levelIndex = gCurrentLevelIndex;
     // Cleanup
     ClearLevel();
     ResourceManager::Get().UnloadAll();

@@ -3,6 +3,7 @@
 #include <sstream>
 #include "world.h"
 #include "boat.h"
+#include "sound_manager.h"
 
 // ------------------------- Utilities -------------------------
 static float clampf(float x, float a, float b) { return (x < a) ? a : (x > b) ? b : x; }
@@ -84,6 +85,8 @@ void HintManager::Update(float dt) {
 
 void HintManager::UpdateTutorial(){
 
+    static bool checkMana = true;
+
     if (player.isMoving && currentIndex == 0){//movement check
         Advance();
     }
@@ -117,9 +120,9 @@ void HintManager::UpdateTutorial(){
         SetMessage("PRESS F TO USE HEALTH POTION");
     }
 
-    if (player.currentMana < 30 && currentIndex == -1 && player.inventory.HasItem("ManaPotion")){ //low mana check gets in the way. 
-        //do a one time check here. 
+    if (player.currentMana < 30 && currentIndex == -1 && player.inventory.HasItem("ManaPotion") && checkMana){ //low mana check gets in the way. 
         SetMessage("PRESS G TO USE MANA POTION");
+        checkMana = false;
         
     }
 
@@ -155,6 +158,7 @@ void HintManager::UpdateTutorial(){
         doubleShotPickup = true;
         SetMessage("RIGHT CLICK WITH BLUNDERBUSS TO DOUBLE LOAD");
         JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::DoubleShot);
+        SoundManager::GetInstance().Play("reload");
 
     }
 

@@ -79,12 +79,21 @@ namespace JournalData
                 
 
             {
+                JournalEntryID::River,
+                "The Jungle",
+                "I've returned to the surface. I'm on a completely different island. "
+                "The local wild life seems hostile.  "
+                "I need to find the exit before these reptiles tear me apart. "
+            },
+
+            {
                 JournalEntryID::FoundStaff,
                 "The Magic Staff",
                 "This old stick is imbued with some kind of elemental magic. "
                 "Casting magic consumes mana. "
                 "Press T to switch from fire to ice. "
             },
+
     
         };
 

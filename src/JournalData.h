@@ -8,17 +8,18 @@ namespace JournalData
 {
     enum class JournalEntryID
     {
-        WashedAshore,
-        MetHermit,
-        FoundRuins,
-        FoundBlunderbuss,
-        DeeperStill,
-        FoundHarpoon,
-        Resurface,
-        DoubleShot,
-        FoundStaff,
+        WashedAshore     = 0,
+        MetHermit        = 1,
+        FoundRuins       = 2,
+        FoundBlunderbuss = 3,
+        DeeperStill      = 4,
+        FoundHarpoon     = 5,
+        Resurface        = 6,
+        DoubleShot       = 7,
+        River            = 8,
+        FoundStaff       = 9,
 
-        Count
+        Count            = 10
     };
 
     enum class CreatureEntryID
@@ -92,6 +93,8 @@ namespace JournalData
         bool DiscoverCreature(CreatureEntryID id);
         bool IsCreatureDiscovered(CreatureEntryID id);
         const CreatureEntry* GetLastDiscoveredCreature();
+
+
   
     }
 
