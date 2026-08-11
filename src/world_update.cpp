@@ -73,10 +73,9 @@ bool HandleFadeLevelSwap(Camera3D& camera)
     if (gFadePhase != FadePhase::Swapping)
         return false;
 
-    StorePlayerData();
-    StoreJournalData();
-    
-    DiscoverLevel(pendingLevelIndex);
+    SaveGame::StorePlayerData();
+    SaveGame::StoreJournalData();
+    SaveGame::DiscoverLevel(pendingLevelIndex);
     save.levelIndex = pendingLevelIndex;
     SaveGame::Save(save);
 
@@ -112,8 +111,9 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     DebugConsole::Update(dt);
     journalUI.Update(dt);
 
-    CamMode mode = CameraSystem::Get().GetMode(); //dont show fog in cinematic camera. 
-    GameSettings::useFog = (mode != CamMode::Cinematic) ? true : false;
+    // CamMode mode = CameraSystem::Get().GetMode(); //dont show fog in cinematic camera. 
+    // GameSettings::useFog = (mode != CamMode::Cinematic) ? true : false;
+    //Toggle fog at the beginning of the cutscene then toggle it back on. 
 
     UpdateEnemies(dt);
     UpdateCannons(dt);

@@ -95,8 +95,9 @@ namespace Cutscenes {
     void StartIslandIntro(){
         CutsceneDesc intro;
         //Vector3(13422.7, 1958.22, -10663)
-
-        Vector3 oceanStart = {15422.0f, 2000.0f, -12663.0f};
+        GameSettings::useFog = false;
+        //Vector3 oceanStart = {15422.0f, 2000.0f, -12663.0f};
+        Vector3 skyStart = {11038.0f, 10006.0f, -11489.0f};
         //Vector3 islandStart = { -10845.8, 2000.0, 2969.99 };
         Vector3 playerForward = GetForwardFromYaw(player.startRotationY);
 
@@ -105,7 +106,7 @@ namespace Cutscenes {
             Vector3Scale(playerForward, 10000.0f)
         );
 
-        intro.startPos = oceanStart;//{ -10845.8, 2000.0, 2969.99 };
+        intro.startPos = skyStart;//{ -10845.8, 2000.0, 2969.99 };
         intro.endPos = player.position;
         intro.endTarget = playerViewTarget;
 
@@ -114,7 +115,7 @@ namespace Cutscenes {
         intro.target   = { 0.0f, 200.0f, 0.0f };
         intro.lockTarget = true;
 
-        intro.duration = 25.0f;
+        intro.duration = 15.0f;
         intro.arcHeight = 2500.0f;
         intro.pathType = CutscenePathType::Line;
         intro.returnToPlayerOnFinish = true;
@@ -282,7 +283,7 @@ namespace Cutscenes {
         Vector3 playerCamTarget;
         camSys.GetPlayerCameraPose(playerCamPos, playerCamTarget);
         const float camY = 300.0f;  
-        
+
         Vector3 p0 = DungeonTileCenter(28, 17, dungeonWidth, dungeonHeight, tileSize, camY);
         Vector3 p1 = DungeonTileCenter(27,  23, dungeonWidth, dungeonHeight, tileSize, camY);
         Vector3 p2 = DungeonTileCenter(21,  23, dungeonWidth, dungeonHeight, tileSize, camY);
@@ -463,6 +464,7 @@ void CameraSystem::UpdateWaypointCutsceneCam(float dt)
         drawCeiling = levels[gCurrentLevelIndex].hasCeiling;
         ShaderSetup::gBloom.letterboxTarget = 0.0f;
         GameSettings::drawMinimap = true; //turn minimap back on after waypoint cutscene.
+        GameSettings::useFog = true;
         player.canMove = true;
         if (CurrentLevelIs("Ship")) SpawnManager::cutSceneFinished = true; //kraken cut scene finished. 
 

@@ -273,6 +273,11 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("step3", "assets/sounds/step3.ogg");
     SoundManager::GetInstance().LoadSound("step4", "assets/sounds/step4.ogg");
 
+    SoundManager::GetInstance().LoadSound("stoneStep1", "assets/sounds/stoneStep1.ogg");
+    SoundManager::GetInstance().LoadSound("stoneStep2", "assets/sounds/stoneStep2.ogg");
+    SoundManager::GetInstance().LoadSound("stoneStep3", "assets/sounds/stoneStep3.ogg");
+    SoundManager::GetInstance().LoadSound("stoneStep4", "assets/sounds/stoneStep4.ogg");
+
     SoundManager::GetInstance().LoadSound("phit1", "assets/sounds/PlayerHit1.ogg");
     SoundManager::GetInstance().LoadSound("phit2", "assets/sounds/PlayerHit2.ogg");
 

@@ -24,22 +24,21 @@ namespace JournalData
 
     enum class CreatureEntryID
     {
-        Raptor,
-        Skeleton,
-        Pirate,
-        Bat,
-        Zombie,
-        Spider,
-        GiantSpider,
-        Wizard,
-        Trex,
-        Dactyl,
-        Ghost,
+        Raptor      = 0,
+        Skeleton    = 1,
+        Pirate      = 2,
+        Bat         = 3,
+        Zombie      = 4,
+        BloatBat    = 5,
+        Spider      = 6,
+        GiantSpider = 7,
+        Wizard      = 8,
+        Dactyl      = 9,
+        Trex        = 10,
+        bossMob     = 11,
+        kraken      = 12, 
 
-
-
-
-        Count
+        Count       = 13
     };
 
     struct JournalEntry
@@ -56,16 +55,14 @@ namespace JournalData
         std::string name;
         std::string description;
         std::string behavior;
-        std::string durability;
-        std::string speed;
-        std::string threat;
-        std::string weakness;
 
         // ResourceManager texture name or path.
         std::string textureName;
 
         int frameWidth;
         int frameHeight;
+
+        float imageScale = 1.0f;
 
     };
 

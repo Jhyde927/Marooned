@@ -276,7 +276,7 @@ void DrawTerrainGrid(const TerrainGrid& T, const Camera3D& cam, float maxDrawDis
     rlEnableBackfaceCulling();
     bool disableCulling = false;
 
-    int maxChunksToDraw = 500;
+    int maxChunksToDraw = 700;
     static std::vector<ChunkDrawInfo> drawList;
 
     BuildTerrainChunkDrawList(T, cam, maxDrawDist, maxChunksToDraw, disableCulling, drawList, &terrainStats);

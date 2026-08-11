@@ -39,4 +39,13 @@ namespace SaveGame
 {
     SaveData Load();
     void Save(const SaveData& data);
+
+    void StorePlayerData();
+    void LoadPlayerData();
+
+    void StoreJournalData();
+    void LoadJournalData();
+
+    void DiscoverLevel(int levelIndex);
+    void UnlockAllLevels();
 }

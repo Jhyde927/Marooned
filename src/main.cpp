@@ -63,9 +63,8 @@ int main() {
 
     save = SaveGame::Load();
     levelIndex = save.levelIndex;
-    LoadPlayerData();
-    LoadJournalData();
-    
+    SaveGame::LoadPlayerData();
+    SaveGame::LoadJournalData();
 
     if (levelIndex > 0){//dont show preview for middle island. 
         MainMenu::InitLevelPreviewFromSavedLevel();

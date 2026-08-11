@@ -13,6 +13,15 @@
 
 enum class KeyType { None, Gold, Silver, Skeleton, Event };
 
+enum class ChestTreasure
+{
+    GoldKey,
+    Harpoon,
+    DoubleShot,
+    HealthPotion,
+
+};
+
 
 enum class FloorType {
     Normal,
@@ -172,6 +181,9 @@ struct ChestInstance {
     bool animPlaying = false;
     float animFrame = 0.0f;
     bool canDrop = true;
+
+    ChestTreasure treasure = ChestTreasure::GoldKey;
+    float rotation;
 };
 
 struct ShipMast {
@@ -446,4 +458,6 @@ std::vector<BoundingBox> GatherWallBoxesNear(Vector3 desired);
 BoundingBox MakeEntranceDoorBoundingBox(Vector3 position, float rotationY);
 void UpdateDungeonEvents();
 Door* GetClosestDoor(Vector3 position);
+void ConfigureElite(Character& enemy, int normalHealth, int eliteHealth, float normalScale, float eliteScale, bool elitesAllowed);
+void DropChestTreasure(const ChestInstance& chest);
 void ClearDungeon();

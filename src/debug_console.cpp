@@ -11,13 +11,14 @@
 #include "vegetation_instanced.h"
 #include "dungeon_props.h"
 #include <iostream>
+#include "saveGame.h"
 
 namespace DebugConsole
 {
 
     Font gConsoleFont;
     static bool gIsOpen = false;
-
+    bool clearSavePending = false;
     // For later if you want the boot-up screen.
     static bool gHasBooted = false;
 
@@ -169,9 +170,25 @@ namespace DebugConsole
 
         std::string command = ToLower(words[0]);
 
+        if (command == "confirm" && clearSavePending)
+        {
+            CommandClearSave();
+            clearSavePending = false;
+        }
+        else if (clearSavePending)
+        {
+            Log("Save reset cancelled.");
+            clearSavePending = false;
 
-
-        if (command == "sky")
+            // The new command is cancelled too with this version.
+        }
+        else if (command == "clearsave")
+        {
+            clearSavePending = true;
+            Log("WARNING: This will reset all save data.");
+            Log("Type 'confirm' to continue. Any other command will cancel.");
+        }
+        else if (command == "sky")
         {
             int duration = 15; // default duration in seconds
 
@@ -321,8 +338,20 @@ namespace DebugConsole
         {
             CommandUnlockJournal();
         }
+        else if (command == "unlocklevels")
+        {
+            CommandUnlockLevels();
+        }
+        else if (command == "unlockeverything")
+        {
+            CommandUnlockEverything();
+        }
         else if (command == "fog"){
             CommandFog();
+        }
+        else if (command == "clearsave")
+        {
+            CommandClearSave();
         }
         else if (command == "clear")
         {
@@ -335,11 +364,11 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:"); //OpenDoors not shown
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",       "level [index]");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",         "Journal");
-            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson", "ForceAggro");
-            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "DoubleShot",  "Clear");
-            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "FreezeAI",    "Exit");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",            "level [index]");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",              "Journal");
+            LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson",      "ClearSave");
+            LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "unlockLevels",     "Clear");
+            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "unlockEverything", "Exit");
 
         }
         else
@@ -631,6 +660,22 @@ namespace DebugConsole
         DebugOpenAllDoors();
     }
 
+    void CommandUnlockLevels()
+    {
+        Log("Unlocking all levels");
+        SaveGame::UnlockAllLevels();
+        
+    }
+
+    void CommandUnlockEverything()
+    {
+        Log("Unlocking levels, journal, and weapons");
+        SaveGame::UnlockAllLevels();
+        GiveWeapons();
+        JournalData::Progress::UnlockAll();
+
+    }
+
     void CommandQuadDamage(){
         Log("Powerup Quad Damage");
         player.currentPowerUp = PowerUpType::QuadDamage;
@@ -777,6 +822,13 @@ namespace DebugConsole
     {
         JournalData::Progress::UnlockAll();
         Log("Unlocked all journal and creature entries");
+    }
+
+    void CommandClearSave()
+    {
+        Log("Save Data Reset");
+        save = SaveData{};
+        SaveGame::Save(save);
     }
 
     void CommandClear(){

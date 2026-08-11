@@ -4,10 +4,13 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "player.h"
+#include "world.h"
+#include "JournalData.h"
 
 SaveData save;
 
-namespace
+namespace SaveGame
 {
     constexpr const char* SAVE_FILE = "save.txt";
 
@@ -55,6 +58,108 @@ namespace
         }
 
         file << '\n';
+    }
+
+    void LoadJournalData()
+    {
+        for (int value : save.discoveredJournal)
+        {
+            JournalData::Progress::DiscoverJournalEntry(
+                static_cast<JournalData::JournalEntryID>(value));
+        }
+
+        for (int value : save.discoveredCreatures)
+        {
+            JournalData::Progress::DiscoverCreature(
+                static_cast<JournalData::CreatureEntryID>(value));
+        }
+    }
+
+    void StoreJournalData()
+    {
+        save.discoveredJournal.clear();
+        save.discoveredCreatures.clear();
+
+        for (const JournalData::JournalEntry* entry :
+            JournalData::GetDiscoveredJournalEntries())
+        {
+            save.discoveredJournal.push_back(
+                static_cast<int>(entry->id));
+        }
+
+        for (const JournalData::CreatureEntry* entry :
+            JournalData::GetDiscoveredCreatureEntries())
+        {
+            save.discoveredCreatures.push_back(
+                static_cast<int>(entry->id));
+        }
+    }
+
+    void StorePlayerData()
+    {
+        save.healthPotions = player.inventory.GetItemCount("HealthPotion");
+        save.manaPotions = player.inventory.GetItemCount("ManaPotion");
+        save.gold = player.gold;
+
+        save.swordUnlocked = true;
+        save.crossbowUnlocked = hasCrossbow;
+        save.blunderbussUnlocked = hasBlunderbuss;
+        save.magicStaffUnlocked = hasStaff;
+        save.harpoonUnlocked = hasHarpoon;
+        save.doubleShotUnlocked = hasDoubleShot;
+        save.currentPowerUp = static_cast<int>(player.currentPowerUp);
+        save.entrancesUnlocked = unlockEntrances;
+    }
+
+    void LoadPlayerData(){
+
+        player.inventory.AddItemAmount("HealthPotion", save.healthPotions);
+        player.inventory.AddItemAmount("ManaPotion", save.manaPotions);
+        player.gold = save.gold;
+
+        hasCrossbow = save.crossbowUnlocked;
+        hasBlunderbuss = save.blunderbussUnlocked;
+        hasStaff = save.magicStaffUnlocked;
+        hasDoubleShot = save.doubleShotUnlocked;
+        hasHarpoon = save.harpoonUnlocked;
+
+        if (save.currentPowerUp >= static_cast<int>(PowerUpType::None) &&
+            save.currentPowerUp <= static_cast<int>(PowerUpType::DoubleShot))
+        {
+            player.currentPowerUp =
+                static_cast<PowerUpType>(save.currentPowerUp);
+        }
+        else
+        {
+            player.currentPowerUp = PowerUpType::None;
+        }
+
+        unlockEntrances = save.entrancesUnlocked;
+    }
+
+    void DiscoverLevel(int levelIndex)
+    {
+        if (std::find(
+                save.discoveredLevels.begin(),
+                save.discoveredLevels.end(),
+                levelIndex) == save.discoveredLevels.end())
+        {
+            save.discoveredLevels.push_back(levelIndex);
+        }
+    }
+
+    void UnlockAllLevels()
+    {
+        save.discoveredLevels.clear();
+        save.discoveredLevels.reserve(levels.size());
+
+        for (int i = 0; i < static_cast<int>(levels.size()); ++i)
+        {
+            save.discoveredLevels.push_back(i);
+        }
+
+        Save(save);
+
     }
 
 
@@ -111,10 +216,8 @@ SaveData SaveGame::Load()
                 data.doubleShotUnlocked = StringToBool(value);
             else if (key == "entrancesUnlocked")
                 data.entrancesUnlocked = StringToBool(value);
-
             else if (key == "currentPowerUp")
                 data.currentPowerUp = std::stoi(value);
-            
             else if (key == "discoveredJournal")
                 data.discoveredJournal = ParseIntList(value); 
             else if (key == "discoveredCreatures")

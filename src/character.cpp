@@ -392,9 +392,6 @@ void Character::UnlockCreature(CharacterType type){
     case CharacterType::Pterodactyl:
         JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Dactyl);
         break;
-    case CharacterType::Ghost:
-        JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::Ghost);
-        break;
     
     default:
         break;
@@ -450,6 +447,11 @@ void Character::TakeDamage(int amount) {
         UnlockCreature(type);
 
         PlayDeathSound();
+
+        if (isElite){
+            //trigger journal on first elite death.
+            JournalData::Progress::DiscoverCreature(JournalData::CreatureEntryID::bossMob); 
+        }
 
         
      

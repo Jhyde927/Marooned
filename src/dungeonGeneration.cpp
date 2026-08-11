@@ -170,6 +170,26 @@ float ColorAverage(Color c) {
     return ((c.r + c.g + c.b) / 3.0f) / 255.0f;
 }
 
+void ConfigureElite(Character& enemy, int normalHealth, int eliteHealth, float normalScale, float eliteScale, bool elitesAllowed)
+{
+    enemy.isElite =
+        elitesAllowed &&
+        GetRandomValue(0, 99) < GameSettings::BossPercentage;
+
+    if (enemy.isElite)
+    {
+        enemy.maxHealth = eliteHealth;
+        enemy.currentHealth = eliteHealth;
+        enemy.scale = eliteScale;
+    }
+    else
+    {
+        enemy.maxHealth = normalHealth;
+        enemy.currentHealth = normalHealth;
+        enemy.scale = normalScale;
+    }
+}
+
 void GeneratePowerUps(float Height) {
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
@@ -289,47 +309,86 @@ void OpenSecrets(){
     }
 }
 
+void UpdateDungeonChests()
+{
+    constexpr int OPEN_END_FRAME = 10;
 
-void UpdateDungeonChests() {
-    
-    const int OPEN_END_FRAME = 10;
+    for (ChestInstance& chest : chestInstances)
+    {
+        float distToPlayer =
+            Vector3Distance(player.position, chest.position);
 
-    for (ChestInstance& chest : chestInstances) {
-        float distToPlayer = Vector3Distance(player.position, chest.position);
-        if (distToPlayer < 300 && IsKeyPressed(KEY_E) && !chest.open){
+        if (distToPlayer < 300.0f &&
+            IsKeyPressed(KEY_E) &&
+            !chest.open &&
+            !chest.animPlaying)
+        {
             chest.animPlaying = true;
             chest.animFrame = 0.0f;
-
 
             SoundManager::GetInstance().Play("chestOpen");
         }
 
-        if (chest.animPlaying) {
+        if (chest.animPlaying)
+        {
             chest.animFrame += GetFrameTime() * 50.0f;
 
-            if (chest.animFrame > OPEN_END_FRAME) {
+            if (chest.animFrame >= OPEN_END_FRAME)
+            {
                 chest.animFrame = OPEN_END_FRAME;
                 chest.animPlaying = false;
                 chest.open = true;
             }
-
-            UpdateModelAnimation(chest.model, chest.animations[0], (int)chest.animFrame);
-
-            
         }
-        else if (chest.open && chest.canDrop) { //wait until the animation is finished before dropping the item. 
+        else if (chest.open && chest.canDrop)
+        {
             chest.canDrop = false;
-            UpdateModelAnimation(chest.model, chest.animations[0], OPEN_END_FRAME);
-            Vector3 pos = {chest.position.x, chest.position.y + 100, chest.position.z};
-            Collectable key(CollectableType::GoldKey, pos, R.GetTexture("keyTexture"), 100);
-            
-            collectables.push_back(key);
-            
+            DropChestTreasure(chest);
+
         }
-
     }
-
 }
+
+// void UpdateDungeonChests() {
+    
+//     const int OPEN_END_FRAME = 10;
+
+//     for (ChestInstance& chest : chestInstances) {
+//         float distToPlayer = Vector3Distance(player.position, chest.position);
+//         if (distToPlayer < 300 && IsKeyPressed(KEY_E) && !chest.open){
+//             chest.animPlaying = true;
+//             chest.animFrame = 0.0f;
+
+
+//             SoundManager::GetInstance().Play("chestOpen");
+//         }
+
+//         if (chest.animPlaying) {
+//             chest.animFrame += GetFrameTime() * 50.0f;
+
+//             if (chest.animFrame > OPEN_END_FRAME) {
+//                 chest.animFrame = OPEN_END_FRAME;
+//                 chest.animPlaying = false;
+//                 chest.open = true;
+//             }
+
+//             UpdateModelAnimation(chest.model, chest.animations[0], (int)chest.animFrame);
+
+            
+//         }
+//         else if (chest.open && chest.canDrop) { //wait until the animation is finished before dropping the item. 
+//             chest.canDrop = false;
+//             UpdateModelAnimation(chest.model, chest.animations[0], OPEN_END_FRAME);
+//             Vector3 pos = {chest.position.x, chest.position.y + 100, chest.position.z};
+//             Collectable key(CollectableType::GoldKey, pos, R.GetTexture("keyTexture"), 100);
+            
+//             collectables.push_back(key);
+            
+//         }
+
+//     }
+
+// }
 
 static inline Vector3 BoxCenter(const BoundingBox& b)
 {
@@ -1677,11 +1736,85 @@ void GenerateBarrels(float baseY) {
     }
 }
 
+ChestTreasure GetChestTreasure(int levelIndex, int chestIndex)
+{
+    (void) chestIndex; //for later use. 
+    //Chest Index depends on the scan order we iterate the png. Right to left, Top to bottom. This way we can,
+    //set different parameters for specific chests. Like rotation or treasure. 
+    switch (levelIndex)
+    {
+        case 3:
+        {
+            return ChestTreasure::Harpoon;
+        }
+
+        case 7:
+        {
+            return ChestTreasure::DoubleShot;
+        }
+
+        default:
+        {
+            return ChestTreasure::GoldKey;
+        }
+    }
+}
+
+void DropChestTreasure(const ChestInstance& chest)
+{
+    Vector3 pos = {
+        chest.position.x,
+        chest.position.y + 100.0f,
+        chest.position.z
+    };
+
+    switch (chest.treasure)
+    {
+        case ChestTreasure::GoldKey:
+        {
+            collectables.emplace_back(
+                CollectableType::GoldKey,
+                pos,
+                R.GetTexture("keyTexture"),
+                100
+            );
+            break;
+        }
+
+        case ChestTreasure::Harpoon:
+        {
+            JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::FoundHarpoon);
+            hasHarpoon = true;
+            journalUI.Toggle(); //bring up the journal automatically. 
+            break;
+        }
+
+        case ChestTreasure::DoubleShot:
+        {
+            JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::DoubleShot);
+            hasDoubleShot = true;
+            journalUI.Toggle();
+            break;
+        }
+
+        case ChestTreasure::HealthPotion:
+        {
+            collectables.emplace_back(
+                CollectableType::HealthPotion,
+                pos,
+                R.GetTexture("healthPotion"),
+                100
+            );
+            break;
+        }
+
+        // Remaining cases...
+    }
+}
 
 
 
 void GenerateChests(float baseY) {
-    //unused kept for future reference. ModelAnimation example
     chestInstances.clear();
     int chestID = 0;
     for (int y = 0; y < dungeonHeight; y++) {
@@ -1705,6 +1838,12 @@ void GenerateChests(float baseY) {
                     pos.z + halfSize
                 };
 
+                float rotation = 0.0f;
+                if (levelIndex == 7)
+                {
+                    rotation = 90.0f;
+                }
+
                                 // create a unique key for this chest model
                 std::string key = "chestModel#" + std::to_string(chestID++);
 
@@ -1716,6 +1855,8 @@ void GenerateChests(float baseY) {
                 int animCount = 0;
                 ModelAnimation *anims = LoadModelAnimations("assets/models/chest.glb", &animCount);
 
+                int currentChestID = chestID;
+
                 ChestInstance chest = {
                     model,
                     anims,
@@ -1725,7 +1866,10 @@ void GenerateChests(float baseY) {
                     box,
                     false, // open
                     false, // animPlaying
-                    0.0f   // animFrame
+                    0.0f,  // animFrame
+                    true,  // canDrop
+                    GetChestTreasure(levelIndex, currentChestID),
+                    rotation
                 };
 
                 chestInstances.push_back(chest);
@@ -1865,19 +2009,14 @@ void GenerateBatsFromImage(float baseY) {
                     CharacterType::Bat
                 );
 
-
-                bat.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
-
-                if (bat.isElite) {
-                    bat.maxHealth = 300;
-                    bat.currentHealth = bat.maxHealth;
-                    bat.scale = 1.2;
-                }else{
-                    bat.maxHealth = 75;
-                    bat.currentHealth = 75; //1.5 sword attacks
-                    bat.scale = 0.4;
-
-                }
+                ConfigureElite(
+                    bat,
+                    75,                // normal health
+                    300,                // elite health
+                    0.4, // normal scale
+                    1.2f,               // elite scale
+                    levelIndex > 7      // elites allowed
+                );
 
                 bat.id = gEnemyCounter++;
                 bat.bobPhase = Rand01() * 2.0f * PI; //random starting offset
@@ -1912,18 +2051,15 @@ void GenerateSpiderFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Spider
                 );
-      
-                spider.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
 
-                if (spider.isElite){
-                    spider.maxHealth = 300;
-                    spider.currentHealth = spider.maxHealth;
-                    spider.scale = 1.0;
-                }else{
-                    spider.maxHealth = 100;
-                    spider.currentHealth = 100; //2 sword attacks
-
-                }
+                ConfigureElite(
+                    spider,
+                    100,                // normal health
+                    300,                // elite health
+                    spider.baseScale, // normal scale
+                    1.0f,               // elite scale
+                    levelIndex > 7      // elites allowed
+                );
 
                 spider.id = gEnemyCounter++;
                 enemies.push_back(spider);
@@ -1933,8 +2069,6 @@ void GenerateSpiderFromImage(float baseY) {
     }
 
 }
-
-
 
 void SpawnSpiderFromEgg(Vector3 spawnPos){
     Character spider(
@@ -2112,7 +2246,6 @@ void GenerateHermitFromImage(float baseY) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
 
-            // Look for pure red pixels (255, 0, 0) → Skeleton spawn
             if (EqualsRGB(current, ColorOf(Code::Hermit))) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, 250.0f);
                 NPC hermit;
@@ -2178,16 +2311,14 @@ void GenerateZombiesFromImage(float baseY) {
                     CharacterType::Zombie
                 );
 
-                zombie.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 3% chance
-
-                if (zombie.isElite){
-                    zombie.maxHealth = 500;
-                    zombie.currentHealth = 500;
-                    zombie.scale = 1.2;
-                }else{
-                    zombie.maxHealth = 200;
-                    zombie.currentHealth = 200; //at least 2 shots. 4 sword swings 
-                }
+                ConfigureElite(
+                    zombie,
+                    200,                // normal health
+                    500,                // elite health
+                    zombie.baseScale, // normal scale
+                    1.2f,               // elite scale
+                    levelIndex > 7      // elites allowed
+                );
 
                 zombie.id = gEnemyCounter++;
                 
@@ -2200,8 +2331,7 @@ void GenerateZombiesFromImage(float baseY) {
 }
 
 void GenerateSkeletonsFromImage(float baseY) {
-
-
+    
     for (int y = 0; y < dungeonHeight; y++) {
         for (int x = 0; x < dungeonWidth; x++) {
             Color current = dungeonPixels[y * dungeonWidth + x];
@@ -2216,31 +2346,27 @@ void GenerateSkeletonsFromImage(float baseY) {
                     R.GetTexture("skeletonSheet"), 
                     200, 200,         // frame width, height
                     1,                // max frames
-                    0.8f, 0.5f,       // scale, speed
+                    0.8f, 0.5f,       // speed, scale
                     0,                // initial animation frame
                     CharacterType::Skeleton
                 );
-                skeleton.baseScale = 0.8;
-                skeleton.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
 
-                if (skeleton.isElite){
-                    skeleton.maxHealth = 500;
-                    skeleton.currentHealth = 500;
-                    skeleton.scale = 1.2;
-                }else{
-                    skeleton.maxHealth = 200;
-                    skeleton.currentHealth = 200; //at least 2 shots. 4 sword swings 
-                }
+                ConfigureElite(
+                    skeleton,
+                    200,                // normal health
+                    500,                // elite health
+                    skeleton.baseScale, // normal scale
+                    1.2f,               // elite scale
+                    levelIndex > 7      // elites allowed
+                );
 
                 skeleton.id = gEnemyCounter++;
                 
                 enemies.push_back(skeleton);
-                //enemyPtrs.push_back(&enemies.back()); 
+                enemyPtrs.push_back(&enemies.back()); 
             }
         }
     }
-
-
 }
 
 void GeneratePiratesFromImage(float baseY) {
@@ -2263,20 +2389,16 @@ void GeneratePiratesFromImage(float baseY) {
                     0,                // initial animation frame
                     CharacterType::Pirate
                 );
-       
-                pirate.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
 
-                if (pirate.isElite){
-                    
-                    pirate.maxHealth = 800;
-                    pirate.currentHealth = pirate.maxHealth;
-                    pirate.scale = 1.0f;
-                }else{
-                    pirate.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
-                    pirate.currentHealth = 400;
-                }
-
-
+                ConfigureElite(
+                    pirate,
+                    400,                // normal health
+                    800,                // elite health
+                    pirate.baseScale, // normal scale
+                    1.0f,               // elite scale
+                    levelIndex > 7      // elites allowed
+                );
+    
                 pirate.id = gEnemyCounter++;
                 enemies.push_back(pirate);
                 enemyPtrs.push_back(&enemies.back()); 
@@ -2330,19 +2452,16 @@ void GenerateWizardsFromImage(float baseY) {
                     CharacterType::Wizard
                 );
 
-                wizard.isElite = (GetRandomValue(0, 99) < GameSettings::BossPercentage); // 2% chance
+                ConfigureElite(
+                    wizard,
+                    400,                // normal health
+                    1000,                // elite health
+                    wizard.baseScale, // normal scale
+                    0.75f,               // elite scale
+                    levelIndex > 7      // elites allowed
+                );
 
                 if (iceWizard) wizard.iceWizard = true;
-
-                if (wizard.isElite){
-                    wizard.maxHealth = 1000;
-                    wizard.currentHealth = wizard.maxHealth;
-                    wizard.scale = 0.75f;
-                }else{
-                    wizard.maxHealth = 400; // twice as tough as skeletons, at least 3 shots. 8 slices.
-                    wizard.currentHealth = 400;
-                }
-
 
                 wizard.id = gEnemyCounter++;
                 enemies.push_back(wizard);
@@ -2577,7 +2696,9 @@ void GenerateEnemiesFromImage(float dungeonEnemyHeight){
     GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
     GenerateZombiesFromImage(dungeonEnemyHeight);
     GeneratePiratesFromImage(dungeonEnemyHeight);
+
     GenerateWizardsFromImage(dungeonEnemyHeight);
+
     GenerateSpiderFromImage(dungeonEnemyHeight);
     GenerateBatsFromImage(dungeonEnemyHeight);
     GenerateGhostsFromImage(dungeonEnemyHeight);
@@ -2878,18 +2999,45 @@ void DrawBoxes(){
     }
 }
 
+void DrawDungeonChests()
+{
+    for (ChestInstance& chest : chestInstances)
+    {
+        UpdateModelAnimation(
+            chest.model,
+            chest.animations[0],
+            static_cast<int>(chest.animFrame)
+        );
 
-void DrawDungeonChests() {
-   
-    for (const ChestInstance& chest : chestInstances) {
-        Vector3 offsetPos = {chest.position.x, chest.position.y + 20, chest.position.z};
-        if (chest.animFrame > 0){
-            offsetPos.z -= 45;
+        Vector3 offsetPos = {
+            chest.position.x,
+            chest.position.y + 20.0f,
+            chest.position.z
+        };
+
+        if (chest.animFrame > 0.0f)
+        {
+            if (chest.rotation == 90.0f)
+            {
+                offsetPos.x += 45.0f; // Try -= if it moves the wrong way.
+            }
+            else
+            {
+                offsetPos.z -= 45.0f;
+            }
         }
-        DrawModelEx(chest.model, offsetPos, Vector3{0, 1, 0}, 0.0f, Vector3{60.0f, 60.0f, 60.0f}, chest.tint);
+
+        DrawModelEx(
+            chest.model,
+            offsetPos,
+            Vector3{0.0f, 1.0f, 0.0f},
+            chest.rotation,
+            Vector3{60.0f, 60.0f, 60.0f},
+            chest.tint
+        );
     }
-    
 }
+
 
 
 void DebugDrawGrappleBox(){

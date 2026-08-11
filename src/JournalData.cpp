@@ -103,10 +103,6 @@ namespace JournalData
                 "Raptor",
                 "A fast and highly aggressive predator.Circles its prey before attacking and is rarely found alone.",
                 "",
-                "Low",
-                "Very Fast",
-                "Moderate",
-                "A close blunderbuss blast",
                 "raptorTexture",
                 512,
                 512
@@ -114,12 +110,8 @@ namespace JournalData
             {
                 CreatureEntryID::Skeleton,
                 "Skeleton",
-                "The animated remains of some long-dead sailor. Relentlessly Pursues once it catches sight of its target",
+                "The animated remains of some long-dead sailor. Carries a sword and relentlessly pursues its target",
                 "", //looks better as one wrapped line. 
-                "Moderate",
-                "Moderate",
-                "Moderate",
-                "Heavy melee attacks",
                 "skeletonSheet",
                 200,
                 200
@@ -129,10 +121,6 @@ namespace JournalData
                 "Pirate",
                 "A pirate likely searching the dungeons for treasure. fires a musket and attempts to reposition during combat. ",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Attack while it is repositioning",
                 "pirateSheet",
                 200, 
                 200
@@ -142,10 +130,6 @@ namespace JournalData
                 "Bat",
                 "A vampire bat. These things infest the dungeons. Flying targets are harder to hit. ",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
                 "batSheet",
                 200, 
                 200
@@ -156,23 +140,25 @@ namespace JournalData
                 "Zombie",
                 "The animated corps of some poor soul. Zombies may reanimate after death. Unless they are missing a head.",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
                 "zombieSheet",
                 200, 
                 200
             },
             {
+                CreatureEntryID::BloatBat,
+                "Bloat Bat",
+                "A mutated form of the vampire bat. Explodes on death, or within proximity of player. ",
+                "",
+                "bloatBatSheet",
+                200, 
+                200
+            },
+
+            {
                 CreatureEntryID::Spider,
                 "Spider",
                 "An abnormally large spider. Spiders have a nasty bite, and may hatch from eggs. ",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
                 "spiderSheet",
                 200, 
                 200
@@ -182,10 +168,6 @@ namespace JournalData
                 "Giant Spider",
                 "An extremely large spider. Giant spider can lay eggs, and retreats when in trouble.",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
                 "GiantSpiderSheet",
                 300, 
                 300
@@ -195,55 +177,66 @@ namespace JournalData
                 "Wizard",
                 "Insane cultists who practice fire magic. Wizards throw fireballs, and attack with a staff when close. ",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
                 "wizardSheet",
                 400, 
                 400
             },
-            {
-                CreatureEntryID::Trex,
-                "Tyrannosaurus Rex",
-                "A terrible lizard",
-                "Keep your distance from this fearsome predator. ",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
-                "trexSheet",
-                300, 
-                300
-            },
+
             {
                 CreatureEntryID::Dactyl,
                 "Pterodactyl",
                 "A flying dinosaur. Pterodactyls dive bomb you, then retreat back up to altitude.",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
                 "dactylSheet",
                 512, 
                 512
         
             },
             {
-                CreatureEntryID::Ghost,
-                "Ghost",
-                "The spirit of some one long dead. Ghosts attacks siphon health.",
+                CreatureEntryID::Trex,
+                "Tyrannosaurus Rex",
+                "A terrible lizard. Keep your distance from this fearsome predator. ",
                 "",
-                "Moderate",
-                "Moderate",
-                "High",
-                "Use the sword",
-                "ghostSheet",
-                200, 
-                200
-        
+                "trexSheet",
+                300, 
+                300
             },
+
+            {
+                CreatureEntryID::bossMob,
+                "Boss Monsters",
+                "Some of the creatures on this island appear to be overgrown. ",
+                "",
+                "skeletonSheet",
+                200, 
+                200,
+                1.35 //bigger scale for boss mob image
+            },
+
+            {
+                CreatureEntryID::kraken,
+                "Kraken",
+                "A giant squid, intent on sinking the ship. ",
+                "",
+                "krakenShot",
+                860, 
+                860,
+            },
+
+            // { //dont show ghost, it looks ugly
+            //     CreatureEntryID::Ghost,
+            //     "Ghost",
+            //     "The spirit of some one long dead. Ghosts attacks siphon health.",
+            //     "",
+            //     "Moderate",
+            //     "Moderate",
+            //     "High",
+            //     "Use the sword",
+            //     "ghostSheet",
+            //     200, 
+            //     200
+        
+            // },
 
         };
     }

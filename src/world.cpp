@@ -226,8 +226,6 @@ void UpdateShadersPerFrame(float deltaTime,float ElapsedTime, Camera& camera){
 
 
 
-
-
 void StartCutScene(){
     //Middle island intro
 
@@ -303,8 +301,6 @@ int GetParticleCount(){
 
     total += gKraken.bloodEmitter.GetActiveParticleCount();
 
-
-
     return total;
 
 }
@@ -327,93 +323,7 @@ void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
     CreateCeilingMaskTexture(dungeonWidth, dungeonHeight);
 }
 
-void LoadJournalData()
-{
-    for (int value : save.discoveredJournal)
-    {
-        JournalData::Progress::DiscoverJournalEntry(
-            static_cast<JournalData::JournalEntryID>(value));
-    }
 
-    for (int value : save.discoveredCreatures)
-    {
-        JournalData::Progress::DiscoverCreature(
-            static_cast<JournalData::CreatureEntryID>(value));
-    }
-}
-
-void StoreJournalData()
-{
-    save.discoveredJournal.clear();
-    save.discoveredCreatures.clear();
-
-    for (const JournalData::JournalEntry* entry :
-         JournalData::GetDiscoveredJournalEntries())
-    {
-        save.discoveredJournal.push_back(
-            static_cast<int>(entry->id));
-    }
-
-    for (const JournalData::CreatureEntry* entry :
-         JournalData::GetDiscoveredCreatureEntries())
-    {
-        save.discoveredCreatures.push_back(
-            static_cast<int>(entry->id));
-    }
-}
-
-void StorePlayerData()
-{
-    save.healthPotions = player.inventory.GetItemCount("HealthPotion");
-    save.manaPotions = player.inventory.GetItemCount("ManaPotion");
-    save.gold = player.gold;
-
-    save.swordUnlocked = true;
-    save.crossbowUnlocked = hasCrossbow;
-    save.blunderbussUnlocked = hasBlunderbuss;
-    save.magicStaffUnlocked = hasStaff;
-    save.harpoonUnlocked = hasHarpoon;
-    save.doubleShotUnlocked = hasDoubleShot;
-    save.currentPowerUp = static_cast<int>(player.currentPowerUp);
-    save.entrancesUnlocked = unlockEntrances;
-}
-
-void LoadPlayerData(){
-
-    player.inventory.AddItemAmount("HealthPotion", save.healthPotions);
-    player.inventory.AddItemAmount("ManaPotion", save.manaPotions);
-    player.gold = save.gold;
-
-    hasCrossbow = save.crossbowUnlocked;
-    hasBlunderbuss = save.blunderbussUnlocked;
-    hasStaff = save.magicStaffUnlocked;
-    hasDoubleShot = save.doubleShotUnlocked;
-    hasHarpoon = save.harpoonUnlocked;
-
-    if (save.currentPowerUp >= static_cast<int>(PowerUpType::None) &&
-        save.currentPowerUp <= static_cast<int>(PowerUpType::DoubleShot))
-    {
-        player.currentPowerUp =
-            static_cast<PowerUpType>(save.currentPowerUp);
-    }
-    else
-    {
-        player.currentPowerUp = PowerUpType::None;
-    }
-
-    unlockEntrances = save.entrancesUnlocked;
-}
-
-void DiscoverLevel(int levelIndex)
-{
-    if (std::find(
-            save.discoveredLevels.begin(),
-            save.discoveredLevels.end(),
-            levelIndex) == save.discoveredLevels.end())
-    {
-        save.discoveredLevels.push_back(levelIndex);
-    }
-}
 
 
 void InitLevel(LevelData& level, Camera& camera) {
@@ -1141,23 +1051,20 @@ void generateRaptors(int amount, Vector3 centerPos, float radius) {
             spawnPos.y = terrainHeight + spriteHeight / 2.0f;
         }
 
-        //std::cout << "generated raptor\n";
+        //speed then scale. 
 
-        Character raptor(spawnPos, R.GetTexture("raptorTexture"), 512, 512, 1, 0.5f, 0.5f, 0, CharacterType::Raptor);
+        Character raptor(spawnPos, R.GetTexture("raptorTexture"), 512, 512, 1, 0.5f, 0.18f, 0, CharacterType::Raptor);
 
-        raptor.isElite = (GetRandomValue(0, 99) < 15); // 15% chance
-        raptor.baseScale = 0.3; //hack for raptors specifically. 
-        if (raptor.isElite){
-            raptor.maxHealth = 500;
-            raptor.currentHealth = raptor.maxHealth;
-            raptor.scale = 0.3;
-        }else{
-            raptor.scale = 0.18;
-            raptor.maxHealth = 150;
-            raptor.currentHealth = raptor.maxHealth;
+        raptor.baseScale = 0.2f;
 
-        }
-
+        ConfigureElite(
+            raptor,
+            150,                // normal health
+            500,                // elite health
+            raptor.baseScale, // normal scale
+            0.3f,               // elite scale
+            levelIndex > 7      // elites allowed
+        );
 
         raptor.id++;
         enemies.push_back(raptor);

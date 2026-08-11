@@ -294,6 +294,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("paper",               "assets/textures/paper.png");
     R.LoadTexture("borderLeft",          "assets/textures/borderUILeft.png");
     R.LoadTexture("borderRight",         "assets/textures/borderUIRight.png");
+    R.LoadTexture("bloatBatSheet",       "assets/sprites/bloatBatSheet.png");
+    R.LoadTexture("krakenShot",          "assets/sprites/krakenShot.png");
 
     R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
     R.LoadTexture("raftBody", "assets/sprites/raftBody.png");

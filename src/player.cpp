@@ -516,12 +516,6 @@ void HandlePlayerMovement(float deltaTime){
         else                    return target;
     };
 
-    // float accel   = player.grounded ? player.ACCEL_GROUND : player.ACCEL_AIR;
-    // float decel   = player.grounded ? player.DECEL_GROUND : player.FRICTION_AIR;
-
-    // player.velocity.x = approach(player.velocity.x, desiredVel.x, (fabsf(desiredVel.x) > 0.001f) ? accel : decel, dt);
-    // player.velocity.z = approach(player.velocity.z, desiredVel.z, (fabsf(desiredVel.z) > 0.001f) ? accel : decel, dt);
-
     if (player.grounded)
     {
         // const bool hasMoveInput =
@@ -573,7 +567,7 @@ void HandlePlayerMovement(float deltaTime){
     }
 
 
-    const bool falling = (player.velocity.y <= 0.0f) && !player.grounded;
+    const bool falling = player.velocity.y <= 0.1f;
     float halfHeight = (player.height * 0.5);
     float headY = player.position.y + halfHeight;
     float actualCeilingHeight = ceilingHeight + 100.0f;
@@ -586,7 +580,6 @@ void HandlePlayerMovement(float deltaTime){
     if (player.state != PlayerState::Grappling){
 
         float g = falling ? player.GRAVITY * 2 : player.GRAVITY * 2;               // e.g. 2400 (your units)
-        //if (falling) g = player.GRAVITY*2.5;     // e.g. 2.2f
 
         player.velocity.y -= g * dt;
 
@@ -865,9 +858,16 @@ void PlaySwimOnce()
 
 
 void Player::PlayFootstepSound() {
-    if (CameraSystem::Get().GetMode() != CamMode::Player) return; //only play footsteps when in player mode. 
+    if (CameraSystem::Get().GetMode() != CamMode::Player) return; //only play footsteps when in player mode.
+    if (player.isSwimming) return; // dont play footsteps when in water.  
 
-    static std::vector<std::string> footstepKeys = { "step1", "step2", "step3", "step4" };
+    static std::vector<std::string> footstepKeys = { "step1", "step2", "step3", "step4" }; 
+
+    if (isDungeon){
+        footstepKeys = { "stoneStep1", "stoneStep2", "stoneStep3" }; //omit step 4, it's too crunchy
+    }
+
+
     static int lastIndex = -1;
 
     int index;
@@ -886,7 +886,7 @@ void UpdateFootsteps(float deltaTime)
     {
         player.footstepTimer += deltaTime;
 
-        const float interval = player.running ? 0.3f : 0.5f;
+        const float interval = player.running ? 0.35f : 0.55f;
 
         if (player.footstepTimer >= interval)
         {
@@ -1418,134 +1418,213 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     //if (controlPlayer){
     HandleKeyboardInput(camera);
 
-    if (player.state == PlayerState::Grappling) {
+    // === Player movement/state update ===
+    if (player.state == PlayerState::Grappling)
+    {
         UpdatePlayerGrapple(player, deltaTime);
-        // skip normal movement update
-    } else if (player.state == PlayerState::Frozen){
-        if (player.freezeTimer > 0.0){
+    }
+    else if (player.state == PlayerState::Frozen)
+    {
+        if (player.freezeTimer > 0.0f)
+        {
             player.freezeTimer -= deltaTime;
-
-        }else{
+        }
+        else
+        {
             player.state = PlayerState::Normal;
             player.freezeTimer = 0.0f;
             player.canFreeze = true;
         }
-
-
-    }else{
-        if (!player.onBoard) HandlePlayerMovement(deltaTime);
-    } 
-    //}
-
-    // === Ground Check ===
-    float feetY = (player.position.y - player.height * 0.5f);
-    // === Ground Check (multi-sample) ===
-    float footOff = 20.0f; // try 10–40 depending on your tile size / player radius
-
-    Vector3 samples[9] = {
-        FootSample(player,  0,        0),        // center
-
-        FootSample(player, +footOff,  0),        // E
-        FootSample(player, -footOff,  0),        // W
-        FootSample(player,  0,       +footOff),  // N
-        FootSample(player,  0,       -footOff),  // S
-
-        FootSample(player, +footOff, +footOff),  // NE
-        FootSample(player, -footOff, +footOff),  // NW
-        FootSample(player, +footOff, -footOff),  // SE
-        FootSample(player, -footOff, -footOff),  // SW
-    };
-
-    // ---- tuning knobs ----
-    const float SNAP_EPS     = 5.0f;    // feet can be this far above a surface and still "snap"
-    const float MAX_STEP_UP  = 150.0f;   // max allowed step up this frame (prevents wall-climb) -if we only climb halfway up the wall, we fall through the world. 
-
-    // For choosing ground:
-    float bestSupportingGroundY = -99999.0f;
-    int   supportCount = 0;
-
-    // (Optional) if you want to know if ANY foot is over void/lava
-    bool anyOverVoid = false;
-    bool anyOverLava = false;
-
-    // We'll also compute a fallback center groundY (used if supportCount < 2)
-    player.centerGroundY = 0.0f;
-    if (!isDungeon)
-    {
-        player.centerGroundY = GetHeightAtWorldPosition(player.position, heightmap, terrainScale);
     }
     else
     {
-        player.centerGroundY = floorHeight;
-
-        float cx = GetDungeonImageX(player.position.x, tileSize, dungeonWidth);
-        float cy = GetDungeonImageY(player.position.z, tileSize, dungeonHeight);
-
-        if (IsLava(cx, cy)) player.centerGroundY -= LAVA_DROP;
-        if (IsVoid(cx, cy)) player.centerGroundY -= VOID_DROP;
+        if (!player.onBoard)
+        {
+            HandlePlayerMovement(deltaTime);
+        }
     }
 
-    for (Vector3 p : samples)
-    {
-        float gy = 0.0f;
 
-        if (!isDungeon)
+    // ============================================================
+    // Ground check
+    // ============================================================
+
+    const float feetY =
+        player.position.y - player.height * 0.5f;
+
+    // Feet can be slightly above the surface and still land.
+    const float SNAP_EPS = 5.0f;
+
+    // Prevent snapping a large distance upward.
+    const float MAX_STEP_UP = 150.0f;
+
+
+    // ============================================================
+    // Island ground: use only the center heightmap sample
+    // ============================================================
+
+    if (!isDungeon)
+    {
+        player.centerGroundY =
+            GetHeightAtWorldPosition(
+                player.position,
+                heightmap,
+                terrainScale);
+
+        player.groundY = player.centerGroundY;
+
+        // Dungeon-only flags should not carry over onto island maps.
+        player.overVoid = false;
+        player.overLava = false;
+        player.isFallingIntoVoid = false;
+    }
+
+
+    // ============================================================
+    // Dungeon ground: use the nine foot samples
+    // ============================================================
+
+    else
+    {
+        const float footOff = 20.0f;
+
+        Vector3 samples[9] = {
+            FootSample(player,  0,        0),        // Center
+
+            FootSample(player, +footOff,  0),        // East
+            FootSample(player, -footOff,  0),        // West
+            FootSample(player,  0,       +footOff),  // North
+            FootSample(player,  0,       -footOff),  // South
+
+            FootSample(player, +footOff, +footOff),  // Northeast
+            FootSample(player, -footOff, +footOff),  // Northwest
+            FootSample(player, +footOff, -footOff),  // Southeast
+            FootSample(player, -footOff, -footOff),  // Southwest
+        };
+
+        float bestSupportingGroundY = -99999.0f;
+        int supportCount = 0;
+
+        bool anyOverVoid = false;
+        bool anyOverLava = false;
+
+
+        // --------------------------------------------------------
+        // Center dungeon ground
+        // --------------------------------------------------------
+
+        player.centerGroundY = floorHeight;
+
+        float centerImageX =
+            GetDungeonImageX(
+                player.position.x,
+                tileSize,
+                dungeonWidth);
+
+        float centerImageY =
+            GetDungeonImageY(
+                player.position.z,
+                tileSize,
+                dungeonHeight);
+
+        if (IsLava(centerImageX, centerImageY))
         {
-            gy = GetHeightAtWorldPosition(p, heightmap, terrainScale);
+            player.centerGroundY -= LAVA_DROP;
+        }
+
+        if (IsVoid(centerImageX, centerImageY))
+        {
+            player.centerGroundY -= VOID_DROP;
+        }
+
+
+        // --------------------------------------------------------
+        // Dungeon foot samples
+        // --------------------------------------------------------
+
+        for (Vector3 samplePosition : samples)
+        {
+            float groundY = floorHeight;
+
+            float imageX =
+                GetDungeonImageX(
+                    samplePosition.x,
+                    tileSize,
+                    dungeonWidth);
+
+            float imageY =
+                GetDungeonImageY(
+                    samplePosition.z,
+                    tileSize,
+                    dungeonHeight);
+
+            const bool overVoid =
+                IsVoid(imageX, imageY);
+
+            const bool overLava =
+                IsLava(imageX, imageY);
+
+            if (overLava)
+            {
+                groundY -= LAVA_DROP;
+                anyOverLava = true;
+            }
+
+            if (overVoid)
+            {
+                groundY -= VOID_DROP;
+                anyOverVoid = true;
+            }
+
+
+            // Allow normal steps while grounded, but don't let a
+            // foot sample pull the player upward during a jump.
+            const float MAX_STEP_UP_GROUNDED = 25.0f;
+            const float MAX_STEP_UP_AIR = 0.0f;
+
+            const float maxStepUp =
+                player.grounded
+                    ? MAX_STEP_UP_GROUNDED
+                    : MAX_STEP_UP_AIR;
+
+            const float stepUp =
+                groundY - feetY;
+
+            const bool supports =
+                feetY <= groundY + SNAP_EPS &&
+                stepUp <= maxStepUp;
+
+            if (supports)
+            {
+                supportCount++;
+
+                if (groundY > bestSupportingGroundY)
+                {
+                    bestSupportingGroundY = groundY;
+                }
+            }
+        }
+
+
+        // Require five of the nine probes to stand on a platform.
+        if (supportCount >= 5)
+        {
+            player.groundY = bestSupportingGroundY;
         }
         else
         {
-            gy = floorHeight;
-
-            float x = GetDungeonImageX(p.x, tileSize, dungeonWidth);
-            float y = GetDungeonImageY(p.z, tileSize, dungeonHeight);
-
-            bool overVoid = IsVoid(x, y);
-            bool overLava = IsLava(x, y);
-
-            if (overLava) { gy -= LAVA_DROP; anyOverLava = true; }
-            if (overVoid) { gy -= VOID_DROP; anyOverVoid = true; }
+            player.groundY = player.centerGroundY;
         }
 
-        // Use a small step-up only if grounded; otherwise prevent ledge “magnet” mid-jump
-        const float MAX_STEP_UP_GROUNDED = 25.0f;  // your normal step
-        const float MAX_STEP_UP_AIR      = 0.0f;   // basically “don’t step up in air”
-
-        float maxStepUp = player.grounded ? MAX_STEP_UP_GROUNDED : MAX_STEP_UP_AIR;
-        float stepUp = gy - feetY;
-
-        bool supports =
-            (feetY <= gy + SNAP_EPS) &&   // feet are close enough to "land" on it
-            (stepUp <= maxStepUp);      // but not too far above feet (wall/platform side)
-
-        if (supports)
-        {
-            supportCount++;
-            if (gy > bestSupportingGroundY) bestSupportingGroundY = gy;
-        }
-    }
-
-    // Choose groundY:
-    // - need at least 2 supporting probes to "stand" on that higher surface
-    // - otherwise fallback to center to prevent 1-probe hovering/climbing
-    if (supportCount >= 5) //more feet required to stay on platform. lower is more forgiving. 5/9 hit samples means your on a platform.
-    {
-        player.groundY = bestSupportingGroundY;
-    }
-    else
-    {
-        player.groundY = player.centerGroundY;
-    }
-
-    // Keep your existing dungeon flags working
-    if (isDungeon)
-    {
         player.overVoid = anyOverVoid;
         player.overLava = anyOverLava;
     }
 
 
-    // --- VOID FALL LATCH ---
+    // ============================================================
+    // Dungeon void-fall latch
+    // ============================================================
+
     if (isDungeon && player.overVoid)
     {
         player.isFallingIntoVoid = true;
@@ -1555,41 +1634,57 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
     {
         player.grounded = false;
 
-        float killY = -1000.0f;
+        const float killY = -1000.0f;
+
         if (player.position.y <= killY)
         {
-            //player.currentHealth = 0;
-            if (!player.dying){
+            if (!player.dying)
+            {
                 player.dying = true;
                 player.deathTimer = 2.0f;
                 player.TakeDamage(9999);
-
             }
-
         }
 
+        // Allow the player to reconnect with solid ground if they
+        // have moved back over it and are close enough to its top.
         if (!player.overVoid)
         {
-            float snapDelta = (player.groundY + player.height / 2.0f) - player.position.y;
-            if (snapDelta >= 0.0f && snapDelta <= VOID_SNAP_REENABLE_Y)
+            const float targetY =
+                player.groundY + player.height * 0.5f;
+
+            const float snapDelta =
+                targetY - player.position.y;
+
+            if (snapDelta >= 0.0f &&
+                snapDelta <= VOID_SNAP_REENABLE_Y)
             {
                 player.isFallingIntoVoid = false;
             }
         }
 
-        // skip normal snap
+        // Skip the normal ground snap while falling into the void.
     }
+    // ============================================================
+    // Normal ground snap
+    // ============================================================
+
     else
     {
-        const bool falling = (player.velocity.y <= 0.0f);
+        // Keep this independent of player.grounded. Otherwise,
+        // grounded can alternate between true and false each frame.
+        const bool falling =
+            player.velocity.y <= 0.1f;
 
-        // Optional extra safety: don't allow snapping UP more than MAX_STEP_UP
-        float targetY = player.groundY + player.height / 2.0f;
+        const float targetY =
+            player.groundY + player.height * 0.5f;
+
         if (targetY > player.position.y + MAX_STEP_UP)
         {
             player.grounded = false;
         }
-        else if (feetY <= player.groundY + 5.0f && falling)
+        else if (feetY <= player.groundY + SNAP_EPS &&
+                falling)
         {
             player.grounded = true;
             player.velocity.y = 0.0f;
@@ -1600,7 +1695,6 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
             player.grounded = false;
         }
     }
-
 
     player.previousPosition = player.position;
 

@@ -7,6 +7,8 @@
 
 std::vector<PropSpawn> overworldProps;
 
+
+
 int LoadLastLevel()
 {
     std::ifstream file("save.txt");
@@ -135,7 +137,6 @@ DungeonEntrance entranceToDungeon24 = {
 
 std::vector<LevelData> levels = {
     {
-        //
         "MiddleIsland", //display name
         "assets/heightmaps/MiddleIsland.png", //heightmap
         "",//dungeon path
@@ -428,21 +429,21 @@ std::vector<LevelData> levels = {
         false,// ceiling
     },
 
-    //     {
-    //     "Dungeon19", 
-    //     "assets/heightmaps/blank.png",
-    //     "assets/maps/dungeon19.png",
-    //     {5475.0f, 300.0f, -5665.0f}, //original player start position
-    //     45.0f,
-    //     {0.0f, 0.0f, 0.0f},
-    //     0, 
-    //     true, //isDungeon is true
-    //     {},
-    //     18, 
-    //     0, //exit to middle island
-    //     {}, 
-    //     true,// ceiling
-    // },
+        {
+        "test", 
+        "assets/heightmaps/archipelago.png",
+        "",
+        {5475.0f, 300.0f, -5665.0f}, //original player start position
+        45.0f,
+        {0.0f, 0.0f, 0.0f},
+        0, 
+        false, //isDungeon is true
+        {},
+        18, 
+        0, //exit to middle island
+        {}, 
+        true,// ceiling
+    },
 
 };
 

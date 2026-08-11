@@ -880,7 +880,9 @@ void JournalUI::Draw()
             static_cast<float>(currentCreatureEntry->frameHeight)
         };
 
-        float imageSize = 230.0f * scaleY;
+        float imageSize = 230.0f * scaleY * currentCreatureEntry->imageScale;
+
+        
 
         Rectangle creatureDestination{
             rightPageScreen.x +

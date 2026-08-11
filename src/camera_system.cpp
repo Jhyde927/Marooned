@@ -538,6 +538,7 @@ void CameraSystem::UpdateCutsceneCam(float dt)
         drawCeiling = levels[gCurrentLevelIndex].hasCeiling; //turn ceilings back on
         ShaderSetup::gBloom.letterboxTarget = 0.0f;
         GameSettings::drawMinimap = true; //turn minimap back on after waypoint cutscene.
+        GameSettings::useFog = true;
         player.canMove = true; 
         if (cutscene.returnToPlayerOnFinish) {
             SwitchToPlayerCamera();

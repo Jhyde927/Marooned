@@ -190,8 +190,3 @@ void ToggleThirdPerson();
 void DrawCollectableModels(const std::vector<Collectable>& collectables);
 void UpdateAggro();
 void InitTextureSettings();
-void StorePlayerData();
-void LoadPlayerData();
-void LoadJournalData();
-void StoreJournalData();
-void DiscoverLevel(int levelIndex);

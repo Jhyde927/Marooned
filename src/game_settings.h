@@ -21,7 +21,7 @@ namespace GameSettings
     inline constexpr float minFovY = 30.0f;
     inline constexpr float maxFovY = 80.0f;
 
-    inline float maxDrawDist = 25000.0f;
+    inline float maxDrawDist = 30000.0f;
     inline constexpr float minDrawDist = 5000.0f;
     inline constexpr float maxDrawDistLimit = 50000.0f;
 
