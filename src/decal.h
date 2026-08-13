@@ -38,7 +38,7 @@ struct Decal {
     float gravity = 900.0f;
     bool canBounce;
     bool hasBounced;
-    Emitter bloodEmitter;
+    //Emitter bloodEmitter;
 
     Decal(Vector3 pos, DecalType t, Texture2D tex, int frameCount, float life, float frameDuration, float scale = 1.0f)
         : position(pos), type(t), texture(tex), maxFrames(frameCount),
@@ -63,7 +63,7 @@ struct Decal {
         }
 
         if (type == DecalType::ZombieHead || type == DecalType::ZombieArm || type == DecalType::ZombieGib || type == DecalType::Bone) {
-            bloodEmitter.UpdateBlood(deltaTime);
+            //bloodEmitter.UpdateBlood(deltaTime);
             //gravity
             velocity.y -= gravity * deltaTime;
             //move

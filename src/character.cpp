@@ -271,7 +271,7 @@ void Character::SpawnFlyingGib(Vector3 spawnPos, DecalType type, const std::stri
     }
 
     if (emitBlood) {
-        decal.bloodEmitter.EmitBlood(decal.position, 20, RED);
+        //decal.bloodEmitter.EmitBlood(decal.position, 20, RED);
     }
 
     decals.emplace_back(decal);

@@ -468,7 +468,7 @@ void MeleeWeapon::UpdateStabMotion(float t)
 }
 
 
-void MeleeWeapon::Update(float deltaTime) {
+void MeleeWeapon::Update(float deltaTime) { //AKA sword
     if (player.activeWeapon != WeaponType::Sword) return;
     meleeWeapon.isMoving = player.isMoving;
     if (!player.onBoard){

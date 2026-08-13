@@ -784,7 +784,7 @@ void HandleKeyboardInput(Camera& camera) {
     }
 
     //T or Up on the d pad to switch magic type
-    if (IsKeyPressed(KEY_T) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP)){
+    if ((IsKeyPressed(KEY_T) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP)) && hasIce){
        if (magicStaff.magicType == MagicType::Fireball){
             magicStaff.magicType = MagicType::Iceball;
        }else{
@@ -857,27 +857,37 @@ void PlaySwimOnce()
 
 
 
-void Player::PlayFootstepSound() {
-    if (CameraSystem::Get().GetMode() != CamMode::Player) return; //only play footsteps when in player mode.
-    if (player.isSwimming) return; // dont play footsteps when in water.  
+void Player::PlayFootstepSound()
+{
+    if (CameraSystem::Get().GetMode() != CamMode::Player) return;
+    if (isSwimming) return;
 
-    static std::vector<std::string> footstepKeys = { "step1", "step2", "step3", "step4" }; 
+    static const std::vector<std::string> outdoorSteps = {
+        "step1", "step2", "step3", "step4"
+    };
 
-    if (isDungeon){
-        footstepKeys = { "stoneStep1", "stoneStep2", "stoneStep3" }; //omit step 4, it's too crunchy
-    }
+    static const std::vector<std::string> dungeonSteps = {
+        "stoneStep1", "stoneStep2", "stoneStep3" //omit 4
+    };
 
+    const std::vector<std::string>& footstepKeys =
+        isDungeon ? dungeonSteps : outdoorSteps;
 
     static int lastIndex = -1;
 
     int index;
-    do {
-        index = GetRandomValue(0, footstepKeys.size() - 1);
-    } while (index == lastIndex && footstepKeys.size() > 1);  // avoid repeat if more than 1
+    do
+    {
+        index = GetRandomValue(
+            0,
+            static_cast<int>(footstepKeys.size()) - 1
+        );
+    }
+    while (index == lastIndex && footstepKeys.size() > 1);
 
     lastIndex = index;
-    std::string stepKey = footstepKeys[index];
-    SoundManager::GetInstance().Play(stepKey);
+
+    SoundManager::GetInstance().Play(footstepKeys[index]);
 }
 
 void UpdateFootsteps(float deltaTime)

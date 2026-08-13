@@ -20,6 +20,7 @@ struct SaveData
     bool magicStaffUnlocked = false;
     bool harpoonUnlocked = false;
     bool doubleShotUnlocked = false;
+    bool iceMagicUnlocked = false;
 
     //Powerups
     int currentPowerUp = static_cast<int>(PowerUpType::None);

@@ -86,6 +86,7 @@ bool hasBlunderbuss = false;
 bool hasCrossbow = false;
 bool hasHarpoon = false;
 bool hasDoubleShot = false;
+bool hasIce = false;
 float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
@@ -265,15 +266,15 @@ int GetMaxParticleCount()
         total += b.sparkEmitter.GetMaxParticleCount();
     }
 
-    for (const Decal& d : decals)
-    {
-        total += d.bloodEmitter.GetMaxParticleCount();
-    }
+    // for (const Decal& d : decals)
+    // {
+    //     total += d.bloodEmitter.GetMaxParticleCount();
+    // }
 
-    for (const SpiderEgg& s : eggs)
-    {
-        total += s.gooEmitter.GetMaxParticleCount();
-    }
+    // for (const SpiderEgg& s : eggs)
+    // {
+    //     total += s.gooEmitter.GetMaxParticleCount();
+    // }
 
     total += gKraken.bloodEmitter.GetMaxParticleCount();
 
@@ -291,13 +292,13 @@ int GetParticleCount(){
         total += b.sparkEmitter.GetActiveParticleCount();
     }
 
-    for (const Decal& d : decals){
-        total += d.bloodEmitter.GetActiveParticleCount();
-    }
+    // for (const Decal& d : decals){
+    //     total += d.bloodEmitter.GetActiveParticleCount();
+    // }
 
-    for (const SpiderEgg& s : eggs){
-        total += s.gooEmitter.GetActiveParticleCount();
-    }
+    // for (const SpiderEgg& s : eggs){
+    //     total += s.gooEmitter.GetActiveParticleCount();
+    // }
 
     total += gKraken.bloodEmitter.GetActiveParticleCount();
 
@@ -1311,9 +1312,9 @@ void DrawBloodParticles(Camera& camera){
             enemy->bloodEmitter.Draw(camera);
     }
 
-    for (SpiderEgg& egg : eggs){
-        egg.gooEmitter.Draw(camera);
-    }
+    // for (SpiderEgg& egg : eggs){
+    //     egg.gooEmitter.Draw(camera);
+    // }
     gKraken.bloodEmitter.Draw(camera);
     
 }
@@ -1647,11 +1648,12 @@ void GiveKeys(){
 }
 
 void GiveWeapons(){
-    hasBlunderbuss = true; //just a bool for each weapon simplified things. 
+    hasBlunderbuss = true; 
     hasCrossbow = true;
     hasHarpoon = true;
     hasStaff = true;
     hasDoubleShot = true;
+    hasIce = true;
     player.activeWeapon = WeaponType::Blunderbuss;
     SoundManager::GetInstance().Play("reload");
 }

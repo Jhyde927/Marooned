@@ -81,7 +81,7 @@ namespace JournalData
             {
                 JournalEntryID::River,
                 "The Jungle",
-                "I've returned to the surface. I'm on a completely different island. "
+                "I've returned to the surface againd. I'm on a completely different island. "
                 "The local wild life seems hostile.  "
                 "I need to find the exit before these reptiles tear me apart. "
             },
@@ -91,9 +91,15 @@ namespace JournalData
                 "The Magic Staff",
                 "This old stick is imbued with some kind of elemental magic. "
                 "Casting magic consumes mana. "
+                "Use caution casting fireballs. "
+            },
+            {
+                JournalEntryID::FoundIce,
+                "Ice Magic",
+                "The staff becomes cool to the touch. "
+                "Ice magic will freeze enemies for a short time. "
                 "Press T to switch from fire to ice. "
             },
-
     
         };
 
@@ -101,7 +107,7 @@ namespace JournalData
             {
                 CreatureEntryID::Raptor,
                 "Raptor",
-                "A fast and highly aggressive predator.Circles its prey before attacking and is rarely found alone.",
+                "A fast and highly aggressive predator. Circles its prey before attacking and is rarely found alone.",
                 "",
                 "raptorTexture",
                 512,

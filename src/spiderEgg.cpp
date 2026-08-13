@@ -48,7 +48,7 @@ SpiderEgg& SpawnSpiderEgg(Vector3 pos,
     egg.frameHeight   = frameH;
     egg.framesPerRow  = framesPerRow;
     egg.scale         = scale;
-    egg.gooEmitter.SetPosition(egg.position);
+    //egg.gooEmitter.SetPosition(egg.position);
     float eggHeight = 100.0f;
     egg.collider.min = { pos.x - 50, pos.y,          pos.z - 50 };
     egg.collider.max = { pos.x + 50, pos.y + eggHeight, pos.z + 50 };
@@ -109,7 +109,7 @@ void UpdateSpiderEggs(float dt, const Vector3& playerPos)
 {
     
     for (SpiderEgg& egg : eggs) {
-        egg.gooEmitter.UpdateBlood(dt);
+        //egg.gooEmitter.UpdateBlood(dt);
         //check for player LOS and distance
         float distanceTo = Vector3Distance(egg.position, playerPos);
         if (HasWorldLineOfSight(egg.position, playerPos, 0.1) && distanceTo < 3000.0f && !egg.triggered && egg.state != SpiderEggState::Destroyed){
@@ -142,9 +142,9 @@ void UpdateSpiderEggs(float dt, const Vector3& playerPos)
                     egg.frameTimer   = 0.0f;
 
                     // Toward the *camera/player* in world space
-                    Vector3 toPlayer = Vector3Normalize(Vector3Subtract(playerPos, egg.position));
-                    Vector3 newPos   = Vector3Add(egg.position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
-                    egg.gooEmitter.EmitBlood(newPos, 25, GREEN); //goo particles when hatching
+                    //Vector3 toPlayer = Vector3Normalize(Vector3Subtract(playerPos, egg.position));
+                    //Vector3 newPos   = Vector3Add(egg.position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
+                    //egg.gooEmitter.EmitBlood(newPos, 25, GREEN); //goo particles when hatching
 
 
                 }
@@ -193,9 +193,9 @@ void DamageSpiderEgg(SpiderEgg& egg, float amount, Vector3 playerPos)
         SoundManager::GetInstance().PlaySoundAtPosition("squish", egg.position, playerPos, 0.0f, 3000);
 
         // Toward the *camera/player* in world space
-        Vector3 toPlayer = Vector3Normalize(Vector3Subtract(playerPos, egg.position));
-        Vector3 newPos   = Vector3Add(egg.position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
-        egg.gooEmitter.EmitBlood(newPos, 25, GREEN);
+        // Vector3 toPlayer = Vector3Normalize(Vector3Subtract(playerPos, egg.position));
+        // Vector3 newPos   = Vector3Add(egg.position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
+        //egg.gooEmitter.EmitBlood(newPos, 25, GREEN);
 
     }
 }

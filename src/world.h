@@ -89,6 +89,7 @@ extern bool hasBlunderbuss;
 extern bool hasCrossbow;
 extern bool hasHarpoon;
 extern bool hasDoubleShot;
+extern bool hasIce;
 extern bool drawCeiling;
 extern bool levelLoaded;
 extern bool isFullscreen;

@@ -1752,6 +1752,10 @@ ChestTreasure GetChestTreasure(int levelIndex, int chestIndex)
         {
             return ChestTreasure::DoubleShot;
         }
+        case 10:
+        {
+            return ChestTreasure::IceMagic;
+        }
 
         default:
         {
@@ -1806,6 +1810,12 @@ void DropChestTreasure(const ChestInstance& chest)
                 100
             );
             break;
+        }
+        case ChestTreasure::IceMagic:
+        {
+            JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::FoundIce);
+            hasIce = true;
+            journalUI.Toggle();          
         }
 
         // Remaining cases...

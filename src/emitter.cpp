@@ -249,15 +249,15 @@ void Emitter::CreateParticle(Particle& p) {
             break;
 
         case ParticleType::IceBlast:
-        p.color = SKYBLUE;
-        p.gravity = 980.0f; // rising slowly
-        p.velocity = {
-            RandomFloat(-250, 250),
-            RandomFloat(300, 1000),
-            RandomFloat(-250, 250)
-        };
-        p.size = 10.0f;
-        break;
+            p.color = SKYBLUE;
+            p.gravity = 980.0f; // rising slowly
+            p.velocity = {
+                RandomFloat(-250, 250),
+                RandomFloat(300, 1000),
+                RandomFloat(-250, 250)
+            };
+
+            break;
 
         default:
             p.color = GRAY;

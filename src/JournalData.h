@@ -18,8 +18,9 @@ namespace JournalData
         DoubleShot       = 7,
         River            = 8,
         FoundStaff       = 9,
+        FoundIce         = 10, 
 
-        Count            = 10
+        Count            = 11
     };
 
     enum class CreatureEntryID

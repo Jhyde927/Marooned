@@ -19,6 +19,7 @@ enum class ChestTreasure
     Harpoon,
     DoubleShot,
     HealthPotion,
+    IceMagic,
 
 };
 

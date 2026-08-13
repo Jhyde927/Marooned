@@ -21,7 +21,7 @@ struct SpiderEgg {
     Vector3 position{};
     float rotationY = 0.0f;
 
-    Emitter gooEmitter;
+    //Emitter gooEmitter;
 
     // Health
     float maxHealth = 100.0f;

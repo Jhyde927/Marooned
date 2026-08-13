@@ -107,6 +107,7 @@ namespace SaveGame
         save.magicStaffUnlocked = hasStaff;
         save.harpoonUnlocked = hasHarpoon;
         save.doubleShotUnlocked = hasDoubleShot;
+        save.iceMagicUnlocked = hasIce;
         save.currentPowerUp = static_cast<int>(player.currentPowerUp);
         save.entrancesUnlocked = unlockEntrances;
     }
@@ -214,6 +215,8 @@ SaveData SaveGame::Load()
                 data.harpoonUnlocked = StringToBool(value);
             else if (key == "doubleShotUnlocked")
                 data.doubleShotUnlocked = StringToBool(value);
+            else if (key == "iceMagicUnlocked")
+                data.iceMagicUnlocked = StringToBool(value);
             else if (key == "entrancesUnlocked")
                 data.entrancesUnlocked = StringToBool(value);
             else if (key == "currentPowerUp")
@@ -265,6 +268,7 @@ void SaveGame::Save(const SaveData& data)
     file << "magicStaffUnlocked=" << data.magicStaffUnlocked << '\n';
     file << "harpoonUnlocked=" << data.harpoonUnlocked << '\n';
     file << "doubleShotUnlocked=" << data.doubleShotUnlocked << '\n';
+    file << "iceMagicUnlocked=" << data.iceMagicUnlocked << '\n';
     file << "currentPowerUp=" << data.currentPowerUp << '\n';
 
     file << "entrancesUnlocked=" << data.entrancesUnlocked << '\n';
