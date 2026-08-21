@@ -110,6 +110,10 @@ namespace SaveGame
         save.iceMagicUnlocked = hasIce;
         save.currentPowerUp = static_cast<int>(player.currentPowerUp);
         save.entrancesUnlocked = unlockEntrances;
+
+        save.raftBodyUnlocked = raft.hasBody;
+        save.raftMastUnlocked = raft.hasMast;
+        save.raftSailUnlocked = raft.hasSail;
     }
 
     void LoadPlayerData(){
@@ -123,6 +127,10 @@ namespace SaveGame
         hasStaff = save.magicStaffUnlocked;
         hasDoubleShot = save.doubleShotUnlocked;
         hasHarpoon = save.harpoonUnlocked;
+
+        raft.hasBody = save.raftBodyUnlocked;
+        raft.hasMast = save.raftMastUnlocked;
+        raft.hasSail = save.raftSailUnlocked;
 
         if (save.currentPowerUp >= static_cast<int>(PowerUpType::None) &&
             save.currentPowerUp <= static_cast<int>(PowerUpType::DoubleShot))
@@ -270,6 +278,10 @@ void SaveGame::Save(const SaveData& data)
     file << "doubleShotUnlocked=" << data.doubleShotUnlocked << '\n';
     file << "iceMagicUnlocked=" << data.iceMagicUnlocked << '\n';
     file << "currentPowerUp=" << data.currentPowerUp << '\n';
+
+    file << "raftBodyUnlocked=" << data.raftBodyUnlocked << '\n';
+    file << "raftMastUnlocked=" << data.raftMastUnlocked << '\n';
+    file << "raftSailUnlocked=" << data.raftSailUnlocked << '\n';
 
     file << "entrancesUnlocked=" << data.entrancesUnlocked << '\n';
 

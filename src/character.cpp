@@ -644,37 +644,49 @@ void Character::Update(float deltaTime, Player& player ) {
 
 
 // sprite sheet layout – adjust these to match your art
-constexpr int ROW_RUN_FRONT = 1;  // toward camera
-constexpr int ROW_RUN_SIDE  = 5;  // side profile
-constexpr int ROW_RUN_BACK  = 3;  // away/runaway
+constexpr int ROW_RUN_FRONT  = 1;  // toward camera
+constexpr int ROW_RUN_SIDE   = 5;  // side profile
+constexpr int ROW_RUN_BACK   = 7;  // away/runaway
+constexpr int ROW_DIAG_FRONT = 6; // 45 degree aproach
 
 void Character::UpdateMovementAnim()
 {
-    // Call this once per frame after you've updated facingMode
-
     switch (facingMode)
     {
-        case FacingMode::Leaving: {
-            // back / runaway row
+        case FacingMode::Leaving:
+        {
             if (rowIndex != ROW_RUN_BACK) {
-                SetAnimation(ROW_RUN_BACK, 4, 0.25f, true); // 4 frames, tweak speed
+                SetAnimation(ROW_RUN_BACK, 4, 0.15f, true);
             }
         } break;
 
-        case FacingMode::Approaching: {
-            // front / approach row
+        case FacingMode::LeavingDiagonal:
+        {
+            // Temporary until you make a rear 45-degree sprite.
+            if (rowIndex != ROW_RUN_BACK) {
+                SetAnimation(ROW_RUN_BACK, 2, 0.3f, true);
+            }
+        } break;
+
+        case FacingMode::Approaching:
+        {
             if (rowIndex != ROW_RUN_FRONT) {
-                SetAnimation(ROW_RUN_FRONT, 5, 0.15f, true); // 5 frames, tweak speed
+                SetAnimation(ROW_RUN_FRONT, 5, 0.15f, true);
             }
         } break;
 
-        case FacingMode::Strafing: {
-            // side profile row
-            if (rowIndex != ROW_RUN_SIDE) {
-                SetAnimation(ROW_RUN_SIDE, 4, 0.15f, true); 
+        case FacingMode::ApproachingDiagonal:
+        {
+            if (rowIndex != ROW_DIAG_FRONT) {
+                SetAnimation(ROW_DIAG_FRONT, 5, 0.15f, true);
             }
+        } break;
 
-    
+        case FacingMode::Strafing:
+        {
+            if (rowIndex != ROW_RUN_SIDE) {
+                SetAnimation(ROW_RUN_SIDE, 4, 0.15f, true);
+            }
         } break;
     }
 }
@@ -694,10 +706,10 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
     constexpr int   STREAK_TO_STRAFE    = 1;      // frames to confirm strafe (tweak)
     constexpr float DIST_EPS            = 1.0f;
     constexpr float NEAR_CONTACT        = 300.0f;
+    constexpr int   STREAK_TO_APPROACH_DIAG = 2;
+    constexpr int   STREAK_TO_LEAVE_DIAG    = 10;
 
     // Angle thresholds
-
-    constexpr float COS = 0.8f;  //Higher to show side more often
     
     // Current vectors (XZ plane)
     Vector3 r          = XZ( Vector3Subtract(playerPos, this->position) );   // enemy -> player
@@ -731,19 +743,48 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
 
         FacingMode candidate;
 
-        // classify by angle first
-        if (d >  COS) {
-            candidate = FacingMode::Approaching;
-        } else if (d < -COS) {
-            candidate = FacingMode::Leaving;
-        } else {
-            candidate = FacingMode::Strafing;
+        if (type == CharacterType::Raptor)
+        {
+            // 8-way-ish classification
+            constexpr float COS_22_5 = 0.9238795f;
+            constexpr float COS_67_5 = 0.3826834f;
+
+            if (d >= COS_22_5) {
+                candidate = FacingMode::Approaching;
+            }
+            else if (d >= COS_67_5) {
+                candidate = FacingMode::ApproachingDiagonal;
+            }
+            else if (d > -COS_67_5) {
+                candidate = FacingMode::Strafing;
+            }
+            else if (d > -COS_22_5) {
+                candidate = FacingMode::LeavingDiagonal;
+            }
+            else {
+                candidate = FacingMode::Leaving;
+            }
+        }
+        else
+        {
+            // old 3-way classification
+            constexpr float COS = 0.8f;
+
+            if (d > COS) {
+                candidate = FacingMode::Approaching;
+            }
+            else if (d < -COS) {
+                candidate = FacingMode::Leaving;
+            }
+            else {
+                candidate = FacingMode::Strafing;
+            }
         }
 
-
-            // only if we actually picked Strafing:
-        if (candidate == FacingMode::Strafing) {
-            // 2D cross product on XZ
+        if (candidate == FacingMode::Strafing ||
+            candidate == FacingMode::ApproachingDiagonal ||
+            candidate == FacingMode::LeavingDiagonal)
+        {
             float cross = rN.x * relN.z - rN.z * relN.x;
             strafeSideSign = (cross >= 0.0f) ? 1.0f : -1.0f;
         }
@@ -753,67 +794,107 @@ void Character::UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playe
             candidate = FacingMode::Approaching;  // or FacingMode::Strafing, your call
         }
 
-        // Streak logic for smoothing
         switch (candidate)
         {
             case FacingMode::Approaching:
+            {
                 approachStreak++;
-                leaveStreak = 0;
+                approachDiagonalStreak = 0;
                 strafeStreak = 0;
+                leaveDiagonalStreak = 0;
+                leaveStreak = 0;
+
                 if (approachStreak >= STREAK_TO_APPROACH) {
                     facingMode = FacingMode::Approaching;
                     decided = true;
                 }
-                break;
+            } break;
 
-            case FacingMode::Leaving:
-                leaveStreak++;
+            case FacingMode::ApproachingDiagonal:
+            {
+                approachDiagonalStreak++;
                 approachStreak = 0;
                 strafeStreak = 0;
-                if (leaveStreak >= STREAK_TO_LEAVE) {
-                    facingMode = FacingMode::Leaving;
+                leaveDiagonalStreak = 0;
+                leaveStreak = 0;
+
+                if (approachDiagonalStreak >= STREAK_TO_APPROACH_DIAG) {
+                    facingMode = FacingMode::ApproachingDiagonal;
                     decided = true;
                 }
-                break;
+            } break;
 
             case FacingMode::Strafing:
+            {
                 strafeStreak++;
                 approachStreak = 0;
+                approachDiagonalStreak = 0;
+                leaveDiagonalStreak = 0;
                 leaveStreak = 0;
+
                 if (strafeStreak >= STREAK_TO_STRAFE) {
                     facingMode = FacingMode::Strafing;
                     decided = true;
                 }
-                break;
-        }
-    }
+            } break;
 
-    // 2) Fallback: tiny-motion distance trend (rare)
-    if (!decided)
-    {
-        float curDist = sqrtf(rLenSq);
-        if (prevDistToPlayer >= 0.0f)
+            case FacingMode::LeavingDiagonal:
+            {
+                leaveDiagonalStreak++;
+                approachStreak = 0;
+                approachDiagonalStreak = 0;
+                strafeStreak = 0;
+                leaveStreak = 0;
+
+                if (leaveDiagonalStreak >= STREAK_TO_LEAVE_DIAG) {
+                    facingMode = FacingMode::LeavingDiagonal;
+                    decided = true;
+                }
+            } break;
+
+            case FacingMode::Leaving:
+            {
+                leaveStreak++;
+                approachStreak = 0;
+                approachDiagonalStreak = 0;
+                strafeStreak = 0;
+                leaveDiagonalStreak = 0;
+
+                if (leaveStreak >= STREAK_TO_LEAVE) {
+                    facingMode = FacingMode::Leaving;
+                    decided = true;
+                }
+            } break;
+        }
+
+        // 2) Fallback: tiny-motion distance trend (rare)
+        if (!decided)
         {
-            float delta = curDist - prevDistToPlayer;
-            if (delta > DIST_EPS) {
-                // separating -> likely leaving
-                leaveStreak++; approachStreak = 0; strafeStreak = 0;
-                if (leaveStreak >= STREAK_TO_LEAVE) facingMode = FacingMode::Leaving;
-            } else if (delta < -DIST_EPS) {
-                // closing -> approaching
-                approachStreak++; leaveStreak = 0; strafeStreak = 0;
-                if (approachStreak >= STREAK_TO_APPROACH) facingMode = FacingMode::Approaching;
+            float curDist = sqrtf(rLenSq);
+            if (prevDistToPlayer >= 0.0f)
+            {
+                float delta = curDist - prevDistToPlayer;
+                if (delta > DIST_EPS) {
+                    // separating -> likely leaving
+                    leaveStreak++; approachStreak = 0; strafeStreak = 0;
+                    if (leaveStreak >= STREAK_TO_LEAVE) facingMode = FacingMode::Leaving;
+                } else if (delta < -DIST_EPS) {
+                    // closing -> approaching
+                    approachStreak++; leaveStreak = 0; strafeStreak = 0;
+                    if (approachStreak >= STREAK_TO_APPROACH) facingMode = FacingMode::Approaching;
+                }
             }
+            prevDistToPlayer = curDist;
         }
-        prevDistToPlayer = curDist;
-    }
 
-    // Bookkeeping
-    prevPos = this->position;
+        // Bookkeeping
+        prevPos = this->position;
 
-    // Backwards compat: keep isLeaving in sync for any existing code
-    isLeaving = (facingMode == FacingMode::Leaving ||
-                facingMode == FacingMode::Strafing);
+        // Backwards compat: keep isLeaving in sync for any existing code
+        isLeaving = (facingMode == FacingMode::Leaving ||
+                    facingMode == FacingMode::Strafing);
+    }   
+
 }
 
 

@@ -22,6 +22,10 @@ struct SaveData
     bool doubleShotUnlocked = false;
     bool iceMagicUnlocked = false;
 
+    bool raftBodyUnlocked = false;
+    bool raftMastUnlocked = false;
+    bool raftSailUnlocked = false;
+
     //Powerups
     int currentPowerUp = static_cast<int>(PowerUpType::None);
 

@@ -18,7 +18,7 @@ enum class CollectableType {
     raftMast,
     raftSail,
     raftBody,
-    // Add more types as needed
+
 };
 
 class Collectable {

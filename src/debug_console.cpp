@@ -346,6 +346,10 @@ namespace DebugConsole
         {
             CommandUnlockEverything();
         }
+        else if (command == "unlockraft")
+        {
+            CommandUnlockRaft();
+        }
         else if (command == "fog"){
             CommandFog();
         }
@@ -363,7 +367,7 @@ namespace DebugConsole
         }
         else if (command == "help")
         {
-            Log("Commands:"); //OpenDoors not shown
+            Log("Commands:"); //OpenDoors // unlock raft and many more not listed, 
             LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",            "level [index]");
             LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",              "Journal");
             LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson",      "ClearSave");
@@ -815,6 +819,15 @@ namespace DebugConsole
         GameSettings::freezeAI = !GameSettings::freezeAI;
         Log(std::string("Freeze Enemies: ") + 
             (GameSettings::freezeAI ? "True" : "False"));
+
+    }
+
+    void CommandUnlockRaft()
+    {
+        raft.AddBody();
+        raft.AddMast();
+        raft.AddSail();
+        Log("Unlocking Raft Pieces");
 
     }
 

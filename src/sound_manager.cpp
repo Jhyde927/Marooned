@@ -15,6 +15,19 @@ void SoundManager::InitMusic()
 
 }
 
+void SoundManager::InitSoundEffects(){
+    const std::string dungeonSteps[] = {  
+        "stoneStep1", "stoneStep2", "stoneStep3", "stoneStep4"
+    };
+
+    for (const std::string& step : dungeonSteps){
+        Sound stoneStep = GetSound(step);
+        SetSoundPitch(stoneStep, 0.8f);
+    }
+
+
+}
+
 int SoundManager::PickRandomIndexNoRepeat(int count, int lastIndex)
 {
     if (count <= 1) return 0;

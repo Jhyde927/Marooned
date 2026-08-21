@@ -27,6 +27,7 @@ public:
     void StopSpeech(int npcId);
     bool IsSpeaking(int npcId) const;
     void InitMusic();
+    void InitSoundEffects();
 
 private:
     std::map<std::string, Sound> sounds;

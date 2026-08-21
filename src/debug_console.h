@@ -54,6 +54,7 @@ namespace DebugConsole
     void CommandCeiling();
     void CommandWeapons();
     void CommandFreezeAI();
+    void CommandUnlockRaft();
     void CommandClearSave();
     void CommandClear();
     void CommandExit();

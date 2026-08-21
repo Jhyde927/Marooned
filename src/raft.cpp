@@ -3,11 +3,28 @@
 #include "rlgl.h"
 #include "cmath"
 
-void Raft::Update(float dt)
+
+bool Raft::PlayerInRange(Vector3 playerPosition, float dist){
+    float range = dist;
+    float rangeSq = range * range;
+
+    Vector3 d = Vector3Subtract(playerPosition, position);
+    d.y = 0.0f;
+
+    return Vector3LengthSqr(d) <= rangeSq;
+
+}
+
+void Raft::Update(const Player& player, float dt)
 {
     (void)dt;
     // Optional future bobbing
     position.y += sin(GetTime()) * 0.1f;
+    if (PlayerInRange(player.position, 500.0f)){
+        showMessage = true; 
+    }else{
+        showMessage = false;
+    }
 }
 
 void Raft::Draw()

@@ -14,13 +14,15 @@ namespace JournalData
         FoundBlunderbuss = 3,
         DeeperStill      = 4,
         FoundHarpoon     = 5,
-        Resurface        = 6,
+        Resurface        = 6, //found raft body
         DoubleShot       = 7,
-        River            = 8,
-        FoundStaff       = 9,
-        FoundIce         = 10, 
+        RaftMast         = 8,
+        River            = 9,
+        FoundStaff       = 10,
+        FoundIce         = 11,
+        RaftSail         = 12, 
 
-        Count            = 11
+        Count            = 13
     };
 
     enum class CreatureEntryID

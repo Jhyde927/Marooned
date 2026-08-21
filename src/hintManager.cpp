@@ -206,6 +206,10 @@ void HintManager::UpdateTutorial(){
         }
     }
 
+    if (raft.showMessage && raft.IsComplete()){
+        SetMessage("Press E to Set sail");
+    }
+
 
 
 }

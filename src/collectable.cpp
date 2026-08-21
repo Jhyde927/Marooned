@@ -38,17 +38,6 @@ Collectable::Collectable(
     RebuildBoxes();
 }
 
-// NEW constructor with icon and scale
-// Collectable::Collectable(CollectableType type, Vector3 position, Texture2D icon, float scale)
-//     : type(type), position(position), icon(icon), scale(scale)
-    
-// {
-//     collider = {
-//         position - Vector3{20, 0, 20},
-//         position + Vector3{20, 60, 20}
-//     };
-// }
-
 
 inline static BoundingBox MakeBoxCentered(Vector3 p, Vector3 half)
 {

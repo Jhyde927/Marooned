@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "player.h"
 
 struct Raft
 {
@@ -10,7 +11,10 @@ struct Raft
     bool hasBoom  = false;
     bool hasSail  = false;
 
-    void Update(float dt);
+    bool showMessage = false;
+
+    bool PlayerInRange(Vector3 playerPosition, float dist);
+    void Update(const Player& player, float dt);
     void Draw();
 
     void AddBody() { hasBody = true; }
@@ -20,6 +24,6 @@ struct Raft
 
     bool IsComplete() const
     {
-        return hasBody && hasMast && hasBoom && hasSail;
+        return hasBody && hasMast && hasSail;
     }
 };

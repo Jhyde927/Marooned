@@ -866,7 +866,7 @@ void Player::PlayFootstepSound()
         "step1", "step2", "step3", "step4"
     };
 
-    static const std::vector<std::string> dungeonSteps = {
+    static const std::vector<std::string> dungeonSteps = { //sounds a bit too much like tap shoes. maybe we can lower the pitch. 
         "stoneStep1", "stoneStep2", "stoneStep3" //omit 4
     };
 
@@ -883,7 +883,7 @@ void Player::PlayFootstepSound()
             static_cast<int>(footstepKeys.size()) - 1
         );
     }
-    while (index == lastIndex && footstepKeys.size() > 1);
+    while (index == lastIndex && footstepKeys.size() > 1); //dont repeat.
 
     lastIndex = index;
 

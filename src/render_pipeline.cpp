@@ -159,7 +159,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             if (CurrentLevelIs("MiddleIsland") && !CameraSystem::Get().IsCutsceneActive())
             {
                 rlEnableDepthTest();
-                rlDisableDepthMask();     // transparent object should not block later stuff
+                if (!raft.IsComplete()) rlDisableDepthMask();     // transparent object should not block later stuff
                 raft.Draw();
                 rlEnableDepthMask();
             }

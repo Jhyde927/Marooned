@@ -191,3 +191,5 @@ void ToggleThirdPerson();
 void DrawCollectableModels(const std::vector<Collectable>& collectables);
 void UpdateAggro();
 void InitTextureSettings();
+void UpdateRaftInteraction();
+void ChangeLevel(int idx);

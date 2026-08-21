@@ -48,6 +48,7 @@ int main() {
     ResourceManager::Get().LoadAllResources();
     SoundManager::GetInstance().LoadSounds();
     SoundManager::GetInstance().InitMusic();
+    SoundManager::GetInstance().InitSoundEffects();
     controlPlayer = true; 
 
     float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();

@@ -209,10 +209,6 @@ void ResourceManager::LoadAllResources() {
     SetTextureFilter(scene.texture, TEXTURE_FILTER_BILINEAR);
     SetTextureWrap(scene.texture, TEXTURE_WRAP_CLAMP);
 
-    // RenderTexture& post = R.LoadRenderTexture("postProcessTexture", screenResolution.x, screenResolution.y);
-    // SetTextureFilter(post.texture, TEXTURE_FILTER_BILINEAR);
-    // SetTextureWrap(post.texture, TEXTURE_WRAP_CLAMP);
-
     SetTextureWrap(R.GetRenderTexture("sceneTexture").texture, TEXTURE_WRAP_CLAMP);
     //SetTextureWrap(R.GetRenderTexture("postProcessTexture").texture, TEXTURE_WRAP_CLAMP);
 
@@ -333,14 +329,17 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("box",                    "assets/Models/box.glb");
     R.LoadModel("healthPotion",           "assets/Models/healthPotion.glb");
     R.LoadModel("raft",                   "assets/Models/raft.glb");
+
+    //Still needed for building raft piece by piece. Remember their offsets are baked into the model. 
     R.LoadModel("raftBody",               "assets/Models/raftBody.glb");
     R.LoadModel("raftMast",               "assets/Models/raftMast.glb");
     R.LoadModel("raftBoom",               "assets/Models/raftBoom.glb");
     R.LoadModel("raftSail",               "assets/Models/raftSail.glb");
 
-    R.LoadModel("collectableMast",        "assets/Models/collectableMast.glb");
-    R.LoadModel("collectableBoom",        "assets/Models/collectableBoom.glb");
-    R.LoadModel("collectableSail",        "assets/Models/collectableSail.glb");
+    // remove from assets folder 
+    // R.LoadModel("collectableMast",        "assets/Models/collectableMast.glb");
+    // R.LoadModel("collectableBoom",        "assets/Models/collectableBoom.glb");
+    // R.LoadModel("collectableSail",        "assets/Models/collectableSail.glb");
 
     R.LoadModel("woodWall",               "assets/Models/woodWall.glb");
     R.LoadModel("woodDoorWay",            "assets/Models/woodDoorWay.glb");

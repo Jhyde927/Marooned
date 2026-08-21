@@ -7,7 +7,7 @@ mkdir Marooned\assets
 make
 
 xcopy /s /e dlls\win64 Marooned\
-xcopy /s /e /i /y assets Marooned\assets\
+xcopy /s /e /i /y /q assets Marooned\assets\
 copy Marooned.exe Marooned\
 copy credits.txt Marooned\
 

@@ -111,10 +111,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     DebugConsole::Update(dt);
     journalUI.Update(dt);
 
-    // CamMode mode = CameraSystem::Get().GetMode(); //dont show fog in cinematic camera. 
-    // GameSettings::useFog = (mode != CamMode::Cinematic) ? true : false;
-    //Toggle fog at the beginning of the cutscene then toggle it back on. 
-
+    UpdateRaftInteraction();
     UpdateEnemies(dt);
     UpdateCannons(dt);
     UpdateKraken(dt);
@@ -137,7 +134,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateMonsterDoors(dt);
     SpawnManager::Update(dt);
     UpdateDungeonChests();
-    raft.Update(dt);
+    raft.Update(player, dt);
     UpdateDoorDelayedActions(dt);
     UpdateSpiderEggs(dt, player.position);
     UpdateDungeonTileFlags(player, dt);
@@ -154,9 +151,6 @@ static void UpdateGameplayPresentation(Camera3D& camera, Player& player, float d
 
     if (isDungeon)
     {
-        // if (!debugInfo)
-        //     drawCeiling = levels[levelIndex].hasCeiling;
-
         HandleDungeonTints();
     }
 

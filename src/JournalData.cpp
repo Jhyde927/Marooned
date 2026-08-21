@@ -62,11 +62,11 @@ namespace JournalData
 
             //return to surface
             {
-                JournalEntryID::Resurface,
+                JournalEntryID::Resurface, //find first raft piece, raft body
                 "Resurface",
                 "I found the exit, and made my way to the surface."
                 "I came out on the other side of the island. "
-                "I should investigate the other islands.  "
+                "These planks of wood I found should be perfect for the old mans raft  "
             },
 
            {
@@ -76,7 +76,14 @@ namespace JournalData
                 "It's dangerous, and takes some extra time to load. "
                 "But it should shred anything in its path.  "
             },
-                
+
+           {
+                JournalEntryID::RaftMast,
+                "Raft Mast",
+                "This old wooden beam I found should make for an excellent mast."
+                "I just need to haul this back to the island somehow. "
+                " "
+            },
 
             {
                 JournalEntryID::River,
@@ -99,6 +106,14 @@ namespace JournalData
                 "The staff becomes cool to the touch. "
                 "Ice magic will freeze enemies for a short time. "
                 "Press T to switch from fire to ice. "
+            },
+
+            {
+                JournalEntryID::RaftSail,
+                "Raft Sail",
+                "I have found the final piece for the hold mans raft. "
+                "This long sheet of sturdy fabric should make a perfect sail. "
+                "Return to Middle Island to set sail, and escape. "
             },
     
         };

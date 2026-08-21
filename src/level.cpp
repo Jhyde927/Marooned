@@ -408,7 +408,7 @@ std::vector<LevelData> levels = {
         true, //isDungeon is true
         {},
         16, 
-        17, //exit to middle island
+        0, //exit to middle island
         {}, 
         false,// ceiling
     },

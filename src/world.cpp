@@ -249,6 +249,17 @@ void StartCutScene(){
 
 }
 
+void ChangeLevel(int idx)
+{
+    previousLevelIndex = levelIndex;
+
+    pendingLevelIndex = idx;
+    StartFadeOutToLevel(pendingLevelIndex);
+
+    isLoadingLevel = true;
+    currentGameState = GameState::LoadingLevel;
+}
+
 int GetMaxParticleCount()
 {
     int total = 0;
@@ -660,7 +671,6 @@ void InitRaftCollectables(){
             if (EqualsRGB(current, ColorOf(Code::raftSail))){
                 Vector3 sailPos = GetDungeonWorldPos(x, y, tileSize, 200.0f);
                 Collectable sail = {CollectableType::raftSail, sailPos, R.GetTexture("raftSail"), 100.0f};
-
                 collectables.push_back(sail);
 
             }
@@ -1087,6 +1097,16 @@ Character* FindEnemyById(int id)
     return nullptr;
 }
 
+void UpdateRaftInteraction()
+{
+    if (raft.PlayerInRange(player.position, 700.0f) && raft.IsComplete()){
+        if (IsKeyPressed(KEY_E)){
+            int shipLevel = 17;
+            ChangeLevel(shipLevel);
+        }
+    }
+}
+
 void UpdateNPCs(float deltaTime){
     for (NPC& npc : gNPCs){
         //npc.Update(deltaTime);
@@ -1260,12 +1280,15 @@ void UpdateCollectables(float deltaTime) {
                 );
 
             } else if (collectables[i].type == CollectableType::raftMast) {
+                //call journal here. 
+                JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::RaftMast);
                 raft.hasMast = true;
 
             } else if (collectables[i].type == CollectableType::raftBody) {
                 raft.hasBody = true;
 
             } else if (collectables[i].type == CollectableType::raftSail) {
+                JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::RaftSail);
                 raft.hasSail = true;
             }
 
@@ -1388,7 +1411,6 @@ void DrawOverworldProps() {
             (p.type == PropType::Barrel) ? "barrelModel" :
             (p.type == PropType::FirePit)? "campFire": "barrelModel";
 
-        //std::cout << modelKey << "\n";
         Vector3 propPos = p.position;
         float propY = GetHeightAtWorldPosition(propPos, heightmap, terrainScale);
         propPos.y = propY;
@@ -1396,9 +1418,9 @@ void DrawOverworldProps() {
                     {0,1,0}, p.yawDeg, {p.scale,p.scale,p.scale}, WHITE);
     }
 
-    //5997.32, 119.764, -2610.64
-    //DrawModel(R.GetModel("collectableMast"), Vector3{5475.0f, 300.0f, -5665.0f}, 100.0f, WHITE);
 }
+
+
 
 
 
@@ -1406,7 +1428,9 @@ Vector3 ResolveSpawnPoint(const LevelData& level, bool isDungeon, bool first, fl
 {
     Vector3 resolvedSpawn = level.startPosition; // default fallback
 
-    if (first) {
+    bool last = (raft.IsComplete() && CurrentLevelIs("MiddleIsland"));
+
+    if (first || last) {
         resolvedSpawn = {5475.0f, 300.0f, -5665.0f}; // hardcoded spawn for first level
     }
 

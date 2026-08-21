@@ -52,10 +52,13 @@ struct AnimDesc {
 
 };
 
-enum class FacingMode {
-    Approaching,  // show front
-    Leaving,      // show back
-    Strafing      // show side profile
+enum class FacingMode
+{
+    Approaching,
+    ApproachingDiagonal,
+    Strafing,
+    LeavingDiagonal,
+    Leaving
 };
 
 
@@ -129,6 +132,8 @@ public:
     int    approachStreak = 0;         // hysteresis counters
     int    leaveStreak    = 0;
     int    strafeStreak = 0;
+    int approachDiagonalStreak = 0;
+    int leaveDiagonalStreak = 0;
     float strafeSideSign = 1.0f; // >0 = one way, <0 = the other
     bool    hasFleeTarget = false;
     bool overLava = false;

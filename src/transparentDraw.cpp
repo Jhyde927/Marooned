@@ -95,16 +95,26 @@ void GatherEnemies(Camera& camera) {
 
         // Decide flipping for strafing, Raptors and pirates. 
         bool flipX = false;
-        if (enemy->type == CharacterType::Raptor ||enemy->type == CharacterType::Skeleton || enemy->type == CharacterType::Pirate || enemy->type == CharacterType::Pterodactyl || enemy->type == CharacterType::Wizard){
+
+        if (enemy->type == CharacterType::Raptor)
+        {
+            if (enemy->facingMode == FacingMode::Strafing ||
+                enemy->facingMode == FacingMode::ApproachingDiagonal ||
+                enemy->facingMode == FacingMode::LeavingDiagonal)
+            {
+                flipX = (enemy->strafeSideSign < 0.0f);
+            }
+        }
+        else
+        {
             if (enemy->facingMode == FacingMode::Strafing) {
                 flipX = (enemy->strafeSideSign < 0.0f);
-            }else{
-                flipX = false;
             }
-
         }
 
-        if (enemy->hitTimer > 0.0f) flipX = false; //dont flipX when taking damage. 
+        if (enemy->hitTimer > 0.0f) {
+            flipX = false;
+        }
 
         Vector3 drawPos = enemy->position;
 
