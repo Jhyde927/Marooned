@@ -5,6 +5,7 @@
 #include "hintManager.h" 
 #include <array>
 #include "NPC.h"
+#include "dialogManager.h"
 
 extern float levelLoadProgress;
 
@@ -52,6 +53,8 @@ enum class SlantSide { Right, Left };
 
 extern bool gHermitIntroDone; //tell NPC convo is done. There is a better way. 
 extern bool gHermitFollowing;   // optional: whether follow is currently enabled
+
+extern DialogManager dialogManager;
 
 extern std::vector<SlashEffect> gSlashEffects;
 

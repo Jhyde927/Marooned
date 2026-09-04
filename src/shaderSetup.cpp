@@ -549,8 +549,8 @@ namespace ShaderSetup
         if (CurrentLevelIs("Ship")) out.vignetteStrengthValue = 0.0f; // no vignette on ship level
         out.vignetteIntensity = 0.0f;
         out.fadeToBlack = 0.0f;
-        out.dungeonDarkness = -0.1f;
-        out.dungeonContrast = 1.0f;
+        out.dungeonDarkness = 0.0f;
+        out.dungeonContrast = 0.99f;
         out.isDungeon = isDungeon ? 1 : 0; 
 
         out.letterboxAmount = 0.0f;

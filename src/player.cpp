@@ -168,6 +168,7 @@ void UpdateBoxInteraction(Player& player, float deltaTime)
         {
             bestDistSq  = dSq;
             best        = &box;
+            player.boxHint = true; //tell hint manager to show hint text on first box interaction
         }
     }
 
@@ -1180,7 +1181,13 @@ void InitCrossbow()
 }
 
 
-
+bool IsOverPlatformXZ(Vector3 position, const BoundingBox& platform)
+{
+    return position.x >= platform.min.x &&
+           position.x <= platform.max.x &&
+           position.z >= platform.min.z &&
+           position.z <= platform.max.z;
+}
 
 
 void OnGroundCheck(bool groundedNow, float timeNow) {
@@ -1482,6 +1489,23 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
                 terrainScale);
 
         player.groundY = player.centerGroundY;
+
+        if (raft.IsComplete() &&
+            IsOverPlatformXZ(player.position, raft.boundingBox))
+        {
+            float raftDeckY = raft.boundingBox.max.y;
+
+            // Prevent walking into the side from teleporting onto the raft.
+            bool playerIsAboveDeck =
+                player.position.y >= raftDeckY;
+
+            if (playerIsAboveDeck)
+            {
+                player.groundY = std::max(
+                    player.groundY,
+                    raftDeckY);
+            }
+        }
 
         // Dungeon-only flags should not carry over onto island maps.
         player.overVoid = false;

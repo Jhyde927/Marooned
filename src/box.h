@@ -32,6 +32,7 @@ public:
     float pickupRadius = 250.0f;
     bool  canBeCarried = true;
 
+
     // --- Collision ---
     BoundingBox bounds;
 

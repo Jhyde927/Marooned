@@ -10,7 +10,7 @@
 #include "camera_system.h"
 #include "render_pipeline.h"
 #include "main_menu.h"
-#include "dialogManager.h"
+
 #include "sound_manager.h"
 #include "algorithm"
 #include "shaderSetup.h"
@@ -21,7 +21,7 @@ std::vector<SlashEffect> gSlashEffects;
 float levelLoadProgress = 0.0f;
 
 static HintManager hints;   // one global-ish instance, private to UI.cpp
-static DialogManager dialogManager;
+DialogManager dialogManager;
 
 bool gHermitIntroDone = false;     // set true after the dialog fully ends once
 bool gHermitFollowing = false;
@@ -45,8 +45,12 @@ void InitDialogs()
         {
         "Ahoy!",
         "Another poor soul washed ashore...",
-        "Alas."
+        "Alas.",
+        "I've been working on a raft to get off this rock",
+        "I just need three more pieces", 
+        "Onced you have found all three, return here and we can set sail."
         }
+
     );
 
     dialogManager.AddDialog(
@@ -55,6 +59,15 @@ void InitDialogs()
         "Your still alive?",
         "We got to get out of here.",
         "I'll follow you."
+        }
+    );
+
+    dialogManager.AddDialog(
+        "hermit_3",
+        {
+        "You have found all the pieces!",
+        "The raft has been completed",
+        "I'll take my chances with the sea, over these lizards"
         }
     );
 

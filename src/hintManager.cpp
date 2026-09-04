@@ -84,8 +84,11 @@ void HintManager::Update(float dt) {
 }
 
 void HintManager::UpdateTutorial(){
-
+    
+    //one time switches
+    static bool showingDungeonEntranceHint = false;
     static bool checkMana = true;
+    static bool boxHint = true;
 
     if (player.isMoving && currentIndex == 0){//movement check
         Advance();
@@ -178,7 +181,7 @@ void HintManager::UpdateTutorial(){
         SetMessage("Press E to board boat");
     }
     //entrance
-    static bool showingDungeonEntranceHint = false;
+    
 
     if (!isDungeon && !dungeonEntrances.empty())
     {
@@ -208,6 +211,11 @@ void HintManager::UpdateTutorial(){
 
     if (raft.showMessage && raft.IsComplete()){
         SetMessage("Press E to Set sail");
+    }
+
+    if (player.boxHint && boxHint){
+        boxHint = false;
+        SetMessage("Press E to Pick up Box");
     }
 
 

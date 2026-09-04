@@ -8,6 +8,8 @@
 #include "character.h"
 #include "ui.h"
 #include "dungeonGeneration.h"
+#include "dialogManager.h"
+
 
 static bool PtrStillListed(Character* p, const std::vector<Character*>& enemyPtrs)
 {
@@ -40,21 +42,6 @@ static bool IsWithinAimConeXZ(const Vector3& hermitPos,
     return d >= cosThresh;
 }
 
-// static bool ViewerIsInFrontOfNPC(const Vector3& npcPos, float npcYawDeg, const Vector3& viewerPos)
-// {
-//     float yaw = npcYawDeg * DEG2RAD;
-//     Vector3 forward = { sinf(yaw), 0.0f, cosf(yaw) };
-
-//     Vector3 toViewer = Vector3Subtract(viewerPos, npcPos);
-//     toViewer.y = 0.0f;
-
-//     float lenSq = Vector3DotProduct(toViewer, toViewer);
-//     if (lenSq < 0.0001f) return true;
-
-//     toViewer = Vector3Scale(toViewer, 1.0f / sqrtf(lenSq));
-//     float d = Vector3DotProduct(forward, toViewer);
-//     return (d > 0.0f);
-// }
 
 void NPC::Init(Texture2D sheet, int frameW, int frameH, float sc, float /*rotationYParam*/)
 {
@@ -77,7 +64,14 @@ void NPC::Update(float dt, const std::vector<Character*>& enemyPtrs)
 {
     if (!isActive) return;
 
-    // Talk override behavior (same idea you had)
+    if (raft.IsComplete() && CurrentLevelIs("MiddleIsland") && dialogId != "hermit_3"){
+        dialogId = "hermit_3";
+        dialogManager.SetActive(true);
+        isInteractable = true;
+        
+    }
+
+    // Talk override behavior
     if (state == NPCState::Talk && !CanInteract(player.position))
         state = NPCState::Idle;
 

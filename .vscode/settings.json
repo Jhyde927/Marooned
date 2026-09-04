@@ -110,8 +110,7 @@
         "statusBar.debuggingForeground": "#ffffff",
         "titleBar.activeBackground": "#2c2734",
         "tab.activeBorder": "#c586c0",
-
-        "editor.background":"#25252a"
+        "editor.background":"#151518"
     },
 
     "editor.tokenColorCustomizations": {

@@ -24,8 +24,8 @@ std::vector<int> StaticLightIndices;
 //lighting control
 LightingConfig lightConfig =
 {
-    0.15f, //0.15f // ambient //dark on youtube but anything higher is too orange. 
-    0.8f,   // dynStrength
+    0.1f, //0.15f // ambient //dark on youtube but anything higher is too orange. 
+    0.7f,   //0.8 dynStrength
 
     2100.0f,  // staticRadius
     0.4f,     // staticIntensity
@@ -54,7 +54,7 @@ LightingConfig lightConfig =
     0.005f,    // losEpsilonFrac
 
     //tonemap
-    1.25, //dungeon exposure
+    1.0, //1.25 dungeon exposure
     0.9 //outside exposure
 };
 

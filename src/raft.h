@@ -5,6 +5,7 @@
 struct Raft
 {
     Vector3 position = {5997.0f, 80.0f, -2610.0f};
+    float scale = 100.0f;
 
     bool hasBody  = false;
     bool hasMast  = false;
@@ -13,13 +14,16 @@ struct Raft
 
     bool showMessage = false;
 
+    BoundingBox boundingBox;
+
+    void InitBoundingBox();
+
     bool PlayerInRange(Vector3 playerPosition, float dist);
     void Update(const Player& player, float dt);
     void Draw();
 
     void AddBody() { hasBody = true; }
     void AddMast() { hasMast = true; }
-    void AddBoom() { hasBoom = true; }
     void AddSail() { hasSail = true; }
 
     bool IsComplete() const

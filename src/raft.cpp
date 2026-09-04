@@ -3,6 +3,29 @@
 #include "rlgl.h"
 #include "cmath"
 
+void Raft::InitBoundingBox(){
+    // Model raftModel = R.GetModel("raft");
+    // BoundingBox localBounds = GetModelBoundingBox(raftModel);
+
+    float halfWidth  = 300.0f;
+    float halfLength = 220.0f;
+    float deckY      = position.y+25.0f;
+    float thickness  = 30.0f;
+
+    boundingBox = {
+        {
+            position.x - halfWidth,
+            deckY - thickness,
+            position.z - halfLength
+        },
+        {
+            position.x + halfWidth,
+            deckY,
+            position.z + halfLength
+        }
+    };
+}
+
 
 bool Raft::PlayerInRange(Vector3 playerPosition, float dist){
     float range = dist;
@@ -30,7 +53,6 @@ void Raft::Update(const Player& player, float dt)
 void Raft::Draw()
 {
     //positions of the peices 
-    const float scale = 100.0f;
 
     //rlDisableBackfaceCulling();
     DrawModelEx(R.GetModel("raft"), position, Vector3{0, 0, 0}, 0.0f, Vector3{scale, scale, scale}, WHITE); //draw the ghost raft. 
@@ -46,4 +68,6 @@ void Raft::Draw()
 
     if (hasSail)
         DrawModel(R.GetModel("raftSail"), position, scale, WHITE);
+
+    
 }

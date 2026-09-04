@@ -335,6 +335,38 @@ void EnsureCeilingMaskTexture(int dungeonWidth, int dungeonHeight)
     CreateCeilingMaskTexture(dungeonWidth, dungeonHeight);
 }
 
+static void ApplyLevelSetup(LevelData& level){
+    if (level.name == "River"){
+        Vector3 trexPos = {183.0f, 332.0f, 5095.0f};
+        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);  
+        generateTrex(1, trexPos, 10000.0f, 5000.0f); //generate 1 t-rex on river level.  
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::River); 
+    }
+
+    if (level.name == "Dungeon1"){
+        enteredDungeon1 = true;
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::FoundRuins);
+    } 
+    if (level.name == "Dungeon2"){
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::DeeperStill);
+    }
+
+    if (level.name == "Dungeon3") unlockEntrances = true; // unlock entrance 3, lock entrance 1 
+
+
+    if (level.name == "MiddleIsland" && unlockEntrances){ //you have completed dungeon3
+        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::Resurface);
+        raft.hasBody = true;
+
+        InitBoat(player_boat,Vector3{0.0, -75, 0.0});
+    }
+
+    if (level.name == "MiddleIsland" || level.name == "River"){
+        InitNPCs();
+
+    }
+}
+
 
 
 
@@ -345,6 +377,8 @@ void InitLevel(LevelData& level, Camera& camera) {
     DisableCursor();
     isLoadingLevel = true;
     isDungeon = false;
+
+    raft.InitBoundingBox();
 
     //Called when starting game and changing level. init the level you pass it. the level is chosen by menu or door's linkedLevelIndex. 
     ClearLevel();//clears everything.
@@ -400,33 +434,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
     generateRaptors(level.raptorCount, level.raptorSpawnCenter, 6000.0f);
 
-    if (level.name == "River"){
-        Vector3 trexPos = {183.0f, 332.0f, 5095.0f};
-        generateDactyls(5, level.raptorSpawnCenter, 6000.0f);  
-        generateTrex(1, trexPos, 10000.0f, 5000.0f); //generate 1 t-rex on river level.  
-        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::River); 
-    }
-
-    if (level.name == "Dungeon1"){
-        enteredDungeon1 = true;
-        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::FoundRuins);
-    } 
-    if (level.name == "Dungeon2"){
-        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::DeeperStill);
-    }
-
-    if (level.name == "Dungeon3") unlockEntrances = true; // unlock entrance 3, lock entrance 1 
-
-
-    if (level.name == "MiddleIsland" && unlockEntrances){
-        JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::Resurface);
-        InitBoat(player_boat,Vector3{0.0, -75, 0.0});
-    }
-
-    if (level.name == "MiddleIsland" || level.name == "River"){
-        InitNPCs();
-
-    }
+    ApplyLevelSetup(level); //level specific parameters
 
     InitOverworldWeapons();
     TutorialSetup();
@@ -1099,7 +1107,7 @@ Character* FindEnemyById(int id)
 
 void UpdateRaftInteraction()
 {
-    if (raft.PlayerInRange(player.position, 700.0f) && raft.IsComplete()){
+    if (raft.PlayerInRange(player.position, 700.0f) && raft.IsComplete() && !DebugConsole::IsOpen()){
         if (IsKeyPressed(KEY_E)){
             int shipLevel = 17;
             ChangeLevel(shipLevel);
@@ -1285,7 +1293,7 @@ void UpdateCollectables(float deltaTime) {
                 raft.hasMast = true;
 
             } else if (collectables[i].type == CollectableType::raftBody) {
-                raft.hasBody = true;
+                raft.hasBody = true; // resurface journal entry. We should trigger hasbody to true there. So you dont actually have to pick it up. 
 
             } else if (collectables[i].type == CollectableType::raftSail) {
                 JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::RaftSail);
@@ -1485,7 +1493,18 @@ void InitNPCs() //spawn hermit on island.
 
     // Interaction
     hermit.interactRadius = 400.0f;
-    hermit.dialogId = CurrentLevelIs("River") ? "hermit_2" : "hermit_intro";//unlockEntrances ? "hermit_2" : "hermit_intro";
+
+    if (CurrentLevelIs("River")){
+        hermit.dialogId = "hermit_2";
+    }else if (CurrentLevelIs("MiddleIsland")){
+        hermit.dialogId = raft.IsComplete() ? "hermit_3" : "hermit_intro";
+    }else{
+        hermit.dialogId = "";
+    }
+
+    // hermit.dialogId = CurrentLevelIs("River") ? "hermit_2" : "hermit_intro";
+    // if (raft.IsComplete()) hermit.dialogId = "hermit_3";
+    
     hermit.rotationY = unlockEntrances ? 180.0f : 90.0f;
     hermit.tint = { 220, 220, 220, 255 }; //darker when not interacting.
     hermit.isInteractable = true;

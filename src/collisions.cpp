@@ -797,6 +797,7 @@ void CheckBulletHits(Camera& camera) {
                     if (b.id != enemy->lastBulletIDHit){
                         enemy->TakeDamage(75 * qDamage);
                         enemy->lastBulletIDHit = b.id;
+                        b.exploded = true; //starts count down to bullet death. 
                         break;
                         //penetration, bullet stays alive for now. 
 
@@ -817,16 +818,6 @@ void CheckBulletHits(Camera& camera) {
                         b.velocity = {0,0,0};
                         b.age = 0.0f;
                         b.maxLifetime = 9999.0f;
-
-                        //GRAPPLE TO ENEMY
-                        // player.state = PlayerState::Grappling;
-                        // player.grappleTarget = enemy->position;
-                        // player.grappleSpeed = 2000.0f;          // or gp.pullSpeed
-                        // player.grappleStopDist = 200.0f;        // or gp.stopDistance
-                        // player.grappleBulletId = b.id;          // optional, for rope rendering/cleanup
-                        // player.harpoonLifeTimer = 3.0f; //start life timer to prevent grappling to an area you can't reach and getting stuck in grapple state
-                        // SoundManager::GetInstance().Play("ratchet");
-                        // enemy->ChangeState(CharacterState::Stagger); 
 
                         // PULL ENEMY 
                         if (enemy->type != CharacterType::Trex){
@@ -1096,6 +1087,7 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
                 b.Explode(camera);
             }else if (b.type == BulletType::Bolt){
                 //bolts penetrate barrels. 
+                b.exploded = true; //last for 2 more seconds
             }
             else
             {
