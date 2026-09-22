@@ -196,6 +196,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         DrawPlayer(player, camera);
         DrawEnemyShadows();
         DrawBullets(camera);
+        DrawMagicMissiles();
         DrawCollectableWeapons();
         DrawPowerUps(camera);
         DrawCollectableModels(collectables);
@@ -203,7 +204,8 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
 
         DrawTransparentDrawRequests(camera);
         rlDisableDepthMask();
-        DrawBloodParticles(camera);
+        //DrawBloodParticles(camera);
+        particleSystem.Draw(camera);
 
         rlEnableDepthMask();
 

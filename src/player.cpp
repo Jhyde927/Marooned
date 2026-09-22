@@ -626,6 +626,17 @@ void HandleKeyboardInput(Camera& camera) {
 
     if (GameSettings::showJournal) return;
 
+    if (IsKeyPressed(KEY_P))
+    {
+        Vector3 testPosition = player.position;
+        testPosition.y += 100.0f;
+
+        particleSystem.EmitBurst(
+            testPosition,
+            100,
+            ParticleType::Sparks);
+    }
+
     player.runSpeed = player.haste ? 1400.0f : 850.0f;
     player.walkSpeed = player.haste ? 1000.0f : 500.0f;
 
@@ -654,10 +665,20 @@ void HandleKeyboardInput(Camera& camera) {
     // Commit state
     player.blocking = wantBlock;
 
-    // Other RMB actions (only when not blocking with sword)
-    if (rmb && player.activeWeapon == WeaponType::MagicStaff) {
+    bool fireHeld = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+    bool firePressed = IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
+
+    if (magicStaff.magicType == MagicType::MagicMissile
+            ? fireHeld
+            : firePressed)
+    {
         magicStaff.Fire(camera);
     }
+
+    // Other RMB actions (only when not blocking with sword)
+    // if (rmb && player.activeWeapon == WeaponType::MagicStaff) {
+    //     magicStaff.Fire(camera);
+    // }
 
     if (rmb && player.activeWeapon == WeaponType::Crossbow) {
         crossbow.FireHarpoon(camera);
@@ -766,7 +787,7 @@ void HandleKeyboardInput(Camera& camera) {
         //use health potion
         if (player.inventory.HasItem("HealthPotion") && !player.dying){ //don't use pot when dying
             
-            if (player.currentHealth < player.maxHealth){ //don't use pot when full health, or if you have overhealth powerup
+            if (player.currentHealth < 100){ // < 100 instead of player.maxHealth, Prevents using health pot when over 100 health
                 player.currentHealth = player.maxHealth;
                 player.inventory.UseItem("HealthPotion");
                 SoundManager::GetInstance().Play("gulp");
@@ -784,14 +805,38 @@ void HandleKeyboardInput(Camera& camera) {
         }
     }
 
-    //T or Up on the d pad to switch magic type
-    if ((IsKeyPressed(KEY_T) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP)) && hasIce){
-       if (magicStaff.magicType == MagicType::Fireball){
-            magicStaff.magicType = MagicType::Iceball;
-       }else{
+    // T or Up on the D-pad to switch magic type
+    if (IsKeyPressed(KEY_T) ||
+        IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP))
+    {
+        if (magicStaff.magicType == MagicType::Fireball)
+        {
+            if (hasIce)
+                magicStaff.magicType = MagicType::Iceball;
+            else if (hasMissile)
+                magicStaff.magicType = MagicType::MagicMissile;
+        }
+        else if (magicStaff.magicType == MagicType::Iceball)
+        {
+            if (hasMissile)
+                magicStaff.magicType = MagicType::MagicMissile;
+            else
+                magicStaff.magicType = MagicType::Fireball;
+        }
+        else if (magicStaff.magicType == MagicType::MagicMissile)
+        {
             magicStaff.magicType = MagicType::Fireball;
-       }
+        }
     }
+
+    // //T or Up on the d pad to switch magic type
+    // if ((IsKeyPressed(KEY_T) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP)) && hasIce){
+    //    if (magicStaff.magicType == MagicType::Fireball){
+    //         magicStaff.magicType = MagicType::Iceball;
+    //    }else{
+    //         magicStaff.magicType = MagicType::Fireball;
+    //    }
+    // }
 
 }
 
@@ -1147,6 +1192,7 @@ void InitMagicStaff(MagicStaff& magicStaff) {
     magicStaff.scale = {1.0f, 1.0f, 1.0f};
     magicStaff.muzzleFlashTexture = R.GetTexture("muzzleFlash");
     magicStaff.fireCooldown = 1.0f;
+    magicStaff.missileCooldown = 0.25f;
 
     //set starting offsets here
     magicStaff.forwardOffset = 75.0f;

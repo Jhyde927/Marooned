@@ -426,9 +426,10 @@ void Character::TakeDamage(int amount) {
         Vector3 toPlayer = Vector3Normalize(Vector3Subtract(player.position, position));
         Vector3 newPos   = Vector3Add(position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
         if (type == CharacterType::Skeleton || type == CharacterType::Ghost) {
-            bloodEmitter.EmitBlood(newPos, 20, WHITE);
+            particleSystem.EmitBlood(newPos, 30, WHITE);
+
         } else {
-            bloodEmitter.EmitBlood(newPos, 20, RED);
+            particleSystem.EmitBlood(newPos, 30, RED);
 
             Vector3 camDir = Vector3Normalize(Vector3Subtract(position, player.position));
             Vector3 offsetPos = Vector3Add(position, Vector3Scale(camDir, 50.0f));
@@ -465,14 +466,14 @@ void Character::TakeDamage(int amount) {
             Vector3 toPlayer = Vector3Normalize(Vector3Subtract(player.position, position));
             Vector3 newPos   = Vector3Add(position, Vector3Scale(toPlayer, 25.0f)); // 25 units in front of the enemy
             if (type == CharacterType::Skeleton || type == CharacterType::Ghost) {
-                bloodEmitter.EmitBlood(newPos, 10, WHITE);
+
+                particleSystem.EmitBlood(newPos, 30, WHITE);
             } else {
-                bloodEmitter.EmitBlood(newPos, 20, RED);
+
+                particleSystem.EmitBlood(newPos, 30, RED);
             }
         }
         
-        
-        //AlertNearbySkeletons(position, 3000.0f);
         PlayDamageSounds();
 
         //dont stagger if your frozen. 
@@ -527,7 +528,7 @@ void Character::UpdateAltitude(float dt, float groundY, float desiredAltitude)
 
 void Character::Update(float deltaTime, Player& player ) {
     if (isLoadingLevel) return;
-    bloodEmitter.UpdateBlood(deltaTime);
+    //bloodEmitter.UpdateBlood(deltaTime);
     
     animationTimer += deltaTime;
     stateTimer += deltaTime;

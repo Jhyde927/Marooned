@@ -1192,7 +1192,12 @@ void MeleeWeapon::PlaySwipe(){
 
 void MagicStaff::Fire(const Camera& camera) {
     (void)camera;
-    if (GetTime() - lastFired < fireCooldown) return;
+
+    const float cooldown = (magicType == MagicType::MagicMissile)
+        ? missileCooldown
+        : fireCooldown;
+
+    if (GetTime() - lastFired < cooldown) return;
 
     if (player.currentMana >= 10){
         player.currentMana -= 10;
@@ -1200,9 +1205,11 @@ void MagicStaff::Fire(const Camera& camera) {
         return;
     }
 
+
+
     lastFired = GetTime();
     recoil += recoilAmount;
-    //flashTimer = flashDuration;
+    muzzlePos = GetPlayerMuzzlePosition(player);
 
     activeMuzzleFlashes.push_back({
             muzzlePos,
@@ -1211,15 +1218,15 @@ void MagicStaff::Fire(const Camera& camera) {
             0.1f  // lifetime in seconds
     });
 
-    //Vector3 camForward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 targetPoint = Vector3Add(player.position, Vector3Scale(player.lookForward, 1000.0f));
 
-    muzzlePos = GetPlayerMuzzlePosition(player);
-    
     if (magicType == MagicType::Fireball){
         FireFireball(muzzlePos, targetPoint, 2000, 10.0f, false, false, false);
-    }else{
+    } else if (magicType == MagicType::Iceball){
         FireIceball(muzzlePos, targetPoint, 2000, 10.0f, false, false);
+    }else if (magicType == MagicType::MagicMissile){
+
+        SpawnMagicMissiles(muzzlePos, player.lookForward, targetPoint);
     }
     
     

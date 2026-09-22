@@ -330,6 +330,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("healthPotion",           "assets/Models/healthPotion.glb");
     R.LoadModel("raft",                   "assets/Models/raft.glb");
 
+    R.LoadModel("magicMissile",           "assets/Models/missileModel.glb");
+
     //Still needed for building raft piece by piece. Remember their offsets are baked into the model. 
     R.LoadModel("raftBody",               "assets/Models/raftBody.glb");
     R.LoadModel("raftMast",               "assets/Models/raftMast.glb");

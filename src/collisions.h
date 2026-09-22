@@ -29,6 +29,6 @@ void pillarCollision();
 void launcherCollision();
 void SpiderEggCollision();
 void BulletParticleBounce(Bullet& b, Color c);
-void BulletParticleRicochetNormal(Bullet& b, Vector3 n, Color c);
+//void BulletParticleRicochetNormal(Bullet& b, Vector3 n, Color c);
 bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera);
 bool TryBulletRicochet(Bullet& b, Vector3 n, float damp = 0.6f, float minSpeed = 80.0f, float headOnCosThreshold = 0.999f);

@@ -20,6 +20,7 @@
 #include "saveGame.h"
 
 
+
 void UpdateLevelMusic(){
     if (CurrentLevelIs("Ship"))
     {
@@ -110,6 +111,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     PortalSystem::Update(player.position, player.radius, dt);
     DebugConsole::Update(dt);
     journalUI.Update(dt);
+    particleSystem.Update(dt);
 
     UpdateRaftInteraction();
     UpdateEnemies(dt);
@@ -118,7 +120,8 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateNPCs(dt);
     UpdateDungeonEvents();
     UpdateSlashEffects(dt);
-    UpdateBullets(camera, dt);
+    UpdateBullets(camera, dt, particleSystem);
+    UpdateMagicMissile(dt);
     GatherFrameLights();
     EraseBullets();
     UpdateAggro();

@@ -6,6 +6,7 @@
 #include "player.h"
 #include "emitter.h"
 
+
 class Kraken
 {
 public:
@@ -67,7 +68,7 @@ public:
     void UpdateHitBox();
 
     State GetState() const;
-    Emitter bloodEmitter;
+    //Emitter bloodEmitter;
     BoundingBox hitBox;
     Vector3 repPos;
     Vector3 startPos;

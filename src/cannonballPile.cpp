@@ -2,9 +2,7 @@
 #include "player.h"
 #include "raymath.h"
 #include "resourceManager.h"
-#include "iostream"
 #include "dungeonGeneration.h"
-// assuming you have a global resource manager like R
 
 const int kMaxLooseCannonBalls = 5;
 

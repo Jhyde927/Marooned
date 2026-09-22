@@ -11,6 +11,7 @@ namespace SpawnManager
     bool startCutscene = false;
     bool cutSceneFinished = false;
     int maxAlive = 4;
+    
     int CountAliveSpawnedByType(CharacterType type)
     {
         int count = 0;

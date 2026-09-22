@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <iostream>
 #include "pathfinding.h"
+#include "world.h"
+
+
 
 void Kraken::Init(Vector3 spawnPosition,
                   float inWaterY,
@@ -27,9 +30,9 @@ void Kraken::Init(Vector3 spawnPosition,
     visible = true;
     bobEnabled = true;
 
-    bloodEmitter.SetPosition(basePosition);
-    bloodEmitter.SetParticleSize(100.0f);
-    bloodEmitter.SetParticleType(ParticleType::Squid);
+    // bloodEmitter.SetPosition(basePosition);
+    // bloodEmitter.SetParticleSize(100.0f);
+    // bloodEmitter.SetParticleType(ParticleType::Squid);
 
 
     baseYawDeg = 180.0f;     
@@ -82,7 +85,10 @@ void Kraken::TakeDamage(float amount)
     hitTimer = 0.5f;
     Vector3 bloodPos = {basePosition.x, basePosition.y + 200.0f, basePosition.z};
 
-    bloodEmitter.EmitBurst(bloodPos, 100, ParticleType::Squid);
+    particleSystem.EmitBlood(bloodPos, 100, DARKPURPLE);
+    
+    
+
     if (!didHalfHealthReposition && currentHealth <= maxHealth * 0.5f)
     {
         repositionAfterSink = true;
@@ -118,12 +124,12 @@ void Kraken::Update(float dt, Player& player)
         hitTimer -= dt;
     }else{
         canTakeDamage = true;
-        bloodEmitter.SetCanBurst(true);
+        //bloodEmitter.SetCanBurst(true);
     }
-    bloodEmitter.SetPosition(basePosition);
+    //bloodEmitter.SetPosition(basePosition);
 
 
-    bloodEmitter.Update(dt);
+    //bloodEmitter.Update(dt);
     UpdateState(dt, player);
     UpdateIdleMotion(dt, player);
     UpdateTransform();

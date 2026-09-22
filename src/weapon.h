@@ -26,6 +26,7 @@ enum class WeaponType {
 enum class MagicType {
     Fireball,
     Iceball,
+    MagicMissile
 };
 
 struct MuzzleFlash {
@@ -210,6 +211,7 @@ struct MagicStaff {
     Vector3 muzzlePos;
     float fireCooldown = 1.0f;
     float lastFired = -999.0f;
+    float missileCooldown;
 
     float recoil = 0.0f;
     float recoilAmount = 8.0f;

@@ -32,6 +32,7 @@
 #include "dungeon_props.h"
 #include "dungeonInstancing.h"
 #include "saveGame.h"
+#include "particle.h"
 
 
 GameState currentGameState = GameState::Menu;
@@ -87,6 +88,7 @@ bool hasCrossbow = false;
 bool hasHarpoon = false;
 bool hasDoubleShot = false;
 bool hasIce = false;
+bool hasMissile = true; //true for now. 
 float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
@@ -102,6 +104,7 @@ FadePhase gFadePhase = FadePhase::Idle;
 Model oceanModel;
 //std::vector<Bullet> activeBullets;
 std::list<Bullet> activeBullets; // instead of std::vector
+std::vector<MagicMissile> activeMagicMissiles;
 std::vector<Portal> portals;
 std::vector<Decal> decals;
 std::vector<MuzzleFlash> activeMuzzleFlashes;
@@ -120,6 +123,9 @@ std::vector<PreviewInfo> levelPreviews;
 Raft raft;
 MiniMap miniMap;
 JournalUI journalUI;
+ParticleSystem particleSystem;
+
+
 
 using namespace dungeonColors;
 
@@ -264,18 +270,18 @@ int GetMaxParticleCount()
 {
     int total = 0;
 
-    for (const Character* enemy : enemyPtrs)
-    {
-        if (!enemy) continue;
+    //for (const Character* enemy : enemyPtrs)
+    // {
+    //     if (!enemy) continue;
 
-        total += enemy->bloodEmitter.GetMaxParticleCount();
-    }
+    //     total += enemy->bloodEmitter.GetMaxParticleCount();
+    // }
 
-    for (const Bullet& b : activeBullets)
-    {
-        total += b.fireEmitter.GetMaxParticleCount();
-        total += b.sparkEmitter.GetMaxParticleCount();
-    }
+    // for (const Bullet& b : activeBullets)
+    // {
+    //     total += b.fireEmitter.GetMaxParticleCount();
+    //     total += b.sparkEmitter.GetMaxParticleCount();
+    // }
 
     // for (const Decal& d : decals)
     // {
@@ -287,21 +293,21 @@ int GetMaxParticleCount()
     //     total += s.gooEmitter.GetMaxParticleCount();
     // }
 
-    total += gKraken.bloodEmitter.GetMaxParticleCount();
+    //total += gKraken.bloodEmitter.GetMaxParticleCount();
 
     return total;
 }
 
 int GetParticleCount(){
     int total = 0;
-    for (const Character* enemy : enemyPtrs){
-        total += enemy->bloodEmitter.GetActiveParticleCount();
-    }
+    // for (const Character* enemy : enemyPtrs){
+    //     total += enemy->bloodEmitter.GetActiveParticleCount();
+    // }
 
-    for (const Bullet& b : activeBullets){
-        total += b.fireEmitter.GetActiveParticleCount();
-        total += b.sparkEmitter.GetActiveParticleCount();
-    }
+    // for (const Bullet& b : activeBullets){
+    //     total += b.fireEmitter.GetActiveParticleCount();
+    //     total += b.sparkEmitter.GetActiveParticleCount();
+    // }
 
     // for (const Decal& d : decals){
     //     total += d.bloodEmitter.GetActiveParticleCount();
@@ -311,7 +317,7 @@ int GetParticleCount(){
     //     total += s.gooEmitter.GetActiveParticleCount();
     // }
 
-    total += gKraken.bloodEmitter.GetActiveParticleCount();
+    //total += gKraken.bloodEmitter.GetActiveParticleCount();
 
     return total;
 
@@ -1150,10 +1156,83 @@ void UpdateMuzzleFlashes(float deltaTime) {
     lightConfig.playerRadius = activeMuzzleFlashes.empty() ? 400.0f : 1600.0f;
 }
 
-void UpdateBullets(Camera& camera, float dt) {
+void DrawMagicMissiles()
+{
+    Model& missileModel = R.GetModel("magicMissile");
+    Vector3 modelScale = {15, 15, 15};
+    for (const MagicMissile& missile : activeMagicMissiles)
+    {
+        //DrawSphere(missile.position, 12.0f, PURPLE);
+        Vector3 modelForward = { 0.0f, 1.0f, 0.0f };
+        Vector3 direction = Vector3Normalize(missile.travelDirection);
+
+        Vector3 rotationAxis = Vector3CrossProduct(modelForward, direction);
+        float dot = Clamp(Vector3DotProduct(modelForward, direction), -1.0f, 1.0f);
+        float angle = acosf(dot) * RAD2DEG;
+
+        if (Vector3LengthSqr(rotationAxis) < 0.0001f)
+        {
+            rotationAxis = { 1.0f, 0.0f, 0.0f }; // Handles parallel directions
+        }
+
+        DrawModelEx(
+            missileModel,
+            missile.position,
+            rotationAxis,
+            angle,
+            modelScale,
+            PURPLE
+        );
+    }
+}
+
+void UpdateMagicMissile(float deltaTime){
+    for (MagicMissile& missile : activeMagicMissiles)
+    {
+
+        if (!missile.targetAcquired && missile.age >= missile.burstTime)
+        {
+            missile.targetAcquired = true;
+
+            float closestDistanceSq = 2000.0f * 2000.0f; // acquisition range
+
+            for (Character* enemy : enemyPtrs)
+            {
+                if (!enemy || enemy->isDead) continue;
+                if (!DDAHasLineOfSightWorld(missile.position, enemy->position)) continue;
+
+                float distanceSq = Vector3DistanceSqr(
+                    missile.position,
+                    enemy->position
+                );
+
+                if (distanceSq < closestDistanceSq)
+                {
+                    closestDistanceSq = distanceSq;
+                    missile.targetPoint = enemy->position;
+                }
+            }
+        }
+
+
+        missile.Update(deltaTime);
+    }
+
+    activeMagicMissiles.erase(
+        std::remove_if(
+            activeMagicMissiles.begin(),
+            activeMagicMissiles.end(),
+            [](const MagicMissile& missile) { return !missile.active; }
+        ),
+        activeMagicMissiles.end()
+    );
+
+}
+
+void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem) {
 
     for (Bullet& b : activeBullets) {
-        b.Update(camera, dt);
+        b.Update(camera, dt, particleSystem);
         if (b.exploded){
             // First frame of death: convert to glow if requested
             if (b.light.active && b.light.detachOnDeath && !b.light.detached) {
@@ -1338,17 +1417,7 @@ void UpdateDecals(float deltaTime){
 }
 
 
-void DrawBloodParticles(Camera& camera){
-    for (Character* enemy : enemyPtrs) { //draw enemy blood, blood is 3d so draw before billboards. 
-            enemy->bloodEmitter.Draw(camera);
-    }
 
-    // for (SpiderEgg& egg : eggs){
-    //     egg.gooEmitter.Draw(camera);
-    // }
-    gKraken.bloodEmitter.Draw(camera);
-    
-}
 
 void DrawBullets(Camera& camera) {
     for (const Bullet& b : activeBullets) {
@@ -1538,6 +1607,17 @@ float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terra
     return heightValue * terrainScale.y;
 }
 
+void SpawnMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint)
+{
+    for (int i = 0; i < 3; ++i) //missiles per shot
+    {
+        activeMagicMissiles.emplace_back(startPosition, forwardDirection, targetPoint);
+
+    }
+}
+
+
+
 void DrawReticle(WeaponType& weaponType){
     if (player.isCarrying) return; //Don't draw reticle, if carrying a box. 
     if (weaponType == WeaponType::Blunderbuss){
@@ -1663,7 +1743,7 @@ void UpdateOverlayInfo(DebugOverlayInfo& overlayInfo){
     overlayInfo.activeEnemies = enemyPtrs.size();
     overlayInfo.activeBullets = activeBullets.size();
     overlayInfo.maxParticles = GetMaxParticleCount();
-    overlayInfo.activeParticles = GetParticleCount();
+    //overlayInfo.activeParticles = GetParticleCount();
     overlayInfo.currentWeapon = WeaponTypeToString(player.activeWeapon);
     overlayInfo.showFreeCameraHint = true;
 

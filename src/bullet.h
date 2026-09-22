@@ -7,6 +7,8 @@
 #include "raymath.h"
 #include <cstdint>
 
+class ParticleSystem;
+
 enum class BulletType {
     Default,
     Fireball,
@@ -45,8 +47,6 @@ public:
     bool launcher;
     bool alive;
     float age;
-    Emitter fireEmitter;
-    Emitter sparkEmitter;
 
     bool fireball = false;
     float maxLifetime = 4.0f;
@@ -87,10 +87,15 @@ public:
     float   baseDamage = 15.0f; //10.0f
     float   initialSpeed = 1.0f;  // set when fired
 
+
+    //new 
+    float smokeEmissionAccumulator = 1.0f; //primed to 1 so it emits immedialty.
+    float fireEmissionAccumulator = 1.0f;
+
     Vector3 retractTip = {0, 0, 0};     // where the rope tip currently is during retract
 
     BulletLight light;
-    void Update(Camera& camera, float deltaTime);
+    void Update(Camera& camera, float deltaTime, ParticleSystem& particleSystem);
     void UpdateMagicBall(Camera& camera, float deltaTime);
     void Erase();
     void Draw(Camera& camera) const;

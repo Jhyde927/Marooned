@@ -589,84 +589,10 @@ static inline Vector3 AABBHitNormal(const BoundingBox& box, const Vector3& p)
     return n; // already unit for axis-aligned faces
 }
 
-void BulletRicochetPuff(Bullet& b, Vector3 dir, Color c)
-{
-    b.fireEmitter.SetParticleSize(6.0f);
-    b.fireEmitter.SetColor(c);
-
-    // Scale dir down so puff is subtle
-    Vector3 base = Vector3Scale(dir, 0.15f);
-
-    // Random jitter (same vibe you already like)
-    float r = 50;
-    Vector3 jitter = {
-        (float)GetRandomValue(-r, r),
-        (float)GetRandomValue(-r, r),
-        (float)GetRandomValue(-r, r)
-    };
-
-    Vector3 puffVel = Vector3Add(base, jitter);
-
-    b.fireEmitter.SetVelocity(puffVel);
-    b.fireEmitter.EmitBurst(b.position, 2, ParticleType::Impact);
-}
-
-
-void BulletParticleRicochetNormal(Bullet& b, Vector3 n, Color c)
-{
-    b.fireEmitter.SetParticleSize(6.0f);
-    b.fireEmitter.SetColor(c);
-
-    n = Vector3Normalize(n);   // just in case
-
-    Vector3 v = b.velocity;
-
-    // Reflect velocity: v' = v - 2*dot(v,n)*n
-    float d = Vector3DotProduct(v, n);
-    Vector3 reflected = Vector3Subtract(v, Vector3Scale(n, 2.0f * d));
-
-    // Scale down
-    Vector3 base = Vector3Scale(reflected, 0.15f);
-
-    // Random jitter
-    float r = 50.0f;
-    Vector3 jitter = {
-        (float)GetRandomValue(-r, r),
-        (float)GetRandomValue(-r, r),
-        (float)GetRandomValue(-r, r)
-    };
-
-    Vector3 smokeVel = Vector3Add(base, jitter);
-
-    b.fireEmitter.SetVelocity(smokeVel);
-    //b.fireEmitter.EmitBurst(b.position, 2, ParticleType::Impact);
-
-    b.exploded = true;
-    b.alive = false;
-}
-
-
 void BulletParticleBounce(Bullet& b, Color c){
-    b.fireEmitter.SetParticleSize(6.0);
-    b.fireEmitter.SetColor(c);
-    Vector3 base = Vector3Negate(b.velocity);
+    (void) c;
 
-    // Scale down so it drifts slowly instead of blasting away
-    base = Vector3Scale(base, 0.15f);   // 20% of bullet speed 
-
-    // Add randomness
-    float r = 50.0f; // magnitude of random jitter
-    Vector3 jitter = {
-        (float)GetRandomValue(-r, r),
-        (float)GetRandomValue(-r, r),
-        (float)GetRandomValue(-r, r)
-    };
-
-    // Final smoke velocity
-    Vector3 smokeVel = Vector3Add(base, jitter);
-
-    b.fireEmitter.SetVelocity(smokeVel);
-    b.fireEmitter.EmitBurst(b.position, 2, ParticleType::Impact);
+    particleSystem.EmitBurst(b.position, 30, ParticleType::Smoke);
 
     b.exploded = true;
     b.alive = false;

@@ -13,6 +13,7 @@
 #include "collisions.h"
 #include "rlgl.h"
 #include <cstdint>
+#include "particleSystem.h"
 
 static unsigned int gBulletCounter = 0;
 
@@ -25,10 +26,9 @@ Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletTyp
       radius(r),
       launcher(launch),
       alive(true),
-      age(0.0f),
-      fireEmitter(startPos),
-      sparkEmitter(startPos)
+      age(0.0f)
 {
+
 }
 
 
@@ -98,8 +98,8 @@ void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
     // Gravity-based arc
     
     gravity = launcher ? 0 : 980.0f; //fireballs fired from traps have no gravity
-    fireEmitter.SetPosition(position);
-    sparkEmitter.SetPosition(position);
+    // fireEmitter.SetPosition(position);
+    // sparkEmitter.SetPosition(position);
     
     velocity.y -= gravity * deltaTime;
 
@@ -148,14 +148,6 @@ void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
             pendingExplosion = false;
         }
     }
-
-    // Lifetime kill
-    // age += deltaTime;
-    // if (age >= maxLifetime && type == BulletType::Default) {
-    //     kill(camera);
-    // }
-
-
 
 }
 
@@ -211,9 +203,7 @@ void Bullet::HandleBulletWorldCollision(){
 
 }
 
-void Bullet::Update(Camera& camera, float deltaTime) {
-    fireEmitter.Update(deltaTime);
-    sparkEmitter.Update(deltaTime); 
+void Bullet::Update(Camera& camera, float deltaTime, ParticleSystem& particleSystem) {
 
     if (lifeTime > 0){
 
@@ -258,37 +248,49 @@ void Bullet::Update(Camera& camera, float deltaTime) {
 
 
     // Fireball logic
-    if (type == BulletType::Fireball) {
-        
-        fireEmitter.SetParticleType(ParticleType::Smoke);
+    if (type == BulletType::Fireball)
+    {
+        if (!exploded)
+        {
+            particleSystem.EmitTrail(
+                position,
+                deltaTime,
+                100.0f,
+                smokeEmissionAccumulator,
+                ParticleType::Smoke);
 
-        sparkEmitter.SetParticleType(ParticleType::FireTrail);
-        sparkEmitter.UpdateTrail(deltaTime);
-        fireEmitter.UpdateTrail(deltaTime);
+            particleSystem.EmitTrail(
+                position,
+                deltaTime,
+                100.0f,
+                fireEmissionAccumulator,
+                ParticleType::FireTrail);
+        }
+
         UpdateMagicBall(camera, deltaTime);
 
-        if (!exploded && explosionTriggered) {
+        if (!exploded && explosionTriggered)
+        {
             exploded = true;
-     
         }
-        
-        if (exploded){
+
+        if (exploded)
+        {
             timeSinceExploded += deltaTime;
 
-            if (timeSinceExploded >= 2.0f) { //wait for particles to act. 
+            if (timeSinceExploded >= 2.0f)
+            {
                 alive = false;
                 return;
-
             }
-
         }
-        return; //skip normal bullet logic
+
+        return;
     }
+
     else if (type == BulletType::Iceball){
-        sparkEmitter.SetParticleType(ParticleType::IceMist);
-        fireEmitter.SetParticleType(ParticleType::IceMist);
-        fireEmitter.UpdateTrail(deltaTime);
-        sparkEmitter.UpdateTrail(deltaTime);
+
+        particleSystem.EmitTrail(position, deltaTime, 100.0f, smokeEmissionAccumulator, ParticleType::IceMist);
 
         UpdateMagicBall(camera, deltaTime);
 
@@ -311,34 +313,28 @@ void Bullet::Update(Camera& camera, float deltaTime) {
 
     }else if (type == BulletType::Bolt || type == BulletType::Harpoon){
         velocity.y -= gravity * deltaTime;
-        fireEmitter.SetParticleType(ParticleType::BoltTrail);
-        fireEmitter.SetPosition(position);
-        fireEmitter.SetParticleSize(1.0f);
-        fireEmitter.SetEmissionRate(50.0f);
-        fireEmitter.SetColor(LIGHTGRAY);
-        fireEmitter.UpdateTrail(deltaTime); //smoke trail update
+
+        Color crossbowTrailColor = {255,255,255,1};
+        particleSystem.EmitTrail(position, deltaTime, 10.0f, smokeEmissionAccumulator, ParticleType::Smoke, crossbowTrailColor);
 
     }else if (type == BulletType::CannonBall){
         velocity.y -= gravity * deltaTime;
-        fireEmitter.SetParticleType(ParticleType::Smoke);
-        sparkEmitter.SetParticleType(ParticleType::FireTrail);
-        fireEmitter.SetPosition(position);
-        sparkEmitter.SetPosition(position);
-        sparkEmitter.UpdateTrail(deltaTime);
-        fireEmitter.UpdateTrail(deltaTime);
+        particleSystem.EmitTrail(position, deltaTime, 50.0f, smokeEmissionAccumulator, ParticleType::Smoke);
+        // fireEmitter.SetParticleType(ParticleType::Smoke);
+        // sparkEmitter.SetParticleType(ParticleType::FireTrail);
+        // fireEmitter.SetPosition(position);
+        // sparkEmitter.SetPosition(position);
+        // sparkEmitter.UpdateTrail(deltaTime);
+        // fireEmitter.UpdateTrail(deltaTime);
 
     }
 
 
     // Standard bullet movement (non-fireball)
     if (!IsEnemy() && type == BulletType::Default){
-        fireEmitter.UpdateTrail(deltaTime); //smoke trail update
+
         velocity.y -= gravity * deltaTime;
-        fireEmitter.SetParticleType(ParticleType::Smoke);
-        fireEmitter.SetPosition(position);
-        fireEmitter.SetParticleSize(2.0f);
-        fireEmitter.SetEmissionRate(10.0f);
-        fireEmitter.SetColor(DARKGRAY);
+        particleSystem.EmitTrail(position, deltaTime, 3.0f, smokeEmissionAccumulator, ParticleType::Smoke);
 
     }
 
@@ -519,8 +515,8 @@ void DrawHarpoon(const Bullet& b, const Camera& camera)
 
 
 void Bullet::Draw(Camera& camera) const {
-    fireEmitter.Draw(camera); //explosion particles
-    sparkEmitter.Draw(camera); //firetrail
+    // fireEmitter.Draw(camera); //explosion particles
+    // sparkEmitter.Draw(camera); //firetrail
 
 
     if (exploded) return;
@@ -678,12 +674,12 @@ void Bullet::Explode(Camera& camera) {
 
         if (type == BulletType::Fireball || type == BulletType::CannonBall){
             decals.emplace_back(offsetPos, DecalType::Explosion, R.GetTexture("explosionSheet"), 13, 1.0f, 0.1f, 500.0f);
-            fireEmitter.EmitBurst(position, 200, ParticleType::Sparks);
-            //Vector3 forward = Vector3Negate(Vector3Normalize(velocity));
+            particleSystem.EmitBurst(position, 200, ParticleType::Sparks);
+
             ExplodeShrapnelSphere(position, 10, 1500.0f, 1.0f, false);
         }else if (type == BulletType::Iceball){
-            
-            fireEmitter.EmitBurst(position, 200, ParticleType::IceBlast);
+            particleSystem.EmitBurst(position, 200, ParticleType::IceBlast);
+
         }
 
         float minDamage = 10.0f;

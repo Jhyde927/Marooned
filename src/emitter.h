@@ -2,19 +2,20 @@
 #include <vector>
 #include "raylib.h"
 #include "particle.h"
+#include "particleTypes.h"
 
-enum class ParticleType {
-    Smoke,
-    Sparks,
-    Blood,
-    IceMist,
-    IceBlast,
-    FireTrail,
-    Impact,
-    BoltTrail,
-    Squid,
+// enum class ParticleType {
+//     Smoke,
+//     Sparks,
+//     Blood,
+//     IceMist,
+//     IceBlast,
+//     FireTrail,
+//     Impact,
+//     BoltTrail,
+//     Squid,
 
-};
+// };
 
 
 class Emitter {

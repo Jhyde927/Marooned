@@ -26,6 +26,8 @@
 #include "cannonballPile.h"
 #include "debug_overlay.h"
 #include "JournalUI.h"
+#include "particleSystem.h"
+#include "magicMissile.h"
 
 enum class GameState {
     Menu,
@@ -40,6 +42,8 @@ enum class FadePhase { Idle, FadingOut, Swapping, FadingIn };
 extern Image heightmap;
 extern Kraken gKraken;
 extern Vector3 terrainScale;
+extern ParticleSystem particleSystem;
+
 
 //gobal vars
 extern Player player;
@@ -90,6 +94,7 @@ extern bool hasCrossbow;
 extern bool hasHarpoon;
 extern bool hasDoubleShot;
 extern bool hasIce;
+extern bool hasMissile;
 extern bool drawCeiling;
 extern bool levelLoaded;
 extern bool isFullscreen;
@@ -109,6 +114,7 @@ extern TreeShadowMask gTreeShadowMask;
 extern std::vector<DungeonEntrance> dungeonEntrances;
 //extern std::vector<Bullet> activeBullets;
 extern std::list<Bullet> activeBullets; // instead of std::vector
+extern std::vector<MagicMissile> activeMagicMissiles;
 extern std::vector<Decal> decals;
 extern std::vector<Collectable> collectables;
 extern std::vector<PowerUpPickup> g_powerUps;
@@ -139,13 +145,15 @@ void UpdateEnemies(float deltaTime);
 void UpdateNPCs(float deltaTime);
 void DrawEnemyShadows();
 void UpdateMuzzleFlashes(float deltaTime);
-void UpdateBullets(Camera& camera, float deltaTime);
+
+void UpdateMagicMissile(float deltaTime);
+
+void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem);
 void EraseBullets();
 float CalculateDarknessFactor(Vector3 playerPos, const std::vector<LightSource>& lights);
 void UpdateDecals(float deltaTime);
 void UpdateCollectables(float deltaTime);
 void DrawBullets(Camera& camera);
-void DrawBloodParticles(Camera& camera);
 void DrawOverworldProps();
 void DrawCannons();
 void UpdateCannons(float deltaTime);
@@ -192,4 +200,7 @@ void DrawCollectableModels(const std::vector<Collectable>& collectables);
 void UpdateAggro();
 void InitTextureSettings();
 void UpdateRaftInteraction();
+void DrawMagicMissiles();
+void UpdateMagicMissile(float deltaTime);
+void SpawnMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint); //move this somewhere sane. 
 void ChangeLevel(int idx);
