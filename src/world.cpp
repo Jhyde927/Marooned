@@ -1186,34 +1186,63 @@ void DrawMagicMissiles()
     }
 }
 
-void UpdateMagicMissile(float deltaTime){
-    for (MagicMissile& missile : activeMagicMissiles)
+bool AcquireMagicMissileTarget(MagicMissile& missile)
+{
+    constexpr float acquisitionRange = 2000.0f;
+    float closestDistanceSq = acquisitionRange * acquisitionRange;
+
+    Character* closestEnemy = nullptr;
+
+    for (Character* enemy : enemyPtrs)
     {
+        if (!enemy || enemy->isDead) continue;
 
-        if (!missile.targetAcquired && missile.age >= missile.burstTime)
+        float distanceSq = Vector3DistanceSqr(
+            missile.position,
+            enemy->position
+        );
+
+        // Avoid doing LOS on enemies that cannot win the search.
+        if (distanceSq >= closestDistanceSq) continue;
+
+        if (!DDAHasLineOfSightWorld(
+                missile.position,
+                enemy->position))
         {
-            missile.targetAcquired = true;
-
-            float closestDistanceSq = 2000.0f * 2000.0f; // acquisition range
-
-            for (Character* enemy : enemyPtrs)
-            {
-                if (!enemy || enemy->isDead) continue;
-                if (!DDAHasLineOfSightWorld(missile.position, enemy->position)) continue;
-
-                float distanceSq = Vector3DistanceSqr(
-                    missile.position,
-                    enemy->position
-                );
-
-                if (distanceSq < closestDistanceSq)
-                {
-                    closestDistanceSq = distanceSq;
-                    missile.targetPoint = enemy->position;
-                }
-            }
+            continue;
         }
 
+        closestDistanceSq = distanceSq;
+        closestEnemy = enemy;
+    }
+
+    if (!closestEnemy)
+    {
+        return false;
+    }
+
+    missile.targetPoint = closestEnemy->position;
+    return true;
+}
+
+void UpdateMagicMissile(float deltaTime)
+{
+    for (MagicMissile& missile : activeMagicMissiles)
+    {
+        if (missile.age >= missile.burstTime)
+        {
+            missile.retargetTimer -= deltaTime;
+
+            if (missile.retargetTimer <= 0.0f)
+            {
+                if (AcquireMagicMissileTarget(missile))
+                {
+                    missile.targetAcquired = true;
+                }
+
+                missile.retargetTimer = missile.retargetInterval;
+            }
+        }
 
         missile.Update(deltaTime);
     }
@@ -1222,12 +1251,57 @@ void UpdateMagicMissile(float deltaTime){
         std::remove_if(
             activeMagicMissiles.begin(),
             activeMagicMissiles.end(),
-            [](const MagicMissile& missile) { return !missile.active; }
+            [](const MagicMissile& missile)
+            {
+                return !missile.active;
+            }
         ),
         activeMagicMissiles.end()
     );
-
 }
+
+// void UpdateMagicMissile(float deltaTime){
+//     for (MagicMissile& missile : activeMagicMissiles)
+//     {
+
+//         if (!missile.targetAcquired && missile.age >= missile.burstTime)
+//         {
+//             missile.targetAcquired = true;
+
+//             float closestDistanceSq = 2000.0f * 2000.0f; // acquisition range
+
+//             for (Character* enemy : enemyPtrs)
+//             {
+//                 if (!enemy || enemy->isDead) continue;
+//                 if (!DDAHasLineOfSightWorld(missile.position, enemy->position)) continue;
+
+//                 float distanceSq = Vector3DistanceSqr(
+//                     missile.position,
+//                     enemy->position
+//                 );
+
+//                 if (distanceSq < closestDistanceSq)
+//                 {
+//                     closestDistanceSq = distanceSq;
+//                     missile.targetPoint = enemy->position;
+//                 }
+//             }
+//         }
+
+
+//         missile.Update(deltaTime);
+//     }
+
+//     activeMagicMissiles.erase(
+//         std::remove_if(
+//             activeMagicMissiles.begin(),
+//             activeMagicMissiles.end(),
+//             [](const MagicMissile& missile) { return !missile.active; }
+//         ),
+//         activeMagicMissiles.end()
+//     );
+
+// }
 
 void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem) {
 
@@ -1609,11 +1683,23 @@ float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terra
 
 void SpawnMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint)
 {
-    for (int i = 0; i < 3; ++i) //missiles per shot
+        for (int i = 0; i < 3; ++i)
     {
-        activeMagicMissiles.emplace_back(startPosition, forwardDirection, targetPoint);
+        activeMagicMissiles.emplace_back(
+            startPosition,
+            forwardDirection,
+            targetPoint,
+            i == 1  // middle missile carries the volley’s sound
+        );
 
+        activeMagicMissiles.back().carriesLight = (i == 0);
     }
+    
+    // for (int i = 0; i < 3; ++i) //missiles per shot
+    // {
+    //     activeMagicMissiles.emplace_back(startPosition, forwardDirection, targetPoint);
+
+    // }
 }
 
 
@@ -1880,6 +1966,7 @@ void ClearLevel() {
     VegetationInstanced::Clear();
     SpawnManager::Clear();
     activeBullets.clear();
+    activeMagicMissiles.clear();
     billboardRequests.clear();
     bulletLights.clear();
     dungeonEntrances.clear();

@@ -244,27 +244,14 @@ void Bullet::Update(Camera& camera, float deltaTime, ParticleSystem& particleSys
         //position = retractTip;
     }
 
-
-
-
     // Fireball logic
     if (type == BulletType::Fireball)
     {
         if (!exploded)
         {
-            particleSystem.EmitTrail(
-                position,
-                deltaTime,
-                100.0f,
-                smokeEmissionAccumulator,
-                ParticleType::Smoke);
+            particleSystem.EmitTrail(position, deltaTime, 100.0f, smokeEmissionAccumulator, ParticleType::Smoke);
 
-            particleSystem.EmitTrail(
-                position,
-                deltaTime,
-                100.0f,
-                fireEmissionAccumulator,
-                ParticleType::FireTrail);
+            particleSystem.EmitTrail(position, deltaTime, 100.0f, fireEmissionAccumulator, ParticleType::FireTrail);
         }
 
         UpdateMagicBall(camera, deltaTime);
@@ -315,7 +302,7 @@ void Bullet::Update(Camera& camera, float deltaTime, ParticleSystem& particleSys
         velocity.y -= gravity * deltaTime;
 
         Color crossbowTrailColor = {255,255,255,1};
-        particleSystem.EmitTrail(position, deltaTime, 10.0f, smokeEmissionAccumulator, ParticleType::Smoke, crossbowTrailColor);
+        particleSystem.EmitTrail(position, deltaTime, 20.0f, smokeEmissionAccumulator, ParticleType::BoltTrail, crossbowTrailColor);
 
     }else if (type == BulletType::CannonBall){
         velocity.y -= gravity * deltaTime;

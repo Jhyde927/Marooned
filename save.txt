@@ -1,7 +1,7 @@
 version=1
-levelIndex=3
-healthPotions=5
-manaPotions=0
+levelIndex=2
+healthPotions=8
+manaPotions=9
 gold=32
 swordUnlocked=1
 crossbowUnlocked=1
@@ -17,4 +17,4 @@ raftSailUnlocked=0
 entrancesUnlocked=1
 discoveredJournal=0,4,7
 discoveredCreatures=1,2
-discoveredLevels=0,2,3,16,1
+discoveredLevels=0,2,3,16,1,10

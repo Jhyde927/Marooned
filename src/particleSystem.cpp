@@ -109,31 +109,7 @@ void ParticleSystem::EmitTrail(
         type,
         color);
 }
-// void ParticleSystem::EmitTrail(
-//     Vector3 position,
-//     float deltaTime,
-//     float emissionRate,
-//     float& emissionAccumulator,
-//     ParticleType type)
-// {
-//     if (deltaTime <= 0.0f || emissionRate <= 0.0f)
-//     {
-//         return;
-//     }
 
-//     emissionAccumulator += deltaTime * emissionRate;
-
-//     const int count = static_cast<int>(emissionAccumulator);
-
-//     if (count <= 0)
-//     {
-//         return;
-//     }
-
-//     emissionAccumulator -= static_cast<float>(count);
-
-//     EmitParticles(position, count, type, WHITE);
-// }
 
 void ParticleSystem::EmitBlood(
     Vector3 position,
@@ -258,6 +234,21 @@ void ParticleSystem::CreateParticle(
             break;
         }
 
+        case ParticleType::MagicBurst:
+        {
+            particle.color = PURPLE;
+            particle.gravity = 980.0f;
+            particle.size = 1.0f;
+
+            particle.velocity = {
+                RandomFloat(-100.0f, 100.0f),
+                RandomFloat(100.0f, 300.0f),
+                RandomFloat(-100.0f, 100.0f)
+            };
+
+            break;
+        }
+
         case ParticleType::Blood:
         {
             particle.color = color;
@@ -360,11 +351,26 @@ void ParticleSystem::CreateParticle(
         {
             particle.color = GRAY;
             particle.gravity = -100.0f;
+            particle.size = 1.0f;
 
             particle.velocity = {
                 RandomFloat(-50.0f, 50.0f),
                 RandomFloat(-25.0f, 25.0f),
                 RandomFloat(-50.0f, 50.0f)
+            };
+
+            break;
+        }
+
+        case ParticleType::Missile:
+        {
+            particle.color = PURPLE;
+            particle.gravity = 100.0f;
+            particle.size = 1.0f;
+            particle.velocity = {
+                RandomFloat(-5.0f, 5.0f),
+                RandomFloat(-2.0f, 2.5f),
+                RandomFloat(-5.0f, 5.0f)
             };
 
             break;

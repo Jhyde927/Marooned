@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+using SoundInstanceId = int;
+
 class SoundManager {
 public:
     static SoundManager& GetInstance(); // Singleton
@@ -29,9 +31,31 @@ public:
     void InitMusic();
     void InitSoundEffects();
 
+    SoundInstanceId StartPositionalSound(
+        const std::string& name,
+        Vector3 position,
+        Vector3 listenerPosition,
+        float maxDistance);
+
+    void MovePositionalSound(
+        SoundInstanceId id,
+        Vector3 position,
+        Vector3 listenerPosition);
+
+    void StopPositionalSound(SoundInstanceId id);
+
 private:
     std::map<std::string, Sound> sounds;
     std::map<std::string, Music> musicTracks;
+
+    struct PositionalSound {
+        Sound alias;
+        std::string name;
+        float maxDistance;
+    };
+
+    std::map<SoundInstanceId, PositionalSound> positionalSounds;
+    SoundInstanceId nextSoundInstanceId = 1;
 
     // bankName -> sound keys
     std::map<std::string, std::vector<std::string>> speechBanks;

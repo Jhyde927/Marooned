@@ -92,6 +92,7 @@ public:
     float smokeEmissionAccumulator = 1.0f; //primed to 1 so it emits immedialty.
     float fireEmissionAccumulator = 1.0f;
 
+
     Vector3 retractTip = {0, 0, 0};     // where the rope tip currently is during retract
 
     BulletLight light;

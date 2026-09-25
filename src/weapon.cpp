@@ -1191,6 +1191,8 @@ void MeleeWeapon::PlaySwipe(){
 }
 
 void MagicStaff::Fire(const Camera& camera) {
+    if (player.activeWeapon != WeaponType::MagicStaff) return;
+
     (void)camera;
 
     const float cooldown = (magicType == MagicType::MagicMissile)
@@ -1199,34 +1201,48 @@ void MagicStaff::Fire(const Camera& camera) {
 
     if (GetTime() - lastFired < cooldown) return;
 
-    if (player.currentMana >= 10){
-        player.currentMana -= 10;
+    if (magicType == MagicType::MagicMissile){ // 1 mana per shot for magic missile for now. fix this 
+        if (player.currentMana >= 1){
+            player.currentMana -= 1;
+        }else{
+            return;
+        }
     }else{
-        return;
+        if (player.currentMana >= 10){
+            player.currentMana -= 10;
+        }else{
+            return;
+        }
     }
+
 
 
 
     lastFired = GetTime();
     recoil += recoilAmount;
-    muzzlePos = GetPlayerMuzzlePosition(player);
 
-    activeMuzzleFlashes.push_back({
-            muzzlePos,
-            R.GetTexture("muzzleFlash"),
-            flashSize,
-            0.1f  // lifetime in seconds
-    });
+    if (magicType != MagicType::MagicMissile){
+        muzzlePos = GetPlayerMuzzlePosition(player); //no muzzle flash for missiles.
+
+        activeMuzzleFlashes.push_back({
+                muzzlePos,
+                R.GetTexture("muzzleFlash"),
+                flashSize,
+                0.1f  // lifetime in seconds
+        });
+        
+    }
+
 
     Vector3 targetPoint = Vector3Add(player.position, Vector3Scale(player.lookForward, 1000.0f));
+    Vector3 missileTargetPoint = Vector3Add(player.position, Vector3Scale(player.lookForward, 2000.0f));
 
     if (magicType == MagicType::Fireball){
         FireFireball(muzzlePos, targetPoint, 2000, 10.0f, false, false, false);
     } else if (magicType == MagicType::Iceball){
         FireIceball(muzzlePos, targetPoint, 2000, 10.0f, false, false);
     }else if (magicType == MagicType::MagicMissile){
-
-        SpawnMagicMissiles(muzzlePos, player.lookForward, targetPoint);
+        SpawnMagicMissiles(muzzlePos, player.lookForward, missileTargetPoint);
     }
     
     

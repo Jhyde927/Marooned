@@ -10,5 +10,7 @@ enum class ParticleType
     FireTrail,
     Impact,
     BoltTrail,
-    Squid
+    Squid,
+    Missile,
+    MagicBurst
 };

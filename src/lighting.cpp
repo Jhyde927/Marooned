@@ -143,6 +143,22 @@ void GatherFrameLights() {
             frameLights.push_back(s);
         }
     }
+
+    for (const MagicMissile& missile : activeMagicMissiles)
+    {
+        if (!missile.carriesLight) continue;
+
+        LightSample s;
+        s.pos = missile.position; // use your actual position member/getter
+        s.color = { 0.65f, 0.25f, 1.0f };
+        s.range = 500.0f;
+
+        float fade = Clamp((1.0f - missile.age) / 0.25f, 0.0f, 1.0f);
+        s.intensity = 0.5f * fade;
+
+
+        frameLights.push_back(s);
+    }
 }
 
 

@@ -213,11 +213,18 @@ void SoundManager::PlayMusic(const std::string& name, float volume) {
 }
 
 void SoundManager::Update(float dt) {
-    // for (auto& [name, music] : musicTracks) {
-    //     UpdateMusicStream(music);
-    // }
+
 
     UpdateSpeech(dt);
+
+    for (auto it = positionalSounds.begin(); it != positionalSounds.end(); ) {
+        if (!::IsSoundPlaying(it->second.alias)) {
+            ::UnloadSoundAlias(it->second.alias);
+            it = positionalSounds.erase(it);
+        } else {
+            ++it;
+        }
+    }
 
 
 }
@@ -251,6 +258,69 @@ void SoundManager::PlaySoundAtPosition(const std::string& soundName, const Vecto
 
 }
 
+SoundInstanceId SoundManager::StartPositionalSound(
+    const std::string& name,
+    Vector3 position,
+    Vector3 listenerPosition,
+    float maxDistance)
+{
+    auto source = sounds.find(name);
+    if (source == sounds.end() || maxDistance <= 0.0f) {
+        return 0;
+    }
+
+    // Limit this particular effect to four simultaneous voices.
+    if (name == "missileBlast") {
+        int playingCount = 0;
+        for (const auto& [id, instance] : positionalSounds) {
+            if (instance.name == name && ::IsSoundPlaying(instance.alias)) {
+                ++playingCount;
+            }
+        }
+        if (playingCount >= 8) return 0;
+    }
+
+    Sound alias = ::LoadSoundAlias(source->second);
+
+    float distance = Vector3Length(Vector3Subtract(position, listenerPosition));
+    float volume = Clamp(1.0f - distance / maxDistance, 0.0f, 1.0f);
+
+    ::SetSoundVolume(alias, volume);
+    ::PlaySound(alias);
+
+    SoundInstanceId id = nextSoundInstanceId++;
+    positionalSounds.emplace(id, PositionalSound{alias, name, maxDistance});
+    return id;
+}
+
+void SoundManager::MovePositionalSound(
+    SoundInstanceId id,
+    Vector3 position,
+    Vector3 listenerPosition)
+{
+    auto it = positionalSounds.find(id);
+    if (it == positionalSounds.end()) return;
+
+    float distance = Vector3Length(Vector3Subtract(position, listenerPosition));
+    float volume = Clamp(
+        1.0f - distance / it->second.maxDistance,
+        0.0f,
+        1.0f
+    );
+
+    ::SetSoundVolume(it->second.alias, volume);
+}
+
+void SoundManager::StopPositionalSound(SoundInstanceId id)
+{
+    auto it = positionalSounds.find(id);
+    if (it == positionalSounds.end()) return;
+
+    ::StopSound(it->second.alias);
+    ::UnloadSoundAlias(it->second.alias);
+    positionalSounds.erase(it);
+}
+
 
 
 SoundManager::~SoundManager() {
@@ -266,6 +336,12 @@ void SoundManager::UnloadAll() {
         ::UnloadMusicStream(music);
     }
     musicTracks.clear();
+
+    for (auto& [id, instance] : positionalSounds) {
+        ::StopSound(instance.alias);
+        ::UnloadSoundAlias(instance.alias);
+    }
+    positionalSounds.clear();
 
 }
 
@@ -336,6 +412,9 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("floorSwitch", "assets/sounds/floorSwitch.ogg");
     SoundManager::GetInstance().LoadSound("floorSwitchUnpress", "assets/sounds/floorSwitchUnpress.ogg");
     SoundManager::GetInstance().LoadSound("woodThud", "assets/sounds/woodThud.ogg");
+
+    SoundManager::GetInstance().LoadSound("missileBlast", "assets/sounds/missileBlast.ogg");
+    SoundManager::GetInstance().LoadSound("missileHit", "assets/sounds/missileHit.ogg");
 
     SoundManager::GetInstance().LoadSound("skeletonGrunt", "assets/sounds/skeletonGrunt.ogg");
     SoundManager::GetInstance().LoadSound("skeletonGrunt2", "assets/sounds/skeletonGrunt2.ogg");
