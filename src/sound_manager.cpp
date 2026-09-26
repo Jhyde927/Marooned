@@ -269,7 +269,7 @@ SoundInstanceId SoundManager::StartPositionalSound(
         return 0;
     }
 
-    // Limit this particular effect to four simultaneous voices.
+    // Limit this particular effect to 8 simultaneous voices.
     if (name == "missileBlast") {
         int playingCount = 0;
         for (const auto& [id, instance] : positionalSounds) {

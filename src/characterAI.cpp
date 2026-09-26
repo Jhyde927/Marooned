@@ -216,17 +216,22 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
     switch (state){
         case CharacterState::Idle: {
             stateTimer += deltaTime;
- 
+
+            if (type == CharacterType::GiantSpider)
+            {
+
+                SetAnimation(0,1,1.0f, true);
+            }
+    
             Vector2 start = WorldToImageCoords(position);
 
             // Transition to chase if player detected
             if (distanceSq < visionEnter && stateTimer > 1.0f && playerVisible) {
 
-                if (type == CharacterType::GiantSpider && CurrentLevelIs("Dungeon7")){ //lock the door when spider sees player
-                    if (doors[5].isOpen) doors[5].isOpen = false;
-                    if (!doors[5].eventLocked) doors[5].eventLocked = true; //event lock the door behind the player until the spider dies. 
-                   
-                    
+                if (type == CharacterType::GiantSpider &&
+                    CurrentLevelIs("Dungeon7"))
+                {
+                    CloseDoor(5, true); //close the boss arena door once spotted by spider. 
                 }
 
                 if (!spiderAgro){
@@ -256,48 +261,113 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
         case CharacterState::Patrol: {break;}
 
-        case CharacterState::Chase: {
-
+        case CharacterState::Chase:
+        {
             stateTimer += deltaTime;
-            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
+            pathCooldownTimer =
+                std::max(0.0f, pathCooldownTimer - deltaTime);
 
-            if (isLeaving && rowIndex != 3){
+            if (isLeaving && rowIndex != 3)
+            {
                 SetAnimation(3, 4, 0.25, true);
-            }else if (!isLeaving && rowIndex != 1){
+            }
+            else if (!isLeaving && rowIndex != 1)
+            {
                 SetAnimation(1, 5, 0.2, true);
             }
 
-            if (!spiderAgro){
-                if (TrySetRetreatPath(start, WorldToImageCoords(player.position), this, currentWorldPath, 12, 3, 100, 25, 3)){
+            if (!spiderAgro)
+            {
+                if (TrySetRetreatPath(
+                        start,
+                        WorldToImageCoords(player.position),
+                        this,
+                        currentWorldPath,
+                        12,
+                        3,
+                        100,
+                        25,
+                        3))
+                {
+                    failedPathAttempts = 0;
+
                     ChangeState(CharacterState::RunAway);
                     break;
-
                 }
             }
-            if (distanceSq < attackEnter && canSee) {
+
+            if (distanceSq < attackEnter && canSee)
+            {
+                failedPathAttempts = 0;
+
                 ChangeState(CharacterState::Attack);
                 break;
-
             }
-            else if (distanceSq > visionEnter) {
+            else if (distanceSq > visionEnter)
+            {
+                failedPathAttempts = 0;
+                currentWorldPath.clear();
+
                 ChangeState(CharacterState::Idle);
                 break;
-
             }
-            else {
-                const Vector2 curTile = WorldToImageCoords(player.position);
-                if (((int)curTile.x != (int)lastPlayerTile.x || (int)curTile.y != (int)lastPlayerTile.y)
-                    && pathCooldownTimer <= 0.0f)
+            else
+            {
+                const Vector2 curTile =
+                    WorldToImageCoords(player.position);
+
+                // Refresh the path when the player changes tiles,
+                // or periodically so a changed world state (such as
+                // a closing door) can invalidate/rebuild the path.
+                bool playerChangedTile =
+                    (int)curTile.x != (int)lastPlayerTile.x ||
+                    (int)curTile.y != (int)lastPlayerTile.y;
+
+                if (pathCooldownTimer <= 0.0f &&
+                    (playerChangedTile || currentWorldPath.empty()))
                 {
                     lastPlayerTile = curTile;
-                    pathCooldownTimer = 0.4f; // don’t spam BFS
-                    const Vector2 start = WorldToImageCoords(position);
-                    SetPath(start); 
+                    pathCooldownTimer = 0.4f; // Don't spam BFS
+
+                    const Vector2 start =
+                        WorldToImageCoords(position);
+
+                    SetPath(start);
+
+                    // Track consecutive pathfinding failures.
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
                 }
 
-                // Move along current path
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f);
+                // Give up after repeated failures to find a valid route.
+                if (failedPathAttempts >= 3)
+                {
+                    failedPathAttempts = 0;
+                    currentWorldPath.clear();
+
+                    playerVisible = false;
+                    hasLastKnownPlayerPos = false;
+
+                    ChangeState(CharacterState::Idle);
+                    break;
+                }
+
+                // Move along current path.
+                MoveAlongPath(
+                    currentWorldPath,
+                    position,
+                    rotationY,
+                    skeleSpeed,
+                    deltaTime,
+                    100.0f
+                );
             }
 
         } break;
@@ -306,7 +376,6 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
         case CharacterState::Attack: {
             
-
             if (distanceSq > (350.0f  * 350.0f)) { 
                 if (spiderAgro){
                      ChangeState(CharacterState::Chase);
@@ -555,39 +624,92 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
 
 
-        case CharacterState::Chase: {
+        case CharacterState::Chase:
+        {
             float attackDistance = 200.0f * 200.0f;
-            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
 
-            if (bloatBat){
-                if (distanceSq < attackDistance && canSee){
-                    TakeDamage(999); //trigger death/explosion
-                    return; //bat is exploding make sure we don't change state later on.
-                
+            pathCooldownTimer =
+                std::max(0.0f, pathCooldownTimer - deltaTime);
+
+            if (bloatBat)
+            {
+                if (distanceSq < attackDistance && canSee)
+                {
+                    failedPathAttempts = 0;
+
+                    TakeDamage(999); // Trigger death/explosion
+                    return; // Bat is exploding, make sure we don't change state later on.
                 }
             }
-            if (distanceSq < attackDistance && canSee) {
+
+            if (distanceSq < attackDistance && canSee)
+            {
+                failedPathAttempts = 0;
+
                 ChangeState(CharacterState::Attack);
-
             }
-            else if (distanceSq > visionEnter) {
+            else if (distanceSq > visionEnter)
+            {
+                failedPathAttempts = 0;
+                currentWorldPath.clear();
+
                 ChangeState(CharacterState::Idle);
+            }
+            else
+            {
+                const Vector2 curTile =
+                    WorldToImageCoords(player.position);
 
-            }
-            else {
-                const Vector2 curTile = WorldToImageCoords(player.position);
-                if (pathCooldownTimer <= 0.0f){
-                
+                if (pathCooldownTimer <= 0.0f)
+                {
                     lastPlayerTile = curTile;
-                    pathCooldownTimer = 0.4f; // don’t spam BFS
-                    const Vector2 start = WorldToImageCoords(position);
-                    SetPath(start); 
-                
+                    pathCooldownTimer = 0.4f; // Don't spam BFS
+
+                    const Vector2 start =
+                        WorldToImageCoords(position);
+
+                    SetPath(start);
+
+                    // Track consecutive pathfinding failures.
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
                 }
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
-                // Move along current path
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100, repel);
+
+                // Give up if the target has become unreachable,
+                // such as when a door closes between the bat and player.
+                if (failedPathAttempts >= 3)
+                {
+                    failedPathAttempts = 0;
+                    currentWorldPath.clear();
+
+                    playerVisible = false;
+                    hasLastKnownPlayerPos = false;
+
+                    ChangeState(CharacterState::Idle);
+                    break;
+                }
+
+                Vector3 repel =
+                    ComputeRepulsionForce(enemyPtrs, 300, 500);
+
+                // Move along current path.
+                MoveAlongPath(
+                    currentWorldPath,
+                    position,
+                    rotationY,
+                    skeleSpeed,
+                    deltaTime,
+                    100.0f,
+                    repel
+                );
             }
+
         } break;
 
         case CharacterState::MeleeAttack: {break;}
@@ -828,9 +950,6 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                 break;
             }
 
-
-
-
             // Wander if idle too long
             else if (stateTimer > 10.0f) {
                 Vector2 randomTile = GetRandomReachableTile(start, this);
@@ -862,7 +981,10 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
             bool chasingPirate = false;
 
             // Prefer the zombie's living pirate target.
-            if (type == CharacterType::Zombie && target && !target->isDead && target->type == CharacterType::Pirate)
+            if (type == CharacterType::Zombie &&
+                target &&
+                !target->isDead &&
+                target->type == CharacterType::Pirate)
             {
                 chasingPirate = true;
                 chasePos = target->position;
@@ -879,12 +1001,17 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
 
             if (chaseDist < attackEnter && chaseCanSee)
             {
+                failedPathAttempts = 0; // NEW
+
                 ChangeState(CharacterState::Attack);
                 break;
             }
 
             if (chaseDist > visionEnter && !hasLastKnownPlayerPos)
             {
+                failedPathAttempts = 0; // NEW
+                currentWorldPath.clear();
+
                 ChangeState(CharacterState::Idle);
                 break;
             }
@@ -908,6 +1035,39 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                     const Vector2 start = WorldToImageCoords(position);
                     SetPath(start);
                 }
+
+                // NEW:
+                // Keep track of consecutive pathfinding failures.
+                if (currentWorldPath.empty())
+                {
+                    failedPathAttempts++;
+                }
+                else
+                {
+                    failedPathAttempts = 0;
+                }
+            }
+
+            // NEW:
+            // Give up after repeated failures to reach the target.
+            // This can happen if a door closes and makes the remembered
+            // target position unreachable.
+            if (failedPathAttempts >= 3)
+            {
+                failedPathAttempts = 0;
+                currentWorldPath.clear();
+
+                hasLastKnownPlayerPos = false;
+                playerVisible = false;
+
+                // Drop the pirate target too, if that is what we were chasing.
+                if (chasingPirate)
+                {
+                    target = nullptr;
+                }
+
+                ChangeState(CharacterState::Idle);
+                break;
             }
 
             Vector3 repel = ComputeRepulsionForce(
@@ -1220,36 +1380,84 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
 
         case CharacterState::RunAway: {break;}
 
-        
-        case CharacterState::Chase: {
-            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+        case CharacterState::Chase:
+        {
+            pathCooldownTimer =
+                std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateChaseSound(deltaTime, player);
 
-            if (distanceSq < (200.0f * 200.0f) && canSee) {
+            if (distanceSq < (200.0f * 200.0f) && canSee)
+            {
+                failedPathAttempts = 0;
+
                 ChangeState(CharacterState::Attack);
-
             }
-            else if (distanceSq > visionEnter) {
+            else if (distanceSq > visionEnter)
+            {
+                failedPathAttempts = 0;
+                currentWorldPath.clear();
+
                 ChangeState(CharacterState::Idle);
+            }
+            else
+            {
+                // Chase
+                const Vector2 curTile =
+                    WorldToImageCoords(player.position);
 
-            }
-            else {
-                //chase
-                const Vector2 curTile = WorldToImageCoords(player.position);
-                if (pathCooldownTimer <= 0.0f){
-                
+                if (pathCooldownTimer <= 0.0f)
+                {
                     lastPlayerTile = curTile;
-                    pathCooldownTimer = RandomFloat(0.3, 0.9);
-                    const Vector2 start = WorldToImageCoords(position);
-                    SetPath(start); 
-                
+                    pathCooldownTimer = RandomFloat(0.3f, 0.9f);
+
+                    const Vector2 start =
+                        WorldToImageCoords(position);
+
+                    SetPath(start);
+
+                    // Track consecutive pathfinding failures.
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
                 }
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
+
+                // If the target has become unreachable, give up.
+                // A closed door is one example of this.
+                if (failedPathAttempts >= 3)
+                {
+                    failedPathAttempts = 0;
+                    currentWorldPath.clear();
+
+                    playerVisible = false;
+                    hasLastKnownPlayerPos = false;
+
+                    ChangeState(CharacterState::Idle);
+                    break;
+                }
+
+                Vector3 repel =
+                    ComputeRepulsionForce(enemyPtrs, 300, 500);
+
                 float speed = 100.0f;
-                // Move along current path
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, speed, repel);
+
+                // Move along current path.
+                MoveAlongPath(
+                    currentWorldPath,
+                    position,
+                    rotationY,
+                    skeleSpeed,
+                    deltaTime,
+                    speed,
+                    repel
+                );
             }
+
         } break;
 
         case CharacterState::MeleeAttack:{break;}
@@ -2091,55 +2299,118 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
 
         case CharacterState::RunAway: {break;}
 
-        case CharacterState::Chase: {
-
-            pathCooldownTimer = std::max(0.0f, pathCooldownTimer - deltaTime);
+        case CharacterState::Chase:
+        {
+            pathCooldownTimer =
+                std::max(0.0f, pathCooldownTimer - deltaTime);
 
             UpdateMovementAnim();
-            if (distanceSq < WIZARD_MELEE_ENTER && canSee){
+
+            if (distanceSq < WIZARD_MELEE_ENTER && canSee)
+            {
+                failedPathAttempts = 0; // NEW
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
 
             // 1) Try to attack when close AND we have instant LOS
-            if (distanceSq < WIZARD_ATTACK_ENTER && canSee) {
+            if (distanceSq < WIZARD_ATTACK_ENTER && canSee)
+            {
+                failedPathAttempts = 0; // NEW
                 ChangeState(CharacterState::Attack);
                 break;
             }
 
             // 2) Leash out if too far
-            if (distanceSq > VISION_ENTER) {
+            if (distanceSq > VISION_ENTER)
+            {
+                failedPathAttempts = 0; // NEW
                 ChangeState(CharacterState::Idle);
-                playerVisible = false;         // drop memory when giving up
+                playerVisible = false;
                 currentWorldPath.clear();
                 break;
             }
 
             // 3) Plan path toward current target when cooldown allows
-            if (pathCooldownTimer <= 0.0f) {
-                if (canSee) {
+            if (pathCooldownTimer <= 0.0f)
+            {
+                if (canSee)
+                {
                     SetPath(start);
-                    //SetPathTo(player.position);
+                    // SetPathTo(player.position);
                     pathCooldownTimer = 0.4f;
-                } else if (playerVisible) {       // still within memory window
+
+                    // NEW
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
+                }
+                else if (playerVisible)
+                {
+                    // Still within memory window
                     SetPathTo(lastKnownPlayerPos);
-                    
                     pathCooldownTimer = 0.4f;
+
+                    // NEW
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
                 }
             }
 
+            // NEW:
+            // Repeated path failures mean the target has become unreachable,
+            // such as when a door closes between the wizard and the player.
+            if (failedPathAttempts >= 3)
+            {
+                failedPathAttempts = 0;
+                currentWorldPath.clear();
+
+                playerVisible = false;
+                hasLastKnownPlayerPos = false;
+
+                ChangeState(CharacterState::Idle);
+                break;
+            }
 
             // 4) Advance along path (with repulsion)
-            if (!currentWorldPath.empty() && state != CharacterState::Stagger) {
-                Vector3 repel = ComputeRepulsionForce(enemyPtrs, 300, 500); // your existing call
-                MoveAlongPath(currentWorldPath, position, rotationY, skeleSpeed, deltaTime, 100.0f, repel);
+            if (!currentWorldPath.empty() &&
+                state != CharacterState::Stagger)
+            {
+                Vector3 repel =
+                    ComputeRepulsionForce(enemyPtrs, 300, 500);
 
-                // Reached the end but still no LOS? stop chasing
-                if (currentWorldPath.empty() && !canSee) {
-                    playerVisible = false;          // memory expires now that we arrived
+                MoveAlongPath(
+                    currentWorldPath,
+                    position,
+                    rotationY,
+                    skeleSpeed,
+                    deltaTime,
+                    100.0f,
+                    repel
+                );
+
+                // Reached the end but still no LOS? Stop chasing.
+                if (currentWorldPath.empty() && !canSee)
+                {
+                    failedPathAttempts = 0; // NEW
+                    playerVisible = false;
+                    hasLastKnownPlayerPos = false;
+
                     ChangeState(CharacterState::Idle);
                 }
             }
+
         } break;
 
         case CharacterState::Attack: { //wizard attacks with fireball
@@ -2485,10 +2756,10 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             UpdateMovementAnim();
 
             // Default target is the player.
-            Vector3 chasePos    = player.position;
-            float chaseDist     = distanceSq;
-            bool chaseCanSee    = canSee;
-            bool chasingZombie  = false;
+            Vector3 chasePos   = player.position;
+            float chaseDist    = distanceSq;
+            bool chaseCanSee   = canSee;
+            bool chasingZombie = false;
 
             // Pirates and captains can target zombies.
             if ((type == CharacterType::Pirate ||
@@ -2505,6 +2776,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             // Melee attack.
             if (chaseDist < PIRATE_MELEE_ENTER && chaseCanSee)
             {
+                failedPathAttempts = 0; // NEW
                 ChangeState(CharacterState::MeleeAttack);
                 break;
             }
@@ -2512,6 +2784,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             // Gun attack.
             if (chaseDist < PIRATE_ATTACK_ENTER && chaseCanSee)
             {
+                failedPathAttempts = 0; // NEW
                 ChangeState(CharacterState::Attack);
                 break;
             }
@@ -2524,6 +2797,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
             {
                 playerVisible = false;
                 currentWorldPath.clear();
+                failedPathAttempts = 0; // NEW
 
                 ChangeState(CharacterState::Idle);
                 break;
@@ -2536,18 +2810,69 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 {
                     SetPathTo(chasePos);
                     pathCooldownTimer = 0.4f;
+
+                    // NEW
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
                 }
                 else if (canSee)
                 {
-                    
                     SetPathTo(player.position);
                     pathCooldownTimer = 0.4f;
+
+                    // NEW
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
                 }
                 else if (hasLastKnownPlayerPos)
                 {
                     SetPathTo(lastKnownPlayerPos);
                     pathCooldownTimer = 0.4f;
+
+                    // NEW
+                    if (currentWorldPath.empty())
+                    {
+                        failedPathAttempts++;
+                    }
+                    else
+                    {
+                        failedPathAttempts = 0;
+                    }
                 }
+            }
+
+            // NEW:
+            // If pathfinding repeatedly fails, the remembered target
+            // is probably no longer reachable (for example, a door closed).
+            if (failedPathAttempts >= 3)
+            {
+                failedPathAttempts = 0;
+                currentWorldPath.clear();
+
+                if (chasingZombie)
+                {
+                    target = nullptr;
+                }
+                else
+                {
+                    hasLastKnownPlayerPos = false;
+                    playerVisible = false;
+                }
+
+                ChangeState(CharacterState::Idle);
+                break;
             }
 
             // Follow the path when one exists.
@@ -2575,6 +2900,7 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 if (chasingZombie)
                 {
                     // Zombie died, escaped, or cannot be reached.
+                    failedPathAttempts = 0; // NEW
                     ChangeState(CharacterState::Idle);
                     break;
                 }
@@ -2594,10 +2920,13 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                     // Only give up if we actually reached the remembered
                     // position. An empty path while far away probably means
                     // path generation failed, so remain in Chase and retry.
+                    //
+                    // Repeated path generation failures are handled above.
                     if (distanceToMemorySq <= arrivalDistanceSq)
                     {
                         hasLastKnownPlayerPos = false;
                         playerVisible = false;
+                        failedPathAttempts = 0; // NEW
 
                         ChangeState(CharacterState::Idle);
                         break;
@@ -2606,6 +2935,8 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
                 else
                 {
                     playerVisible = false;
+                    failedPathAttempts = 0; // NEW
+
                     ChangeState(CharacterState::Idle);
                     break;
                 }

@@ -309,12 +309,14 @@ bool IsSeeThroughForLOS(int x, int y)
     // Special case: lava is NOT walkable but still see-through for vision
     if (IsLavaTile(x, y)) return true;
 
+    if (IsVoid(x, y)) return true;
+
     //Void Tiles should be see through? it seems to just work with void tiles. they see the player and track over void. 
 
     // Everything else (walls, closed doors, barrels, etc) blocks LOS
     return false;
 
-    //voids?
+
 }
 
 bool IsWalkable(int x, int y, const Image& dungeonMap) {
@@ -867,7 +869,7 @@ bool SingleRayBlocked(Vector2 start, Vector2 end, const Image& dungeonMap, int m
 
 
 // Supercover Bresenham LOS.
-// Returns true ONLY if the straight line from start->end stays in walkable space.
+
 // Uses runtime walkable grid via IsSeeThroughForLOS
 bool TileLineOfSight(Vector2 start, Vector2 end)
 {

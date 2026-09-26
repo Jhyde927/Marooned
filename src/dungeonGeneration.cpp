@@ -132,31 +132,65 @@ void UpdateDoorDelayedActions(float dt)
 
         door.isOpen = a.open;
 
-        // keep doorway in sync
+        // Keep doorway in sync
         if (di >= 0 && di < (int)doorways.size())
+        {
             doorways[di].isOpen = a.open;
+        }
 
-        // walkable
-        SetTileWalkable(door.tileX, door.tileY, a.open);
-
-        // locking rules:
+        // Keep walkability in sync with door state
         if (a.open)
         {
-            // opening never implies "lock"
-            door.isLocked = false;   // optional but usually correct
+            SetTileWalkable(door.tileX, door.tileY, true);
         }
         else
         {
-            // only relock when caller asked for it (floor switch)
+            SetTileUnwalkable(door.tileX, door.tileY, true);
+        }
+
+        // Locking rules
+        if (a.open)
+        {
+            // Opening never implies "lock"
+            door.isLocked = false;
+        }
+        else
+        {
+            // Only relock when caller asked for it (floor switch)
             if (a.relockOnClose)
+            {
                 door.isLocked = true;
+            }
         }
 
         gDoorDelayed.erase(gDoorDelayed.begin() + i);
     }
 }
 
+void CloseDoor(int doorIndex, bool eventLock)
+{
+    (void)eventLock;
+    if (doorIndex < 0 || doorIndex >= (int)doors.size())
+        return;
 
+    Door& door = doors[doorIndex];
+
+    door.isOpen = false;
+
+    // Keep doorway in sync.
+    if (doorIndex < (int)doorways.size())
+    {
+        doorways[doorIndex].isOpen = false;
+    }
+
+    // Closed doors block all pathfinding.
+    SetTileUnwalkable(
+        door.tileX,
+        door.tileY,
+        true
+    );
+
+}
 
 Vector3 ColorToNormalized(Color color) {
     return (Vector3){
@@ -2188,6 +2222,7 @@ void GenerateGiantSpiderFromImage(float baseY) {
                 giantSpider.maxHealth = 2000; //3k was to much, try 2k
                 giantSpider.currentHealth = giantSpider.maxHealth; 
                 giantSpider.id = gEnemyCounter++;
+                giantSpider.RefreshAnimation();
                 enemies.push_back(giantSpider);
                 enemyPtrs.push_back(&enemies.back()); 
             }

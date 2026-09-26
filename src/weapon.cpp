@@ -1235,7 +1235,7 @@ void MagicStaff::Fire(const Camera& camera) {
 
 
     Vector3 targetPoint = Vector3Add(player.position, Vector3Scale(player.lookForward, 1000.0f));
-    Vector3 missileTargetPoint = Vector3Add(player.position, Vector3Scale(player.lookForward, 2000.0f));
+    Vector3 missileTargetPoint = Vector3Add(player.position, Vector3Scale(player.lookForward, 4000.0f));
 
     if (magicType == MagicType::Fireball){
         FireFireball(muzzlePos, targetPoint, 2000, 10.0f, false, false, false);

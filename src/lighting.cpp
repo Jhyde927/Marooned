@@ -153,8 +153,8 @@ void GatherFrameLights() {
         s.color = { 0.65f, 0.25f, 1.0f };
         s.range = 500.0f;
 
-        float fade = Clamp((1.0f - missile.age) / 0.25f, 0.0f, 1.0f);
-        s.intensity = 0.5f * fade;
+        float fade = Clamp((2.0f - missile.age) / 0.25f, 0.0f, 1.0f);
+        s.intensity = 0.25f * fade;
 
 
         frameLights.push_back(s);

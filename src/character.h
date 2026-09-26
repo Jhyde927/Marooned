@@ -114,6 +114,7 @@ public:
     float forgetTime = 5.0f;           // After 3 seconds of no visibility, give up
     Vector3 lastKnownPlayerPos;
     bool hasLastKnownPlayerPos = false;
+    int failedPathAttempts = 0;
     bool canBleed = true;
     float radius = 100;
     int maxHealth = 150;
@@ -243,6 +244,7 @@ public:
     void UpdateLeavingFlag(const Vector3& playerPos, const Vector3& playerPrevPos);
     void AddSwordDecal();
     void HandleSpiderAgro();
+    void RefreshAnimation();
     void UnlockCreature(CharacterType type);
 };
 

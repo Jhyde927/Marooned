@@ -928,6 +928,11 @@ void Character::BuildPathToPlayer()
     navRepathTimer = 0.0f;
 }
 
+void Character::RefreshAnimation()
+{
+    const AnimDesc a = GetAnimFor(type, state);
+    SetAnimation(a.row, a.frames, a.frameTime, a.loop);
+}
 
 AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
     switch (type) {
@@ -1081,8 +1086,9 @@ AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
                 case CharacterState::Chase:
                 case CharacterState::Patrol:
                 case CharacterState::Reposition:
-                case CharacterState::RunAway: 
                     return AnimDesc{1, 5, 0.2f, true}; // walk
+                case CharacterState::RunAway: 
+                    return AnimDesc{3, 4, 0.25f, true}; 
                 
                 case CharacterState::Freeze: return {0, 1, 1.0f, true};
                 case CharacterState::Idle:   return {0, 1, 1.0f, true};

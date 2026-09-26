@@ -1181,7 +1181,7 @@ void DrawMagicMissiles()
             rotationAxis,
             angle,
             modelScale,
-            PURPLE
+            Fade(PINK, 0.45f)
         );
     }
 }

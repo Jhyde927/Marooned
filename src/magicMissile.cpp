@@ -37,7 +37,7 @@ void MagicMissile::InitParameters()
 {
     //tweek these
     speed = 1600.0f;
-    lifetime = 1.25f;
+    lifetime = 2.0f;
     age = 0.0f;
 
     burstTime = 0.08f;
@@ -63,7 +63,9 @@ void MagicMissile::DestroyOnImpact(Vector3 impactPosition)
         25,
         ParticleType::MagicBurst
     );
-    SoundManager::GetInstance().PlaySoundAtPosition("missileHit", position, player.position, 0.0f, 2000.0f);
+
+
+    SoundManager::GetInstance().StartPositionalSound( "missileHit",impactPosition,player.position,2000.0f);
     active = false;
 }
 
@@ -78,7 +80,7 @@ bool MagicMissile::HandleEnemyCollision(){
         if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), position, collisionRadius)){
             particleSystem.EmitBurst(position, 100, ParticleType::MagicBurst);
             enemy->TakeDamage(damage);
-            active = false;
+            DestroyOnImpact(position);
             return true;
         }
     }
@@ -137,13 +139,20 @@ bool MagicMissile::HandleWorldCollision(
             curTileY = ty;
 
             bool tileIsLava = (lavaMask[Idx(tx, ty)] == 1);
+            bool tileIsVoid = (voidMask[Idx(tx, ty)] == 1);
 
-            killFloorY = tileIsLava
-                ? floorHeight - lavaOffsetY
-                : floorHeight + 20.0f;
-
-            // Add your void-mask condition here if void uses a
-            // separate floor height.
+            if (tileIsVoid)
+            {
+                killFloorY = -1000.0f;
+            }
+            else if (tileIsLava)
+            {
+                killFloorY = floorHeight - lavaOffsetY;
+            }
+            else
+            {
+                killFloorY = floorHeight + 20.0f;
+            }
         }
 
         // Crossed the dungeon floor this frame.
