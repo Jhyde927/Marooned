@@ -20,6 +20,7 @@ enum class ChestTreasure
     DoubleShot,
     HealthPotion,
     IceMagic,
+    MagicMissile
 
 };
 

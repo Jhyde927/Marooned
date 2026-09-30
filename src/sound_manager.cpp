@@ -233,6 +233,57 @@ Music& SoundManager::GetMusic(const std::string& name) {
     return musicTracks[name]; 
 }
 
+void SoundManager::ApplyPositionalAudio(
+    Sound& sound,
+    Vector3 soundPosition,
+    Vector3 listenerPosition,
+    Vector3 listenerForward,
+    float maxDistance)
+{
+    Vector3 offset = Vector3Subtract(
+        soundPosition,
+        listenerPosition
+    );
+
+    float distance = Vector3Length(offset);
+
+    float volume = Clamp(
+        1.0f - distance / maxDistance,
+        0.0f,
+        1.0f
+    );
+
+    Vector3 listenerRight = Vector3Normalize(
+        Vector3CrossProduct(
+            listenerForward,
+            Vector3{0.0f, 1.0f, 0.0f}
+        )
+    );
+
+    offset.y = 0.0f;
+
+    float pan = 0.5f;
+
+    if (Vector3LengthSqr(offset) > 0.001f)
+    {
+        offset = Vector3Normalize(offset);
+
+        float side = Vector3DotProduct(
+            offset,
+            listenerRight
+        );
+
+        pan = Clamp(
+            (side + 1.0f) * 0.5f,
+            0.0f,
+            1.0f
+        );
+    }
+
+    ::SetSoundVolume(sound, volume);
+    ::SetSoundPan(sound, pan);
+}
+
 
 
 void SoundManager::PlaySoundAtPosition(const std::string& soundName, const Vector3& soundPos, const Vector3& listenerPos, float listenerYaw, float maxDistance) {
@@ -262,53 +313,58 @@ SoundInstanceId SoundManager::StartPositionalSound(
     const std::string& name,
     Vector3 position,
     Vector3 listenerPosition,
+    Vector3 listenerForward,
     float maxDistance)
 {
     auto source = sounds.find(name);
-    if (source == sounds.end() || maxDistance <= 0.0f) {
-        return 0;
-    }
 
-    // Limit this particular effect to 8 simultaneous voices.
-    if (name == "missileBlast") {
-        int playingCount = 0;
-        for (const auto& [id, instance] : positionalSounds) {
-            if (instance.name == name && ::IsSoundPlaying(instance.alias)) {
-                ++playingCount;
-            }
-        }
-        if (playingCount >= 8) return 0;
-    }
+    if (source == sounds.end() || maxDistance <= 0.0f)
+        return 0;
 
     Sound alias = ::LoadSoundAlias(source->second);
 
-    float distance = Vector3Length(Vector3Subtract(position, listenerPosition));
-    float volume = Clamp(1.0f - distance / maxDistance, 0.0f, 1.0f);
+    ApplyPositionalAudio(
+        alias,
+        position,
+        listenerPosition,
+        listenerForward,
+        maxDistance
+    );
 
-    ::SetSoundVolume(alias, volume);
     ::PlaySound(alias);
 
     SoundInstanceId id = nextSoundInstanceId++;
-    positionalSounds.emplace(id, PositionalSound{alias, name, maxDistance});
+
+    positionalSounds.emplace(
+        id,
+        PositionalSound{
+            alias,
+            name,
+            maxDistance
+        }
+    );
+
     return id;
 }
 
 void SoundManager::MovePositionalSound(
     SoundInstanceId id,
     Vector3 position,
-    Vector3 listenerPosition)
+    Vector3 listenerPosition,
+    Vector3 listenerForward)
 {
     auto it = positionalSounds.find(id);
-    if (it == positionalSounds.end()) return;
 
-    float distance = Vector3Length(Vector3Subtract(position, listenerPosition));
-    float volume = Clamp(
-        1.0f - distance / it->second.maxDistance,
-        0.0f,
-        1.0f
+    if (it == positionalSounds.end())
+        return;
+
+    ApplyPositionalAudio(
+        it->second.alias,
+        position,
+        listenerPosition,
+        listenerForward,
+        it->second.maxDistance
     );
-
-    ::SetSoundVolume(it->second.alias, volume);
 }
 
 void SoundManager::StopPositionalSound(SoundInstanceId id)

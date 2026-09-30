@@ -115,6 +115,14 @@ namespace JournalData
                 "This long sheet of sturdy fabric should make a perfect sail. "
                 "Return to Middle Island to set sail, and escape. "
             },
+
+            {
+                JournalEntryID::FoundMissile,
+                "Magic Missile",
+                "The staff glows with arcane power "
+                "Hold down right click to fire a volley of missiles. "
+                "Press T to cycle magic type. "
+            },
     
         };
 

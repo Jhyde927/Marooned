@@ -5,6 +5,7 @@
 #include "particleSystem.h"
 #include "pathfinding.h"
 #include "sound_manager.h"
+#include "collisions.h"
 
 
 // MagicMissile::MagicMissile(Vector3 startPosition, Vector3 launchDirection, Vector3 targetPoint)
@@ -64,10 +65,17 @@ void MagicMissile::DestroyOnImpact(Vector3 impactPosition)
         ParticleType::MagicBurst
     );
 
-
-    SoundManager::GetInstance().StartPositionalSound( "missileHit",impactPosition,player.position,2000.0f);
+    wooshId = SoundManager::GetInstance().StartPositionalSound(
+        "missileBlast",
+        position,
+        player.position,
+        player.lookForward,
+        2000.0f
+    );
     active = false;
 }
+
+
 
 bool MagicMissile::HandleEnemyCollision(){
     if (!active) return false;
@@ -79,7 +87,7 @@ bool MagicMissile::HandleEnemyCollision(){
 
         if (CheckCollisionBoxSphere(enemy->GetBoundingBox(), position, collisionRadius)){
             particleSystem.EmitBurst(position, 100, ParticleType::MagicBurst);
-            enemy->TakeDamage(damage);
+            enemy->TakeDamage(damage * qDamage);
             DestroyOnImpact(position);
             return true;
         }
@@ -88,11 +96,26 @@ bool MagicMissile::HandleEnemyCollision(){
     return false;
 }
 
-bool MagicMissile::HandleWorldCollision(
-    Vector3 previousPosition,
-    Vector3 nextPosition
-)
+bool MagicMissile::HandleWorldCollision(Vector3 previousPosition, Vector3 nextPosition)
 {
+
+    if (DamageSpiderEggAtCollision(position, collisionRadius, (damage * qDamage), player.position))
+    {
+        DestroyOnImpact(position);
+        return true;
+    }
+
+    if (HandleBarrelHitsForMagicMissile(*this)){
+        DestroyOnImpact(position);
+        return true;
+    }
+
+    if (DestroySpiderWebAtCollision(position, collisionRadius))
+    {
+        DestroyOnImpact(position);
+        return true;
+    }
+
 
     int curTileX = -1;
     int curTileY = -1;
@@ -168,12 +191,15 @@ bool MagicMissile::HandleWorldCollision(
     }
     else
     {
+
+
         // Overworld terrain
         float terrainHeight = GetHeightAtWorldPosition(
             nextPosition,
             heightmap,
             terrainScale
         );
+
 
         if (previousPosition.y > terrainHeight &&
             nextPosition.y <= terrainHeight)
@@ -198,15 +224,15 @@ void MagicMissile::Update(float deltaTime)
     if (playWoosh && !wooshStarted)
     {
         wooshId = SoundManager::GetInstance().StartPositionalSound(
-            "missileBlast", position, player.position, 2000.0f);
+            "missileBlast",
+            position,
+            player.position,
+            player.lookForward,
+            2000.0f
+        );
+        
         wooshStarted = true;
     }
-
-    // if (!wooshStarted)
-    // {
-    //     SoundManager::GetInstance().PlaySoundAtPosition("missileBlast", position, player.position, 0.0f, 2000.0f);
-    //     wooshStarted = true;
-    // }
 
     // Begin homing after the initial outward burst.
     if (age >= burstTime)
@@ -296,11 +322,6 @@ void MagicMissile::Update(float deltaTime)
         Vector3Scale(movementVelocity, deltaTime)
     );
 
-    // Calculate this frame's movement after steering.
-    // Vector3 nextPosition = Vector3Add(
-    //     position,
-    //     Vector3Scale(travelDirection, speed * deltaTime)
-    // );
 
     if (HandleEnemyCollision())
     {
@@ -313,7 +334,7 @@ void MagicMissile::Update(float deltaTime)
     }
 
     // Check the entire movement segment before moving.
-    if (!DDAHasLineOfSightWorld(position, nextPosition))
+    if (isDungeon && !DDAHasLineOfSightWorld(position, nextPosition))
     {
         particleSystem.EmitBurst(
             position,
@@ -330,7 +351,12 @@ void MagicMissile::Update(float deltaTime)
 
     if (wooshId != 0)
     {
-        SoundManager::GetInstance().MovePositionalSound(wooshId, position, player.position);
+        SoundManager::GetInstance().MovePositionalSound(
+            wooshId,
+            position,
+            player.position,
+            player.lookForward
+        );
     }
 
     // Emit the trail at the accepted new position.

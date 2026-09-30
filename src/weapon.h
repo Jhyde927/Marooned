@@ -216,6 +216,7 @@ struct MagicStaff {
     float recoil = 0.0f;
     float recoilAmount = 8.0f;
     float recoilRecoverySpeed = 20.0f;
+    float maxRecoil = 20.0f;
 
     Texture2D muzzleFlashTexture;
     float flashDuration = 0.08f;
@@ -224,6 +225,8 @@ struct MagicStaff {
 
     float reloadDip = 0.0f;
     float equipDip = 0.0f;
+
+
     // === Methods ===
     void StartSwing(Camera& camera);
     void Update(float deltaTime);

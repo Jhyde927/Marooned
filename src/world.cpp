@@ -88,7 +88,7 @@ bool hasCrossbow = false;
 bool hasHarpoon = false;
 bool hasDoubleShot = false;
 bool hasIce = false;
-bool hasMissile = true; //true for now. 
+bool hasMissile = false;  
 float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
@@ -1683,7 +1683,8 @@ float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terra
 
 void SpawnMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint)
 {
-        for (int i = 0; i < 3; ++i)
+    float damageMultiplier = player.quadDamage ? 4.0f : 1.0f;
+    for (int i = 0; i < 3; ++i)
     {
         activeMagicMissiles.emplace_back(
             startPosition,
@@ -1692,14 +1693,13 @@ void SpawnMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3
             i == 1  // middle missile carries the volley’s sound
         );
 
-        activeMagicMissiles.back().carriesLight = (i == 0);
+        MagicMissile& missile = activeMagicMissiles.back();
+
+        missile.carriesLight = (i == 0);
+        missile.qDamage = damageMultiplier;
+
     }
     
-    // for (int i = 0; i < 3; ++i) //missiles per shot
-    // {
-    //     activeMagicMissiles.emplace_back(startPosition, forwardDirection, targetPoint);
-
-    // }
 }
 
 

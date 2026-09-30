@@ -10,6 +10,7 @@ magicStaffUnlocked=0
 harpoonUnlocked=0
 doubleShotUnlocked=0
 iceMagicUnlocked=0
+magicMissileUnlocked=0
 currentPowerUp=0
 raftBodyUnlocked=0
 raftMastUnlocked=0

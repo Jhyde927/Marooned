@@ -3,11 +3,8 @@
 CXX     := C:/msys64/ucrt64/bin/g++.exe
 WINDRES := C:/msys64/ucrt64/bin/windres.exe
 
-CXXFLAGS:= -std=c++17 -Wall -Wextra -O2 -MMD -MP
-
-
-#CC      := g++
 #CXXFLAGS:= -std=c++17 -Wall -Wextra -O2 -MMD -MP
+CXXFLAGS := -std=c++17 -Wall -Wextra -O2 -g -MMD -MP #Debug -g flag
 
 # Sources / objects
 SRC := $(wildcard src/*.cpp)
@@ -56,15 +53,6 @@ $(OUT): $(OBJ)
 src/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# $(OUT): $(OBJ)
-# 	$(CC) $(CXXFLAGS) -o $@ $^ $(LDLIBS)
-
-# src/%.o: src/%.cpp
-# 	$(CC) $(CXXFLAGS) -c $< -o $@
-
-# Windows resource compile rule (only used when $(RES) is in $(OBJ))
-# $(RES): $(RESRC)
-# 	windres $(RESRC) -O coff -o $@
 
 
 $(RES): $(RESRC)

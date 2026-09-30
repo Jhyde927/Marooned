@@ -21,6 +21,7 @@ struct SaveData
     bool harpoonUnlocked = false;
     bool doubleShotUnlocked = false;
     bool iceMagicUnlocked = false;
+    bool magicMissileUnlocked = false;
 
     bool raftBodyUnlocked = false;
     bool raftMastUnlocked = false;

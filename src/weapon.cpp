@@ -1201,9 +1201,9 @@ void MagicStaff::Fire(const Camera& camera) {
 
     if (GetTime() - lastFired < cooldown) return;
 
-    if (magicType == MagicType::MagicMissile){ // 1 mana per shot for magic missile for now. fix this 
-        if (player.currentMana >= 1){
-            player.currentMana -= 1;
+    if (magicType == MagicType::MagicMissile){
+        if (player.currentMana >= 3){
+            player.currentMana -= 3;
         }else{
             return;
         }
@@ -1215,11 +1215,8 @@ void MagicStaff::Fire(const Camera& camera) {
         }
     }
 
-
-
-
     lastFired = GetTime();
-    recoil += recoilAmount;
+    recoil = Clamp(recoil + recoilAmount, 0.0f, maxRecoil);
 
     if (magicType != MagicType::MagicMissile){
         muzzlePos = GetPlayerMuzzlePosition(player); //no muzzle flash for missiles.
@@ -1244,7 +1241,6 @@ void MagicStaff::Fire(const Camera& camera) {
     }else if (magicType == MagicType::MagicMissile){
         SpawnMagicMissiles(muzzlePos, player.lookForward, missileTargetPoint);
     }
-    
     
 }
 

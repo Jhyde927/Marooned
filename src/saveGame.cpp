@@ -108,6 +108,7 @@ namespace SaveGame
         save.harpoonUnlocked = hasHarpoon;
         save.doubleShotUnlocked = hasDoubleShot;
         save.iceMagicUnlocked = hasIce;
+        save.magicMissileUnlocked = hasMissile;
         save.currentPowerUp = static_cast<int>(player.currentPowerUp);
         save.entrancesUnlocked = unlockEntrances;
 
@@ -127,6 +128,9 @@ namespace SaveGame
         hasStaff = save.magicStaffUnlocked;
         hasDoubleShot = save.doubleShotUnlocked;
         hasHarpoon = save.harpoonUnlocked;
+        hasIce = save.iceMagicUnlocked;
+        hasMissile = save.magicMissileUnlocked;
+
 
         raft.hasBody = save.raftBodyUnlocked;
         raft.hasMast = save.raftMastUnlocked;
@@ -277,6 +281,7 @@ void SaveGame::Save(const SaveData& data)
     file << "harpoonUnlocked=" << data.harpoonUnlocked << '\n';
     file << "doubleShotUnlocked=" << data.doubleShotUnlocked << '\n';
     file << "iceMagicUnlocked=" << data.iceMagicUnlocked << '\n';
+    file << "magicMissileUnlocked=" << data.magicMissileUnlocked << '\n';
     file << "currentPowerUp=" << data.currentPowerUp << '\n';
 
     file << "raftBodyUnlocked=" << data.raftBodyUnlocked << '\n';

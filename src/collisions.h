@@ -32,3 +32,6 @@ void BulletParticleBounce(Bullet& b, Color c);
 //void BulletParticleRicochetNormal(Bullet& b, Vector3 n, Color c);
 bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera);
 bool TryBulletRicochet(Bullet& b, Vector3 n, float damp = 0.6f, float minSpeed = 80.0f, float headOnCosThreshold = 0.999f);
+bool HandleBarrelHitsForMagicMissile(MagicMissile& missile);
+bool DestroySpiderWebAtCollision(Vector3 position, float radius);
+bool DamageSpiderEggAtCollision(Vector3 position, float radius, float damage, Vector3 damageSource);

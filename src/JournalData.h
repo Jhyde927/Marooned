@@ -20,9 +20,10 @@ namespace JournalData
         River            = 9,
         FoundStaff       = 10,
         FoundIce         = 11,
-        RaftSail         = 12, 
+        RaftSail         = 12,
+        FoundMissile     = 13,  
 
-        Count            = 13
+        Count            = 14
     };
 
     enum class CreatureEntryID

@@ -13,6 +13,8 @@ public:
     void Update(float deltaTime);
     void InitParameters();
 
+    void DestroyOnImpact(Vector3 impactPosition);
+
 
     Vector3 position;
     Vector3 travelDirection;
@@ -44,6 +46,8 @@ public:
 
     bool carriesLight = false;
 
+    float qDamage = 1.0f;
+
 
 private:
     bool HandleWorldCollision(
@@ -53,6 +57,5 @@ private:
 
     bool HandleEnemyCollision();
 
-    void DestroyOnImpact(Vector3 impactPosition);
 
 };

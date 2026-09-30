@@ -12,6 +12,7 @@
 #include "lighting.h"
 #include "utilities.h"
 #include "switch_tile.h"
+#include "magicMissile.h"
 
 
 bool CheckCircleInEntranceDoorColliderXZ(Vector3 p, float radius, const EntranceDoorCollider& c)
@@ -998,75 +999,246 @@ void CheckBulletHits(Camera& camera) {
     }
 }
 
+bool DamageSpiderEggAtCollision(Vector3 position, float radius, float damage, Vector3 damageSource)
+{
+    for (SpiderEgg& egg : eggs)
+    {
+        if (egg.state == SpiderEggState::Destroyed)
+            continue;
+
+        if (!CheckCollisionBoxSphere(
+                egg.collider,
+                position,
+                radius))
+        {
+            continue;
+        }
+
+        DamageSpiderEgg(
+            egg,
+            damage,
+            damageSource
+        );
+
+        return true;
+    }
+
+    return false;
+}
+
+bool DestroySpiderWebAtCollision(Vector3 position, float radius)
+{
+    for (SpiderWebInstance& web : spiderWebs)
+    {
+        if (web.destroyed)
+            continue;
+
+        if (!CheckCollisionBoxSphere(
+                web.bounds,
+                position,
+                radius))
+        {
+            continue;
+        }
+
+        web.destroyed = true;
+        return true;
+    }
+
+    return false;
+}
+
+bool DestroyBarrelAtCollision(Vector3 position, float radius)
+{
+    for (BarrelInstance& barrel : barrelInstances)
+    {
+        if (barrel.destroyed)
+            continue;
+
+        if (!CheckCollisionBoxSphere(barrel.bounds, position, radius))
+            continue;
+
+        barrel.destroyed = true;
+
+        int tileX = GetDungeonImageX(
+            barrel.position.x,
+            tileSize,
+            dungeonWidth
+        );
+
+        int tileY = GetDungeonImageY(
+            barrel.position.z,
+            tileSize,
+            dungeonHeight
+        );
+
+        if (tileX >= 0 && tileX < dungeonWidth &&
+            tileY >= 0 && tileY < dungeonHeight)
+        {
+            walkable[tileX][tileY] = true;
+            walkableBat[tileX][tileY] = true;
+        }
+
+        SoundManager::GetInstance().Play("barrelBreak");
+
+        Vector3 dropPos{
+            barrel.position.x,
+            barrel.position.y + 100.0f,
+            barrel.position.z
+        };
+
+        if (barrel.containsPotion)
+        {
+            Collectable c = {
+                CollectableType::HealthPotion,
+                dropPos,
+                R.GetTexture("healthPotTexture"),
+                40
+            };
+
+            c.baseY = dropPos.y;
+            collectables.emplace_back(c);
+        }
+        else if (barrel.containsMana)
+        {
+            Collectable c = {
+                CollectableType::ManaPotion,
+                dropPos,
+                R.GetTexture("manaPotion"),
+                40
+            };
+
+            c.baseY = dropPos.y;
+            collectables.emplace_back(c);
+        }
+        else if (barrel.containsGold)
+        {
+            Collectable gold(
+                CollectableType::Gold,
+                dropPos,
+                R.GetTexture("coinTexture"),
+                40
+            );
+
+            gold.value = GetRandomValue(1, 100);
+            gold.baseY = dropPos.y;
+
+            collectables.push_back(gold);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool HandleBarrelHitsForMagicMissile(MagicMissile& missile)
+{
+    if (DestroyBarrelAtCollision(
+            missile.position,
+            missile.collisionRadius))
+    {
+        missile.DestroyOnImpact(missile.position);
+        return true;
+    }
+
+    return false;
+}
+
 
 bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
 {
-    bool hitSomething = false;
-    for (BarrelInstance& barrel : barrelInstances)
+    if (!DestroyBarrelAtCollision(b.GetPosition(), b.GetRadius()))
+        return false;
+
+    if (b.type == BulletType::Fireball ||
+        b.type == BulletType::Iceball)
     {
-        if (barrel.destroyed) continue;
-        if (CheckCollisionBoxSphere(barrel.bounds, b.GetPosition(), b.GetRadius()))
-        {
-            hitSomething = true;
-            if (b.type == BulletType::Fireball || b.type == BulletType::Iceball)
-            {
-                b.Explode(camera);
-            }else if (b.type == BulletType::Bolt){
-                //bolts penetrate barrels. 
-                b.exploded = true; //last for 2 more seconds
-            }
-            else
-            {
-                Vector3 n = AABBHitNormal(barrel.bounds, b.position);
-                b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
-                b.exploded = b.alive;
-
-            }
-
-            // Destroy barrel + drop loot
-            barrel.destroyed = true;
-
-            int tileX = GetDungeonImageX(barrel.position.x, tileSize, dungeonWidth);
-            int tileY = GetDungeonImageY(barrel.position.z, tileSize, dungeonHeight);
-
-            if (tileX >= 0 && tileX < dungeonWidth &&
-                tileY >= 0 && tileY < dungeonHeight)
-            {
-                walkable[tileX][tileY] = true;
-                walkableBat[tileX][tileY] = true;
-            }
-
-            SoundManager::GetInstance().Play("barrelBreak");
-
-            Vector3 dropPos{ barrel.position.x, barrel.position.y + 100.0f, barrel.position.z };
-            if (barrel.containsPotion)
-            {
-                Collectable c = {CollectableType::HealthPotion, dropPos,R.GetTexture("healthPotTexture"), 40};
-                c.baseY = barrel.position.y + 100.0f;
-                collectables.emplace_back(c);
-            }
-            else if (barrel.containsMana)
-            {
-                Collectable c = {CollectableType::ManaPotion, dropPos,R.GetTexture("manaPotion"), 40};
-                c.baseY = barrel.position.y + 100.0f;
-                collectables.emplace_back(c);
-            }
-            else if (barrel.containsGold)
-            {
-                Collectable gold(CollectableType::Gold, dropPos, R.GetTexture("coinTexture"), 40);
-                gold.value = GetRandomValue(1, 100);
-                gold.baseY = barrel.position.y + 100.0f;
-                collectables.push_back(gold);
-            }
-
-            if (!b.alive) 
-                return true; // stop processing this bullet
-        }
+        b.Explode(camera);
+    }
+    else if (b.type == BulletType::Bolt)
+    {
+        // Bolts penetrate barrels.
+        b.exploded = true;
+    }
+    else
+    {
+        // Problem: we no longer have the barrel bounds here
+        // if we want the ricochet normal.
     }
 
-    // No more logic needed — if the bullet is alive, caller continues. 
-    return hitSomething; 
+    return true;
 }
+
+
+// bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
+// {
+//     bool hitSomething = false;
+//     for (BarrelInstance& barrel : barrelInstances)
+//     {
+//         if (barrel.destroyed) continue;
+//         if (CheckCollisionBoxSphere(barrel.bounds, b.GetPosition(), b.GetRadius()))
+//         {
+//             hitSomething = true;
+//             if (b.type == BulletType::Fireball || b.type == BulletType::Iceball)
+//             {
+//                 b.Explode(camera);
+//             }else if (b.type == BulletType::Bolt){
+//                 //bolts penetrate barrels. 
+//                 b.exploded = true; //last for 2 more seconds
+//             }
+//             else
+//             {
+//                 Vector3 n = AABBHitNormal(barrel.bounds, b.position);
+//                 b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+//                 b.exploded = b.alive;
+
+//             }
+
+//             // Destroy barrel + drop loot
+//             barrel.destroyed = true;
+
+//             int tileX = GetDungeonImageX(barrel.position.x, tileSize, dungeonWidth);
+//             int tileY = GetDungeonImageY(barrel.position.z, tileSize, dungeonHeight);
+
+//             if (tileX >= 0 && tileX < dungeonWidth &&
+//                 tileY >= 0 && tileY < dungeonHeight)
+//             {
+//                 walkable[tileX][tileY] = true;
+//                 walkableBat[tileX][tileY] = true;
+//             }
+
+//             SoundManager::GetInstance().Play("barrelBreak");
+
+//             Vector3 dropPos{ barrel.position.x, barrel.position.y + 100.0f, barrel.position.z };
+//             if (barrel.containsPotion)
+//             {
+//                 Collectable c = {CollectableType::HealthPotion, dropPos,R.GetTexture("healthPotTexture"), 40};
+//                 c.baseY = barrel.position.y + 100.0f;
+//                 collectables.emplace_back(c);
+//             }
+//             else if (barrel.containsMana)
+//             {
+//                 Collectable c = {CollectableType::ManaPotion, dropPos,R.GetTexture("manaPotion"), 40};
+//                 c.baseY = barrel.position.y + 100.0f;
+//                 collectables.emplace_back(c);
+//             }
+//             else if (barrel.containsGold)
+//             {
+//                 Collectable gold(CollectableType::Gold, dropPos, R.GetTexture("coinTexture"), 40);
+//                 gold.value = GetRandomValue(1, 100);
+//                 gold.baseY = barrel.position.y + 100.0f;
+//                 collectables.push_back(gold);
+//             }
+
+//             if (!b.alive) 
+//                 return true; // stop processing this bullet
+//         }
+//     }
+
+//     // No more logic needed — if the bullet is alive, caller continues. 
+//     return hitSomething; 
+// }
 
 
 bool CheckBulletHitsTree(const TreeInstance& tree, const Vector3& bulletPos) {

@@ -31,16 +31,21 @@ public:
     void InitMusic();
     void InitSoundEffects();
 
-    SoundInstanceId StartPositionalSound(
-        const std::string& name,
-        Vector3 position,
+    SoundInstanceId StartPositionalSound(const std::string& name, Vector3 position, Vector3 listenerPosition, Vector3 listenerForward, float maxDistance);
+
+    void ApplyPositionalAudio(
+        Sound& sound,
+        Vector3 soundPosition,
         Vector3 listenerPosition,
+        Vector3 listenerForward,
         float maxDistance);
+
 
     void MovePositionalSound(
         SoundInstanceId id,
         Vector3 position,
-        Vector3 listenerPosition);
+        Vector3 listenerPosition,
+        Vector3 listenerForward);
 
     void StopPositionalSound(SoundInstanceId id);
 

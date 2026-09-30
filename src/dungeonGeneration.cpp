@@ -1790,6 +1790,11 @@ ChestTreasure GetChestTreasure(int levelIndex, int chestIndex)
         {
             return ChestTreasure::IceMagic;
         }
+        case 12:
+        {
+            //level 11 is index 12
+            return ChestTreasure::MagicMissile;
+        }
 
         default:
         {
@@ -1849,7 +1854,16 @@ void DropChestTreasure(const ChestInstance& chest)
         {
             JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::FoundIce);
             hasIce = true;
-            journalUI.Toggle();          
+            journalUI.Toggle(); 
+            break;         
+        }
+
+        case ChestTreasure::MagicMissile:
+        {
+            JournalData::Progress::DiscoverJournalEntry(JournalData::JournalEntryID::FoundMissile);
+            hasMissile = true;
+            journalUI.Toggle();  
+            break;        
         }
 
         // Remaining cases...
