@@ -180,7 +180,10 @@ static void UpdateGameplayCollisions(Camera3D& camera)
 void UpdatePlayingFrame(Camera3D& camera, Player& player, float dt, float elapsedTime)
 {
     if (IsKeyPressed(KEY_ESCAPE) && gFadePhase == FadePhase::Idle){
-        currentGameState = GameState::Menu;
+        if (!journalUI.IsOpen()){
+            currentGameState = GameState::Menu;
+        }
+
     }
 
 

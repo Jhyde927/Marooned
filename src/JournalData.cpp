@@ -24,8 +24,8 @@ namespace JournalData
                 JournalEntryID::MetHermit,
                 "The Hermit",
                 "I spoke with an old castaway near the campfire. "
-                "He seems half-mad, but he knows these islands better "
-                "than anyone."
+                "He seems half-mad, but he has plans on building a raft. "
+                "I just need to find all the pieces."
             },
             {
                 JournalEntryID::FoundRuins,
@@ -109,6 +109,14 @@ namespace JournalData
             },
 
             {
+                JournalEntryID::FoundMissile,
+                "Magic Missile",
+                "The staff glows with arcane power "
+                "Hold down right click to fire a volley of missiles. "
+                "Press T to cycle magic type. "
+            },
+
+            {
                 JournalEntryID::RaftSail,
                 "Raft Sail",
                 "I have found the final piece for the hold mans raft. "
@@ -116,13 +124,6 @@ namespace JournalData
                 "Return to Middle Island to set sail, and escape. "
             },
 
-            {
-                JournalEntryID::FoundMissile,
-                "Magic Missile",
-                "The staff glows with arcane power "
-                "Hold down right click to fire a volley of missiles. "
-                "Press T to cycle magic type. "
-            },
     
         };
 

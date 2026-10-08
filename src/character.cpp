@@ -1178,7 +1178,6 @@ void Character::ChangeState(CharacterState next) {
 
     if (type == CharacterType::Trex && state == CharacterState::Chase){
         chaseDuration = GetRandomValue(10, 20);
-
     }
 
     if (state == CharacterState::Attack && type != CharacterType::Zombie) attackCooldown = 0.0f; //why?

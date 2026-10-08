@@ -78,22 +78,41 @@ void GatherGrapplePoint(Camera& camera) {
     }
 }
 
+float GetCharacterOffsetY(const Character* enemy, float billboardSize)
+{
+    float offsetY = billboardSize * 0.05f;
 
-void GatherEnemies(Camera& camera) {
-    for (Character* enemy : enemyPtrs) {
+    switch (enemy->type)
+    {
+    case CharacterType::Wizard:
+        return offsetY;
+
+    case CharacterType::Raptor:
+    case CharacterType::Spider:
+    case CharacterType::Skeleton:
+        return enemy->isElite ? -offsetY : 0.0f;
+
+    default:
+        return 0.0f;
+    }
+}
+
+
+void GatherEnemies(Camera& camera)
+{
+    for (Character* enemy : enemyPtrs)
+    {
+        if (!enemy) continue;
         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
-
-        //float dist = Vector3Distance(camera.position, enemy->position);
-        //float dist = Vector3DistanceSqr(camera.position, enemy->position);
 
         Rectangle sourceRect = {
             (float)(enemy->currentFrame * enemy->frameWidth),
-            (float)(enemy->rowIndex     * enemy->frameHeight),
-            (float) enemy->frameWidth,
-            (float) enemy->frameHeight
+            (float)(enemy->rowIndex * enemy->frameHeight),
+            (float)enemy->frameWidth,
+            (float)enemy->frameHeight
         };
 
-        // Decide flipping for strafing, Raptors and pirates. 
+        // Decide flipping for strafing, raptors, and pirates.
         bool flipX = false;
 
         if (enemy->type == CharacterType::Raptor)
@@ -107,57 +126,167 @@ void GatherEnemies(Camera& camera) {
         }
         else
         {
-            if (enemy->facingMode == FacingMode::Strafing) {
+            if (enemy->facingMode == FacingMode::Strafing)
+            {
                 flipX = (enemy->strafeSideSign < 0.0f);
             }
         }
 
-        if (enemy->hitTimer > 0.0f) {
+        if (enemy->hitTimer > 0.0f)
+        {
             flipX = false;
         }
 
         Vector3 drawPos = enemy->position;
-
-        Vector3 camToEnemy = Vector3Subtract(camera.position, enemy->position);
+        Vector3 camToEnemy = Vector3Subtract(
+            camera.position,
+            enemy->position
+        );
 
         float distSqr = Vector3LengthSqr(camToEnemy);
-        float dist = sqrtf(distSqr); // only needed because billboard size uses real distance
+        float dist = sqrtf(distSqr);
 
-        float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
+        float billboardSize = GetAdjustedBillboardSize(
+            enemy->frameWidth * enemy->scale,
+            dist
+        );
 
-        // Keep enemy feet/gameplay position the same, but raise the visual sprite
-        // when it is larger than its normal scale.
+        // Raise elite sprites to account for their larger size.
         if (enemy->isElite)
         {
-            float normalHeight = GetAdjustedBillboardSize(enemy->frameHeight * enemy->baseScale, dist);
-            float scaledHeight = GetAdjustedBillboardSize(enemy->frameHeight * enemy->scale, dist);
+            float normalHeight = GetAdjustedBillboardSize(
+                enemy->frameHeight * enemy->baseScale,
+                dist
+            );
+
+            float scaledHeight = GetAdjustedBillboardSize(
+                enemy->frameHeight * enemy->scale,
+                dist
+            );
 
             drawPos.y += (scaledHeight - normalHeight) * 0.5f;
         }
 
+        // Correct sprite alignment using its adjusted drawing size.
+        drawPos.y += GetCharacterOffsetY(enemy, billboardSize);
+
         Vector3 camToDrawPos = Vector3Subtract(camera.position, drawPos);
         Vector3 camDir = Vector3Normalize(camToDrawPos);
-        Vector3 offsetPos = Vector3Add(drawPos, Vector3Scale(camDir, 10.0f));
+        Vector3 offsetPos = Vector3Add(
+            drawPos,
+            Vector3Scale(camDir, 10.0f)
+        );
 
         Color finalTint = WHITE;
-        if (enemy->hitTimer > 0.0f) finalTint = {255,50,50,255};
-        if (enemy->state == CharacterState::Freeze) finalTint = SKYBLUE;
+
+        if (enemy->hitTimer > 0.0f)
+        {
+            finalTint = {255, 50, 50, 255};
+        }
+
+        if (enemy->state == CharacterState::Freeze)
+        {
+            finalTint = SKYBLUE;
+        }
 
         billboardRequests.push_back({
             Billboard_FacingCamera,
             offsetPos,
             enemy->texture,
             sourceRect,
-            Vector2 {billboardSize, billboardSize},
+            Vector2{billboardSize, billboardSize},
             finalTint,
             distSqr,
             0.0f,
-            flipX,     // <----- added
+            flipX,
             false,
             false
         });
     }
 }
+
+// void GatherEnemies(Camera& camera) {
+//     for (Character* enemy : enemyPtrs) {
+//         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
+
+//         //float dist = Vector3Distance(camera.position, enemy->position);
+//         //float dist = Vector3DistanceSqr(camera.position, enemy->position);
+
+//         Rectangle sourceRect = {
+//             (float)(enemy->currentFrame * enemy->frameWidth),
+//             (float)(enemy->rowIndex     * enemy->frameHeight),
+//             (float) enemy->frameWidth,
+//             (float) enemy->frameHeight
+//         };
+
+//         // Decide flipping for strafing, Raptors and pirates. 
+//         bool flipX = false;
+
+//         if (enemy->type == CharacterType::Raptor)
+//         {
+//             if (enemy->facingMode == FacingMode::Strafing ||
+//                 enemy->facingMode == FacingMode::ApproachingDiagonal ||
+//                 enemy->facingMode == FacingMode::LeavingDiagonal)
+//             {
+//                 flipX = (enemy->strafeSideSign < 0.0f);
+//             }
+//         }
+//         else
+//         {
+//             if (enemy->facingMode == FacingMode::Strafing) {
+//                 flipX = (enemy->strafeSideSign < 0.0f);
+//             }
+//         }
+
+//         if (enemy->hitTimer > 0.0f) {
+//             flipX = false;
+//         }
+
+//         ApplyCharacterOffsetY(enemy);
+
+//         Vector3 drawPos = enemy->position;
+//         Vector3 camToEnemy = Vector3Subtract(camera.position, enemy->position);
+
+//         float distSqr = Vector3LengthSqr(camToEnemy);
+//         float dist = sqrtf(distSqr); // only needed because billboard size uses real distance
+
+//         float billboardSize = GetAdjustedBillboardSize(enemy->frameWidth * enemy->scale, dist);
+
+//         // Keep enemy feet/gameplay position the same, but raise the visual sprite
+//         // when it is larger than its normal scale.
+//         if (enemy->isElite)
+//         {
+//             float normalHeight = GetAdjustedBillboardSize(enemy->frameHeight * enemy->baseScale, dist);
+//             float scaledHeight = GetAdjustedBillboardSize(enemy->frameHeight * enemy->scale, dist);
+
+//             drawPos.y += (scaledHeight - normalHeight) * 0.5f;
+//         }
+
+
+
+//         Vector3 camToDrawPos = Vector3Subtract(camera.position, drawPos);
+//         Vector3 camDir = Vector3Normalize(camToDrawPos);
+//         Vector3 offsetPos = Vector3Add(drawPos, Vector3Scale(camDir, 10.0f));
+
+//         Color finalTint = WHITE;
+//         if (enemy->hitTimer > 0.0f) finalTint = {255,50,50,255};
+//         if (enemy->state == CharacterState::Freeze) finalTint = SKYBLUE;
+
+//         billboardRequests.push_back({
+//             Billboard_FacingCamera,
+//             offsetPos,
+//             enemy->texture,
+//             sourceRect,
+//             Vector2 {billboardSize, billboardSize},
+//             finalTint,
+//             distSqr,
+//             0.0f,
+//             flipX,     // <----- added
+//             false,
+//             false
+//         });
+//     }
+// }
 
 void GatherNPCs(Camera& camera)
 {

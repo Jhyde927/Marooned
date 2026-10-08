@@ -160,26 +160,45 @@ void Bullet::HandleBulletWorldCollision(){
 
         }
 
+        if (!alive)
+        {
+            return;
+        }
+
 
         // Recompute only if we changed tiles
         int tx = GetDungeonImageX(position.x, tileSize, dungeonWidth);
         int ty = GetDungeonImageY(position.z, tileSize, dungeonWidth);
-        if (tx != curTileX || ty != curTileY) {
-            curTileX = tx; curTileY = ty;
-            tileIsLava = (lavaMask[Idx(tx, ty)] == 1);
 
-            // If lava: let bullets sink *below* the normal floor before killing.
-            // Otherwise: normal floor kill right at floorHeight.
-            killFloorY = tileIsLava ? (floorHeight - lavaOffsetY)    // 150
-                                    : (floorHeight+20);
+        // Use your actual map height here if maps aren't always square.
+        if (tx < 0 || ty < 0 ||
+            tx >= dungeonWidth || ty >= dungeonWidth)
+        {
+            alive = false;
+            exploded = true;
+            return;
         }
 
-        // Continuous check to avoid tunneling
-        if (prevPosition.y > killFloorY && position.y <= killFloorY) {
-            Vector3 n = {0, 1, 0};
-            alive = TryBulletRicochet(*this, n, 0.6f, 500, 0.99);
+        if (tx != curTileX || ty != curTileY)
+        {
+            const int index = Idx(tx, ty);
 
-            return;
+            // Also protects against an empty or incorrectly sized mask.
+            if (index < 0 ||
+                static_cast<size_t>(index) >= lavaMask.size())
+            {
+                alive = false;
+                exploded = true;
+                return;
+            }
+
+            curTileX = tx;
+            curTileY = ty;
+            tileIsLava = (lavaMask[index] == 1);
+
+            killFloorY = tileIsLava
+                ? (floorHeight - lavaOffsetY)
+                : (floorHeight + 20);
         }
     } else {
         // Overworld: terrain height varies; sampling each frame is fine.

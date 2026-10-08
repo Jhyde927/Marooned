@@ -206,9 +206,9 @@ float ColorAverage(Color c) {
 
 void ConfigureElite(Character& enemy, int normalHealth, int eliteHealth, float normalScale, float eliteScale, bool elitesAllowed)
 {
-    enemy.isElite =
+    enemy.isElite = 
         elitesAllowed &&
-        GetRandomValue(0, 99) < GameSettings::BossPercentage;
+        GetRandomValue(0, 99) < GameSettings::BossPercentage; //2 percent maybe still too much. 
 
     if (enemy.isElite)
     {
@@ -1745,14 +1745,12 @@ void GenerateBarrels(float baseY) {
                 //barrels only drop one thing at a time. 
                 if (roll < 25) {
                     willContainPotion = true;     // 0 - 24 → 25%
-                } else if (roll < 35) {
+                } else if (roll < 40) {
                     willContainMana = true;       // 25 - 34 → 10%
-                } else if (roll < 85) {
+                } else if (roll < 90) {
                     willContainGold = true;       // 35 - 84 → 50%
                 }
                 // 85 - 99 → 15% chance barrel contains nothing
-                
-
                 
                 barrelInstances.push_back({
                     pos,
@@ -2121,7 +2119,8 @@ void GenerateSpiderFromImage(float baseY) {
 
                 spider.id = gEnemyCounter++;
                 enemies.push_back(spider);
-                enemyPtrs.push_back(&enemies.back()); 
+                enemyPtrs.push_back(&enemies.back());
+                
             }
         }
     }

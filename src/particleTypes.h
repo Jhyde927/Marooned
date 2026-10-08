@@ -12,5 +12,6 @@ enum class ParticleType
     BoltTrail,
     Squid,
     Missile,
-    MagicBurst
+    MagicBurst, 
+    Egg
 };

@@ -267,6 +267,25 @@ void ParticleSystem::CreateParticle(
             break;
         }
 
+        case ParticleType::Egg:
+        {
+            particle.color = GREEN;
+            particle.gravity = 1800.0f + RandomFloat(-200.0f, 200.0f);
+
+            particle.velocity = {
+                RandomFloat(-120.0f, 120.0f),
+                RandomFloat(80.0f, 500.0f),
+                RandomFloat(-120.0f, 120.0f)
+            };
+
+            particle.maxLife = RandomFloat(0.4f, 1.2f);
+            particle.life = particle.maxLife;
+            particle.size = RandomFloat(3.0f, 5.5f);
+
+            break;
+        }
+        
+
         case ParticleType::IceMist:
         {
             particle.color = SKYBLUE;

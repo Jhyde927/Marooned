@@ -5,6 +5,7 @@
 #include "dungeonGeneration.h"
 #include "sound_manager.h"
 #include "pathfinding.h"
+#include "world.h"
 
 std::vector<SpiderEgg> eggs;
 
@@ -192,10 +193,7 @@ void DamageSpiderEgg(SpiderEgg& egg, float amount, Vector3 playerPos)
         egg.currentFrame = 0;
         SoundManager::GetInstance().PlaySoundAtPosition("squish", egg.position, playerPos, 0.0f, 3000);
 
-        // Toward the *camera/player* in world space
-        // Vector3 toPlayer = Vector3Normalize(Vector3Subtract(playerPos, egg.position));
-        // Vector3 newPos   = Vector3Add(egg.position, Vector3Scale(toPlayer, 100.0f)); // 100 units in front of the enemy
-        //egg.gooEmitter.EmitBlood(newPos, 25, GREEN);
+        particleSystem.EmitBurst(egg.position, 50, ParticleType::Egg);
 
     }
 }

@@ -35,6 +35,7 @@ enum class CharacterState {
     Patrol,
     MeleeAttack,
     Harpooned,
+    Shamble,
     Death,
 };
 
@@ -182,6 +183,7 @@ public:
     bool canLoseLimb = true;
     bool canGib = true;
     bool canRes = true;
+    float shambleCooldown = 1.0f; //zombie shamble
 
     FacingMode facingMode = FacingMode::Approaching;
     CharacterType type;

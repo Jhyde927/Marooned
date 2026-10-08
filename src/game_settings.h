@@ -49,7 +49,7 @@ namespace GameSettings
     inline float instancedFogStart = 3000.0f;
     inline float instancedFogEnd = 20000.0f;
 
-    //randomized boss mobs. 3 percent chance for a large version of the enemy. 
-    inline int BossPercentage = 3;
+    //randomized boss mobs. 2 percent chance for a large version of the enemy. 
+    inline int BossPercentage = 2;
 
 }

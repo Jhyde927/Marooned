@@ -116,9 +116,6 @@ bool MagicMissile::HandleWorldCollision(Vector3 previousPosition, Vector3 nextPo
         return true;
     }
 
-
-    int curTileX = -1;
-    int curTileY = -1;
     float killFloorY = 0.0f;
     // Walls
     if (isDungeon &&
@@ -154,29 +151,64 @@ bool MagicMissile::HandleWorldCollision(Vector3 previousPosition, Vector3 nextPo
             dungeonWidth
         );
 
-
-
-        if (tx != curTileX || ty != curTileY)
+        // Stop missiles that leave the dungeon grid.
+        if (tx < 0 || ty < 0 ||
+            tx >= dungeonWidth || ty >= dungeonWidth)
         {
-            curTileX = tx;
-            curTileY = ty;
-
-            bool tileIsLava = (lavaMask[Idx(tx, ty)] == 1);
-            bool tileIsVoid = (voidMask[Idx(tx, ty)] == 1);
-
-            if (tileIsVoid)
-            {
-                killFloorY = -1000.0f;
-            }
-            else if (tileIsLava)
-            {
-                killFloorY = floorHeight - lavaOffsetY;
-            }
-            else
-            {
-                killFloorY = floorHeight + 20.0f;
-            }
+            DestroyOnImpact(previousPosition);
+            return true;
         }
+
+        const int index = Idx(tx, ty);
+
+        // Validate the index against both masks before accessing them.
+        if (index < 0 ||
+            static_cast<size_t>(index) >= lavaMask.size() ||
+            static_cast<size_t>(index) >= voidMask.size())
+        {
+            DestroyOnImpact(previousPosition);
+            return true;
+        }
+
+        bool tileIsLava = (lavaMask[index] == 1);
+        bool tileIsVoid = (voidMask[index] == 1);
+
+        if (tileIsVoid)
+        {
+            killFloorY = -1000.0f;
+        }
+        else if (tileIsLava)
+        {
+            killFloorY = floorHeight - lavaOffsetY;
+        }
+        else
+        {
+            killFloorY = floorHeight + 20.0f;
+        }
+
+
+
+        // if (tx != curTileX || ty != curTileY)
+        // {
+        //     curTileX = tx;
+        //     curTileY = ty;
+
+        //     bool tileIsLava = (lavaMask[Idx(tx, ty)] == 1);
+        //     bool tileIsVoid = (voidMask[Idx(tx, ty)] == 1);
+
+        //     if (tileIsVoid)
+        //     {
+        //         killFloorY = -1000.0f;
+        //     }
+        //     else if (tileIsLava)
+        //     {
+        //         killFloorY = floorHeight - lavaOffsetY;
+        //     }
+        //     else
+        //     {
+        //         killFloorY = floorHeight + 20.0f;
+        //     }
+        // }
 
         // Crossed the dungeon floor this frame.
         if (previousPosition.y > killFloorY &&
@@ -230,7 +262,7 @@ void MagicMissile::Update(float deltaTime)
             player.lookForward,
             2000.0f
         );
-        
+
         wooshStarted = true;
     }
 

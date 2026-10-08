@@ -259,6 +259,8 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
         case CharacterState::Reposition: {break;}
 
+        case CharacterState::Shamble: {break;}
+
         case CharacterState::Patrol: {break;}
 
         case CharacterState::Chase:
@@ -621,6 +623,8 @@ void Character::UpdateBatAI(float deltaTime, Player& player){
 
         
         case CharacterState::RunAway: {break;}
+
+        case CharacterState::Shamble: {break;}
 
 
 
@@ -1070,25 +1074,84 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
                 break;
             }
 
+            shambleCooldown -= deltaTime;
+
+            if (shambleCooldown <= 0.0f)
+            {
+                // Time spent chasing before the NEXT shamble.
+                shambleCooldown = RandomFloat(4.0f, 8.0f);
+
+                Vector2 start = WorldToImageCoords(position);
+                currentWorldPath.clear();
+
+                if (TrySetRandomPatrolPath(start, this, currentWorldPath))
+                {
+                    ChangeState(CharacterState::Shamble);
+                    stateTimer = 0.0f;
+
+                    // Your existing walking animation, played more slowly.
+                    SetAnimation(1, 4, 0.4f);
+                    break;
+                }
+
+                // No wandering path was available. Let Chase rebuild its path.
+                pathCooldownTimer = 0.0f;
+            }
+
             Vector3 repel = ComputeRepulsionForce(
                 enemyPtrs,
                 300.0f,
                 200.0f
             );
 
-            float speed = 5.0f;
+            float arriveEpsilon = 5.0f;
 
             MoveAlongPath(
                 currentWorldPath,
                 position,
                 rotationY,
-                skeleSpeed,
+                skeleSpeed * 0.75f, // slow zombies
                 deltaTime,
-                speed,
+                arriveEpsilon,
                 repel
             );
         }
         break;
+
+        case CharacterState::Shamble:
+        {
+            if (stateTimer >= 2.0f)
+            {
+                currentWorldPath.clear();
+                failedPathAttempts = 0;
+                pathCooldownTimer = 0.0f;
+
+                ChangeState(CharacterState::Chase);
+                stateTimer = 0.0f;
+
+                // Restore your normal walking animation.
+                SetAnimation(1, 4, 0.2f);
+                break;
+            }
+
+            Vector3 repel = ComputeRepulsionForce(
+                enemyPtrs,
+                300.0f,
+                200.0f
+            );
+
+            MoveAlongPath(
+                currentWorldPath,
+                position,
+                rotationY,
+                skeleSpeed * 0.5f, //Half speed for shamble
+                deltaTime,
+                5.0f, // Half the Chase value of 5.0f.
+                repel
+            );
+
+            break;
+        }
 
         case CharacterState::MeleeAttack:{break;}
 
@@ -1379,6 +1442,8 @@ void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::RunAway: {break;}
+
+        case CharacterState::Shamble: {break;}
 
         case CharacterState::Chase:
         {
@@ -1725,6 +1790,8 @@ void Character::UpdateTrexAI(float deltaTime, Player& player){
 
         case CharacterState::Harpooned: {break;}
 
+        case CharacterState::Shamble: {break;}
+
         case CharacterState::Patrol:
         {
             UpdatePatrol(deltaTime);
@@ -1880,6 +1947,7 @@ void Character::UpdateDactylAI(float deltaTime, Player& player)
         }
 
         case CharacterState::Reposition: {break;}
+        case CharacterState::Shamble: {break;}
 
         case CharacterState::Chase:
         {
@@ -2298,6 +2366,8 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::RunAway: {break;}
+
+        case CharacterState::Shamble: {break;}
 
         case CharacterState::Chase:
         {
@@ -2746,6 +2816,8 @@ void Character::UpdatePirateAI(float deltaTime, Player& player) {
         }
 
         case CharacterState::RunAway: {break;}
+
+        case CharacterState::Shamble: {break;}
 
         case CharacterState::Chase:
         {
@@ -3541,7 +3613,7 @@ bool Character::MoveAlongPath(std::vector<Vector3>& path,
                               Vector3& pos, float& yawDeg,
                               float speed, float deltaTime,
                               float arriveEps,
-                              Vector3 repulsion)   // <-- new, optional
+                              Vector3 repulsion)  
 {
     if (path.empty()) return false;
 

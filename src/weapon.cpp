@@ -534,11 +534,6 @@ void MeleeWeapon::Update(float deltaTime) { //AKA sword
         attackSideOffset = Lerp(attackSideOffset, 0.0f, deltaTime * returnSpeed);
         attackVerticalOffset = Lerp(attackVerticalOffset, 0.0f, deltaTime * returnSpeed);
         attackYawDeg = Lerp(attackYawDeg, 0.0f, deltaTime * returnSpeed);
-        // const float returnSpeed = 25.0f;
-
-        // swingOffset         = Lerp(swingOffset,         0.0f, deltaTime * returnSpeed);
-        // verticalSwingOffset = Lerp(verticalSwingOffset, 0.0f, deltaTime * returnSpeed);
-        // horizontalSwingOffset = Lerp(horizontalSwingOffset, 0.0f, deltaTime * returnSpeed);
     }
 
     timeSinceLastSwing += deltaTime;

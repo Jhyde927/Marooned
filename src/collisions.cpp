@@ -476,7 +476,7 @@ bool CheckMeleeVolumeCollision(const MeleeHitVolume& volume, const BoundingBox& 
 
 
 void HandleMeleeHitboxCollision(Camera& camera) {
-    //if (player.activeWeapon != WeaponType::Sword  && player.activeWeapon != WeaponType::MagicStaff) return;
+    (void) camera;
     float qDamage = player.quadDamage ? 4.0f : 1.0f;
     bool swordActive = (player.activeWeapon == WeaponType::Sword && meleeWeapon.hitboxActive);
     bool staffActive = (player.activeWeapon == WeaponType::MagicStaff && magicStaff.hitboxActive);
@@ -549,7 +549,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
     for (SpiderWebInstance& web : spiderWebs){
         if (!web.destroyed && CheckMeleeVolumeCollision(player.meleeVolume, web.bounds)){
             web.destroyed = true;
-            PlayerSwipeDecal(camera);
+
             //play a sound
         }
     }

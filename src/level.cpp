@@ -429,21 +429,21 @@ std::vector<LevelData> levels = {
         false,// ceiling
     },
 
-        {
-        "test", 
-        "assets/heightmaps/archipelago.png",
-        "",
-        {5475.0f, 300.0f, -5665.0f}, //original player start position
-        45.0f,
-        {0.0f, 0.0f, 0.0f},
-        0, 
-        false, //isDungeon is true
-        {},
-        18, 
-        0, //exit to middle island
-        {}, 
-        true,// ceiling
-    },
+    //     {
+    //     "test", 
+    //     "assets/heightmaps/archipelago.png",
+    //     "",
+    //     {5475.0f, 300.0f, -5665.0f}, //original player start position
+    //     45.0f,
+    //     {0.0f, 0.0f, 0.0f},
+    //     0, 
+    //     false, //isDungeon is true
+    //     {},
+    //     18, 
+    //     0, //exit to middle island
+    //     {}, 
+    //     true,// ceiling
+    // },
 
 };
 

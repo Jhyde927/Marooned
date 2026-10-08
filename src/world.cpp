@@ -1160,6 +1160,10 @@ void DrawMagicMissiles()
 {
     Model& missileModel = R.GetModel("magicMissile");
     Vector3 modelScale = {15, 15, 15};
+    Color missileColor = Fade(PINK, 0.45f);
+
+    if (!isDungeon) missileColor = Fade(PINK, 1.0);
+
     for (const MagicMissile& missile : activeMagicMissiles)
     {
         //DrawSphere(missile.position, 12.0f, PURPLE);
@@ -1181,7 +1185,7 @@ void DrawMagicMissiles()
             rotationAxis,
             angle,
             modelScale,
-            Fade(PINK, 0.45f)
+            missileColor
         );
     }
 }
@@ -1205,9 +1209,8 @@ bool AcquireMagicMissileTarget(MagicMissile& missile)
         // Avoid doing LOS on enemies that cannot win the search.
         if (distanceSq >= closestDistanceSq) continue;
 
-        if (!DDAHasLineOfSightWorld(
-                missile.position,
-                enemy->position))
+        if (isDungeon && // only check LOS while in dungeons. 
+            !DDAHasLineOfSightWorld(missile.position, enemy->position))
         {
             continue;
         }
@@ -1459,24 +1462,7 @@ void UpdateCollectables(float deltaTime) {
     }
 }
 
-void PlayerSwipeDecal(Camera& camera){
-    //swipe decal on melee attack
-    Vector3 fwd = Vector3Normalize(Vector3Subtract(camera.target, player.position));
-    Vector3 up  = {0.0f, 1.0f, 0.0f};
-    // Right = fwd × up  (raylib uses right-handed coords; this gives +X when fwd = (0,0,-1))
-    Vector3 right = Vector3Normalize(Vector3CrossProduct(fwd, up));
-    // Safety: if looking straight up/down, cross can be tiny — fall back to +X
-    if (Vector3Length(right) < 1e-4f) right = {1.0f, 0.0f, 0.0f};
-    Vector3 basePos   = Vector3Add(camera.position, Vector3Scale(fwd, 125.0f));  // in front
-    Vector3 offsetPos = Vector3Add(basePos,        Vector3Scale(right, 25.0f)); // to the right
-    offsetPos.y -= 25;
-    Decal decal = {offsetPos, DecalType::MeleeSwipe, R.GetTexture("playerSlashSheet"), 7, 0.35f, 0.05f, 100.0f};
 
-    Vector3 vel = Vector3Add(Vector3Scale(fwd, Vector3Length(player.velocity)), Vector3Scale(right, 0.0f)); //melee swipe decals move forward 
-    decal.velocity = vel;
-    
-    decals.emplace_back(decal);
-}
 
 
 void UpdateDecals(float deltaTime){
@@ -1863,6 +1849,7 @@ void GiveWeapons(){
     hasStaff = true;
     hasDoubleShot = true;
     hasIce = true;
+    hasMissile = true;
     player.activeWeapon = WeaponType::Blunderbuss;
     SoundManager::GetInstance().Play("reload");
 }

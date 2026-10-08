@@ -20,8 +20,9 @@ namespace JournalData
         River            = 9,
         FoundStaff       = 10,
         FoundIce         = 11,
-        RaftSail         = 12,
-        FoundMissile     = 13,  
+        FoundMissile     = 12, 
+        RaftSail         = 13,
+    
 
         Count            = 14
     };
