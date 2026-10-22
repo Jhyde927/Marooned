@@ -805,6 +805,7 @@ void HandleKeyboardInput(Camera& camera) {
         }
     }
 
+
     // T or Up on the D-pad to switch magic type
     if (IsKeyPressed(KEY_T) ||
         IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP))
@@ -815,29 +816,52 @@ void HandleKeyboardInput(Camera& camera) {
                 magicStaff.magicType = MagicType::Iceball;
             else if (hasMissile)
                 magicStaff.magicType = MagicType::MagicMissile;
+            else if (hasLightning)
+                magicStaff.magicType = MagicType::ChainLightning;
         }
         else if (magicStaff.magicType == MagicType::Iceball)
         {
             if (hasMissile)
                 magicStaff.magicType = MagicType::MagicMissile;
+            else if (hasLightning)
+                magicStaff.magicType = MagicType::ChainLightning;
             else
                 magicStaff.magicType = MagicType::Fireball;
         }
         else if (magicStaff.magicType == MagicType::MagicMissile)
         {
+            if (hasLightning)
+                magicStaff.magicType = MagicType::ChainLightning;
+            else
+                magicStaff.magicType = MagicType::Fireball;
+        }
+        else if (magicStaff.magicType == MagicType::ChainLightning)
+        {
             magicStaff.magicType = MagicType::Fireball;
         }
     }
-
-    // //T or Up on the d pad to switch magic type
-    // if ((IsKeyPressed(KEY_T) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP)) && hasIce){
-    //    if (magicStaff.magicType == MagicType::Fireball){
-    //         magicStaff.magicType = MagicType::Iceball;
-    //    }else{
+    // if (IsKeyPressed(KEY_T) ||
+    //     IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP))
+    // {
+    //     if (magicStaff.magicType == MagicType::Fireball)
+    //     {
+    //         if (hasIce)
+    //             magicStaff.magicType = MagicType::Iceball;
+    //         else if (hasMissile)
+    //             magicStaff.magicType = MagicType::MagicMissile;
+    //     }
+    //     else if (magicStaff.magicType == MagicType::Iceball)
+    //     {
+    //         if (hasMissile)
+    //             magicStaff.magicType = MagicType::MagicMissile;
+    //         else
+    //             magicStaff.magicType = MagicType::Fireball;
+    //     }
+    //     else if (magicStaff.magicType == MagicType::MagicMissile)
+    //     {
     //         magicStaff.magicType = MagicType::Fireball;
-    //    }
+    //     }
     // }
-
 }
 
 

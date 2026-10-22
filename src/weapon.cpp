@@ -9,6 +9,8 @@
 #include "world.h"
 #include "ui.h"
 #include "shaderSetup.h"
+#include "pathfinding.h"
+#include "collisions.h"
 
 void MeleeWeapon::Init()
 {
@@ -1185,6 +1187,130 @@ void MeleeWeapon::PlaySwipe(){
 
 }
 
+
+
+static void DestroyDestructiblesAlongBolt(Vector3 start, Vector3 end)
+{
+    float distance = Vector3Distance(start, end);
+    int steps = std::max(1, static_cast<int>(ceilf(distance / 10.0f)));
+    const float radius = 25.0f;
+
+    for (int i = 0; i <= steps; ++i) {
+        float t = static_cast<float>(i) / steps;
+        Vector3 position = Vector3Lerp(start, end, t);
+
+        while (DestroySpiderWebAtCollision(position, radius)) {}
+        while (DestroyBarrelAtCollision(position, radius)) {}
+    }
+}
+
+
+static Vector3 ClipLightningToWorld(Vector3 origin, Vector3 targetPoint)
+{
+    float distance = Vector3Distance(origin, targetPoint);
+    if (distance < 0.001f) return origin;
+
+    const float stepSize = 10.0f;
+    int steps = static_cast<int>(ceilf(distance / stepSize));
+
+    Vector3 previous = origin;
+
+    for (int i = 1; i <= steps; ++i) {
+        float t = static_cast<float>(i) / steps;
+        Vector3 next = Vector3Lerp(origin, targetPoint, t);
+
+        if (isDungeon) {
+            if (!DDAHasLineOfSightWorld(previous, next))
+                return previous;
+
+            if (drawCeiling && next.y >= ceilingHeight)
+                return previous;
+
+            int tx = GetDungeonImageX(next.x, tileSize, dungeonWidth);
+            int ty = GetDungeonImageY(next.z, tileSize, dungeonWidth);
+
+            if (tx < 0 || ty < 0 || tx >= dungeonWidth || ty >= dungeonWidth)
+                return previous;
+
+            int index = Idx(tx, ty);
+
+            if (index < 0 ||
+                static_cast<size_t>(index) >= lavaMask.size() ||
+                static_cast<size_t>(index) >= voidMask.size())
+                return previous;
+
+            float floorY = floorHeight + 20.0f;
+
+            if (voidMask[index] == 1)
+                floorY = -1000.0f;
+            else if (lavaMask[index] == 1)
+                floorY = floorHeight - lavaOffsetY;
+
+            if (next.y <= floorY)
+                return previous;
+        }
+        else {
+            float terrainY = GetHeightAtWorldPosition(next, heightmap, terrainScale);
+
+            if (next.y <= terrainY)
+                return previous;
+        }
+
+        previous = next;
+    }
+
+    return targetPoint;
+}
+
+void MagicStaff::FireChainLightning()
+{
+    Vector3 origin = GetPlayerMuzzlePosition(player);
+    Vector3 forward = Vector3Normalize(player.lookForward);
+    Vector3 targetPoint = Vector3Add(origin, Vector3Scale(forward, 3000.0f));
+
+    const float range = 4000.0f;
+    const float coneThreshold = cosf(25.0f * DEG2RAD);
+
+    float bestAlignment = coneThreshold;
+    Character* target = nullptr;
+
+    for (Character* enemy : enemyPtrs) {
+        if (!enemy) continue;
+        if (enemy->isDead) continue;
+
+        Vector3 enemyPosition = enemy->position; // Use your enemy's aim point.
+        Vector3 toEnemy = Vector3Subtract(enemyPosition, player.position);
+        float distance = Vector3Length(toEnemy);
+
+        if (distance > range || distance < 0.001f) continue;
+
+        Vector3 direction = Vector3Scale(toEnemy, 1.0f / distance);
+        float alignment = Vector3DotProduct(forward, direction);
+
+        if (alignment <= bestAlignment) continue;
+
+        //if (!DDAHasLineOfSightWorld(origin, enemyPosition)) continue;
+
+        if (isDungeon && !DDAHasLineOfSightWorld(origin, enemyPosition)) continue;
+
+        bestAlignment = alignment;
+        targetPoint = enemyPosition;
+        target = enemy;
+    }
+
+    if (!target) {
+        targetPoint = ClipLightningToWorld(origin, targetPoint); //lightning world collision
+ 
+    }
+
+    DestroyDestructiblesAlongBolt(origin, targetPoint);
+    DamageSpiderEggsAlongBolt(origin, targetPoint, 150.0f);
+
+    float damage = 150.0f;
+    activeChainLightnings.emplace_back(origin, targetPoint, target, damage);
+}
+
+
 void MagicStaff::Fire(const Camera& camera) {
     if (player.activeWeapon != WeaponType::MagicStaff) return;
 
@@ -1213,7 +1339,10 @@ void MagicStaff::Fire(const Camera& camera) {
     lastFired = GetTime();
     recoil = Clamp(recoil + recoilAmount, 0.0f, maxRecoil);
 
-    if (magicType != MagicType::MagicMissile){
+    //only show muzzle flash for fire and ice. 
+    bool flash = (magicType == MagicType::Fireball || magicType == MagicType::Iceball);
+
+    if (flash){
         muzzlePos = GetPlayerMuzzlePosition(player); //no muzzle flash for missiles.
 
         activeMuzzleFlashes.push_back({
@@ -1234,7 +1363,9 @@ void MagicStaff::Fire(const Camera& camera) {
     } else if (magicType == MagicType::Iceball){
         FireIceball(muzzlePos, targetPoint, 2000, 10.0f, false, false);
     }else if (magicType == MagicType::MagicMissile){
-        SpawnMagicMissiles(muzzlePos, player.lookForward, missileTargetPoint, false);
+        FireMagicMissiles(muzzlePos, player.lookForward, missileTargetPoint, false);
+    }else if (magicType == MagicType::ChainLightning){
+        FireChainLightning();
     }
     
 }

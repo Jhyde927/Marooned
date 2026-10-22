@@ -26,7 +26,8 @@ enum class WeaponType {
 enum class MagicType {
     Fireball,
     Iceball,
-    MagicMissile
+    MagicMissile,
+    ChainLightning
 };
 
 struct MuzzleFlash {
@@ -231,6 +232,7 @@ struct MagicStaff {
     void StartSwing(Camera& camera);
     void Update(float deltaTime);
     void Fire(const Camera& camera);
+    void FireChainLightning();
     void Draw(const Camera& camera);
     void DrawThirdPerson();
     void PlaySwipe();

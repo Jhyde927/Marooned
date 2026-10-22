@@ -472,6 +472,10 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("missileBlast", "assets/sounds/missileBlast.ogg");
     SoundManager::GetInstance().LoadSound("missileHit", "assets/sounds/missileHit.ogg");
 
+    SoundManager::GetInstance().LoadSound("lightning", "assets/sounds/lightning.ogg");
+    SoundManager::GetInstance().LoadSound("lightningHit", "assets/sounds/lightningHit.ogg");
+    SoundManager::GetInstance().LoadSound("lightningHum", "assets/sounds/lightningHum.ogg");
+
     SoundManager::GetInstance().LoadSound("skeletonGrunt", "assets/sounds/skeletonGrunt.ogg");
     SoundManager::GetInstance().LoadSound("skeletonGrunt2", "assets/sounds/skeletonGrunt2.ogg");
     SoundManager::GetInstance().LoadSound("pirateYell1", "assets/sounds/pirate1.ogg");

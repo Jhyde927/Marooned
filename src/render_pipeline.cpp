@@ -91,6 +91,10 @@ void RenderMenuFrame(Camera3D& camera) {
         DrawDungeonPillars();
         DrawDungeonBarrels();
         DrawLaunchers();
+        DrawMagicMissiles();
+        DrawBullets(camera);
+        DrawFrameLightGlows(camera, R.GetTexture("gradientCircle"));
+
 
         DrawTransparentDrawRequests(camera);
 
@@ -197,6 +201,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         DrawEnemyShadows();
         DrawBullets(camera);
         DrawMagicMissiles();
+        DrawChainLightnings(camera);
         DrawCollectableWeapons();
         DrawPowerUps(camera);
         DrawCollectableModels(collectables);

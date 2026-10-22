@@ -167,7 +167,7 @@ void GatherFrameLights() {
                     s.color = { 1.0f, 0.65f, 0.15f };
                     s.range = 100.0f;
                     s.intensity = sparkStrength * fade;
-                    s.glowRadius = 20.0f;
+                    s.glowRadius = 10.0f;
                     s.glowIntensity = sparkStrength * fade;
                     
                 }
@@ -222,6 +222,40 @@ void GatherFrameLights() {
         s.glowIntensity = fade;
 
         frameLights.push_back(s);
+    }
+
+    for (const ChainLightning& lightning : activeChainLightnings) {
+        for (const LightningBolt& bolt : lightning.GetBolts()) {
+            //float fade = Clamp(1.0f - bolt.age / bolt.lifetime, 0.0f, 1.0f);
+            float fade = Clamp(1.0f - bolt.age / bolt.lightLifetime, 0.0f, 1.0f);
+            //start light
+            LightSample sl{};
+            sl.pos = bolt.start;
+            sl.color = { 0.4f, 0.65f, 1.0f };
+            sl.range = 800.0f;
+            sl.intensity = fade;
+
+            frameLights.push_back(sl);
+
+            //end collision light
+            LightSample s{};
+            s.pos = bolt.end;
+            s.color = { 0.4f, 0.65f, 1.0f };
+            s.range = 300.0f;
+            s.intensity = fade;
+
+            frameLights.push_back(s);
+
+            //intermediate lights
+            float length = Vector3Distance(bolt.start, bolt.end);
+            int interiorLights = std::max(0, static_cast<int>(std::ceil(length / 1000.0f)) - 1);
+
+            for (int i = 1; i <= interiorLights; ++i) {
+                float t = static_cast<float>(i) / (interiorLights + 1);
+                s.pos = Vector3Lerp(bolt.start, bolt.end, t);
+                frameLights.push_back(s);
+            }
+        }
     }
 
 }

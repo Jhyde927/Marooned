@@ -122,6 +122,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateSlashEffects(dt);
     UpdateBullets(camera, dt, particleSystem);
     UpdateMagicMissile(dt);
+    UpdateChainLightning(dt);
     GatherFrameLights();
     EraseBullets();
     UpdateAggro();

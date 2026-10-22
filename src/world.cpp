@@ -88,7 +88,8 @@ bool hasCrossbow = false;
 bool hasHarpoon = false;
 bool hasDoubleShot = false;
 bool hasIce = false;
-bool hasMissile = false;  
+bool hasMissile = false;
+bool hasLightning = true; //true for now. 
 float fade = 0.0f;
 bool isFullscreen = true;
 bool hasIslandNav = false;
@@ -105,6 +106,7 @@ Model oceanModel;
 //std::vector<Bullet> activeBullets;
 std::list<Bullet> activeBullets; // instead of std::vector
 std::vector<MagicMissile> activeMagicMissiles;
+std::vector<ChainLightning> activeChainLightnings;
 std::vector<Portal> portals;
 std::vector<Decal> decals;
 std::vector<MuzzleFlash> activeMuzzleFlashes;
@@ -1156,6 +1158,12 @@ void UpdateMuzzleFlashes(float deltaTime) {
     lightConfig.playerRadius = activeMuzzleFlashes.empty() ? 400.0f : 1600.0f;
 }
 
+void DrawChainLightnings(const Camera3D& camera){
+    for (ChainLightning& cl : activeChainLightnings){
+        cl.Draw(camera, R.GetTexture("gradientBar"));
+    }
+}
+
 void DrawMagicMissiles()
 {
     Model& missileModel = R.GetModel("magicMissile");
@@ -1233,6 +1241,12 @@ bool AcquireMagicMissileTarget(MagicMissile& missile)
     return true;
 }
 
+void UpdateChainLightning(float deltaTime){
+    for (ChainLightning& cl : activeChainLightnings){
+        cl.Update(deltaTime);
+    }
+}
+
 void UpdateMagicMissile(float deltaTime)
 {
     for (MagicMissile& missile : activeMagicMissiles)
@@ -1285,7 +1299,7 @@ void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem) {
             // First frame of death: convert to glow if requested
             if (b.light.active && b.light.detachOnDeath && !b.light.detached) {
                 b.light.detached = true;
-                //b.light.age = 0.f;
+                b.light.age = 0.f;
                 b.light.posWhenDetached = b.GetPosition();  // freeze at death position
 
             }
@@ -1676,7 +1690,7 @@ float GetHeightAtWorldPosition(Vector3 position, Image& heightmap, Vector3 terra
     return heightValue * terrainScale.y;
 }
 
-void SpawnMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint, bool enemyMissile)
+void FireMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint, bool enemyMissile)
 {
     float damageMultiplier = player.quadDamage ? 4.0f : 1.0f;
     for (int i = 0; i < 3; ++i)

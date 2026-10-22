@@ -28,6 +28,7 @@
 #include "JournalUI.h"
 #include "particleSystem.h"
 #include "magicMissile.h"
+#include "chainLightning.h"
 
 enum class GameState {
     Menu,
@@ -95,6 +96,7 @@ extern bool hasHarpoon;
 extern bool hasDoubleShot;
 extern bool hasIce;
 extern bool hasMissile;
+extern bool hasLightning;
 extern bool drawCeiling;
 extern bool levelLoaded;
 extern bool isFullscreen;
@@ -115,6 +117,7 @@ extern std::vector<DungeonEntrance> dungeonEntrances;
 //extern std::vector<Bullet> activeBullets;
 extern std::list<Bullet> activeBullets; // instead of std::vector
 extern std::vector<MagicMissile> activeMagicMissiles;
+extern std::vector<ChainLightning> activeChainLightnings;
 extern std::vector<Decal> decals;
 extern std::vector<Collectable> collectables;
 extern std::vector<PowerUpPickup> g_powerUps;
@@ -147,6 +150,7 @@ void DrawEnemyShadows();
 void UpdateMuzzleFlashes(float deltaTime);
 
 void UpdateMagicMissile(float deltaTime);
+void UpdateChainLightning(float deltaTime);
 
 void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem);
 void EraseBullets();
@@ -201,6 +205,7 @@ void InitTextureSettings();
 void UpdateRaftInteraction();
 void DrawMagicMissiles();
 void UpdateMagicMissile(float deltaTime);
-void SpawnMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint, bool enemyMissile); 
+void FireMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 targetPoint, bool enemyMissile); 
 void DrawFrameLightGlows(const Camera3D& camera, const Texture2D& glowTexture);
+void DrawChainLightnings(const Camera3D& camera);
 void ChangeLevel(int idx);

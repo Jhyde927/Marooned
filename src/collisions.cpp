@@ -899,14 +899,16 @@ void CheckBulletHits(Camera& camera) {
                 }
 
                 // Default bullets: try ricochet
-                Vector3 n = AABBHitNormal(w.bounds, b.position);
-                b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);//returns false if no ricochet.
-                b.exploded = b.alive;
 
-                b.light.posWhenDetached = Vector3Add(b.position, Vector3Scale(n, 5.0f));
+                Vector3 n = AABBHitNormal(w.bounds, b.position);
+                Vector3 impactLightPos = Vector3Add(b.position, Vector3Scale(n, 50.0f));
+
+                b.alive = TryBulletRicochet(b, n, 0.6f, 80.0f, 0.999f);
+                //b.exploded = b.alive;
+
+                b.light.posWhenDetached = impactLightPos;
                 b.light.detached = true;
                 b.light.age = 0.0f;
-
 
                 break;
             }
@@ -1005,6 +1007,28 @@ void CheckBulletHits(Camera& camera) {
     }
 }
 
+void DamageSpiderEggsAlongBolt(Vector3 start, Vector3 end, float damage)
+{
+    float distance = Vector3Distance(start, end);
+    int steps = std::max(1, static_cast<int>(ceilf(distance / 10.0f)));
+    const float radius = 10.0f;
+
+    for (SpiderEgg& egg : eggs) {
+        if (egg.state == SpiderEggState::Destroyed)
+            continue;
+
+        for (int i = 0; i <= steps; ++i) {
+            float t = static_cast<float>(i) / steps;
+            Vector3 position = Vector3Lerp(start, end, t);
+
+            if (CheckCollisionBoxSphere(egg.collider, position, radius)) {
+                DamageSpiderEgg(egg, damage, start);
+                break;
+            }
+        }
+    }
+}
+
 bool DamageSpiderEggAtCollision(Vector3 position, float radius, float damage, Vector3 damageSource)
 {
     for (SpiderEgg& egg : eggs)
@@ -1031,6 +1055,8 @@ bool DamageSpiderEggAtCollision(Vector3 position, float radius, float damage, Ve
 
     return false;
 }
+
+
 
 bool DestroySpiderWebAtCollision(Vector3 position, float radius)
 {

@@ -2583,7 +2583,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                         Vector3Subtract(targetPoint, muzzle)
                     );
 
-                    SpawnMagicMissiles(muzzle, launchDirection, targetPoint, true);
+                    FireMagicMissiles(muzzle, launchDirection, targetPoint, true);
 
                     missileBurstTimer += 0.3f;
                 }
