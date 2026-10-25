@@ -1290,32 +1290,60 @@ void UpdateMagicMissile(float deltaTime)
     );
 }
 
-
-void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem) {
-
-    for (Bullet& b : activeBullets) {
+void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem)
+{
+    for (Bullet& b : activeBullets)
+    {
         b.Update(camera, dt, particleSystem);
-        if (b.exploded){
-            // First frame of death: convert to glow if requested
-            if (b.light.active && b.light.detachOnDeath && !b.light.detached) {
-                b.light.detached = true;
-                b.light.age = 0.f;
-                b.light.posWhenDetached = b.GetPosition();  // freeze at death position
 
-            }
-            if (b.light.detached) {
-                b.light.age += dt;
-            }
+        if (b.exploded &&
+            b.light.active &&
+            b.light.detachOnDeath &&
+            !b.light.detached)
+        {
+            b.light.detached = true;
+            b.light.age = 0.0f;
+            b.light.posWhenDetached = b.position;
+        }
+
+        // Ricochets can detach a light while the bullet remains alive.
+        if (b.light.detached)
+        {
+            b.light.age += dt;
         }
     }
 }
 
+
+// void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem) {
+
+//     for (Bullet& b : activeBullets) {
+//         b.Update(camera, dt, particleSystem);
+//         if (b.exploded){
+//             // First frame of death: convert to glow if requested
+//             if (b.light.active && b.light.detachOnDeath && !b.light.detached) {
+//                 b.light.detached = true;
+//                 b.light.age = 0.f;
+//                 b.light.posWhenDetached = b.GetPosition();  // freeze at death position
+
+//             }
+//             if (b.light.detached) {
+//                 b.light.age += dt;
+//             }
+//         }
+//     }
+// }
+
 void EraseBullets() {
-    activeBullets.erase(
-        std::remove_if(activeBullets.begin(), activeBullets.end(),
-            [](Bullet& b) { return b.IsDone();}),
-        activeBullets.end()
+
+    activeBullets.remove_if(
+        [](Bullet& b) { return b.IsDone(); }
     );
+    // activeBullets.erase(
+    //     std::remove_if(activeBullets.begin(), activeBullets.end(),
+    //         [](Bullet& b) { return b.IsDone();}),
+    //     activeBullets.end()
+    // );
 }
 
 void DrawFrameLightGlows(const Camera3D& camera, const Texture2D& glowTexture)
@@ -1978,6 +2006,7 @@ void ClearLevel() {
     SpawnManager::Clear();
     activeBullets.clear();
     activeMagicMissiles.clear();
+    activeChainLightnings.clear();
     billboardRequests.clear();
     bulletLights.clear();
     dungeonEntrances.clear();

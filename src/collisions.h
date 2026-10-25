@@ -7,7 +7,6 @@
 #include "vegetation.h"
 
 void UpdateCollisions(Camera& camera);
-void CheckBulletHits(Camera& camera);
 void HandleMeleeHitboxCollision(Camera& camera);
 bool CheckCollisionPointBox(Vector3 point, BoundingBox box);
 void HandleDoorInteraction(Camera& camera);
@@ -37,3 +36,4 @@ bool DestroySpiderWebAtCollision(Vector3 position, float radius);
 bool DestroyBarrelAtCollision(Vector3 position, float radius);
 bool DamageSpiderEggAtCollision(Vector3 position, float radius, float damage, Vector3 damageSource);
 void DamageSpiderEggsAlongBolt(Vector3 start, Vector3 end, float damage);
+void HandleBulletCollisions(Camera& camera);

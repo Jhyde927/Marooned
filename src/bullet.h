@@ -57,6 +57,7 @@ public:
 
     float timer = 0.0f;
     unsigned int id = 0;
+    std::vector<int> piercedEnemyIds; // per-bolt history; avoids repeat damage
 
     Vector3 prevPosition = {0.0f, 0.0f, 0.0f};
     Quaternion rotation = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -113,10 +114,6 @@ public:
     bool IsDone();
     void Explode(Camera& camera);
     void BulletHole(Camera& camera, bool enemy = false);
-    void HandleBulletWorldCollision();
-
-
-
     float ComputeDamage();
     float GetRadius() const { return radius; }
     bool pendingExplosion = false;
@@ -141,3 +138,6 @@ void FireCrossbowHarpoon(Vector3 origin, Vector3 forward, float speed, float lif
 void FireCannon(Vector3 origin, Vector3 target, float speed, float lifetime, bool enemy = false);
 Vector3 GetHarpoonAnchor();
 Color BulletHeatHSV(float t);
+// Call only outside loops/references into activeBullets.
+void FlushPendingBulletSpawns();
+void ClearPendingBulletSpawns();

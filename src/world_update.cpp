@@ -124,7 +124,6 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     UpdateMagicMissile(dt);
     UpdateChainLightning(dt);
     GatherFrameLights();
-    EraseBullets();
     UpdateAggro();
     UpdateDecals(dt);
     UpdateMuzzleFlashes(dt);
@@ -187,9 +186,6 @@ void UpdatePlayingFrame(Camera3D& camera, Player& player, float dt, float elapse
 
     }
 
-
-    //UpdateLevelMusic();
-
     CameraSystem::Get().Update(dt);
     SoundManager::GetInstance().Update(dt); //update speech.
 
@@ -213,4 +209,5 @@ void UpdatePlayingFrame(Camera3D& camera, Player& player, float dt, float elapse
     UpdateGameplaySystems(camera, player, dt);
     UpdateGameplayCollisions(camera);
     UpdateGameplayPresentation(camera, player, dt);
+    EraseBullets();
 }

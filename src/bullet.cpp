@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include <raylib.h>
 #include <cmath>
+#include <algorithm>
 #include "world.h"
 #include "resourceManager.h"
 #include "decal.h"
@@ -13,9 +14,22 @@
 #include "collisions.h"
 #include "rlgl.h"
 #include <cstdint>
+#include <utility>
 #include "particleSystem.h"
 
-static unsigned int gBulletCounter = 0;
+static unsigned int gBulletCounter = 1; // 0 is the existing "no bullet hit" sentinel
+static std::vector<Bullet> pendingBulletSpawns;
+
+void FlushPendingBulletSpawns()
+{
+    for (Bullet& b : pendingBulletSpawns) activeBullets.emplace_back(std::move(b));
+    pendingBulletSpawns.clear();
+}
+
+void ClearPendingBulletSpawns()
+{
+    pendingBulletSpawns.clear();
+}
 
 Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletType t, float r, bool launch)
     : position(startPos),
@@ -28,7 +42,8 @@ Bullet::Bullet(Vector3 startPos, Vector3 vel, float lifetime, bool en, BulletTyp
       alive(true),
       age(0.0f)
 {
-
+    prevPosition = startPos;
+    initialSpeed = std::max(1.0f, Vector3Length(vel));
 }
 
 
@@ -92,301 +107,116 @@ Color BulletHeatHSV(float t)
 
 
 
-void Bullet::UpdateMagicBall(Camera& camera, float deltaTime) {
-    //if (!alive) return;
-
-    // Gravity-based arc
-    
-    gravity = launcher ? 0 : 980.0f; //fireballs fired from traps have no gravity
-    // fireEmitter.SetPosition(position);
-    // sparkEmitter.SetPosition(position);
-    
-    velocity.y -= gravity * deltaTime;
-
-    // Move
-    position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
-
-    spinAngle += 90.0f * deltaTime; // 90 degrees per second
-    if (spinAngle >= 360.0f) spinAngle -= 360.0f;
-
-
-    // Collision with floor
-    if (isDungeon) {
-        float killY = floorHeight;
-        Vector2 tilePos = WorldToImageCoords(position);
-        if (IsLava(tilePos.x, tilePos.y)){
-            killY = floorHeight - lavaOffsetY;
-        }
-
-        if (IsVoid(tilePos.x, tilePos.y)){
-            killY = floorHeight - 10000.0f;
-        }
-
-        if (position.y < killY) {
-            //Explode(camera);
-            Explode(camera);
-
-            return;
-        }
-        if (position.y >= ceilingHeight && drawCeiling) { //don't explode bullets on ceiling if there is no ceiling. 
-            Explode(camera);
-            
-            return;
-        }
-    } else {
-        float terrainHeight = GetHeightAtWorldPosition(position, heightmap, terrainScale);
-        if (position.y <= terrainHeight) {
-            Explode(camera);
-            return;
-        }
-    }
-
-    if (pendingExplosion) {
+void Bullet::UpdateMagicBall(Camera& camera, float deltaTime)
+{
+    if (!alive || explosionTriggered) return;
+    gravity = launcher ? 0.0f : 980.0f;
+    // Preserve the short "travel inside the enemy" delay, without resetting it
+    // on repeated collisions or travelling farther than the time remaining.
+    const float moveTime = pendingExplosion ? std::min(deltaTime, explosionTimer) : deltaTime;
+    velocity.y -= gravity * moveTime;
+    position = Vector3Add(position, Vector3Scale(velocity, moveTime));
+    spinAngle = std::fmod(spinAngle + 90.0f * deltaTime, 360.0f);
+    if (pendingExplosion)
+    {
         explosionTimer -= deltaTime;
-        if (explosionTimer <= 0.0f) {
-            Explode(camera); // now do the actual explosion logic
-            pendingExplosion = false;
-        }
+        // Defer the actual explosion until HandleBulletCollisions has checked
+        // this final movement segment against solid world geometry.
     }
-
+    (void)camera;
 }
 
-void Bullet::HandleBulletWorldCollision(){
-    // Handle floor/ceiling/terrain collision
-    if (isDungeon) {
-        if (drawCeiling && position.y >= ceilingHeight){
-            Vector3 n = {0, 1, 0};
-            alive = TryBulletRicochet(*this, n, 0.6f, 500, 0.99);
 
-        }
-
-        if (!alive)
-        {
-            return;
-        }
-
-
-        // Recompute only if we changed tiles
-        int tx = GetDungeonImageX(position.x, tileSize, dungeonWidth);
-        int ty = GetDungeonImageY(position.z, tileSize, dungeonWidth);
-
-        // Use your actual map height here if maps aren't always square.
-        if (tx < 0 || ty < 0 ||
-            tx >= dungeonWidth || ty >= dungeonWidth)
-        {
-            alive = false;
-            exploded = true;
-            return;
-        }
-
-        if (tx != curTileX || ty != curTileY)
-        {
-            const int index = Idx(tx, ty);
-
-            // Also protects against an empty or incorrectly sized mask.
-            if (index < 0 ||
-                static_cast<size_t>(index) >= lavaMask.size())
-            {
-                alive = false;
-                exploded = true;
-                return;
-            }
-
-            curTileX = tx;
-            curTileY = ty;
-            tileIsLava = (lavaMask[index] == 1);
-
-            killFloorY = tileIsLava
-                ? (floorHeight - lavaOffsetY)
-                : (floorHeight + 30);
-
-            if (position.y <= killFloorY) {
-                if (tileIsLava) {
-                    BulletParticleBounce(*this, ORANGE);
-                } else {
-                    Vector3 n = {0, 1, 0};
-                    alive = TryBulletRicochet(*this, n, 0.6f, 500, 0.7f);
-                    exploded = alive;
-                }
-
-                return;
-            }
-        }
-    } else {
-        // Overworld: terrain height varies; sampling each frame is fine.
-        float h = GetHeightAtWorldPosition(position, heightmap, terrainScale);
-        if (prevPosition.y > h && position.y <= h) {
-            Vector3 n = {0, 1, 0};
-            if (position.y <= 60){
-                BulletParticleBounce(*this, SKYBLUE);
-            }else{
-                
-                if (TryBulletRicochet(*this, n, 0.6, 500, 0.7)){
-                    //do nothing
-                }else{
-                    BulletParticleBounce(*this, BROWN);//kick up dirt and die. 
-                }
-            }
-
-            return;
-        }
-    }
-
-}
-
-void Bullet::Update(Camera& camera, float deltaTime, ParticleSystem& particleSystem) {
-
-    if (lifeTime > 0){
-
-        lifeTime -= deltaTime;
-    }
-
-    age += deltaTime;
-
-    if (lifeTime <= 0 && type != BulletType::Fireball && type != BulletType::Harpoon){
-        exploded = true;
-        alive = false;
-    }
-    if (!alive){
+void Bullet::Update(Camera& camera, float deltaTime, ParticleSystem& particles)
+{
+    prevPosition = position; // includes magic balls; initialized at spawn too
+    if (!alive)
+    {
         timeSinceImpact += deltaTime;
-    } 
+        return;
+    }
+    age += deltaTime; // exactly once for every type
 
-    if (type == BulletType::Harpoon && retracting)
+    if (explosionTriggered)
     {
-        
-        Vector3 anchor = GetHarpoonAnchor(); 
-
-        Vector3 toA = Vector3Subtract(anchor, retractTip);
-        float d = Vector3Length(toA);
-
-        if (d < 10.0f)
-        {
-            lifeTime = 0.0f; // now actually kill it
-            exploded = true;
-            alive = false;
-        }
-        else
-        {
-            Vector3 dir = Vector3Scale(toA, 1.0f / d);
-            float step = retractSpeed * deltaTime;
-            float move = fminf(step, d);
-            retractTip = Vector3Add(retractTip, Vector3Scale(dir, move));
-        }
-
-        // Optional: keep the bolt model riding the retract tip
-        //position = retractTip;
+        timeSinceExploded += deltaTime;
+        if (timeSinceExploded >= 2.0f) alive = false;
+        return; // explosion glow stays at its impact position
     }
 
-    // Fireball logic
-    if (type == BulletType::Fireball)
+    lifeTime -= deltaTime;
+    const bool magic = type == BulletType::Fireball || type == BulletType::Iceball;
+    if (type == BulletType::Harpoon)
     {
-        if (!exploded)
+        if (retracting)
         {
-            particleSystem.EmitTrail(position, deltaTime, 100.0f, smokeEmissionAccumulator, ParticleType::Smoke);
-
-            particleSystem.EmitTrail(position, deltaTime, 100.0f, fireEmissionAccumulator, ParticleType::FireTrail);
+            const Vector3 anchor = GetHarpoonAnchor();
+            const Vector3 delta = Vector3Subtract(anchor, retractTip);
+            const float distance = Vector3Length(delta);
+            if (distance <= 10.0f) { kill(camera); return; }
+            const float step = std::min(retractSpeed * deltaTime, distance);
+            retractTip = Vector3Add(retractTip, Vector3Scale(delta, step / distance));
+            position = retractTip;
+            return;
         }
-
-        UpdateMagicBall(camera, deltaTime);
-
-        if (!exploded && explosionTriggered)
+        if (stuck)
         {
-            exploded = true;
-        }
-
-        if (exploded)
-        {
-            timeSinceExploded += deltaTime;
-
-            if (timeSinceExploded >= 2.0f)
+            if (lifeTime <= 0) { kill(camera); return; }
+            if (stuckToGrapple) position = stuckWorldPos;
+            else
             {
-                alive = false;
-                return;
+                Character* e = FindEnemyById(stuckEnemyId);
+                if (!e || e->isDead) { kill(camera); return; }
+                position = Vector3Add(e->position, stuckOffset);
             }
+            return;
         }
-
+        if (lifeTime <= 0)
+        {
+            retracting = true;
+            retractTip = position;
+            velocity = {0,0,0};
+            return;
+        }
+    }
+    else if (lifeTime <= 0)
+    {
+        // Expiration is not an impact. Do not create sparks/explosions here.
+        kill(camera);
         return;
     }
 
-    else if (type == BulletType::Iceball){
-
-        particleSystem.EmitTrail(position, deltaTime, 100.0f, smokeEmissionAccumulator, ParticleType::IceMist);
-
-        UpdateMagicBall(camera, deltaTime);
-
-        if (!exploded && explosionTriggered) {
-            exploded = true;
-     
-        }
-        
-        if (exploded){
-            timeSinceExploded += deltaTime;
-
-            if (timeSinceExploded >= 2.0f) { //wait for particles to act. 
-                alive = false;
-                return;
-
-            }
-
-        }
-        return; //skip normal bullet logic
-
-    }else if (type == BulletType::Bolt || type == BulletType::Harpoon){
-        velocity.y -= gravity * deltaTime;
-
-        Color crossbowTrailColor = {255,255,255,1};
-        particleSystem.EmitTrail(position, deltaTime, 20.0f, smokeEmissionAccumulator, ParticleType::BoltTrail, crossbowTrailColor);
-
-    }else if (type == BulletType::CannonBall){
-        velocity.y -= gravity * deltaTime;
-        particleSystem.EmitTrail(position, deltaTime, 50.0f, smokeEmissionAccumulator, ParticleType::Smoke);
-        // fireEmitter.SetParticleType(ParticleType::Smoke);
-        // sparkEmitter.SetParticleType(ParticleType::FireTrail);
-        // fireEmitter.SetPosition(position);
-        // sparkEmitter.SetPosition(position);
-        // sparkEmitter.UpdateTrail(deltaTime);
-        // fireEmitter.UpdateTrail(deltaTime);
-
-    }
-
-
-    // Standard bullet movement (non-fireball)
-    if (!IsEnemy() && type == BulletType::Default){
-
-        velocity.y -= gravity * deltaTime;
-        particleSystem.EmitTrail(position, deltaTime, 3.0f, smokeEmissionAccumulator, ParticleType::Smoke);
-
-    }
-
-    prevPosition = position;
-    position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
-    age += deltaTime;
-
-
-    if (type == BulletType::Harpoon && stuck && lifeTime <= 0.0f){
-        alive = false;
-        exploded = true;
-    }
-    if (type == BulletType::Harpoon && !stuck && lifeTime <= 0.0f)
+    if (magic)
     {
-       retracting = true;
-       retractTip = position;
-       velocity = {0,0,0};
-       lifeTime = 9999.0f; // keep it alive while retracting
-       if (Vector3Distance(position, player.position) < 100 ){ //what if harpoon never reaches player position
-            alive = false;
-            exploded = true;
-       } 
+        if (type == BulletType::Fireball)
+        {
+            particles.EmitTrail(position, deltaTime, 100.0f, smokeEmissionAccumulator, ParticleType::Smoke);
+            particles.EmitTrail(position, deltaTime, 100.0f, fireEmissionAccumulator, ParticleType::FireTrail);
+        }
+        else particles.EmitTrail(position, deltaTime, 100.0f, smokeEmissionAccumulator, ParticleType::IceMist);
+        UpdateMagicBall(camera, deltaTime);
+        return;
     }
 
-    HandleBulletWorldCollision();
-
-    float speed = Vector3Length(velocity);
-    if (speed < 800.0f && type != BulletType::Harpoon) {   //  ~ one bounce theoretically
-        alive = false;
-        exploded = true;
-        
+    if (type == BulletType::Bolt || type == BulletType::Harpoon)
+    {
+        velocity.y -= gravity * deltaTime;
+        const Color trail = {255,255,255,1};
+        particles.EmitTrail(position, deltaTime, 20.0f, smokeEmissionAccumulator, ParticleType::BoltTrail, trail);
     }
+    else if (type == BulletType::CannonBall)
+    {
+        velocity.y -= gravity * deltaTime;
+        particles.EmitTrail(position, deltaTime, 50.0f, smokeEmissionAccumulator, ParticleType::Smoke);
+    }
+    else if (!enemy)
+    {
+        velocity.y -= gravity * deltaTime;
+        particles.EmitTrail(position, deltaTime, 3.0f, smokeEmissionAccumulator, ParticleType::Smoke);
+    }
+    position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
+    // No low-speed kill here: it previously killed a successful bounce on the
+    // following update. ComputeDamage already gives slow default bullets 0 damage.
 }
 
 inline void BeginBulletTransform(const Vector3& pos, float age)
@@ -582,27 +412,15 @@ void Bullet::Draw(Camera& camera) const {
     }
 }
 
-bool Bullet::IsDone() 
+bool Bullet::IsDone()
 {
-
-    if (!alive && exploded) return true; //
-
-        
-    if (type == BulletType::Fireball || type == BulletType::Iceball){
-        if (lifeTime <= 0){
-            return true;
-        }else{
-            return false;
-        }
-
-    }
-
-    // regular bullets: keep a short impact window
-    return timeSinceImpact >= 0.25f;
+    // Keep dead projectiles briefly for any light fade/cleanup that uses them.
+    if (!alive) return timeSinceImpact >= std::max(0.25f, light.lifeTime);
+    return false;
 }
 
 bool Bullet::IsExpired() const {
-    return alive;
+    return lifeTime <= 0.0f;
 }
 
 
@@ -634,6 +452,8 @@ void Bullet::kill(Camera& camera){
     (void)camera;
     alive = false;
     exploded = true;
+    pendingExplosion = false;
+    velocity = {0,0,0};
     
 }
 
@@ -680,13 +500,21 @@ float Bullet::ComputeDamage()
 
 
 void Bullet::Explode(Camera& camera) {
-    if (!alive) return; 
-    if (type == BulletType::Default) return; 
+    if (!alive || explosionTriggered) return;
+    if (type != BulletType::Fireball && type != BulletType::Iceball &&
+        type != BulletType::CannonBall) return;
 
     if (!explosionTriggered){
         explosionTriggered = true;
-        velocity.x = 0; //stop bullets velocity when exploding but keep gravity. 
-        velocity.z = 0;
+        exploded = true;
+        pendingExplosion = false;
+        explosionTimer = 0;
+        timeSinceExploded = 0;
+        velocity = {0,0,0};
+        light.posWhenDetached = position;
+        light.detached = true;
+        light.age = 0;
+
         SoundManager::GetInstance().PlaySoundAtPosition("explosion", position, player.position, player.rotation.y, 3000.0f);
         
         Vector3 camDir = Vector3Normalize(Vector3Subtract(position, camera.position));
@@ -712,6 +540,7 @@ void Bullet::Explode(Camera& camera) {
             // Enemy splash
             for (Character* enemy : enemyPtrs)
             {
+                if (!enemy || enemy->isDead) continue;
                 Vector3 d = Vector3Subtract(enemy->position, position);
                 float dist2 = Vector3DotProduct(d, d);
 
@@ -748,6 +577,7 @@ void Bullet::Explode(Camera& camera) {
 
         }else if (type == BulletType::Iceball){
             for (Character* enemy : enemyPtrs){
+                if (!enemy || enemy->isDead) continue;
                 float dist = Vector3Distance(position, enemy->position);
                 if (dist < explosionRadius && !enemy->isDead) {
                     float dmg =  Lerp(maxDamage, minDamage, dist / explosionRadius);
@@ -807,7 +637,7 @@ void ExplodeShrapnelSphere(Vector3 origin, int pelletCount,float speed,float lif
         b.size = 10.0f;
         b.id = gBulletCounter++;
         b.light.active = true; //glowing shrapnel
-        activeBullets.emplace_back(b);
+        pendingBulletSpawns.emplace_back(b);
     }
 }
 
