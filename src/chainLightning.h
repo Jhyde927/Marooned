@@ -12,13 +12,11 @@ struct LightningBolt {
 
     float age = 0.0f;
     float lifetime = 0.25f;
-    float lightLifetime = 0.5f; // Dynamic light duration
+    float lightLifetime = 0.5f; // Environmental light lasts longer than bolt
 };
 
 class ChainLightning {
 public:
-    //ChainLightning(Vector3 origin, Vector3 targetPoint);
-    //ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target = nullptr);
     ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage);
     void Update(float deltaTime);
     void Draw(const Camera3D& camera, const Texture2D& texture) const;
@@ -29,8 +27,6 @@ private:
     void AddBolt(Vector3 start, Vector3 end);
     void GenerateBoltPoints(LightningBolt& bolt);
     bool TryNextJump();
-    void DamageDestructiblesAlongBolt(LightningBolt& bolt);
-
     std::vector<LightningBolt> bolts;
     std::vector<Character*> hitTargets;
 

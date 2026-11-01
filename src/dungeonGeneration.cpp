@@ -56,8 +56,6 @@ std::vector<GrapplePoint> grapplePoints;
 std::vector<WindowCollider> windowColliders;
 std::vector<Box> boxes;
 std::vector<ShipMast> masts;
-
-std::vector<LightSource> bulletLights; //fireball/iceball
 std::vector<Fire> fires;
 static std::vector<DoorDelayedAction> gDoorDelayed;
 static constexpr float kDoorDelay = 0.25f;

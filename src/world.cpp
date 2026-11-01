@@ -179,7 +179,7 @@ void InitMenuLevel(LevelData& level){
     R.SetShaderValues();
 
     //R.SetBloomShaderValues();
-    ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
+    //ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
     if (!isDungeon) R.SetTerrainShaderValues();
 
     CinematicDesc cd = CameraSystem::Get().MakeStartupMenuCinematic();
@@ -199,9 +199,15 @@ void InitShaders(){
     ShaderSetup::InitWaterShader(R.GetShader("waterShader"), ShaderSetup::gWater, terrainScale);
     ShaderSetup::InitLavaShader(R.GetShader("lavaShader"), ShaderSetup::gLava, R.GetModel("lavaTile"));
     ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
+    
 
     ShaderSetup::SetBloomTonemap(ShaderSetup::gBloom, isDungeon, lightConfig.islandExposure, lightConfig.dungeonExposure);
-    ShaderSetup::SetBloomStrength(ShaderSetup::gBloom, 0.0f);
+
+    float bloomStr = isDungeon
+        ? GameSettings::dungeonBloomStrength
+        : GameSettings::outdoorBloomStrength;
+
+    ShaderSetup::SetBloomStrength(ShaderSetup::gBloom, bloomStr);
 
     Model& treeModel      = R.GetModel("palmTree");
     Model& smallTreeModel = R.GetModel("palm2");
@@ -470,7 +476,7 @@ void InitLevel(LevelData& level, Camera& camera) {
 
         UpdateLoadingScreen(.10, "Generating Floors");
         GenerateFloorTiles(floorHeight);
-
+        //ShaderSetup::InitBloomShader(R.GetShader("bloomShader"), ShaderSetup::gBloom);
 
         UpdateCeilingMaskTextureFromCPU();  // uploads ceilingMask to GPU once
         UpdateLoadingScreen(.25, "Generating walls");
@@ -1978,6 +1984,141 @@ static void RebuildEnemyPtrs()
     }
 }
 
+void DropManaPotion(Vector3 dropPos)
+{
+    Collectable c = {
+        CollectableType::ManaPotion,
+        dropPos,
+        R.GetTexture("manaPotion"),
+        40
+    };
+    c.baseY = dropPos.y;
+
+    collectables.emplace_back(c);
+
+}
+
+void DropGold(Vector3 dropPos, int count)
+{
+    if (count <= 0)
+    {
+        return;
+    }
+
+    Collectable gold(
+        CollectableType::Gold,
+        dropPos,
+        R.GetTexture("coinTexture"),
+        15
+    );
+
+    gold.value = 1;
+    gold.baseY = dropPos.y;
+
+    gold.isSpawning = true;
+    gold.spawnVelocityY = 1500.0f;
+
+    for (int i = 0; i < count; i++)
+    {
+        Vector2 dropTile = GetRandomDropTile(
+            WorldToImageCoords(dropPos), 1, 100
+        );
+
+        gold.StartDrop(GetDungeonWorldPos(
+            dropTile.x, dropTile.y, tileSize, gold.baseY
+        ));
+
+        collectables.push_back(gold);
+    }
+}
+
+// void DropGold(Vector3 dropPos, int amount)
+// {
+//     if (amount <= 0)
+//         return;
+
+//     Collectable gold(
+//         CollectableType::Gold,
+//         dropPos,
+//         R.GetTexture("coinTexture"),
+//         15
+//     );
+
+//     gold.value = amount;
+//     gold.baseY = dropPos.y;
+
+
+//     gold.isSpawning = true;
+//     gold.spawnVelocityY = 1500.0f;
+
+//     int count = GetRandomValue(0, 4);
+
+//     for (int i = 0; i < count; i++){
+//         Vector2 dropTile = GetRandomDropTile(WorldToImageCoords(dropPos), 1, 100);
+//         gold.StartDrop(GetDungeonWorldPos(dropTile.x, dropTile.y, tileSize, gold.baseY));
+//         collectables.push_back(gold);
+
+//     }
+
+// }
+
+void UpdateEnemyDrops()
+{
+    for (Character* e : enemyPtrs)
+    {
+        if (e->deathTimer <= 0.0f || !e->canDropGold)
+        {
+            continue;
+        }
+
+        e->canDropGold = false;
+
+        bool dropsGold = GetRandomValue(1, 100) <= 80;
+
+        switch (e->type)
+        {
+            case CharacterType::GiantSpider:
+                DropGold(e->position, 4);
+                break;
+
+            case CharacterType::Spider:
+                // Spiders don't have pockets.
+                break;
+
+            case CharacterType::Bat:
+                break;
+
+            case CharacterType::Skeleton:
+                if (dropsGold)
+                {
+                    DropGold(e->position, GetRandomValue(1, 2));
+                }
+                break;
+
+            case CharacterType::Pirate:
+                // Pirates always carry some gold.
+                DropGold(e->position, GetRandomValue(1, 3));
+                break;
+
+            case CharacterType::Wizard:
+                if (dropsGold)
+                {
+                    DropGold(e->position, GetRandomValue(1, 4));
+                }
+
+                // Independent 50% chance for mana.
+                if (GetRandomValue(0, 1) == 1)
+                {
+                    DropManaPotion(e->position);
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+
 void eraseCharacters() {
     // Remove dead enemies
 
@@ -2008,7 +2149,7 @@ void ClearLevel() {
     activeMagicMissiles.clear();
     activeChainLightnings.clear();
     billboardRequests.clear();
-    bulletLights.clear();
+
     dungeonEntrances.clear();
     masts.clear();
     tentacles.clear();

@@ -27,7 +27,7 @@ struct TreeInstance {
     float cullFactor;
 
     // Collision info (simple cylinder)
-    float colliderRadius = 80.0f;   // trunk radius
+    float colliderRadius = 40.0f;   // trunk radius
     float colliderHeight = 300.0f;  // height of trunk to base of leaves
     TreeType type;
     float randomScale = 1.0f;

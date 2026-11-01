@@ -451,6 +451,13 @@ void GatherCollectables(const Camera& camera, const std::vector<Collectable>& co
 
         float dist = Vector3DistanceSqr(camera.position, c.position);
 
+        float height = c.scale;
+
+        if (c.isSpawning)
+        {
+            height *= cosf(c.bobTimer * 8.0f);
+        }
+
         billboardRequests.push_back({
             Billboard_FacingCamera,
             c.position,
@@ -461,11 +468,11 @@ void GatherCollectables(const Camera& camera, const std::vector<Collectable>& co
                 static_cast<float>(c.icon.width),
                 static_cast<float>(c.icon.height)
             },
-            Vector2{c.scale, c.scale},
+            Vector2{c.scale, height},
             WHITE,
             dist,
             0.0f,
-            false,
+            true,
             false,
             false
         });
@@ -764,13 +771,18 @@ void DrawTransparentDrawRequests(Camera& camera) {
         if (isDungeon) BeginShaderMode(R.GetShader("cutoutShader"));
         float aspect = (float)req.texture.height / (float)req.texture.width; // 2.0 for 512x1024
 
-        float sizeY = req.isPortal ? req.size.y * aspect : req.size.y; //HACK, make portals twice as tall.
-        Vector2 worldSize = { req.size.x, sizeY };
+        float sizeY = req.isPortal
+            ? req.size.y * aspect
+            : req.size.y;
+
+        Vector2 worldSize = { req.size.x, fabsf(sizeY) };
 
         Rectangle src = req.sourceRect;
-        if (req.flipX) {
-            src.width = -src.width; // negative width flips UVs
-        }
+
+        if (req.flipX) src.width = -src.width;
+
+        if (sizeY < 0.0f) src.height = -src.height; //vertical flips
+
         SetShaderValue(R.GetShader("portalShader"), ShaderSetup::gPortal.portalOpenLoc, &req.openAmount, SHADER_UNIFORM_FLOAT);
 
                 

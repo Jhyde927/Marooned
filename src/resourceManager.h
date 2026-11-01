@@ -79,6 +79,11 @@ private:
     mutable bool      _fallbackReady = false;
     void ensureFallback_() const;   // creates procedural checker if needed
 
+    mutable Model _fallbackModel{};
+    void ensureFallbackModel_() const;
+
+    mutable Shader _fallbackShader{};
+
     static ResourceManager* _instance;
 };
 

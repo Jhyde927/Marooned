@@ -60,13 +60,72 @@ void Collectable::RebuildBoxes()
     collider = MakeBoxCentered(position, halfCol);
 }
 
+void Collectable::StartDrop(const Vector3& landingPos)
+{
+    dropStart = position;
+    dropTarget = landingPos;
+
+    baseY = landingPos.y;
+    spawnHeight = 0.0f;
+    spawnVelocityY = 400.0f;
+
+    dropTimer = 0.0f;
+    dropDuration = (2.0f * spawnVelocityY) / 600.0f;
+
+    hasBounced = false;
+    isSpawning = true;
+    bobTimer = 0.0f;
+}
 
 
 void Collectable::Update(float dt, const Vector3& playerPos) {
     bobTimer += dt;
-    float bobAmount = sinf(bobTimer) * 10.0f;
-    position.y = baseY + bobAmount;
 
+    if (isSpawning)
+    {
+        spawnVelocityY -= 600.0f * dt;
+        spawnHeight += spawnVelocityY * dt;
+
+        if (!hasBounced)
+        {
+            dropTimer += dt;
+
+            float t = Clamp(dropTimer / dropDuration, 0.0f, 1.0f);
+
+            position.x = dropStart.x +
+                        (dropTarget.x - dropStart.x) * t;
+
+            position.z = dropStart.z +
+                        (dropTarget.z - dropStart.z) * t;
+        }
+
+        if (spawnHeight <= 0.0f)
+        {
+            spawnHeight = 0.0f;
+
+            if (!hasBounced)
+            {
+                position.x = dropTarget.x;
+                position.z = dropTarget.z;
+
+                spawnVelocityY = -spawnVelocityY * 0.4f;
+                hasBounced = true;
+            }
+            else
+            {
+                spawnVelocityY = 0.0f;
+                isSpawning = false;
+                bobTimer = 0.0f;
+            }
+        }
+
+        position.y = baseY + spawnHeight;
+    }
+    else
+    {
+        float bobAmount = sinf(bobTimer) * 10.0f;
+        position.y = baseY + bobAmount;
+    }
 
     if (isHarpooned)
     {
@@ -86,9 +145,7 @@ void Collectable::Update(float dt, const Vector3& playerPos) {
 
     RebuildBoxes();
 
-    // Update collider height to match
-    // collider.min.y = position.y;
-    // collider.max.y = position.y + 60.0f;
+
 }
 
 

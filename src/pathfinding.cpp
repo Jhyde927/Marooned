@@ -94,6 +94,7 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
     walkableBat.clear();
     walkable.resize(dungeonMap.width, std::vector<bool>(dungeonMap.height, false));
     walkableBat.resize(dungeonMap.width, std::vector<bool>(dungeonMap.height, false));
+
     for (int x = 0; x < dungeonMap.width; ++x) {
         for (int y = 0; y < dungeonMap.height; ++y) {
             Color c = GetImageColor(dungeonMap, x, y);
@@ -121,11 +122,13 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             bool nextLevelDoor = (EqualsRGB(c, ColorOf(Code::NextLevelOrange))); //next level doors
             //secret walls? 
 
-            walkable[x][y] = !(black || blue || yellow || skyBlue || purple || aqua || lava || window ||
+            //OMITTING BLUE BARRELS FROM WALKABLE TEST////
+
+            walkable[x][y] = !(black || yellow || skyBlue || purple || aqua || lava || window ||
                  silver || skeleton || eventLocked || boxes || woodWalls || woodWallHalf || nextLevelDoor);
 
             walkableBat[x][y] = !(black || purple || aqua || window ||
-                 silver || skeleton || eventLocked || blue || yellow || woodWalls || woodWallHalf || nextLevelDoor); //bats cant fly over barrels for reasons
+                 silver || skeleton || eventLocked || yellow || woodWalls || woodWallHalf || nextLevelDoor); //bats cant fly over barrels for reasons
         }   //bats can fly through windows? no, why not? 
     }
 }
@@ -325,7 +328,7 @@ bool IsWalkable(int x, int y, const Image& dungeonMap) {
 
     Color c = GetImageColor(dungeonMap, x, y);
 
-    // Transparent = not walkable
+    // Transparent = void, not walkable, but see through for LOS algorithm
     if (c.a == 0)
         return false;
 
@@ -599,6 +602,42 @@ bool TrySetRandomPatrolPath(const Vector2& start, Character* self, std::vector<V
     }
 
     return !outPath.empty();
+}
+
+Vector2 GetRandomDropTile(const Vector2& start, int radius, int maxAttempts)
+{
+    for (int i = 0; i < maxAttempts; ++i)
+    {
+        int rx = (int)start.x + GetRandomValue(-radius, radius);
+        int ry = (int)start.y + GetRandomValue(-radius, radius);
+
+        if (rx < 0 || ry < 0 ||
+            rx >= dungeonWidth || ry >= dungeonHeight)
+        {
+            continue;
+        }
+
+        if (!walkable[rx][ry])
+        {
+            continue;
+        }
+
+        Vector2 target = {(float)rx, (float)ry};
+
+        if (!DDAHasLineOfSight(start, target))
+        {
+            continue;
+        }
+
+        // if (!LineOfSightRaycast(start, target, dungeonImg, 100, 0.0f))
+        // {
+        //     continue;
+        // }
+
+        return target;
+    }
+
+    return start;
 }
 
 

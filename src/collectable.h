@@ -28,7 +28,7 @@ public:
     Vector3 position;
     BoundingBox collider;
     BoundingBox hitBox;     // NEW: bullet collision (harpoon hit test)
-
+    float testing;
     Texture2D icon = {};
     Model model = {};
     float scale;
@@ -38,6 +38,19 @@ public:
     int value;
     float bobTimer = 0.0f;
     float baseY = 160.0f;
+
+    //drop animation
+    float spawnHeight = 0.0f;
+    float spawnVelocityY = 0.0f;
+    bool isSpawning = false;
+
+    Vector3 dropStart = {};
+    Vector3 dropTarget = {};
+
+    float dropTimer = 0.0f;
+    float dropDuration = 0.0f;
+
+    bool hasBounced = false;
 
         // Harpoon pull the collectable
     bool  isHarpooned = false;
@@ -65,5 +78,6 @@ public:
     void RebuildBoxes();
     void Update(float dt, const Vector3& playerPos);
     bool CheckPickup(const Vector3& playerPos, float pickupRadius) const;
+    void StartDrop(const Vector3& landingPos);
 };
 

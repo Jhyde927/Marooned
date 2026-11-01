@@ -25,10 +25,6 @@ ChainLightning::ChainLightning(Vector3 origin, Vector3 targetPoint, Character* t
     }
 }
 
-void DamageDestructiblesAlongBolt(LightningBolt& bolt){
-
-}
-
 void ChainLightning::Update(float deltaTime)
 {
     if (!active) return;
@@ -245,17 +241,3 @@ void ChainLightning::Draw(const Camera3D& camera, const Texture2D& texture) cons
     rlEnableDepthMask();
 }
 
-// void ChainLightning::Draw(const Camera3D& camera) const
-// {
-//     (void)camera; // Unused until we implement camera-facing ribbons.
-
-//     // Temporary visualization of each bolt's connected points.
-//     for (const LightningBolt& bolt : bolts) {
-//         float fade = 1.0f - bolt.age / bolt.lifetime;
-//         Color tint = Fade(SKYBLUE, fade);
-
-//         for (size_t i = 1; i < bolt.points.size(); ++i) {
-//             DrawLine3D(bolt.points[i - 1], bolt.points[i], tint);
-//         }
-//     }
-// }

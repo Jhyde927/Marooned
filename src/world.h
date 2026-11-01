@@ -154,6 +154,7 @@ void UpdateChainLightning(float deltaTime);
 
 void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem);
 void EraseBullets();
+void UpdateEnemyDrops();
 float CalculateDarknessFactor(Vector3 playerPos, const std::vector<LightSource>& lights);
 void UpdateDecals(float deltaTime);
 void UpdateCollectables(float deltaTime);

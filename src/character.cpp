@@ -47,6 +47,8 @@ BoundingBox Character::GetBoundingBox() const {
     };
 }
 
+
+
 void Character::playRaptorSounds()
 {
     if (raptorSoundCooldown > 0.0f) return;

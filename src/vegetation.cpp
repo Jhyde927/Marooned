@@ -50,24 +50,20 @@ float GetRandomTreeScale()
 
 BoundingBox GetTreeAABB(const TreeInstance& t)
 {
-    float r = t.colliderRadius;
-    float h = t.colliderHeight;
+    const float r = t.colliderRadius;
+    const float h = t.colliderHeight;
 
-    Vector3 min {
-        t.position.x - r,
-        t.position.y,
-        t.position.z - r
+    const Vector3 base = {
+        t.position.x + t.xOffset,
+        t.position.y + t.yOffset,
+        t.position.z + t.zOffset
     };
 
-    Vector3 max {
-        t.position.x + r,
-        t.position.y + h,
-        t.position.z + r
+    return {
+        {base.x - r, base.y,     base.z - r},
+        {base.x + r, base.y + h, base.z + r}
     };
-
-    return { min, max };
 }
-
 
 
 void sortTrees(Camera& camera){

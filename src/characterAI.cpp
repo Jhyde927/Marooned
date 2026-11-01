@@ -577,7 +577,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
                 deathTimer = 0.0f;         // Start counting
 
             }
-
+            
             deathTimer += deltaTime;
             break;
         }

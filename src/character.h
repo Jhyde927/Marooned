@@ -142,6 +142,7 @@ public:
     bool overVoid = false;
     bool lavaDamageApplied = false;
     bool lostLimb = false;
+    bool canDropGold = true;
     float harpoonDuration = 2.0f;
     float harpoonMinDist  = 175.0f; // stop just in front of player
 
@@ -253,5 +254,6 @@ public:
     void HandleSpiderAgro();
     void RefreshAnimation();
     void UnlockCreature(CharacterType type);
+
 };
 

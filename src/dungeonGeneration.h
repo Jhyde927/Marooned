@@ -341,7 +341,6 @@ extern std::vector<LauncherTrap> launchers;
 extern std::vector<PillarInstance> pillars;
 extern std::vector<Fire> fires;
 extern std::vector<LightSource> dungeonLights;
-extern std::vector<LightSource> bulletLights;
 extern std::vector<WallRun> wallRunColliders;
 extern std::vector<WallInstance> wallinstances;
 extern std::vector<BarrelInstance> barrelInstances;
@@ -436,6 +435,10 @@ int GetDungeonImageX(float worldX, float tileSize, int dungeonWidth);
 int GetDungeonImageY(float worldZ, float tileSize, int dungeonHeight);
 bool IsDungeonFloorTile(int x, int y); 
 Vector3 GetDungeonWorldPos(int x, int y, float tileSize, float baseY);
+inline Vector3 TileToWorld(int tx, int ty, float tileSize, float height) {
+    return GetDungeonWorldPos(tx, ty, tileSize, height);
+}
+
 Vector3 FindSpawnPoint(Color* pixels, int width, int height, float tileSize, float baseY);
 
 void GenerateSkeletonsFromImage(float baseY);

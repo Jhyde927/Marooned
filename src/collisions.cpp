@@ -35,19 +35,6 @@ bool CheckCircleInEntranceDoorColliderXZ(Vector3 p, float radius, const Entrance
            fabsf(localZ) <= c.halfDepth + radius;
 }
 
-// static BoundingBox MakeBoxAABBAt(const Box& box, Vector3 pos)
-// {
-//     float half = 50.0f * box.scale;     // match your UpdateBounds() half-size
-//     float h    = 100.0f * box.scale;
-
-//     BoundingBox bb;
-//     bb.min = { pos.x - half, pos.y,       pos.z - half };
-//     bb.max = { pos.x + half, pos.y + h,   pos.z + half };
-//     return bb;
-// }
-
-
-
 bool CheckCollisionPointBox(Vector3 point, BoundingBox box) {
     return (
         point.x >= box.min.x && point.x <= box.max.x &&
@@ -501,7 +488,7 @@ void HandleMeleeHitboxCollision(Camera& camera) {
             if (barrel.containsGold) {
                 Vector3 pos = {barrel.position.x, barrel.position.y + 100, barrel.position.z};
                 int gvalue = GetRandomValue(1, 100);
-                Collectable gold = Collectable(CollectableType::Gold, pos, R.GetTexture("coinTexture"), 40);
+                Collectable gold = Collectable(CollectableType::Gold, pos, R.GetTexture("coinTexture"), 15);
                 gold.value = gvalue;
                 collectables.push_back(gold);
 
@@ -782,7 +769,7 @@ bool DestroyBarrelAtCollision(Vector3 position, float radius)
                 CollectableType::Gold,
                 dropPos,
                 R.GetTexture("coinTexture"),
-                40
+                15
             );
 
             gold.value = GetRandomValue(1, 100);
@@ -835,28 +822,6 @@ bool HandleBarrelHitsForBullet(Bullet& b, Camera& camera)
     return true;
 }
 
-
-
-bool CheckBulletHitsTree(const TreeInstance& tree, const Vector3& bulletPos) {
-    Vector3 treeBase = {
-        tree.position.x + tree.xOffset,
-        tree.position.y + tree.yOffset,
-        tree.position.z + tree.zOffset
-    };
-
-    // Check vertical overlap
-    if (bulletPos.y < treeBase.y || bulletPos.y > treeBase.y + tree.colliderHeight) {
-        return false;
-    }
-
-    // Check horizontal distance from tree trunk center
-    float dx = bulletPos.x - treeBase.x;
-    float dz = bulletPos.z - treeBase.z;
-    float horizontalDistSq = dx * dx + dz * dz;
-
-    return horizontalDistSq <= tree.colliderRadius * tree.colliderRadius;
-}
-
 bool CheckTreeCollision(const TreeInstance& tree, const Vector3& playerPos) {
     //Tree player collision
     Vector3 treeBase = {
@@ -905,49 +870,8 @@ void ResolveTreeCollision(const TreeInstance& tree, Vector3& playerPos) {
 
 
 
-void CheckBulletsAgainstTrees(std::vector<TreeInstance>& trees,
-                              Camera& camera)
-{
-    constexpr float CULL_RADIUS = 500.0f;
-    const float cullDistSq = CULL_RADIUS * CULL_RADIUS;
 
-    for (TreeInstance& tree : trees) {
-        // use the same center the collision routine uses
-        Vector3 treeBase = {
-            tree.position.x + tree.xOffset,
-            tree.position.y + tree.yOffset,
-            tree.position.z + tree.zOffset
-        };
-
-        
-
-        for (Bullet& bullet : activeBullets) {
-            if (!bullet.IsAlive()) continue;
-
-            const Vector3 bp = bullet.GetPosition();
-
-            // cheap early-out around the correct center
-            if (Vector3DistanceSqr(treeBase, bp) < cullDistSq) {
-                if (CheckBulletHitsTree(tree, bp)) {
-                    if (bullet.type == BulletType::Fireball){
-                        bullet.Explode(camera);
-
-                    }else{
-                        Vector3 n = AABBHitNormal(GetTreeAABB(tree), bullet.position);
-                        bullet.alive = TryBulletRicochet(bullet, n, 0.6f, 80.0f, 0.9f);
-                        bullet.exploded = bullet.alive;
-                    } 
-
-                    break; // stop checking this tree for this frame
-                }
-            }
-        }
-    }
-}
-
-
-
-void TreeCollision(Camera& camera){
+void TreeCollision(){
 
     for (TreeInstance& tree : trees) {
         if (Vector3DistanceSqr(tree.position, player.position) < 500 * 500) { //check a smaller area not the whole map. 
@@ -970,7 +894,7 @@ void TreeCollision(Camera& camera){
     }
 
 
-    CheckBulletsAgainstTrees(trees,  camera);
+    //CheckBulletsAgainstTrees(trees,  camera);
 
 
 }
@@ -1049,7 +973,7 @@ void HandleDoorInteraction(Camera& camera)
 void UpdateCollisions(Camera& camera){
     //CheckBulletHits(camera); //bullet collision
     HandleBulletCollisions(camera);
-    TreeCollision(camera); //player and raptor vs tree
+    TreeCollision(); //player and raptor vs tree
     WallCollision();
     EnemyWallCollision();
     DoorCollision();

@@ -204,6 +204,8 @@ void Gather(std::vector<Contact>& hits, const Bullet& b)
         if (d.isOpen)
             for (const BoundingBox& side : d.sideColliders) AddBox(hits, Kind::Solid, 0, b, side);
     }
+
+    for (const TreeInstance& tree : trees){AddBox(hits,Kind::Solid,0,b,GetTreeAABB(tree));}
     for (const Box& box : boxes) AddBox(hits, Kind::Solid, 0, b, box.bounds);
     for (const PillarInstance& p : pillars) AddBox(hits, Kind::Solid, 0, b, p.bounds);
     if (!b.pendingExplosion)
@@ -232,7 +234,7 @@ void ImpactSparks(Bullet& b, Vector3 normal)
     b.light.age = 0.0f;
 }
 
-// void ImpactSparks(Bullet& b, Vector3 normal)
+// void ImpactSparks(Bullet& b, Vector3 normal) //try to make this look good maybe. it's waay to much right now. 
 // {
 //     const float speed = Vector3Length(b.velocity);
 //     const float strength = Clamp((speed - 850.0f) / 850.0f, 0, 1);

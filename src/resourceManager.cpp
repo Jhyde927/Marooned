@@ -20,6 +20,7 @@ void ResourceManager::ensureFallback_() const {
     if (_fallbackReady) return;
     Image img = GenImageChecked(64, 64, 8, 8, MAGENTA, BLACK);
     _fallbackTex = LoadTextureFromImage(img);
+
     UnloadImage(img);
     if (_fallbackTex.id == 0) {
         Image tiny = GenImageColor(1, 1, WHITE);
@@ -43,14 +44,16 @@ Texture2D& ResourceManager::LoadTexture(const std::string& name, const std::stri
 
     if (path.empty()) {
         TraceLog(LOG_ERROR, "❌ LoadTexture failed: empty path for texture '%s'", name.c_str());
-        exit(1);
+        ensureFallback_();
+        return _fallbackTex;
     }
 
     Texture2D tex = ::LoadTexture(path.c_str());
 
     if (tex.id == 0) {
         TraceLog(LOG_ERROR, "❌ LoadTexture failed for '%s' at path '%s'", name.c_str(), path.c_str());
-        exit(1);
+        ensureFallback_();
+        return _fallbackTex;
     }
 
     _textures.emplace(name, tex);
@@ -68,12 +71,31 @@ Texture2D& ResourceManager::GetTexture(const std::string& name) {
 }
 
 // Model
-Model& ResourceManager::LoadModel(const std::string& name, const std::string& path) {
+Model& ResourceManager::LoadModel(const std::string& name,
+                                 const std::string& path)
+{
     auto it = _models.find(name);
-    if (it != _models.end()) return it->second;
+    if (it != _models.end()) {
+        return it->second;
+    }
+
     Model m = ::LoadModel(path.c_str());
-    _models.emplace(name, m);
-    return _models[name];
+
+    if (m.meshCount == 0 || m.meshes == nullptr) {
+        TraceLog(LOG_ERROR,
+                 "LoadModel failed for '%s' at path '%s'; using fallback cube",
+                 name.c_str(), path.c_str());
+
+        UnloadModel(m);
+        m = LoadModelFromMesh(GenMeshCube(1.0f, 1.0f, 1.0f));
+
+        ensureFallback_();
+
+        m.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = _fallbackTex;
+    }
+
+    auto result = _models.emplace(name, m);
+    return result.first->second;
 }
 
 Model& ResourceManager::AddModelFromMesh(const std::string& name, Mesh mesh)   // note: Mesh by value is fine
@@ -86,31 +108,128 @@ Model& ResourceManager::AddModelFromMesh(const std::string& name, Mesh mesh)   /
     return insertIt->second;
 }
 
-Model& ResourceManager::GetModel(const std::string& name) {
-    auto it = _models.find(name);
-    if (it == _models.end()) throw std::runtime_error("Model not found: " + name);
-    return it->second;
+void ResourceManager::ensureFallbackModel_() const
+{
+    if (_fallbackModel.meshCount == 0) {
+        _fallbackModel = LoadModelFromMesh(
+            GenMeshCube(1.0f, 1.0f, 1.0f)
+        );
+
+        ensureFallback_();
+
+        _fallbackModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture =
+            _fallbackTex;
+
+    }
 }
 
-const Model& ResourceManager::GetModel(const std::string& name) const {
+Model& ResourceManager::GetModel(const std::string& name)
+{
     auto it = _models.find(name);
-    if (it == _models.end()) throw std::runtime_error("Model not found: " + name);
-    return it->second;
+    if (it != _models.end()) {
+        return it->second;
+    }
+
+    ensureFallbackModel_();
+    TraceLog(LOG_ERROR, "Missing model: %s (using fallback)", name.c_str());
+    return _fallbackModel;
 }
+
+const Model& ResourceManager::GetModel(const std::string& name) const
+{
+    auto it = _models.find(name);
+    if (it != _models.end()) {
+        return it->second;
+    }
+
+    ensureFallbackModel_();
+    TraceLog(LOG_ERROR, "Missing model: %s (using fallback)", name.c_str());
+    return _fallbackModel;
+}
+
+// Model& ResourceManager::GetModel(const std::string& name) {
+//     auto it = _models.find(name);
+//     if (it == _models.end()) throw std::runtime_error("Model not found: " + name);
+//     return it->second;
+// }
+
+// const Model& ResourceManager::GetModel(const std::string& name) const {
+//     auto it = _models.find(name);
+//     if (it == _models.end()) throw std::runtime_error("Model not found: " + name);
+//     return it->second;
+// }
 
 // Shader
-Shader& ResourceManager::LoadShader(const std::string& name, const std::string& vsPath, const std::string& fsPath) {
+Shader& ResourceManager::LoadShader(const std::string& name,
+                                    const std::string& vsPath,
+                                    const std::string& fsPath)
+{
     auto it = _shaders.find(name);
-    if (it != _shaders.end()) return it->second;
-    Shader s = ::LoadShader(vsPath.c_str(), fsPath.c_str());
-    _shaders.emplace(name, s);
-    return _shaders[name];
+    if (it != _shaders.end()) {
+        return it->second;
+    }
+
+    Shader s{};
+
+    bool missingVertex = !vsPath.empty() && !FileExists(vsPath.c_str());
+    bool missingFragment = !fsPath.empty() && !FileExists(fsPath.c_str());
+
+    if (missingVertex || missingFragment) {
+        TraceLog(LOG_ERROR,
+                 "Missing shader file for '%s': VS='%s', FS='%s'",
+                 name.c_str(), vsPath.c_str(), fsPath.c_str());
+
+        s = { rlGetShaderIdDefault(), rlGetShaderLocsDefault() };
+    } else {
+        s = ::LoadShader(
+            vsPath.empty() ? nullptr : vsPath.c_str(),
+            fsPath.empty() ? nullptr : fsPath.c_str()
+        );
+
+        if (s.id == rlGetShaderIdDefault() || s.id == 0) {
+            TraceLog(LOG_ERROR,
+                     "Shader '%s' failed to load; using default",
+                     name.c_str());
+
+            UnloadShader(s);
+            s = { rlGetShaderIdDefault(), rlGetShaderLocsDefault() };
+        }
+    }
+
+    auto result = _shaders.emplace(name, s);
+    return result.first->second;
 }
-Shader& ResourceManager::GetShader(const std::string& name) const {
+
+Shader& ResourceManager::GetShader(const std::string& name) const
+{
     auto it = _shaders.find(name);
-    if (it == _shaders.end()) throw std::runtime_error("Shader not found: " + name);
-    return const_cast<Shader&>(it->second);
+    if (it != _shaders.end()) {
+        return const_cast<Shader&>(it->second);
+    }
+
+    TraceLog(LOG_ERROR,
+             "Missing shader: %s (using default)", name.c_str());
+
+    _fallbackShader = {
+        rlGetShaderIdDefault(),
+        rlGetShaderLocsDefault()
+    };
+
+    return _fallbackShader;
 }
+// Shader& ResourceManager::LoadShader(const std::string& name, const std::string& vsPath, const std::string& fsPath) {
+//     auto it = _shaders.find(name);
+//     if (it != _shaders.end()) return it->second;
+//     Shader s = ::LoadShader(vsPath.c_str(), fsPath.c_str());
+//     _shaders.emplace(name, s);
+//     return _shaders[name];
+// }
+
+// Shader& ResourceManager::GetShader(const std::string& name) const {
+//     auto it = _shaders.find(name);
+//     if (it == _shaders.end()) throw std::runtime_error("Shader not found: " + name);
+//     return const_cast<Shader&>(it->second);
+// }
 
 
 
@@ -694,16 +813,51 @@ void ResourceManager::UnloadRenderTextures()
 }
 
 
+void ResourceManager::UnloadAll()
+{
+    UnloadContainer(_textures, ::UnloadTexture);
+    UnloadContainer(_models, ::UnloadModel);
 
-void ResourceManager::UnloadAll() {
-    UnloadContainer(_textures,        ::UnloadTexture);
-    UnloadContainer(_models,          ::UnloadModel);
-    UnloadContainer(_shaders,         ::UnloadShader);
+    UnloadContainer(_shaders, [](Shader shader) {
+        if (shader.id != 0 && shader.id != rlGetShaderIdDefault()) {
+            ::UnloadShader(shader);
+        }
+    });
+
+    _fallbackShader = {}; // Forget the reference; raylib owns it.
+
     R.UnloadRenderTextures();
     UnloadAllFonts();
-    if (_fallbackTex.id) { UnloadTexture(_fallbackTex); _fallbackTex = {}; }
+
+    if (_fallbackModel.meshCount > 0) {
+        UnloadModel(_fallbackModel);
+        _fallbackModel = {};
+    }
+
+    if (_fallbackTex.id != 0) {
+        UnloadTexture(_fallbackTex);
+        _fallbackTex = {};
+    }
+
     _fallbackReady = false;
 }
+
+
+// void ResourceManager::UnloadAll() {
+//     UnloadContainer(_textures,        ::UnloadTexture);
+//     UnloadContainer(_models,          ::UnloadModel);
+//     UnloadContainer(_shaders,         ::UnloadShader);
+//     R.UnloadRenderTextures();
+//     UnloadAllFonts();
+//     if (_fallbackTex.id) { UnloadTexture(_fallbackTex); _fallbackTex = {}; }
+//     _fallbackReady = false;
+
+//     if (_fallbackModel.meshCount > 0) {
+//         UnloadModel(_fallbackModel);
+//         _fallbackModel = {};
+//     }
+
+// }
 
 ResourceManager::~ResourceManager() {
     UnloadAll();

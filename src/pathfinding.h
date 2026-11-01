@@ -9,6 +9,7 @@ extern std::vector<std::vector<bool>> walkableBat;
 class Character;
 void ConvertImageToWalkableGrid(const Image& dungeonMap);
 Vector2 WorldToImageCoords(Vector3 worldPos);
+inline Vector2 WorldToTile(Vector3 worldPos) { return WorldToImageCoords(worldPos); }
 bool IsWalkable(int x, int y, const Image& dungeonMap);
 void SetTileWalkable(int x, int y, bool batAlso = false);
 void SetTileUnwalkable(int x, int y, bool batAlso = true);
@@ -51,7 +52,11 @@ bool IsWaterAtXZ(float x, float z, float waterLevel);
 bool DDAHasLineOfSight(Vector2 start, Vector2 end);
 bool DDAHasLineOfSightWorld(Vector3 start, Vector3 end);
 Vector2 WorldToImageCoordsContinuous(Vector3 worldPos);
+
+
 void CheckContinuousConversion(Vector3 worldPos);
+
+Vector2 GetRandomDropTile(const Vector2& start, int radius, int maxAttempts);
 
 void SubtileVis4x4(
     float vis[4][4],

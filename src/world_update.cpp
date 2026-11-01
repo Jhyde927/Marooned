@@ -115,6 +115,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
 
     UpdateRaftInteraction();
     UpdateEnemies(dt);
+    UpdateEnemyDrops();
     UpdateCannons(dt);
     UpdateKraken(dt);
     UpdateNPCs(dt);
