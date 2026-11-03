@@ -1998,8 +1998,9 @@ void DropManaPotion(Vector3 dropPos)
 
 }
 
-void DropGold(Vector3 dropPos, int count)
+void DropGold(Vector3 dropPos, int count, int radius)
 {
+    //Toss gold coins in the air, they only land on valid tiles. 
     if (count <= 0)
     {
         return;
@@ -2020,8 +2021,9 @@ void DropGold(Vector3 dropPos, int count)
 
     for (int i = 0; i < count; i++)
     {
+        //radius of 0 drops coin to center tile.
         Vector2 dropTile = GetRandomDropTile(
-            WorldToImageCoords(dropPos), 1, 100
+            WorldToImageCoords(dropPos), radius, 100
         );
 
         gold.StartDrop(GetDungeonWorldPos(
@@ -2031,36 +2033,6 @@ void DropGold(Vector3 dropPos, int count)
         collectables.push_back(gold);
     }
 }
-
-// void DropGold(Vector3 dropPos, int amount)
-// {
-//     if (amount <= 0)
-//         return;
-
-//     Collectable gold(
-//         CollectableType::Gold,
-//         dropPos,
-//         R.GetTexture("coinTexture"),
-//         15
-//     );
-
-//     gold.value = amount;
-//     gold.baseY = dropPos.y;
-
-
-//     gold.isSpawning = true;
-//     gold.spawnVelocityY = 1500.0f;
-
-//     int count = GetRandomValue(0, 4);
-
-//     for (int i = 0; i < count; i++){
-//         Vector2 dropTile = GetRandomDropTile(WorldToImageCoords(dropPos), 1, 100);
-//         gold.StartDrop(GetDungeonWorldPos(dropTile.x, dropTile.y, tileSize, gold.baseY));
-//         collectables.push_back(gold);
-
-//     }
-
-// }
 
 void UpdateEnemyDrops()
 {
@@ -2126,7 +2098,7 @@ void eraseCharacters() {
     // Always rebuild enemyPtrs after modifying this container
     enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
         [](const Character& e) {
-            return e.isDead && e.deathTimer > 5.0f; //is dead AND deathtimer > 5
+            return e.isDead && e.deathTimer > 5.0f; //is dead AND deathtimer > 5, keeps dead bodies for 5 seconds.
         }),
         enemies.end());
 

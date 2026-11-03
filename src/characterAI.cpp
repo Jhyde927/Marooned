@@ -2170,7 +2170,7 @@ void Character::UpdateRaptorAI(float deltaTime, Player& player)
 
         case CharacterState::MeleeAttack:{break;}
 
-
+        case CharacterState::Shamble: {break;}
         case CharacterState::Attack:
 
         {

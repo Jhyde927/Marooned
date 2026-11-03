@@ -486,11 +486,12 @@ void HandleMeleeHitboxCollision(Camera& camera) {
             }
 
             if (barrel.containsGold) {
-                Vector3 pos = {barrel.position.x, barrel.position.y + 100, barrel.position.z};
-                int gvalue = GetRandomValue(1, 100);
-                Collectable gold = Collectable(CollectableType::Gold, pos, R.GetTexture("coinTexture"), 15);
-                gold.value = gvalue;
-                collectables.push_back(gold);
+                Vector3 pos = TileToWorld(tileX, tileY, tileSize, floorHeight + 100.0f);//{barrel.position.x, barrel.position.y + 100, barrel.position.z};
+                DropGold(pos, 1, 0);
+                // int gvalue = GetRandomValue(1, 100);
+                // Collectable gold = Collectable(CollectableType::Gold, pos, R.GetTexture("coinTexture"), 15);
+                // gold.value = gvalue;
+                // collectables.push_back(gold);
 
             }
 
@@ -765,17 +766,11 @@ bool DestroyBarrelAtCollision(Vector3 position, float radius)
         }
         else if (barrel.containsGold)
         {
-            Collectable gold(
-                CollectableType::Gold,
-                dropPos,
-                R.GetTexture("coinTexture"),
-                15
-            );
+            Vector3 dropOrigin = GetDungeonWorldPos(
+                tileX, tileY, tileSize, barrel.position.y+100.0f);
 
-            gold.value = GetRandomValue(1, 100);
-            gold.baseY = dropPos.y;
+            DropGold(dropOrigin, 1, 0);
 
-            collectables.push_back(gold);
         }
 
         return true;

@@ -628,12 +628,7 @@ Vector2 GetRandomDropTile(const Vector2& start, int radius, int maxAttempts)
         {
             continue;
         }
-
-        // if (!LineOfSightRaycast(start, target, dungeonImg, 100, 0.0f))
-        // {
-        //     continue;
-        // }
-
+        
         return target;
     }
 

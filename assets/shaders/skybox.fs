@@ -173,7 +173,8 @@ vec3 RenderSunsetSky(vec3 dir)
 
 vec3 RenderNightSky(vec3 dir)
 {
-    vec3 night = vec3(0.001, 0.002, 0.004);
+
+    vec3 night = vec3(0.0018, 0.002, 0.004) * 0.5; //very sensitive
 
     // --------------------------------------------------------
     // Small stars with tiny radius

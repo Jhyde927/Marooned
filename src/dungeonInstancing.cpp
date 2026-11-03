@@ -23,6 +23,7 @@ DungeonInstancingBatch gWoodFloorInstancing;
 DungeonInstancingBatch gStoneWallInstancing;
 DungeonInstancingBatch gWoodWallInstancing;
 DungeonInstancingBatch gWoodHalfWallInstancing;
+DungeonInstancingBatch gShopWallInstancing;
 
 void UpdateDungeonInstancingDebugCounts()
 {
@@ -36,7 +37,8 @@ void UpdateDungeonInstancingDebugCounts()
             gWoodFloorInstancing.transforms.size() +
             gStoneWallInstancing.transforms.size() +
             gWoodWallInstancing.transforms.size() +
-            gWoodHalfWallInstancing.transforms.size()
+            gWoodHalfWallInstancing.transforms.size() + 
+            gShopWallInstancing.transforms.size()
         );
 }
 
@@ -233,6 +235,10 @@ static void PushVisibleTransformToCorrectBatch(const DungeonInstanceSource& src)
         case DungeonInstanceKind::WallWoodHalf:
             gWoodHalfWallInstancing.transforms.push_back(src.transform);
             break;
+
+        case DungeonInstanceKind::ShopWall:
+            gShopWallInstancing.transforms.push_back(src.transform);
+            break;
     }
 }
 
@@ -261,9 +267,9 @@ static void DrawDungeonInstancingBatch(DungeonInstancingBatch& batch)
 void ClearDungeonInstancingSources()
 {
     gDungeonInstanceSources.clear();
-
     gGrayFloorInstancing.transforms.clear();
     gWoodFloorInstancing.transforms.clear();
+    gShopWallInstancing.transforms.clear();
 }
 
 void InitDungeonInstancing()
@@ -302,6 +308,13 @@ void InitDungeonInstancing()
         "floorInstancedLightingShader",
         DungeonInstanceKind::WallWoodHalf
     );
+
+    InitDungeonInstancingBatch(
+        gShopWallInstancing,
+        "shopWall",
+        "floorInstancedLightingShader",
+        DungeonInstanceKind::ShopWall
+    );
 }
 
 void AddWallInstanceSource(const WallInstance& wall)
@@ -320,6 +333,10 @@ void AddWallInstanceSource(const WallInstance& wall)
             src.kind = DungeonInstanceKind::WallWoodHalf;
             break;
 
+        case WallType::Shop:
+            src.kind = DungeonInstanceKind::ShopWall;
+            break;
+
         default:
             src.kind = DungeonInstanceKind::WallStone;
             break;
@@ -327,21 +344,6 @@ void AddWallInstanceSource(const WallInstance& wall)
 
     gDungeonInstanceSources.push_back(src);
 }
-
-// void AddFloorInstanceSource(const FloorTile& tile)
-// {
-//     if (tile.floorType != FloorType::Normal) return;
-
-//     DungeonInstanceSource src;
-//     src.position = tile.position;
-//     src.transform = MakeFloorTransform(tile.position);
-
-//     src.kind = CurrentLevelIs("Ship")
-//         ? DungeonInstanceKind::FloorWood
-//         : DungeonInstanceKind::FloorGray;
-
-//     gDungeonInstanceSources.push_back(src);
-// }
 
 
 void AddFloorInstanceSource(Vector3 position, FloorType floorType)
@@ -352,7 +354,7 @@ void AddFloorInstanceSource(Vector3 position, FloorType floorType)
     src.position = position;
     src.transform = MakeFloorTransform(position);
 
-    src.kind = CurrentLevelIs("Ship")
+    src.kind = (CurrentLevelIs("Shop") || CurrentLevelIs("Ship"))
         ? DungeonInstanceKind::FloorWood
         : DungeonInstanceKind::FloorGray;
 
@@ -367,6 +369,7 @@ void BuildVisibleDungeonInstanceTransforms(Camera& camera, float maxDrawDist)
     gStoneWallInstancing.transforms.clear();
     gWoodWallInstancing.transforms.clear();
     gWoodHalfWallInstancing.transforms.clear();
+    gShopWallInstancing.transforms.clear();
 
     ViewConeParams vp = MakeViewConeParams(
         camera,
@@ -397,4 +400,5 @@ void DrawDungeonInstancedWalls()
     DrawDungeonInstancingBatch(gStoneWallInstancing);
     DrawDungeonInstancingBatch(gWoodWallInstancing);
     DrawDungeonInstancingBatch(gWoodHalfWallInstancing);
+    DrawDungeonInstancingBatch(gShopWallInstancing);
 }

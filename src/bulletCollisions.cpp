@@ -1,5 +1,3 @@
-// Include ONCE at the END of collisions.cpp, outside any function/namespace.
-// Keep its existing game headers; add standard includes here if not already present.
 #include <algorithm>
 #include <cmath>
 #include <vector>

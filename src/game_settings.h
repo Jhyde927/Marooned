@@ -36,7 +36,7 @@ namespace GameSettings
 
     //Bloom shader amount
     inline float outdoorBloomStrength = 0.1f;
-    inline float dungeonBloomStrength = 0.1f;
+    inline float dungeonBloomStrength = 0.15f;
 
     //outdoor props, entrances
     inline float treefogStartMenu = 8000.0f; 

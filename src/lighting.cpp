@@ -83,8 +83,8 @@ TorchColorCombo GetTorchColorComboForLevel(std::string_view levelName)
     }
     else if (levelName == "Shop")
     {
-        combo.edgeColor = Vector3{ 0.45f, 0.20f, 0.85f }; // purple edge
-        combo.coreColor = Vector3{ 0.95f, 0.45f, 1.00f }; // magic pink core
+        // combo.edgeColor = Vector3{ 0.45f, 0.20f, 0.85f }; // purple edge
+        // combo.coreColor = Vector3{ 0.95f, 0.45f, 1.00f }; // magic pink core
     }
 
     return combo;

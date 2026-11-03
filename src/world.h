@@ -210,3 +210,4 @@ void FireMagicMissiles(Vector3 startPosition, Vector3 forwardDirection, Vector3 
 void DrawFrameLightGlows(const Camera3D& camera, const Texture2D& glowTexture);
 void DrawChainLightnings(const Camera3D& camera);
 void ChangeLevel(int idx);
+void DropGold(Vector3 dropPos, int count, int radius = 1);

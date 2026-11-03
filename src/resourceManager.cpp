@@ -485,6 +485,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("stool",                  "assets/Models/stool.glb");
     R.LoadModel("bonePile",               "assets/Models/bonePile.glb");
     R.LoadModel("candelabra",             "assets/Models/candelabra.glb");
+    R.LoadModel("shopWall",               "assets/Models/shopWall.glb");
+    R.LoadModel("shopDoorWay",            "assets/Models/shopDoorWay.glb");
 
     //generated models
 
@@ -645,12 +647,7 @@ void ResourceManager::SetLightingShaderValues()
     Model& bonePile      = R.GetModel("bonePile");
     Model& candelabra    = R.GetModel("candelabra");
     Model& cannonballs   = R.GetModel("cannonBalls");
-    // Model& blunderbuss   = R.GetModel("blunderbuss");
-    // Model& crossbow      = R.GetModel("crossbow");
-    // Model& crossbowRest  = R.GetModel("crossbowRest");
-    // Model& sword         = R.GetModel("swordModel");
-    // Model& staff         = R.GetModel("staffModel");
-
+    Model& shopDoor      = R.GetModel("shopDoorWay");
 
     //apply texture to cratePile. Find a better place for this. 
     Texture2D crateTex = R.GetTexture("cratePile");
@@ -676,6 +673,7 @@ void ResourceManager::SetLightingShaderValues()
     for (int i = 0; i < bonePile.materialCount;   ++i) bonePile.materials[i].shader   = lightingShader;
     for (int i = 0; i < candelabra.materialCount;   ++i) candelabra.materials[i].shader   = lightingShader;
     for (int i = 0; i < cannonballs.materialCount;   ++i) cannonballs.materials[i].shader   = lightingShader;
+    for (int i = 0; i < shopDoor.materialCount;   ++i) shopDoor.materials[i].shader   = lightingShader;
 
 
     // Bind the lightmap texture to EMISSION slot for each model material
@@ -691,6 +689,7 @@ void ResourceManager::SetLightingShaderValues()
         }
     }else{
         setLightmap(doorwayModel); //normal raycast lighting
+        setLightmap(shopDoor);
     }
 
 
@@ -713,14 +712,8 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(bonePile);
     setLightmap(candelabra);
     setLightmap(cannonballs);
-    // if (isDungeon){
-    //     setLightmap(blunderbuss);
-    //     setLightmap(crossbow);
-    //     setLightmap(crossbowRest);
-    //     setLightmap(sword);
-    //     setLightmap(staff);
+    setLightmap(shopDoor);
 
-    // }
 
     // Per-level uniforms for lighting shader
     Shader& use = windowModel.materials[0].shader;
@@ -842,22 +835,6 @@ void ResourceManager::UnloadAll()
     _fallbackReady = false;
 }
 
-
-// void ResourceManager::UnloadAll() {
-//     UnloadContainer(_textures,        ::UnloadTexture);
-//     UnloadContainer(_models,          ::UnloadModel);
-//     UnloadContainer(_shaders,         ::UnloadShader);
-//     R.UnloadRenderTextures();
-//     UnloadAllFonts();
-//     if (_fallbackTex.id) { UnloadTexture(_fallbackTex); _fallbackTex = {}; }
-//     _fallbackReady = false;
-
-//     if (_fallbackModel.meshCount > 0) {
-//         UnloadModel(_fallbackModel);
-//         _fallbackModel = {};
-//     }
-
-// }
 
 ResourceManager::~ResourceManager() {
     UnloadAll();

@@ -160,7 +160,7 @@
         "dropdown.listBackground": "#19171d",
 
         "terminal.background": "#19171d",
-        "terminal.foreground": "#e0d5e8",
+        "terminal.foreground": "#f5f5f5",
 
         "terminalStickyScroll.background": "#19171d",
         "terminalStickyScrollHover.background": "#2c2734",

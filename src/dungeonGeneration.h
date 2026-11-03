@@ -34,6 +34,7 @@ enum class WallType {
     Normal, 
     Wood,
     WoodHalf, 
+    Shop,
 };
 
 enum class DoorType {

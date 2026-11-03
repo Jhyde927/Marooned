@@ -71,6 +71,7 @@ enum class Code {
     Box,                      // (139, 69, 19) Saddle Brown
     woodWall,                 // (78, 46, 26) Dark Brown
     woodWallHalf,             //(137, 77, 40)  Medium Brown
+    shopWall,                 //(13, 1 ,1) shop wall
     woodFloor,                // (196, 155, 96) Tan
     shipMast,                 //(49,28,15) very dark brown. 
     Zombie,                   //(51, 130, 9) zombie green
@@ -181,6 +182,7 @@ constexpr Color ColorOf(Code c) {
         case Code::iceWizard:              return Make(0, 211, 211);
         case Code::arcaneWizard:           return Make(200, 0, 243);
         case Code::doubleShot:             return Make(60, 80, 100);
+        case Code::shopWall:               return Make(13, 1, 1);
         
 
 
@@ -217,6 +219,8 @@ inline bool IsWallColor(Color c)
     if (EqualsRGB(c, ColorOf(Code::woodWallHalf))) return true;
     // NEW:
     if (EqualsRGB(c, ColorOf(Code::SecretDoor))) return true;
+
+    if (EqualsRGB(c, ColorOf(Code::shopWall))) return true;
 
     return false;
 }

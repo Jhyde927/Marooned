@@ -682,13 +682,6 @@ void GenerateFloorTiles(float baseY)
             }
 
 
-            // FloorTile tile;
-            // tile.position = pos;
-            // tile.tint = WHITE;
-            // tile.floorType = FloorType::Normal;
-            // floorTiles.push_back(tile);
-            // AddFloorInstanceSource(tile);
-
             AddFloorInstanceSource(pos, FloorType::Normal); //push straight to instancing system, no struct needed. 
         }
 
@@ -876,6 +869,10 @@ void GenerateWallTiles(float baseY) {
 
                     }
 
+                    if (EqualsRGB(current, ColorOf(Code::shopWall))){
+                        wall.type = WallType::Shop;
+                    }
+
                     wall.position  = mid;
                     wall.rotationY = 90.0f;
                     wall.tint      = WHITE;
@@ -909,6 +906,10 @@ void GenerateWallTiles(float baseY) {
                     if (EqualsRGB(current, ColorOf(Code::woodWallHalf))){
                         wall.type = WallType::WoodHalf;
 
+                    }
+
+                    if (EqualsRGB(current, ColorOf(Code::shopWall))){
+                        wall.type = WallType::Shop;
                     }
 
                     wall.position  = mid;
@@ -1016,6 +1017,11 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             bool wood = (EqualsRGB(left, ColorOf(Code::woodWall)) || EqualsRGB(right, ColorOf(Code::woodWall)) ||
             EqualsRGB(up, ColorOf(Code::woodWall)) || EqualsRGB(down, ColorOf(Code::woodWall)));
 
+            bool shop = (EqualsRGB(left, ColorOf(Code::shopWall)) ||
+                        EqualsRGB(right, ColorOf(Code::shopWall)) ||
+                        EqualsRGB(up, ColorOf(Code::shopWall)) ||
+                        EqualsRGB(down, ColorOf(Code::shopWall)));
+
             bool wallLeft = IsWallColor(left);
             bool wallRight = IsWallColor(right);
             bool wallUp = IsWallColor(up);
@@ -1037,7 +1043,7 @@ void GenerateDoorways(float baseY, int currentLevelIndex) {
             archway.tileX = x;
             archway.tileY = y;
             if (window) archway.window = true;
-            if (wood) archway.wood = true;
+            if (wood || shop) archway.wood = true;
             GenerateSideColliders(pos, rotationY, archway);
 
 
@@ -3177,8 +3183,15 @@ void DrawDungeonGeometry(Camera& camera, float maxDrawDist){
             Vector3 dPos = {d.position.x, d.position.y, d.position.z};
             DrawModelEx(R.GetModel("windowWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {500, 620, 500}, d.tint);
         }else if (d.wood){
-            Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
-            DrawModelEx(R.GetModel("woodDoorWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+
+            if (CurrentLevelIs("Shop")){
+                Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
+                DrawModelEx(R.GetModel("shopDoorWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+            }else{
+                Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};
+                DrawModelEx(R.GetModel("woodDoorWay"), dPos, {0, 1, 0}, d.rotationY * RAD2DEG, {490, 595, 476}, d.tint);
+            }
+
 
         } else{
             Vector3 dPos = {d.position.x, d.position.y + 100, d.position.z};

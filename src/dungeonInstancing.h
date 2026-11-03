@@ -17,7 +17,8 @@ enum class DungeonInstanceKind
 
     WallStone,
     WallWood,
-    WallWoodHalf
+    WallWoodHalf,
+    ShopWall
 };
 
 struct DungeonInstanceSource
