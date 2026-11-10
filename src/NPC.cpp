@@ -48,10 +48,10 @@ void NPC::Init(Texture2D sheet, int frameW, int frameH, float sc, float /*rotati
     texture = sheet;
     frameWidth  = frameW;
     frameHeight = frameH;
-    scale = sc;
 
     homePos = position;
     patrolLastPos = position;
+    scale = sc;
 
     visionRadiusSq = visionRadius * visionRadius;
     // fireRadiusSq is already stored as sq in your code; keep as-is
@@ -62,46 +62,58 @@ void NPC::Init(Texture2D sheet, int frameW, int frameH, float sc, float /*rotati
 
 void NPC::Update(float dt, const std::vector<Character*>& enemyPtrs)
 {
-    if (!isActive) return;
+    if (!isActive)
+    {
+        return;
+    }
 
-    if (raft.IsComplete() && CurrentLevelIs("MiddleIsland") && dialogId != "hermit_3"){
+    if (type == NPCType::Hermit &&
+        raft.IsComplete() &&
+        CurrentLevelIs("MiddleIsland") &&
+        dialogId != "hermit_3")
+    {
         dialogId = "hermit_3";
         dialogManager.SetActive(true);
         isInteractable = true;
-        
     }
 
-    // Talk override behavior
     if (state == NPCState::Talk && !CanInteract(player.position))
+    {
         state = NPCState::Idle;
 
-    // If talking, let timed loop / oneshot drive animation and early out
-    if (state == NPCState::Talk)
-    {
-        animIntent = AnimIntent::Talk;
-        UpdateHermitAnimationFromIntent();
-        UpdateAnim(dt);
-        previousPosition = position;
-        return;
+        if (type == NPCType::ShopKeeper)
+        {
+            animMode = NPCAnimMode::None;
+            talkLoopTimeLeft = 0.0f;
+        }
     }
 
     if (type == NPCType::Hermit)
     {
-        UpdateHermitBrain(dt, enemyPtrs);
+        if (state == NPCState::Talk)
+        {
+            animIntent = AnimIntent::Talk;
+        }
+        else
+        {
+            UpdateHermitBrain(dt, enemyPtrs);
+        }
+
         UpdateHermitAnimationFromIntent();
-        UpdateAnim(dt);
-    }
-    else
-    {
-        // Placeholder: other NPC types later
-        animIntent = AnimIntent::Idle;
-        UpdateAnim(dt);
+    }else{
+
+        // if (state != NPCState::Talk)
+        // {
+        //     UpdateShopKeeperPatrol(dt);
+        // }
+        
+        UpdateShopKeeperAnimation();
     }
 
+
+    UpdateAnim(dt);
     previousPosition = position;
 }
-
-
 
 // -------------------------------------------------------------
 // High-level hermit brain selection (ONE place)
@@ -186,9 +198,71 @@ static Facing3 GetFacing3Way(const Vector3& npcPos, float npcYawDeg, const Vecto
     return (d > 0.0f) ? Facing3::Front : Facing3::Back;
 }
 
+void NPC::UpdateShopKeeperPatrol(float dt)
+{
+    if (navHasPath)
+    {
+        // Preserve the shopkeeper's tuned billboard height.
+        const float spawnY = homePos.y;
+        FollowNavPath(dt);
+        position.y = spawnY;
+
+        if (!navHasPath)
+        {
+            shopKeeperHeadingHome = !shopKeeperHeadingHome;
+            shopKeeperPatrolWait = 1.0f;
+        }
+
+        return;
+    }
+
+    shopKeeperPatrolWait -= dt;
+    if (shopKeeperPatrolWait > 0.0f)
+    {
+        return;
+    }
+
+    const Vector3 goal = shopKeeperHeadingHome
+        ? homePos
+        : GetDungeonWorldPos(2, 8, tileSize, homePos.y);
+
+    if (!BuildDungeonPath(goal))
+    {
+        shopKeeperPatrolWait = 2.0f;
+    }
+}
+
 // -------------------------------------------------------------
 // Animation mapping (ONE place)
 // -------------------------------------------------------------
+
+void NPC::UpdateShopKeeperAnimation()
+{
+    const float yaw = rotationY * DEG2RAD;
+    const float dx = player.position.x - position.x;
+    const float dz = player.position.z - position.z;
+    const float forwardDot = dx * sinf(yaw) + dz * cosf(yaw);
+
+    const bool isWalking = navHasPath;
+
+    if (state == NPCState::Talk)
+    {
+        ResetAnim(1, 0, 2, 0.50f);
+    }
+    else if (forwardDot < 0.0f)
+    {
+        ResetAnim(3, 0, 1, 0.15f);
+    }
+    else if (isWalking)
+    {
+        ResetAnim(2, 0, 4, 0.33f);
+    }
+    else
+    {
+        ResetAnim(0, 0, 1, 0.15f);
+    }
+}
+
 void NPC::UpdateHermitAnimationFromIntent()
 {
     const int FRONT_ROW_IDLE = 0;
@@ -781,7 +855,7 @@ void NPC::FollowNavPath(float dt)
     }
 
     Vector3 wp = navPath[navPathIndex];
-    wp.y = GetHeightAtWorldPosition(wp, heightmap, terrainScale);
+    // wp.y = GetHeightAtWorldPosition(wp, heightmap, terrainScale);
 
     Vector3 to = Vector3Subtract(wp, position);
     to.y = 0.0f;
@@ -845,9 +919,12 @@ void NPC::PlayTalkLoopForSeconds(float seconds)
     returnFrame = 0;
     state = NPCState::Talk;
 
-    JournalData::Progress::DiscoverJournalEntry(
-        JournalData::JournalEntryID::MetHermit
-    );
+    if (type == NPCType::Hermit)
+    {
+        JournalData::Progress::DiscoverJournalEntry(
+            JournalData::JournalEntryID::MetHermit
+        );
+    }
 }
 
 void NPC::PlayTalkOneShot()

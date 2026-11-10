@@ -262,12 +262,24 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             //draw mini map
             if (isDungeon && GameSettings::drawMinimap) miniMap.DrawMiniMap();
 
-            journalUI.DrawJournalPrompt();
-            if (journalUI.IsOpen()){
-                journalUI.Draw();
+            // journalUI.DrawJournalPrompt();
+            // if (journalUI.IsOpen()){
+            //     journalUI.Draw();
+            // }
+
+            if (journalShopUI.IsOpen())
+            {
+                journalShopUI.Draw(player.gold);
             }
+            else
+            {
+                journalUI.DrawJournalPrompt();
 
-
+                if (journalUI.IsOpen())
+                {
+                    journalUI.Draw();
+                }
+            }
             //draw sword slash
             for (SlashEffect& s : gSlashEffects){
                 DrawSwordSlash(s);

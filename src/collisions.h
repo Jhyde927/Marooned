@@ -35,3 +35,4 @@ bool DestroyBarrelAtCollision(Vector3 position, float radius);
 bool DamageSpiderEggAtCollision(Vector3 position, float radius, float damage, Vector3 damageSource);
 void DamageSpiderEggsAlongBolt(Vector3 start, Vector3 end, float damage);
 void HandleBulletCollisions(Camera& camera);
+Vector3 ClipLightningToWorld(Vector3 origin, Vector3 targetPoint);

@@ -106,7 +106,7 @@ void ConvertImageToWalkableGrid(const Image& dungeonMap) {
             }
 
             bool black   = (EqualsRGB(c, ColorOf(Code::Wall)));      // walls
-            bool blue    = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
+           //bool blue    = (EqualsRGB(c, ColorOf(Code::Barrel)));    // barrels
             bool yellow  = (EqualsRGB(c, ColorOf(Code::Light)));  // light pedestals
             bool skyBlue = (EqualsRGB(c, ColorOf(Code::ChestSkyBlue)));  // chests
             bool purple  = (EqualsRGB(c, ColorOf(Code::Doorway)));  // closed doors
@@ -305,6 +305,13 @@ bool IsSeeThroughForLOS(int x, int y)
         return true;
     }
 
+    if (EqualsRGB(current, ColorOf(Code::WindowedWall))){
+        return true;
+    }
+
+    if (EqualsRGB(current, ColorOf(Code::ChestSkyBlue))){
+        return true;
+    }
 
     // Normal case: walkable = see-through
     if (walkable[x][y]) return true;
@@ -312,11 +319,9 @@ bool IsSeeThroughForLOS(int x, int y)
     // Special case: lava is NOT walkable but still see-through for vision
     if (IsLavaTile(x, y)) return true;
 
-    if (IsVoid(x, y)) return true;
+    if (IsVoid(x, y)) return true; //same for void
 
-    //Void Tiles should be see through? it seems to just work with void tiles. they see the player and track over void. 
-
-    // Everything else (walls, closed doors, barrels, etc) blocks LOS
+    // Everything else (walls, closed doors, etc) blocks LOS
     return false;
 
 
@@ -628,7 +633,7 @@ Vector2 GetRandomDropTile(const Vector2& start, int radius, int maxAttempts)
         {
             continue;
         }
-        
+
         return target;
     }
 

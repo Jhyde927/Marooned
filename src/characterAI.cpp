@@ -2557,8 +2557,8 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                 else
                 {
 
-                    FireFireball(muzzle, player.position, 1350.0f, 2.0f, true, true, true);
-
+                    //FireFireball(muzzle, player.position, 1350.0f, 2.0f, true, true, true);
+                    FireEnemyLightning(position, player.position, 25.0f, this);
                     attackCooldown = 5.0f;
 
                     SoundManager::GetInstance().PlaySoundAtPosition(

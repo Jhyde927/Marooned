@@ -17,9 +17,7 @@ enum class Facing3
 enum class NPCType
 {
     Hermit,
-    Parrot,
-    Skeleton,
-    Pirate
+    ShopKeeper
 };
 
 // Keep this if you still want a universal "talk" override.
@@ -217,9 +215,13 @@ public:
     float GetCenterDungeonPosY() const;
 
 private:
+    void UpdateShopKeeperPatrol(float dt);
+
+
     // --- high-level hermit update ---
     void UpdateHermitBrain(float dt, const std::vector<Character*>& enemyPtrs);
     void UpdateHermitAnimationFromIntent();
+    void UpdateShopKeeperAnimation();
 
     // --- turret brain ---
     void UpdateHermitTurretBrain(float dt, const std::vector<Character*>& enemyPtrs);
@@ -250,6 +252,8 @@ private:
     bool BuildPathTo(const Vector3& goalWorld);
     void FollowNavPath(float dt);
     bool BuildDungeonPath(const Vector3& goalWorld);
+
+    
     // senses
     bool HasTargetInVision(const std::vector<Character*>& enemyPtrs) const;
 
@@ -258,6 +262,9 @@ private:
 
     // misc
     void ClearNav();
+
+    bool shopKeeperHeadingHome = false;
+    float shopKeeperPatrolWait = 1.0f;
 
 private:
     // Type for state function pointers (keeps switch count minimal)

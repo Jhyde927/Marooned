@@ -32,7 +32,7 @@ private:
     float openAmount = 0.0f;
     float openSpeed = 4.0f;
     Shader grayShader{};
-    RenderTexture2D* bookTexture = nullptr;
+    //RenderTexture2D* bookTexture = nullptr;
 
     int currentJournalPage = 0;
     int currentCreaturePage = 0;

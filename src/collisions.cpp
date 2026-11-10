@@ -779,6 +779,63 @@ bool DestroyBarrelAtCollision(Vector3 position, float radius)
     return false;
 }
 
+Vector3 ClipLightningToWorld(Vector3 origin, Vector3 targetPoint)
+{
+    float distance = Vector3Distance(origin, targetPoint);
+    if (distance < 0.001f) return origin;
+
+    const float stepSize = 10.0f;
+    int steps = static_cast<int>(ceilf(distance / stepSize));
+
+    Vector3 previous = origin;
+
+    for (int i = 1; i <= steps; ++i) {
+        float t = static_cast<float>(i) / steps;
+        Vector3 next = Vector3Lerp(origin, targetPoint, t);
+
+        if (isDungeon) {
+            if (!DDAHasLineOfSightWorld(previous, next))
+                return previous;
+
+            if (drawCeiling && next.y >= ceilingHeight)
+                return previous;
+
+            int tx = GetDungeonImageX(next.x, tileSize, dungeonWidth);
+            int ty = GetDungeonImageY(next.z, tileSize, dungeonWidth);
+
+            if (tx < 0 || ty < 0 || tx >= dungeonWidth || ty >= dungeonWidth)
+                return previous;
+
+            int index = Idx(tx, ty);
+
+            if (index < 0 ||
+                static_cast<size_t>(index) >= lavaMask.size() ||
+                static_cast<size_t>(index) >= voidMask.size())
+                return previous;
+
+            float floorY = floorHeight + 20.0f;
+
+            if (voidMask[index] == 1)
+                floorY = -1000.0f;
+            else if (lavaMask[index] == 1)
+                floorY = floorHeight - lavaOffsetY;
+
+            if (next.y <= floorY)
+                return previous;
+        }
+        else {
+            float terrainY = GetHeightAtWorldPosition(next, heightmap, terrainScale);
+
+            if (next.y <= terrainY)
+                return previous;
+        }
+
+        previous = next;
+    }
+
+    return targetPoint;
+}
+
 bool HandleBarrelHitsForMagicMissile(MagicMissile& missile)
 {
     if (DestroyBarrelAtCollision(

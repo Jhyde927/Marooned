@@ -26,6 +26,7 @@
 #include "cannonballPile.h"
 #include "debug_overlay.h"
 #include "JournalUI.h"
+#include "JournalShopUI.h"
 #include "particleSystem.h"
 #include "magicMissile.h"
 #include "chainLightning.h"
@@ -58,6 +59,7 @@ extern Vector3 bottomPos;
 extern MiniMap miniMap;
 extern Raft raft;
 extern JournalUI journalUI;
+extern JournalShopUI journalShopUI;
 
 extern bool showStats;
 extern bool controlPlayer;
@@ -211,3 +213,4 @@ void DrawFrameLightGlows(const Camera3D& camera, const Texture2D& glowTexture);
 void DrawChainLightnings(const Camera3D& camera);
 void ChangeLevel(int idx);
 void DropGold(Vector3 dropPos, int count, int radius = 1);
+void FireEnemyLightning(Vector3 origin, Vector3 aimPoint, float damage, Character* caster);

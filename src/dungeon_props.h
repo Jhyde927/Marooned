@@ -17,6 +17,7 @@ enum class DungeonPropType
     BonePile,
     WallBanner,
     Candelabra,
+    BarTop,
 
 };
 

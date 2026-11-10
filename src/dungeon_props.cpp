@@ -149,6 +149,15 @@ DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotati
 
     switch (type)
     {
+        case DungeonPropType::BarTop:
+        {
+            prop.renderMode = DungeonPropRenderMode::Model;
+            prop.modelName = "BarTop";
+            prop.modelSize = {100.0,100.0f, 100.0f}; // span the span
+            prop.tint = WHITE;
+            prop.rotationY = -90.0f;
+            
+        } break;
 
         case DungeonPropType::TableSet:
         {
@@ -239,6 +248,12 @@ void GenerateDungeonPropsForCurrentLevel()
 
     }
 
+    if (CurrentLevelIs("Shop")){
+        Vector3 spawnPos = TileToWorld(4, 10, tileSize, floorHeight);
+        DungeonProp barProp = MakeDefaultProp(DungeonPropType::BarTop, spawnPos, 0.0f);
+        gDungeonProps.push_back(barProp);
+    }
+
 
 }
 
@@ -259,7 +274,8 @@ void GenerateProps(float baseY) {
     
     SetRandomSeed(gLastPropSeed);
 
-    if (CurrentLevelIs("Dungeon1")) GenerateDungeonPropsForCurrentLevel(); //hardcoded props. 
+    if (CurrentLevelIs("Dungeon1")) GenerateDungeonPropsForCurrentLevel(); //hardcoded props.
+    if (CurrentLevelIs("Shop")) GenerateDungeonPropsForCurrentLevel(); 
 
     GenerateAutoCornerProps(baseY);
 

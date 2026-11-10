@@ -20,7 +20,8 @@ enum class ChestTreasure
     DoubleShot,
     HealthPotion,
     IceMagic,
-    MagicMissile
+    MagicMissile,
+    Gold
 
 };
 
@@ -390,6 +391,7 @@ void GenerateSecrets(float baseY);
 void GenerateInvisibleWalls(float baseY);
 // void GenerateSwitches(float baseY);
 void GenerateHermitFromImage(float baseY);
+void GenerateShopKeeper();
 void GenerateTencalesFromImage(float baseY);
 void GenerateKrakenFromImage(float baseY);
 void GenerateCannonFromImage(float baseY);

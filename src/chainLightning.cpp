@@ -7,8 +7,8 @@
 #include "pathfinding.h"
 #include "collisions.h"
 
-ChainLightning::ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage)
-    : damage(initialDamage)
+ChainLightning::ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage, bool hitPlayer,  Character* caster)
+    : damage(initialDamage), casterToIgnore(caster)
 {
     AddBolt(origin, targetPoint);
     lastHitPosition = targetPoint;
@@ -16,13 +16,17 @@ ChainLightning::ChainLightning(Vector3 origin, Vector3 targetPoint, Character* t
     SoundManager::GetInstance().PlaySoundAtPosition("lightning", origin, player.position, 0.0f, 3000.0f);
     SoundManager::GetInstance().PlaySoundAtPosition("lightningHum", origin, player.position, 0.0f, 3000.0f);
 
-    if (target) {
+
+    if (target)
+    {
         hitTargets.push_back(target);
-        target->TakeDamage(damage); // Tune damage later.
+        target->TakeDamage(damage);
     }
-    else {
-        finishedChaining = true;
+    else
+    {
+        finishedChaining = !hitPlayer;
     }
+
 }
 
 void ChainLightning::Update(float deltaTime)
@@ -146,6 +150,8 @@ bool ChainLightning::TryNextJump()
     for (Character* enemy : enemyPtrs) {
         if (!enemy) continue;
         if (enemy->isDead) continue;
+        if (enemy == casterToIgnore) continue;
+
         // Add the same dead-enemy check used in FireChainLightning().
 
         if (std::find(hitTargets.begin(), hitTargets.end(), enemy) != hitTargets.end())

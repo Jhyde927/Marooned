@@ -111,6 +111,7 @@ static void UpdateGameplaySystems(Camera3D& camera, Player& player, float dt)
     PortalSystem::Update(player.position, player.radius, dt);
     DebugConsole::Update(dt);
     journalUI.Update(dt);
+    journalShopUI.Update();
     particleSystem.Update(dt);
 
     UpdateRaftInteraction();
@@ -181,7 +182,7 @@ static void UpdateGameplayCollisions(Camera3D& camera)
 void UpdatePlayingFrame(Camera3D& camera, Player& player, float dt, float elapsedTime)
 {
     if (IsKeyPressed(KEY_ESCAPE) && gFadePhase == FadePhase::Idle){
-        if (!journalUI.IsOpen()){
+        if (!journalUI.IsOpen() && !journalShopUI.IsOpen()){
             currentGameState = GameState::Menu;
         }
 

@@ -30,6 +30,7 @@ namespace DebugConsole
     void CommandChangeLevel(int idx);
     void CommandHealth(int amount);
     void CommandMana(int amount);
+    void CommandGold(int amount);
     void CommandDoors();
     void CommandOpenDoors();
     void CommandStamina();

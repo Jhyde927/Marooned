@@ -246,6 +246,23 @@ namespace DebugConsole
 
             CommandMana(amount);
         }
+
+        else if (command == "gold")
+        {
+            int amount = 1; // default amount
+
+            if (words.size() >= 2)
+            {
+                if (!TryParseInt(words[1], amount))
+                {
+                    Log("Invalid amount: " + words[1]);
+                    return;
+                }
+            }
+
+            CommandGold(amount);
+
+        }
         else if (command == "position")
         {
             CommandPosition();
@@ -334,6 +351,7 @@ namespace DebugConsole
         {
             CommandFreezeAI();
         }
+
         else if (command == "journal")
         {
             CommandUnlockJournal();
@@ -757,6 +775,13 @@ namespace DebugConsole
         player.inventory.AddItemAmount("HealthPotion", amount);
         SoundManager::GetInstance().Play("clink");
 
+    }
+
+    void CommandGold(int amount)
+    {
+        Log("Gold command amount: " + std::to_string(amount));
+        player.gold += amount;
+        //SoundManager::GetInstance().Play("")
     }
 
     void CommandMana(int amount)

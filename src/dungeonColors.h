@@ -62,6 +62,7 @@ enum class Code {
     Bat,                      // (75, 0, 130) Deep Purple
     bloatBat,                 // (110, 0, 110) Bruised Purple
     Hermit,                   // (110, 74, 45) Weathered Oak
+    ShopKeeper,               // ((93, 47, 117) Grave violet
     SwitchInvis,               // (159, 226, 191) seafoam green
     SwitchFire,               // (255, 99, 71) tomato
     switchID,                // (0, 102, 85) Payne's Green
@@ -91,6 +92,7 @@ enum class Code {
     iceWizard,                // (0, 211, 211) wizard blue
     arcaneWizard,             // (200, 0, 243)
     doubleShot,               // (60,80,100) 
+    barTop,                   // (139, 90, 43) medium wood
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -183,6 +185,9 @@ constexpr Color ColorOf(Code c) {
         case Code::arcaneWizard:           return Make(200, 0, 243);
         case Code::doubleShot:             return Make(60, 80, 100);
         case Code::shopWall:               return Make(13, 1, 1);
+        case Code::ShopKeeper:             return Make(93, 47, 117);
+        case Code::barTop:                 return Make(139, 90, 43);
+    
         
 
 

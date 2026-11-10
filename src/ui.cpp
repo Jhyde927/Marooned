@@ -10,7 +10,7 @@
 #include "camera_system.h"
 #include "render_pipeline.h"
 #include "main_menu.h"
-
+#include "JournalUI.h"
 #include "sound_manager.h"
 #include "algorithm"
 #include "shaderSetup.h"
@@ -26,8 +26,6 @@ DialogManager dialogManager;
 bool gHermitIntroDone = false;     // set true after the dialog fully ends once
 bool gHermitFollowing = false;
 
-
-
 static int gActiveNpcIndex = -1;
 
 void InitDialogs()
@@ -39,6 +37,8 @@ void InitDialogs()
         24.0f,
         2.0f
     );
+
+    dialogManager.AddDialog("shopkeeper_1", {"Welcome", "Have a look around", "See anything you like?"});
 
     dialogManager.AddDialog(
         "hermit_intro",
@@ -178,6 +178,8 @@ void StartHermitSpeech(float length){
 
 void UpdateInteractionNPC()
 {
+    if (journalShopUI.IsOpen()) return; //stop interaction if jouranl is open. 
+
     // ---- 1) If dialog is active, handle ONLY dialog logic this frame ----
     if (dialogManager.IsActive())
     {
@@ -197,7 +199,7 @@ void UpdateInteractionNPC()
             return;
         }
 
-        // Advance line on E
+        // Advance line on E, 
         if (IsKeyPressed(KEY_E))
         {
             dialogManager.Advance();
@@ -205,24 +207,26 @@ void UpdateInteractionNPC()
             if (!dialogManager.IsActive())
             {
                 // dialog ended
-                speaker.state = NPCState::Idle;
-                gActiveNpcIndex = -1;
+                if (speaker.type == NPCType::Hermit)
+                {
+                    SoundManager::GetInstance().StopSpeech(gActiveNpcIndex);
 
-                int hermitId = FindHermitIndex(gNPCs);
-                if (hermitId != -1) SoundManager::GetInstance().StopSpeech(hermitId);
-
-                if (speaker.type == NPCType::Hermit){
                     gHermitIntroDone = true;
-
                     speaker.turretState = HermitTurretState::Idle;
                     speaker.target = nullptr;
                     speaker.aimTimer = 0.0f;
                     speaker.stateTimer = 0.0f;
                 }
+                else if (speaker.type == NPCType::ShopKeeper)
+                {
                     
+                    journalShopUI.Open();
+                    
+                }
 
-
-                return;
+            speaker.state = NPCState::Idle;
+            gActiveNpcIndex = -1;
+            return;
             }
 
             // dialog still active -> animate + audio for *current line*
@@ -235,7 +239,6 @@ void UpdateInteractionNPC()
             if (speaker.type == NPCType::Hermit)
                 StartHermitSpeech(duration);
         }
-
 
         return; // IMPORTANT: don't scan NPCs while dialog is active
     }

@@ -381,47 +381,6 @@ void UpdateDungeonChests()
     }
 }
 
-// void UpdateDungeonChests() {
-    
-//     const int OPEN_END_FRAME = 10;
-
-//     for (ChestInstance& chest : chestInstances) {
-//         float distToPlayer = Vector3Distance(player.position, chest.position);
-//         if (distToPlayer < 300 && IsKeyPressed(KEY_E) && !chest.open){
-//             chest.animPlaying = true;
-//             chest.animFrame = 0.0f;
-
-
-//             SoundManager::GetInstance().Play("chestOpen");
-//         }
-
-//         if (chest.animPlaying) {
-//             chest.animFrame += GetFrameTime() * 50.0f;
-
-//             if (chest.animFrame > OPEN_END_FRAME) {
-//                 chest.animFrame = OPEN_END_FRAME;
-//                 chest.animPlaying = false;
-//                 chest.open = true;
-//             }
-
-//             UpdateModelAnimation(chest.model, chest.animations[0], (int)chest.animFrame);
-
-            
-//         }
-//         else if (chest.open && chest.canDrop) { //wait until the animation is finished before dropping the item. 
-//             chest.canDrop = false;
-//             UpdateModelAnimation(chest.model, chest.animations[0], OPEN_END_FRAME);
-//             Vector3 pos = {chest.position.x, chest.position.y + 100, chest.position.z};
-//             Collectable key(CollectableType::GoldKey, pos, R.GetTexture("keyTexture"), 100);
-            
-//             collectables.push_back(key);
-            
-//         }
-
-//     }
-
-// }
-
 static inline Vector3 BoxCenter(const BoundingBox& b)
 {
     return {
@@ -1774,23 +1733,36 @@ void GenerateBarrels(float baseY) {
 
 ChestTreasure GetChestTreasure(int levelIndex, int chestIndex)
 {
-    (void) chestIndex; //for later use. 
     //Chest Index depends on the scan order we iterate the png. Right to left, Top to bottom. This way we can,
     //set different parameters for specific chests. Like rotation or treasure. 
     switch (levelIndex)
     {
         case 3:
         {
-            return ChestTreasure::Harpoon;
+            if (chestIndex == 0){
+                return ChestTreasure::Gold; //index 1 chest, secret gold chest. 
+            }else{
+
+                return ChestTreasure::Harpoon;
+
+            }
+
         }
 
         case 7:
         {
             return ChestTreasure::DoubleShot;
         }
+
+
         case 10:
         {
-            return ChestTreasure::IceMagic;
+            if (chestIndex == 0){
+                return ChestTreasure::IceMagic;
+            }else{
+                return ChestTreasure::Gold;
+            }
+
         }
         case 12:
         {
@@ -1815,6 +1787,13 @@ void DropChestTreasure(const ChestInstance& chest)
 
     switch (chest.treasure)
     {
+
+        case ChestTreasure::Gold:
+        {
+            DropGold(pos, 16, 2);
+            break;
+        }
+
         case ChestTreasure::GoldKey:
         {
             collectables.emplace_back(
@@ -1904,8 +1883,8 @@ void GenerateChests(float baseY) {
                     rotation = 90.0f;
                 }
 
-                                // create a unique key for this chest model
-                std::string key = "chestModel#" + std::to_string(chestID++);
+                const int currentChestID = chestID++;
+                std::string key = "chestModel#" + std::to_string(currentChestID);
 
                 // load a _separate_ model for this chest
                 // (this reads the same GLB but gives you independent skeleton data)
@@ -1914,8 +1893,6 @@ void GenerateChests(float baseY) {
 
                 int animCount = 0;
                 ModelAnimation *anims = LoadModelAnimations("assets/models/chest.glb", &animCount);
-
-                int currentChestID = chestID;
 
                 ChestInstance chest = {
                     model,
@@ -2299,6 +2276,36 @@ void ConfigureHermitForLevel(NPC& hermit, bool isDungeonLevel)
     }
 }
 
+void GenerateShopKeeper(){
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+
+            if (EqualsRGB(current, ColorOf(Code::ShopKeeper))){
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, 225.0f);
+
+                NPC shopKeeper;
+                shopKeeper.type = NPCType::ShopKeeper;
+                shopKeeper.position = spawnPos;
+                shopKeeper.dialogId = "shopkeeper_1";
+                shopKeeper.tint = WHITE;
+                shopKeeper.rotationY = 180.0f;
+
+                shopKeeper.Init(
+                    R.GetTexture("shopKeeperSheet"),
+                    400,
+                    400,
+                    0.5,
+                    0.0f
+                );
+
+                gNPCs.push_back(shopKeeper);
+            }
+
+
+        }
+    }
+}
 
 
 void GenerateHermitFromImage(float baseY) {

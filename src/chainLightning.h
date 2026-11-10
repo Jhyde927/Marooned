@@ -17,7 +17,7 @@ struct LightningBolt {
 
 class ChainLightning {
 public:
-    ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage);
+    ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage, bool hitPlayer = false,  Character* caster = nullptr);
     void Update(float deltaTime);
     void Draw(const Camera3D& camera, const Texture2D& texture) const;
     bool IsActive() const { return active; }
@@ -29,6 +29,8 @@ private:
     bool TryNextJump();
     std::vector<LightningBolt> bolts;
     std::vector<Character*> hitTargets;
+    float damage;
+    Character* casterToIgnore = nullptr;
 
     Vector3 lastHitPosition = {};
 
@@ -39,5 +41,5 @@ private:
     bool finishedChaining = false;
     bool active = true;
 
-    float damage;
+
 };

@@ -726,6 +726,18 @@ namespace ShaderSetup
 
         SetShaderValue(sh, bs.loc_letterboxSoftness,
                     &bs.letterboxSoftness, SHADER_UNIFORM_FLOAT);
+
+        const float baseBloom = isDungeon
+            ? GameSettings::dungeonBloomStrength
+            : GameSettings::outdoorBloomStrength;
+
+        
+        const float lowHealth = Clamp((20.0f - player.currentHealth) / 20.0f, 0.0f, 1.0f);
+        const float bloomStrength = baseBloom + 5.0f * lowHealth;
+
+        SetShaderValue(sh, gBloom.loc_bloomStrength, &bloomStrength, SHADER_UNIFORM_FLOAT);
+
+
     }
 
     void UpdateLavaShaderPerFrame(LavaShader& ls, float t, bool isLoadingLevel)

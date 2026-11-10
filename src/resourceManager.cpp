@@ -415,6 +415,8 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("bloatBatSheet",       "assets/sprites/bloatBatSheet.png");
     R.LoadTexture("krakenShot",          "assets/sprites/krakenShot.png");
 
+    R.LoadTexture("shopKeeperSheet",     "assets/sprites/shopKeeperSheet.png");
+
     R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
     R.LoadTexture("raftBody", "assets/sprites/raftBody.png");
     R.LoadTexture("raftSail", "assets/sprites/raftSail.png");
@@ -487,6 +489,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadModel("candelabra",             "assets/Models/candelabra.glb");
     R.LoadModel("shopWall",               "assets/Models/shopWall.glb");
     R.LoadModel("shopDoorWay",            "assets/Models/shopDoorWay.glb");
+    R.LoadModel("BarTop",                 "assets/Models/BarTop.glb");
 
     //generated models
 

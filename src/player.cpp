@@ -694,7 +694,7 @@ void HandleKeyboardInput(Camera& camera) {
         WeaponDip();
     }
 
-    if (IsKeyPressed(KEY_Q) && !DebugConsole::IsOpen())
+    if (IsKeyPressed(KEY_Q) && !DebugConsole::IsOpen() && !journalShopUI.IsOpen())
     {
         meleeWeapon.model.materials[3].maps[MATERIAL_MAP_DIFFUSE].texture = R.GetTexture("swordClean"); //wipe off the blood on sword
         // Swap weapons
@@ -1463,7 +1463,8 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
         player.godMode = true;
         player.deathTimer += deltaTime;
         //player.canMove = false;
-        ShaderSetup::gBloom.vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe. 
+        ShaderSetup::gBloom.vignetteIntensity = 1.0f; //should stay red becuase its set to 1 everyframe.
+
         //vignetteFade = 0.0f;
         ShaderSetup::gBloom.fadeToBlack = 0.0f;
 
@@ -1802,6 +1803,10 @@ void UpdatePlayer(Player& player, float deltaTime, Camera& camera) {
 
     player.previousPosition = player.position;
 
+    if (player.currentHealth < 20.0f){
+        ShaderSetup::gBloom.vignetteIntensity = 1.0f; //permanent red vignette if health is low. 
+    }
+
 }
 
 void Player::TakeDamage(int amount){
@@ -1839,6 +1844,8 @@ void Player::TakeDamage(int amount){
     }else{
         SoundManager::GetInstance().Play("phit2");
     }
+
+
 
 }
 

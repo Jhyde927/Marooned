@@ -33,6 +33,7 @@
 #include "dungeonInstancing.h"
 #include "saveGame.h"
 #include "particle.h"
+#include "collisions.h"
 
 
 GameState currentGameState = GameState::Menu;
@@ -125,6 +126,7 @@ std::vector<PreviewInfo> levelPreviews;
 Raft raft;
 MiniMap miniMap;
 JournalUI journalUI;
+JournalShopUI journalShopUI;
 ParticleSystem particleSystem;
 
 
@@ -440,6 +442,8 @@ void InitLevel(LevelData& level, Camera& camera) {
     }
 
     journalUI.Init();
+    journalShopUI.Init();
+
     dungeonEntrances = level.entrances; //get level entrances from level data
     GenerateEntrances();
 
@@ -504,6 +508,7 @@ void InitLevel(LevelData& level, Camera& camera) {
         GenerateBoxesFromImage(floorHeight);
 
         GenerateHermitFromImage(floorHeight);
+        GenerateShopKeeper();
         UpdateLoadingScreen(.85, "Generating Props");
         GenerateProps(floorHeight + 20);
 
@@ -1296,6 +1301,27 @@ void UpdateMagicMissile(float deltaTime)
     );
 }
 
+void FireEnemyLightning(Vector3 origin, Vector3 aimPoint, float damage, Character* caster)
+{
+    const Vector3 targetPoint = ClipLightningToWorld(origin, aimPoint);
+
+    
+
+    const bool reachedPlayer =
+        targetPoint.x == aimPoint.x &&
+        targetPoint.y == aimPoint.y &&
+        targetPoint.z == aimPoint.z;
+
+    if (reachedPlayer)
+    {
+        int damageVsPlayer = 25;
+        player.TakeDamage(damageVsPlayer);
+        // Apply damage using the same player-hit code as enemy magic missiles.
+    }
+
+    activeChainLightnings.emplace_back(origin, targetPoint, nullptr, damage, reachedPlayer, caster);
+}
+
 void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem)
 {
     for (Bullet& b : activeBullets)
@@ -1319,26 +1345,6 @@ void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem)
         }
     }
 }
-
-
-// void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem) {
-
-//     for (Bullet& b : activeBullets) {
-//         b.Update(camera, dt, particleSystem);
-//         if (b.exploded){
-//             // First frame of death: convert to glow if requested
-//             if (b.light.active && b.light.detachOnDeath && !b.light.detached) {
-//                 b.light.detached = true;
-//                 b.light.age = 0.f;
-//                 b.light.posWhenDetached = b.GetPosition();  // freeze at death position
-
-//             }
-//             if (b.light.detached) {
-//                 b.light.age += dt;
-//             }
-//         }
-//     }
-// }
 
 void EraseBullets() {
 
@@ -2000,10 +2006,49 @@ void DropManaPotion(Vector3 dropPos)
 
 void DropGold(Vector3 dropPos, int count, int radius)
 {
-    //Toss gold coins in the air, they only land on valid tiles. 
     if (count <= 0)
     {
         return;
+    }
+
+    const Vector2 start = WorldToImageCoords(dropPos);
+    const int startX = static_cast<int>(start.x);
+    const int startY = static_cast<int>(start.y);
+
+    if (startX < 0 || startY < 0 ||
+        startX >= dungeonWidth || startY >= dungeonHeight)
+    {
+        return;
+    }
+
+    std::vector<Vector2> validTiles;
+
+    for (int y = startY - radius; y <= startY + radius; ++y)
+    {
+        for (int x = startX - radius; x <= startX + radius; ++x)
+        {
+            if (x < 0 || y < 0 || x >= dungeonWidth || y >= dungeonHeight)
+            {
+                continue;
+            }
+
+            if (!walkable[x][y])
+            {
+                continue;
+            }
+
+            const Vector2 target = {
+                static_cast<float>(x),
+                static_cast<float>(y)
+            };
+
+            if (!DDAHasLineOfSight(start, target))
+            {
+                continue;
+            }
+
+            validTiles.push_back(target);
+        }
     }
 
     Collectable gold(
@@ -2014,22 +2059,26 @@ void DropGold(Vector3 dropPos, int count, int radius)
     );
 
     gold.value = 1;
-    gold.baseY = dropPos.y;
-
+    gold.baseY = dropPos.y - 32;
     gold.isSpawning = true;
     gold.spawnVelocityY = 1500.0f;
 
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < count; ++i)
     {
-        //radius of 0 drops coin to center tile.
-        Vector2 dropTile = GetRandomDropTile(
-            WorldToImageCoords(dropPos), radius, 100
-        );
+        Vector2 dropTile = start;
+
+        if (!validTiles.empty())
+        {
+            const int index = GetRandomValue(0, static_cast<int>(validTiles.size()) - 1);
+            dropTile = validTiles[index];
+
+            validTiles[index] = validTiles.back();
+            validTiles.pop_back();
+        }
 
         gold.StartDrop(GetDungeonWorldPos(
             dropTile.x, dropTile.y, tileSize, gold.baseY
         ));
-
         collectables.push_back(gold);
     }
 }
