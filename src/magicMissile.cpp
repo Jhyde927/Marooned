@@ -6,6 +6,9 @@
 #include "pathfinding.h"
 #include "sound_manager.h"
 #include "collisions.h"
+#include "bulletCollisionGeometry.h"
+
+using namespace BulletCollisionGeometry;
 
 
 // magicMissile.cpp — constructor
@@ -141,13 +144,42 @@ bool MagicMissile::HandleWorldCollision(Vector3 previousPosition, Vector3 nextPo
     }
 
     float killFloorY = 0.0f;
+
     // Walls
-    if (isDungeon &&
-        !DDAHasLineOfSightWorld(previousPosition, nextPosition))
+    if (isDungeon)
     {
-        DestroyOnImpact(previousPosition);
-        return true;
+        float wallHitT = 1.0f;
+        bool hitWall = false;
+
+        for (const auto& wall : wallRunColliders)
+        {
+            Hit hit{};
+            if (BulletCollisionGeometry::SweepBox(
+                    previousPosition, nextPosition,
+                    wall.bounds, collisionRadius, hit) &&
+                hit.t >= 0.0f && hit.t <= wallHitT)
+            {
+                wallHitT = hit.t;
+                hitWall = true;
+            }
+        }
+
+        if (hitWall)
+        {
+            DestroyOnImpact(Vector3Lerp(
+                previousPosition, nextPosition, wallHitT));
+            return true;
+        }
     }
+
+
+    // Walls
+    // if (isDungeon &&
+    //     !DDAHasLineOfSightWorld(previousPosition, nextPosition))
+    // {
+    //     DestroyOnImpact(previousPosition);
+    //     return true;
+    // }
 
     if (isDungeon)
     {
@@ -372,17 +404,17 @@ void MagicMissile::Update(float deltaTime)
     }
 
     // Check the entire movement segment before moving.
-    if (isDungeon && !DDAHasLineOfSightWorld(position, nextPosition))
-    {
-        particleSystem.EmitBurst(
-            position,
-            25,
-            ParticleType::MagicBurst
-        );
+    // if (isDungeon && !DDAHasLineOfSightWorld(position, nextPosition))
+    // {
+    //     particleSystem.EmitBurst(
+    //         position,
+    //         25,
+    //         ParticleType::MagicBurst
+    //     );
 
-        active = false;
-        return;
-    }
+    //     active = false;
+    //     return;
+    // }
 
     // Commit the movement once.
     position = nextPosition;

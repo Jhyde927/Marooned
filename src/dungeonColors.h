@@ -91,8 +91,10 @@ enum class Code {
     tableSet,                 // (127, 0, 0) //red 127
     iceWizard,                // (0, 211, 211) wizard blue
     arcaneWizard,             // (200, 0, 243)
+    lightningWizard,          // (64, 160, 255) electric blue
     doubleShot,               // (60,80,100) 
     barTop,                   // (139, 90, 43) medium wood
+    bug,                      // (126, 255, 37) electric lime
 };
 
 // Exact RGB constructors (raylib Color channels are unsigned char)
@@ -183,11 +185,12 @@ constexpr Color ColorOf(Code c) {
         case Code::tableSet:               return Make(127, 0 , 0);
         case Code::iceWizard:              return Make(0, 211, 211);
         case Code::arcaneWizard:           return Make(200, 0, 243);
+        case Code::lightningWizard:        return Make(64, 160, 255);
         case Code::doubleShot:             return Make(60, 80, 100);
         case Code::shopWall:               return Make(13, 1, 1);
         case Code::ShopKeeper:             return Make(93, 47, 117);
         case Code::barTop:                 return Make(139, 90, 43);
-    
+        case Code::bug:                    return Make(126, 255, 37);
         
 
 

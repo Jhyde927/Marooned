@@ -193,6 +193,7 @@ void DrawKraken(Camera& camera);
 void SpawnTentacle(Vector3 startPos, bool onRight);
 void ToggleFreeCam();
 void GiveWeapons();
+void ClearCollected();
 void GiveKeys();
 void UnlockAllDoors();
 void KillEnemies();

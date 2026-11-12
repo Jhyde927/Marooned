@@ -387,6 +387,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("wizardSheet",        "assets/sprites/wizardSheet.png");
     R.LoadTexture("IceWizardSheet",     "assets/sprites/IceWizardSheet.png");
     R.LoadTexture("arcaneWizardSheet",  "assets/sprites/arcaneWizardSheet.png");
+    R.LoadTexture("lightningWizardSheet", "assets/sprites/lightningWizardSheet.png");
     R.LoadTexture("skeletonKey",        "assets/sprites/skeletonKey.png");
     R.LoadTexture("batSheet",           "assets/sprites/batSheet.png");
     R.LoadTexture("hermitSheet",        "assets/sprites/hermitSheet.png");
@@ -414,6 +415,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("borderRight",         "assets/textures/borderUIRight.png");
     R.LoadTexture("bloatBatSheet",       "assets/sprites/bloatBatSheet.png");
     R.LoadTexture("krakenShot",          "assets/sprites/krakenShot.png");
+    R.LoadTexture("EmptyFrame",          "assets/sprites/EmptyFrame.png");
 
     R.LoadTexture("shopKeeperSheet",     "assets/sprites/shopKeeperSheet.png");
 

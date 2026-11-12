@@ -13,7 +13,7 @@ namespace DebugConsole
     void Init();
     void Update(float dt);
     void Draw();
-
+    void DrawTimer();
     void Toggle();
     void Open();
     void Close();
@@ -56,8 +56,11 @@ namespace DebugConsole
     void CommandWeapons();
     void CommandFreezeAI();
     void CommandUnlockRaft();
+    void CommandClearCollected();
     void CommandClearSave();
     void CommandClear();
     void CommandExit();
+
+    
 
 }

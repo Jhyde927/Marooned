@@ -258,6 +258,29 @@ void GatherFrameLights() {
         }
     }
 
+    for (const Character* enemy : enemyPtrs){
+        if (!enemy) continue;
+        if (enemy->isDead) continue;
+        if (enemy->type != CharacterType::Bug) continue;
+
+        LightSample s;
+        s.pos = enemy->position;
+        s.color = { 0.65f, 0.25f, 1.0f };
+        s.range = 400.0f;
+        s.intensity = 0.5f;
+        
+
+        const float charge = enemy->state == CharacterState::Attack
+            ? Clamp(enemy->stateTimer / enemy->attackChargeTime, 0.0f, 1.0f)
+            : 0.0f;
+
+        s.glowRadius = Lerp(25.0f, 45.0f, charge);
+        s.glowIntensity = Lerp(0.8f, 1.0f, charge);
+
+        frameLights.push_back(s);
+        
+    }
+
 }
 
 

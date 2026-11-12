@@ -811,6 +811,20 @@ void MovePlayerToFreeCam(){
 
 }
 
+void ClearCollected(){
+    hasCrossbow = true;
+    hasBlunderbuss = false;
+    hasStaff = false;
+    hasHarpoon = false;
+    hasIce = false;
+    hasMissile = false;
+    hasLightning = false;
+    
+    player.previousWeapon = WeaponType::Sword;
+    player.activeWeapon = WeaponType::Crossbow;
+    player.currentWeaponIndex = 0;
+}
+
 void UpdateSlashEffects(float deltaTime){
     RemoveSlashEffects();
     for (SlashEffect& s : gSlashEffects){
@@ -1304,8 +1318,6 @@ void UpdateMagicMissile(float deltaTime)
 void FireEnemyLightning(Vector3 origin, Vector3 aimPoint, float damage, Character* caster)
 {
     const Vector3 targetPoint = ClipLightningToWorld(origin, aimPoint);
-
-    
 
     const bool reachedPlayer =
         targetPoint.x == aimPoint.x &&

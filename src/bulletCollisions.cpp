@@ -9,6 +9,7 @@
 #include "pathfinding.h"
 #include "spiderEgg.h"
 #include "collisions.h"
+#include <limits>
 
 namespace BulletCollisionDetail
 {
@@ -65,6 +66,7 @@ void AddBox(std::vector<Contact>& hits, Kind kind, std::size_t index,
         hits.push_back({kind, hit.t, hit.normal, index});
 }
 
+
 // Boolean LOS cannot return a face normal. Recover the first obstruction with
 // prefix bisection, then probe the X/Z components near that crossing.
 // For an exact corner normal, extend the actual DDA to return its crossed face.
@@ -116,7 +118,24 @@ void AddWorld(std::vector<Contact>& hits, const Bullet& b)
             limit = lo;
             hits.push_back({Kind::Boundary, limit, {0,1,0}, 0});
         }
-        AddDDAWall(hits, b, limit);
+        //AddDDAWall(hits, b, limit);
+
+        for (const auto& wall : wallRunColliders)
+        {
+            Hit hit;
+
+            if (BulletCollisionGeometry::SweepBox(
+                    a, end, wall.bounds, b.radius, hit) &&
+                hit.t <= limit)
+            {
+                hits.push_back({
+                    Kind::Wall,
+                    hit.t,
+                    hit.normal,
+                    0
+                });
+            }
+        }
         const float ceiling = ceilingHeight - b.radius;
         if (drawCeiling && end.y >= ceiling)
         {

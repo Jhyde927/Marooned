@@ -161,9 +161,9 @@ void JournalShopUI::Update()
     if (IsKeyPressed(KEY_ENTER))
     {
         // Get the currently selected ware.
-        int selected = selectedIndex;
-        if (wares[selectedIndex].price < player.gold){
-            
+        //int selected = selectedIndex;
+        if (wares[selectedIndex].price <= player.gold){
+            PurchaseSelectedWare();
         }
         // If the player has enough gold, call the purchase function.
     }

@@ -771,23 +771,12 @@ void GenerateInvisibleWalls(float baseY)
     }
 }
 
-// static Vector3 CenterOfBoundsXZ(const BoundingBox& b)
-// {
-//     return {
-//         (b.min.x + b.max.x) * 0.5f,
-//         0.0f,
-//         (b.min.z + b.max.z) * 0.5f
-//     };
-// }
-
-
-
 void GenerateWallTiles(float baseY) {
     LoadTimer timer("GenerateWalls");
     wallInstances.clear();
     wallRunColliders.clear();
 
-    float wallThickness = 50.0f;
+    float wallThickness = 40.0f;
     float wallHeight = 400.0f;
 
     auto IsSolidWall = [&](Color c) {
@@ -2399,6 +2388,35 @@ void GenerateZombiesFromImage(float baseY) {
     }
 }
 
+void GenerateBugs(){
+    for (int y = 0; y < dungeonHeight; y++) {
+        for (int x = 0; x < dungeonWidth; x++) {
+            Color current = dungeonPixels[y * dungeonWidth + x];
+            float bugHeight = 230.0f;
+            if (EqualsRGB(current, ColorOf(Code::bug))) {
+                Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, bugHeight);
+
+                Character Bug(
+                    spawnPos,
+                    R.GetTexture("EmptyFrame"), 
+                    256, 256,         // frame width, height
+                    1,                // max frames
+                    0.8f, 0.5f,       // speed, scale
+                    0,                // initial animation frame
+                    CharacterType::Bug
+                );
+
+                Bug.id = gEnemyCounter++;
+
+                enemies.push_back(Bug);
+                enemyPtrs.push_back(&enemies.back()); 
+
+
+            }
+        }
+    }
+}
+
 void GenerateSkeletonsFromImage(float baseY) {
     
     for (int y = 0; y < dungeonHeight; y++) {
@@ -2508,8 +2526,10 @@ void GenerateWizardsFromImage(float baseY) {
             Color current = dungeonPixels[y * dungeonWidth + x];
             bool iceWizard = EqualsRGB(current, ColorOf(Code::iceWizard));
             bool arcaneWizard = EqualsRGB(current, ColorOf(Code::arcaneWizard));
+            bool lightningWizard = EqualsRGB(current, ColorOf(Code::lightningWizard));
+            
             // Look for magenta pixels (148, 0, 211) → wizard spawn
-            if (EqualsRGB(current, ColorOf(Code::Wizard)) || iceWizard || arcaneWizard) {
+            if (EqualsRGB(current, ColorOf(Code::Wizard)) || iceWizard || arcaneWizard || lightningWizard) {
                 Vector3 spawnPos = GetDungeonWorldPos(x, y, tileSize, baseY);
                 std::string sheet; //iceWizard ? "IceWizardSheet" : "wizardSheet";
 
@@ -2517,6 +2537,9 @@ void GenerateWizardsFromImage(float baseY) {
                     sheet = "IceWizardSheet";
                 }else if (arcaneWizard){
                     sheet = "arcaneWizardSheet";
+                }else if (lightningWizard){
+                    sheet = "IceWizardSheet";
+
                 }else{
                     sheet = "wizardSheet";
                 }
@@ -2542,6 +2565,7 @@ void GenerateWizardsFromImage(float baseY) {
 
                 if (iceWizard) wizard.iceWizard = true;
                 if (arcaneWizard) wizard.arcaneWizard = true;
+                if (lightningWizard) wizard.lightningWizard = true;
 
                 wizard.id = gEnemyCounter++;
                 enemies.push_back(wizard);
@@ -2776,7 +2800,7 @@ void GenerateEnemiesFromImage(float dungeonEnemyHeight){
     GenerateSkeletonsFromImage(dungeonEnemyHeight); //165
     GenerateZombiesFromImage(dungeonEnemyHeight);
     GeneratePiratesFromImage(dungeonEnemyHeight);
-
+    GenerateBugs();
     GenerateWizardsFromImage(dungeonEnemyHeight);
 
     GenerateSpiderFromImage(dungeonEnemyHeight);

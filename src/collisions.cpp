@@ -13,6 +13,9 @@
 #include "utilities.h"
 #include "switch_tile.h"
 #include "magicMissile.h"
+#include "bulletCollisionGeometry.h"
+
+using BulletCollisionGeometry::Hit;
 
 
 bool CheckCircleInEntranceDoorColliderXZ(Vector3 p, float radius, const EntranceDoorCollider& c)
@@ -377,16 +380,18 @@ void WallCollision(){
     }
 
 
-    for (const WallRun& run : wallRunColliders) { 
+    for (Character* enemy : enemyPtrs)
+    {
+        if (!enemy) continue;
+        if (enemy->type != CharacterType::Bug) continue; //only bugs collide with walls. 
 
-        for (Character* enemy : enemyPtrs){ //all enemies
-            if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius)){
+        for (const WallRun& run : wallRunColliders)
+        {
+            if (CheckCollisionBoxSphere(run.bounds, enemy->position, enemy->radius))
+            {
                 ResolveBoxSphereCollision(run.bounds, enemy->position, enemy->radius);
             }
         }
-
-
-
     }
 }
 
@@ -781,21 +786,42 @@ bool DestroyBarrelAtCollision(Vector3 position, float radius)
 
 Vector3 ClipLightningToWorld(Vector3 origin, Vector3 targetPoint)
 {
-    float distance = Vector3Distance(origin, targetPoint);
-    if (distance < 0.001f) return origin;
 
-    const float stepSize = 10.0f;
-    int steps = static_cast<int>(ceilf(distance / stepSize));
+    const float distance = Vector3Distance(origin, targetPoint);
+    if (distance < 0.001f)
+        return origin;
+
+    float stopT = 1.0f;
+
+    if (isDungeon)
+    {
+        for (const auto& wall : wallRunColliders)
+        {
+            Hit hit{};
+            if (BulletCollisionGeometry::SweepBox(
+                    origin, targetPoint, wall.bounds, 0.0f, hit) &&
+                hit.t >= 0.0f && hit.t < stopT)
+            {
+                stopT = hit.t;
+            }
+        }
+    }
+
+    if (stopT <= 0.0f)
+        return origin;
+
+    const Vector3 clippedTarget = Vector3Lerp(origin, targetPoint, stopT);
+    constexpr float stepSize = 10.0f;
+    const int steps = static_cast<int>(ceilf(distance * stopT / stepSize));
 
     Vector3 previous = origin;
 
     for (int i = 1; i <= steps; ++i) {
         float t = static_cast<float>(i) / steps;
-        Vector3 next = Vector3Lerp(origin, targetPoint, t);
+        Vector3 next = Vector3Lerp(origin, clippedTarget, t);
+        
 
         if (isDungeon) {
-            if (!DDAHasLineOfSightWorld(previous, next))
-                return previous;
 
             if (drawCeiling && next.y >= ceilingHeight)
                 return previous;
@@ -833,7 +859,7 @@ Vector3 ClipLightningToWorld(Vector3 origin, Vector3 targetPoint)
         previous = next;
     }
 
-    return targetPoint;
+    return clippedTarget;
 }
 
 bool HandleBarrelHitsForMagicMissile(MagicMissile& missile)
@@ -944,9 +970,6 @@ void TreeCollision(){
         }
 
     }
-
-
-    //CheckBulletsAgainstTrees(trees,  camera);
 
 
 }

@@ -31,6 +31,9 @@ namespace DebugConsole
     static constexpr float OPEN_HEIGHT = 300.0f;
     static constexpr int MAX_LOG_LINES = 12;
 
+    static bool timerRunning = false;
+    static double timerStart = 0.0;
+
     
     static int gIgnoreTextInputFrames = 0;
 
@@ -263,6 +266,28 @@ namespace DebugConsole
             CommandGold(amount);
 
         }
+        else if (command == "starttimer")
+        {
+            Log("Starting timer at 0.00");
+            timerStart = GetTime();
+            timerRunning = true;
+        }
+        else if (command == "stoptimer")
+        {
+            if (timerRunning)
+            {
+                const auto totalMs = static_cast<long long>(
+                    (GetTime() - timerStart) * 1000.0
+                );
+
+                Log(TextFormat("Timer stopped at %02lld:%02lld.%03lld",
+                    totalMs / 60000,
+                    (totalMs / 1000) % 60,
+                    totalMs % 1000));
+
+                timerRunning = false;
+            }
+        }
         else if (command == "position")
         {
             CommandPosition();
@@ -371,6 +396,9 @@ namespace DebugConsole
         else if (command == "fog"){
             CommandFog();
         }
+        else if (command == "clearcollected"){
+            CommandClearCollected();
+        }
         else if (command == "clearsave")
         {
             CommandClearSave();
@@ -386,8 +414,8 @@ namespace DebugConsole
         else if (command == "help")
         {
             Log("Commands:"); //OpenDoors // unlock raft and many more not listed, 
-            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "Props",            "level [index]");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "Fog",              "Journal");
+            LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "StartTimer",       "level [index]");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "StopTimer",        "Journal");
             LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson",      "ClearSave");
             LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "unlockLevels",     "Clear");
             LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "unlockEverything", "Exit");
@@ -539,6 +567,38 @@ namespace DebugConsole
                 ExecuteCommand(gInput);
                 gInput.clear();
             }
+        }
+    }
+
+
+
+    void DrawTimer()
+    {
+        if (!timerRunning)
+            return;
+
+        const auto hundredths = static_cast<long long>(
+            (GetTime() - timerStart) * 100.0
+        );
+
+        const char* label = TextFormat(
+            "%02lld:%02lld.%02lld",
+            hundredths / 6000,
+            (hundredths / 100) % 60,
+            hundredths % 100
+        );
+
+        constexpr int fontSize = 48;
+        constexpr int y = 12;
+        const int slotWidth = MeasureText("0", fontSize) + 4;
+        const int length = static_cast<int>(TextLength(label));
+        const int x = (GetScreenWidth() - length * slotWidth) / 2;
+
+        for (int i = 0; i < length; ++i)
+        {
+            const char character[] = {label[i], '\0'};
+            const int offset = (slotWidth - MeasureText(character, fontSize)) / 2;
+            DrawText(character, x + i * slotWidth + offset, y, fontSize, RAYWHITE);
         }
     }
 
@@ -860,6 +920,12 @@ namespace DebugConsole
     {
         JournalData::Progress::UnlockAll();
         Log("Unlocked all journal and creature entries");
+    }
+
+    void CommandClearCollected()
+    {
+        Log("Clearing all weapons and collectables");
+        ClearCollected();
     }
 
     void CommandClearSave()

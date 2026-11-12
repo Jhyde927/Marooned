@@ -287,6 +287,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
             }
 
             DebugConsole::Draw();
+            DebugConsole::DrawTimer();
 
             if (showStats) {
                 DebugOverlayInfo overlayInfo;

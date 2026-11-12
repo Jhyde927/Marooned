@@ -18,6 +18,7 @@ enum class CharacterType {
     Pterodactyl,
     Wizard,
     Bat,
+    Bug,
     Zombie,
     Captain
    
@@ -98,6 +99,7 @@ public:
     int lastAttackid = -1;
     float deathTimer = 0.0f;
     float attackCooldown = 0.0f;
+    float attackChargeTime = 1.8f;
     float chaseDuration = 0.0f;
     float hitTimer = 0.0f;
     float freezeTimer = 0.0f;
@@ -176,6 +178,7 @@ public:
 
     bool iceWizard = false;
     bool arcaneWizard = false;
+    bool lightningWizard = false;
 
     //pirates vs zombies
     Character* target = nullptr;
@@ -217,6 +220,7 @@ public:
     void UpdateGiantSpiderAI(float deltaTime, Player& player);
     void UpdatePirateAI(float deltaTime, Player& player);
     void UpdateWizardAI(float deltaTime, Player& player);
+    void UpdateBugAI(float dt);
     void UpdatePlayerVisibility(const Vector3& playerPos, float dt, float epsilon);
     bool FindRepositionTarget(const Player& player, const Vector3& selfPos, Vector3& outTarget);
     //void AlertNearbySkeletons(Vector3 alertOrigin, float radius);

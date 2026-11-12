@@ -451,6 +451,7 @@ void GenerateWizardsFromImage(float baseY);
 void GenerateSpiderFromImage(float baseY);
 void GenerateBatsFromImage(float baseY);
 void GenerateGhostsFromImage(float baseY);
+void GenerateBugs();
 void GenerateGiantSpiderFromImage(float baseY);
 void GenerateSpiderEggFromImage(float baseY);
 void SpawnSpiderFromEgg(Vector3 spawnPos);

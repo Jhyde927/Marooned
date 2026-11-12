@@ -41,6 +41,10 @@ void Character::UpdateAI(float deltaTime, Player& player) {
         case CharacterType::GiantSpider:
             UpdateGiantSpiderAI(deltaTime, player);
             break;
+
+        case CharacterType::Bug:
+            UpdateBugAI(deltaTime);
+            break;
     }
 }
 
@@ -455,7 +459,7 @@ void Character::UpdateGiantSpiderAI(float deltaTime, Player& player) {
 
             if (distanceSq < visionEnter && spiderAgro){
                 ChangeState(CharacterState::Chase);
-                AlertNearbySkeletons(position, 3000.0f);
+                //AlertNearbySkeletons(position, 3000.0f);
                 break;
 
             }
@@ -1406,6 +1410,128 @@ void Character::UpdateZombieAI(float deltaTime, Player& player) {
        
 }
 
+void Character::UpdateBugAI(float dt)
+{
+    constexpr float minRange = 800.0f;
+    constexpr float maxRange = 1100.0f;
+    constexpr float pathRange = 1600.0f;
+    constexpr float flySpeed = 750.0f;
+    constexpr float steeringRate = 6.0f;
+    constexpr float waypointRadius = 25.0f;
+    constexpr float repathInterval = 0.5f;
+
+    attackChargeTime = 1.8f;
+
+    UpdatePlayerVisibility(player.position, dt, 0.001f);
+
+    Vector3 toPlayer = Vector3Subtract(player.position, position);
+    toPlayer.y = 0.0f;
+    const float distance = Vector3Length(toPlayer);
+
+    const bool hasGoal = hasLastKnownPlayerPos && !player.godMode;
+    const bool usePath = hasGoal && (!canSee || distance > pathRange);
+    CharacterState nextState = CharacterState::Idle;
+
+    if (usePath)
+        nextState = CharacterState::Chase;
+    else if (hasGoal && distance < minRange)
+        nextState = CharacterState::RunAway;
+    else if (hasGoal && distance > maxRange)
+        nextState = CharacterState::Chase;
+    else if (hasGoal)
+        nextState = CharacterState::Attack;
+
+    if (state != nextState)
+    {
+        state = nextState;
+        stateTimer = 0.0f;
+    }
+
+    Vector3 desiredVelocity{};
+
+    if (usePath)
+    {
+        const Vector2 here = WorldToImageCoords(position);
+        const Vector2 goal = WorldToImageCoords(lastKnownPlayerPos);
+        const bool reachedGoalTile = here.x == goal.x && here.y == goal.y;
+
+        if (reachedGoalTile)
+        {
+            // Wait here and keep the last known position.
+            currentWorldPath.clear();
+            stateTimer = 0.0f;
+        }
+        else
+        {
+            stateTimer += dt;
+            if (currentWorldPath.empty())
+            {
+                SetPathTo(lastKnownPlayerPos);
+                stateTimer = 0.0f;
+
+                if (currentWorldPath.empty() && !canSee)
+                {
+                    hasLastKnownPlayerPos = false;
+                    playerVisible = false;
+                    state = CharacterState::Idle;
+                }
+            }
+
+            while (!currentWorldPath.empty())
+            {
+                Vector3 toWaypoint =
+                    Vector3Subtract(currentWorldPath.front(), position);
+                toWaypoint.y = 0.0f;
+                const float waypointDistance = Vector3Length(toWaypoint);
+
+                if (waypointDistance > waypointRadius)
+                {
+                    const float speed = std::min(flySpeed, waypointDistance / dt);
+                    desiredVelocity = Vector3Scale(
+                        toWaypoint, speed / waypointDistance);
+                    break;
+                }
+
+                currentWorldPath.erase(currentWorldPath.begin());
+            }
+        }
+    }
+    else
+    {
+        currentWorldPath.clear();
+
+        const Vector3 direction = distance > 0.001f
+            ? Vector3Scale(toPlayer, 1.0f / distance)
+            : Vector3{1.0f, 0.0f, 0.0f};
+
+        switch (state)
+        {
+            case CharacterState::Chase:
+                desiredVelocity = Vector3Scale(direction, flySpeed);
+                break;
+
+            case CharacterState::RunAway:
+                desiredVelocity = Vector3Scale(direction, -flySpeed);
+                break;
+
+            case CharacterState::Attack:
+                stateTimer += dt;
+                if (stateTimer >= attackChargeTime)
+                {
+                    FireEnemyLightning(position, player.position, 10, this);
+                    stateTimer = 0.0f;
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    velocity = Vector3Lerp(
+        velocity, desiredVelocity, Clamp(steeringRate * dt, 0.0f, 1.0f));
+    position = Vector3Add(position, Vector3Scale(velocity, dt));
+}
 
 
 void Character::UpdateSkeletonAI(float deltaTime, Player& player) {
@@ -2554,11 +2680,19 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
                     missileCastRemaining = 2.0f;
                     missileBurstTimer = 0.0f;
                 }
+                else if (lightningWizard)
+                {
+                    FireEnemyLightning(position, player.position, 25.0f, this);
+                    attackCooldown = 5.0f;
+
+                    SoundManager::GetInstance().PlaySoundAtPosition("lightning", position, player.position, 0.0f, 3000.0f);
+
+                }
                 else
                 {
 
-                    //FireFireball(muzzle, player.position, 1350.0f, 2.0f, true, true, true);
-                    FireEnemyLightning(position, player.position, 25.0f, this);
+                    FireFireball(muzzle, player.position, 1350.0f, 2.0f, true, true, true);
+                    //FireEnemyLightning(position, player.position, 25.0f, this);
                     attackCooldown = 5.0f;
 
                     SoundManager::GetInstance().PlaySoundAtPosition(
@@ -2568,7 +2702,7 @@ void Character::UpdateWizardAI(float deltaTime, Player& player) {
             }
 
             // Once started, the stream does not depend on animation frames.
-            if (!iceWizard && missileCastRemaining > 0.0f)
+            if (arcaneWizard && missileCastRemaining > 0.0f)
             {
                 missileBurstTimer -= deltaTime;
 
