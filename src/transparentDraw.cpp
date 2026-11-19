@@ -104,6 +104,7 @@ void GatherEnemies(Camera& camera)
     {
         if (!enemy) continue;
         if (enemy->isDead && enemy->deathTimer <= 0.0f) continue;
+        if (enemy->type == CharacterType::Bug && enemy->isDead) continue; // dont draw bug death
 
         Rectangle sourceRect = {
             (float)(enemy->currentFrame * enemy->frameWidth),

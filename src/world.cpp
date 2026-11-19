@@ -767,35 +767,56 @@ void DrawWaterPlane()
     DrawModel(R.GetModel("waterModel"), Vector3{0, 0, 0}, 1.0f, WHITE);
 }
 
+void DebugDrawEnemyHitBox(){
+    for (Character* enemy : enemyPtrs){
+        if (!enemy) continue;
+        DrawBoundingBox(enemy->GetBoundingBox(), WHITE);
+    }
+}
 
-void DrawEnemyShadows() {
+void DrawEnemyShadows()
+{
     Model& shadowModel = R.GetModel("shadowQuad");
 
-    // Don’t write to depth, but still test against it
+    // Keep depth testing enabled while drawing without depth writes.
     rlEnableDepthTest();
     rlDisableDepthMask();
 
-    for (NPC& npc : gNPCs){
-        Vector3 groundPos = {npc.position.x, npc.GetFeetPosY() + 1.0f, npc.position.z};
+    for (NPC& npc : gNPCs)
+    {
+        Vector3 groundPos = {
+            npc.position.x,
+            npc.GetFeetPosY() + 1.0f,
+            npc.position.z
+        };
 
-        DrawModelEx(shadowModel, groundPos, {0,1,0}, 0.0f, {100,100,100}, BLACK);
-
+        DrawModelEx(shadowModel, groundPos, {0, 1, 0}, 0.0f, {100, 100, 100}, BLACK);
     }
 
-    for (Character& enemy : enemies) {
-        if (enemy.type == CharacterType::Bat) continue; //dont draw shadows for bats
+    for (const Character* enemy : enemyPtrs)
+    {
+        if (!enemy)
+            continue;
 
-        Vector3 groundPos;
-        if (isDungeon) {
-            groundPos = { enemy.position.x, enemy.position.y - 42.0f, enemy.position.z };
-            
-        }else{
-            float ny = GetHeightAtWorldPosition(enemy.position, heightmap, terrainScale) + 10.0f;
-            groundPos = { enemy.position.x, ny, enemy.position.z };
+        if (enemy->type == CharacterType::Bat ||
+            enemy->type == CharacterType::Bug)
+            continue;
+
+        Vector3 groundPos = enemy->position;
+        if (isDungeon)
+        {
+            groundPos.y -= 42.0f;
         }
-        
-        if (enemy.type == CharacterType::Trex) groundPos.y -= 100; //half the frame height? 
-        DrawModelEx(shadowModel, groundPos, {0,1,0}, 0.0f, {100,100,100}, BLACK);
+        else
+        {
+            groundPos.y = GetHeightAtWorldPosition(
+                enemy->position, heightmap, terrainScale) + 10.0f;
+        }
+
+        if (enemy->type == CharacterType::Trex)
+            groundPos.y -= 100.0f;
+
+        DrawModelEx(shadowModel, groundPos, {0, 1, 0}, 0.0f, {100, 100, 100}, BLACK);
     }
 
     rlEnableDepthMask();
@@ -823,6 +844,8 @@ void ClearCollected(){
     player.previousWeapon = WeaponType::Sword;
     player.activeWeapon = WeaponType::Crossbow;
     player.currentWeaponIndex = 0;
+
+    player.gold = 0;
 }
 
 void UpdateSlashEffects(float deltaTime){
@@ -1331,7 +1354,13 @@ void FireEnemyLightning(Vector3 origin, Vector3 aimPoint, float damage, Characte
         // Apply damage using the same player-hit code as enemy magic missiles.
     }
 
-    activeChainLightnings.emplace_back(origin, targetPoint, nullptr, damage, reachedPlayer, caster);
+    const Color boltColor = (caster && caster->type == CharacterType::Bug)
+        ? Color{255, 50, 50, 255}
+        : Color{30, 120, 255, 255};
+
+    activeChainLightnings.emplace_back(
+        origin, targetPoint, nullptr, damage, reachedPlayer, caster, boltColor);
+
 }
 
 void UpdateBullets(Camera& camera, float dt, ParticleSystem& particleSystem)

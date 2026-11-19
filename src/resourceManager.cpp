@@ -416,6 +416,7 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("bloatBatSheet",       "assets/sprites/bloatBatSheet.png");
     R.LoadTexture("krakenShot",          "assets/sprites/krakenShot.png");
     R.LoadTexture("EmptyFrame",          "assets/sprites/EmptyFrame.png");
+    R.LoadTexture("waspSheet",           "assets/sprites/waspSheet.png");
 
     R.LoadTexture("shopKeeperSheet",     "assets/sprites/shopKeeperSheet.png");
 

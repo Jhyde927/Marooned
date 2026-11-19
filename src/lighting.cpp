@@ -260,12 +260,11 @@ void GatherFrameLights() {
 
     for (const Character* enemy : enemyPtrs){
         if (!enemy) continue;
-        if (enemy->isDead) continue;
         if (enemy->type != CharacterType::Bug) continue;
 
         LightSample s;
         s.pos = enemy->position;
-        s.color = { 0.65f, 0.25f, 1.0f };
+        s.color = {1.0f, 0.196f, 0.196f};
         s.range = 400.0f;
         s.intensity = 0.5f;
         
@@ -274,8 +273,29 @@ void GatherFrameLights() {
             ? Clamp(enemy->stateTimer / enemy->attackChargeTime, 0.0f, 1.0f)
             : 0.0f;
 
-        s.glowRadius = Lerp(25.0f, 45.0f, charge);
+        s.glowRadius = Lerp(1.0f, 50.0f, charge);
         s.glowIntensity = Lerp(0.8f, 1.0f, charge);
+
+
+        if (enemy->isDead)
+        {
+            constexpr float swellTime = 0.20f;
+            constexpr float popTime = 0.44f;
+
+            const float t = enemy->deathTimer;
+            if (t >= popTime)
+                continue;
+
+            const float swell = Clamp(t / swellTime, 0.0f, 1.0f);
+            const float fade = 1.0f - Clamp(
+                (t - swellTime) / (popTime - swellTime), 0.0f, 1.0f);
+            const float flash = fade * fade;
+
+            s.glowRadius    = Lerp(25.0f, 90.0f, swell) * fade;
+            s.glowIntensity = Lerp(0.8f, 1.0f, swell) * flash;
+            s.range         = Lerp(800.0f, 1600.0f, swell) * fade;
+            s.intensity     = Lerp(s.intensity, 2.0f, swell) * flash;
+        }
 
         frameLights.push_back(s);
         

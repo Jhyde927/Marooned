@@ -7,15 +7,18 @@
 #include "pathfinding.h"
 #include "collisions.h"
 
-ChainLightning::ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage, bool hitPlayer,  Character* caster)
-    : damage(initialDamage), casterToIgnore(caster)
+ChainLightning::ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage, bool hitPlayer,  Character* caster, Color boltColor)
+    : damage(initialDamage), casterToIgnore(caster), boltColor(boltColor)
 {
     AddBolt(origin, targetPoint);
     lastHitPosition = targetPoint;
 
-    SoundManager::GetInstance().PlaySoundAtPosition("lightning", origin, player.position, 0.0f, 3000.0f);
-    SoundManager::GetInstance().PlaySoundAtPosition("lightningHum", origin, player.position, 0.0f, 3000.0f);
-
+    if (caster && caster->type == CharacterType::Bug){
+        SoundManager::GetInstance().PlaySoundAtPosition("lightningHit", caster->position, player.position, 0.0f, 3000.0f);
+    }else{
+        SoundManager::GetInstance().PlaySoundAtPosition("lightning", origin, player.position, 0.0f, 3000.0f);
+        SoundManager::GetInstance().PlaySoundAtPosition("lightningHum", origin, player.position, 0.0f, 3000.0f);
+    }
 
     if (target)
     {
@@ -83,11 +86,11 @@ void ChainLightning::AddBolt(Vector3 start, Vector3 end)
     LightningBolt bolt;
     bolt.start = start;
     bolt.end = end;
+    bolt.color = boltColor;
 
     GenerateBoltPoints(bolt);
     bolts.push_back(bolt);
 
-    // TODO: Play a crack sound here, quieter with each jump.
 }
 
 void ChainLightning::GenerateBoltPoints(LightningBolt& bolt)
@@ -151,6 +154,7 @@ bool ChainLightning::TryNextJump()
         if (!enemy) continue;
         if (enemy->isDead) continue;
         if (enemy == casterToIgnore) continue;
+        if (casterToIgnore && enemy->type == CharacterType::Bug) continue;
 
         // Add the same dead-enemy check used in FireChainLightning().
 
@@ -198,9 +202,11 @@ void ChainLightning::Draw(const Camera3D& camera, const Texture2D& texture) cons
     rlSetTexture(texture.id);
     rlBegin(RL_QUADS);
 
+    
+
     for (const LightningBolt& bolt : bolts) {
         float fade = Clamp(1.0f - bolt.age / bolt.lifetime, 0.0f, 1.0f);
-        Color boltColor = { 30, 120, 255, 255 };
+        Color boltColor = bolt.color;
         Color tint = Fade(boltColor, fade);
 
         rlColor4ub(tint.r, tint.g, tint.b, tint.a);

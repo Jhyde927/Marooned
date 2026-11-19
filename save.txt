@@ -1,8 +1,8 @@
 version=1
-levelIndex=1
-healthPotions=13
-manaPotions=4
-gold=1069
+levelIndex=18
+healthPotions=16
+manaPotions=2
+gold=1078
 swordUnlocked=1
 crossbowUnlocked=1
 blunderbussUnlocked=1

@@ -2398,19 +2398,22 @@ void GenerateBugs(){
 
                 Character Bug(
                     spawnPos,
-                    R.GetTexture("EmptyFrame"), 
+                    R.GetTexture("waspSheet"), 
                     256, 256,         // frame width, height
                     1,                // max frames
-                    0.8f, 0.5f,       // speed, scale
+                    2.0f, 0.125f,       // speed, scale
                     0,                // initial animation frame
                     CharacterType::Bug
                 );
 
                 Bug.id = gEnemyCounter++;
 
+                Bug.bugWeavePhase = GetRandomValue(0, 359) * DEG2RAD;
+                Bug.bugHoverY = Bug.position.y;
+                Bug.bugBobPhase = GetRandomValue(0, 359) * DEG2RAD;
+
                 enemies.push_back(Bug);
                 enemyPtrs.push_back(&enemies.back()); 
-
 
             }
         }

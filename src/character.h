@@ -171,6 +171,12 @@ public:
     bool bloatBat = false;
     bool hasExploded = false;
 
+    //Bug
+    //Give each Bug a different starting phase at spawn.
+    float bugWeavePhase = 0.0f;
+    float bugHoverY = 0.0f;
+    float bugBobPhase = 0.0f;
+
     float chaseSoundTimer = 0.0f;
     bool wasChasing = false;
 

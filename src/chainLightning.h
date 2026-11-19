@@ -9,6 +9,8 @@ struct LightningBolt {
     Vector3 start = {};
     Vector3 end = {};
     std::vector<Vector3> points;
+    Color color = {30, 120, 255, 255};
+
 
     float age = 0.0f;
     float lifetime = 0.25f;
@@ -17,11 +19,16 @@ struct LightningBolt {
 
 class ChainLightning {
 public:
-    ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target, float initialDamage, bool hitPlayer = false,  Character* caster = nullptr);
+    ChainLightning(Vector3 origin, Vector3 targetPoint, Character* target,
+               float initialDamage, bool hitPlayer = false,
+               Character* caster = nullptr,
+               Color boltColor = Color{30, 120, 255, 255});
+
     void Update(float deltaTime);
     void Draw(const Camera3D& camera, const Texture2D& texture) const;
     bool IsActive() const { return active; }
     const std::vector<LightningBolt>& GetBolts() const { return bolts; }
+
 
 private:
     void AddBolt(Vector3 start, Vector3 end);
@@ -31,7 +38,7 @@ private:
     std::vector<Character*> hitTargets;
     float damage;
     Character* casterToIgnore = nullptr;
-
+    Color boltColor;
     Vector3 lastHitPosition = {};
 
     float jumpTimer = 0.0f;

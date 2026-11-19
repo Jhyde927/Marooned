@@ -198,6 +198,7 @@ void RenderFrame(Camera3D& camera, Player& player, float dt) {
         }
 
         DrawPlayer(player, camera);
+        //DebugDrawEnemyHitBox();   //show enemy hitbox
         DrawEnemyShadows();
         DrawBullets(camera);
         DrawMagicMissiles();

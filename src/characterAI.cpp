@@ -1415,12 +1415,11 @@ void Character::UpdateBugAI(float dt)
     constexpr float minRange = 800.0f;
     constexpr float maxRange = 1100.0f;
     constexpr float pathRange = 1600.0f;
-    constexpr float flySpeed = 750.0f;
+    constexpr float flySpeed = 1250.0f;
     constexpr float steeringRate = 6.0f;
     constexpr float waypointRadius = 25.0f;
-    constexpr float repathInterval = 0.5f;
 
-    attackChargeTime = 1.8f;
+    attackChargeTime = 2.5f;
 
     UpdatePlayerVisibility(player.position, dt, 0.001f);
 
@@ -1441,11 +1440,9 @@ void Character::UpdateBugAI(float dt)
     else if (hasGoal)
         nextState = CharacterState::Attack;
 
-    if (state != nextState)
-    {
-        state = nextState;
-        stateTimer = 0.0f;
-    }
+    if (isDead) nextState = CharacterState::Death;
+
+    ChangeState(nextState);
 
     Vector3 desiredVelocity{};
 
@@ -1507,14 +1504,17 @@ void Character::UpdateBugAI(float dt)
         switch (state)
         {
             case CharacterState::Chase:
+
                 desiredVelocity = Vector3Scale(direction, flySpeed);
                 break;
 
             case CharacterState::RunAway:
+
                 desiredVelocity = Vector3Scale(direction, -flySpeed);
                 break;
 
             case CharacterState::Attack:
+
                 stateTimer += dt;
                 if (stateTimer >= attackChargeTime)
                 {
@@ -1523,10 +1523,45 @@ void Character::UpdateBugAI(float dt)
                 }
                 break;
 
+            case CharacterState::Death:
+            {
+
+                deathTimer += dt;
+                break;
+
+            }
+
             default:
                 break;
         }
     }
+
+    if (state == CharacterState::Chase || state == CharacterState::RunAway)
+    {
+        bugWeavePhase += dt * 7.0f;
+
+        constexpr float weaveStrength = 0.5f;
+        const float weave = std::sin(bugWeavePhase) * weaveStrength;
+        const Vector3 sideways = {-desiredVelocity.z, 0.0f, desiredVelocity.x};
+
+        desiredVelocity = Vector3Add(
+            desiredVelocity, Vector3Scale(sideways, weave));
+    }
+
+    bugBobPhase += dt * 5.0f;
+
+    const float bobHeight = state == CharacterState::Chase ? 30.0f : 8.0f; //smaller bob on hover. 
+    float targetY = bugHoverY + std::sin(bugBobPhase) * bobHeight;
+
+    if (isDungeon)
+    {
+        targetY = std::max(targetY, floorHeight + 20.0f + radius);
+
+        if (drawCeiling)
+            targetY = std::min(targetY, ceilingHeight - radius);
+    }
+
+    desiredVelocity.y = Clamp((targetY - position.y) * 8.0f, -220.0f, 220.0f);
 
     velocity = Vector3Lerp(
         velocity, desiredVelocity, Clamp(steeringRate * dt, 0.0f, 1.0f));

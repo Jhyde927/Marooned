@@ -30,6 +30,15 @@ Character::Character(Vector3 pos, Texture2D& tex, int fw, int fh, int frames, fl
 
 
 BoundingBox Character::GetBoundingBox() const {
+    if (type == CharacterType::Bug)
+    {
+        constexpr float halfExtent = 36.0f;
+        return {
+            { position.x - halfExtent, position.y - halfExtent, position.z - halfExtent },
+            { position.x + halfExtent, position.y + halfExtent, position.z + halfExtent }
+        };
+    }
+
     float halfWidth  = (frameWidth  * scale * 0.4f) / 2.0f; //40 percent of the width centered
 
     float heightScale = 1.0f;
@@ -939,6 +948,22 @@ void Character::RefreshAnimation()
 
 AnimDesc Character::GetAnimFor(CharacterType type, CharacterState state) {
     switch (type) {
+        case CharacterType::Bug:
+            switch (state) {
+                case CharacterState::Chase:
+                case CharacterState::Patrol:
+                case CharacterState::Reposition:
+                case CharacterState::RunAway:
+                case CharacterState::Attack:  
+                    return {0, 5, 0.1f, true};
+                case CharacterState::Freeze: return {0, 1, 1.0f, true};
+                case CharacterState::Idle:   return {0, 1, 1.0f, true};
+                case CharacterState::Stagger:
+                    return {0, 1, 1.0f, false}; // Use first frame of death anim for 1 second. for all enemies
+                case CharacterState::Death:  return {1, 0, 1.0f, false};
+                
+                default:                     return {0, 1, 1.0f, true};
+            }
         case CharacterType::Trex:
             switch (state) {
                 case CharacterState::Chase:

@@ -215,3 +215,4 @@ void DrawChainLightnings(const Camera3D& camera);
 void ChangeLevel(int idx);
 void DropGold(Vector3 dropPos, int count, int radius = 1);
 void FireEnemyLightning(Vector3 origin, Vector3 aimPoint, float damage, Character* caster);
+void DebugDrawEnemyHitBox();

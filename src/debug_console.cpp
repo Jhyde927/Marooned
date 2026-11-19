@@ -415,7 +415,7 @@ namespace DebugConsole
         {
             Log("Commands:"); //OpenDoors // unlock raft and many more not listed, 
             LogCommandRow("Freecam",    "Health [amount]", "Mana [amount]", "Sky [duration]",      "StartTimer",       "level [index]");
-            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "StopTimer",        "Journal");
+            LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "StopTimer",        "clearCollected");
             LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson",      "ClearSave");
             LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "unlockLevels",     "Clear");
             LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "unlockEverything", "Exit");
