@@ -385,7 +385,7 @@ namespace DebugConsole
         {
             CommandUnlockLevels();
         }
-        else if (command == "unlockeverything")
+        else if (command == "unlockeverything" || command == "unlockall")
         {
             CommandUnlockEverything();
         }
@@ -418,7 +418,7 @@ namespace DebugConsole
             LogCommandRow("Vegetation", "Position",        "Keys",          "Stamina",             "StopTimer",        "clearCollected");
             LogCommandRow("Enemies",    "Start",           "End",           "Kill",                "ThirdPerson",      "ClearSave");
             LogCommandRow("God",        "Doors",           "Stats",         "Ceiling",             "unlockLevels",     "Clear");
-            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "unlockEverything", "Exit");
+            LogCommandRow("Weapons",    "Quad",            "Haste",         "Overhealth",          "unlockAll",        "Exit");
 
         }
         else

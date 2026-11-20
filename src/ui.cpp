@@ -178,6 +178,7 @@ void StartHermitSpeech(float length){
 
 void UpdateInteractionNPC()
 {
+    static bool canSpawn = true;
     if (journalShopUI.IsOpen()) return; //stop interaction if jouranl is open. 
 
     // ---- 1) If dialog is active, handle ONLY dialog logic this frame ----
@@ -221,6 +222,13 @@ void UpdateInteractionNPC()
                 {
                     
                     journalShopUI.Open();
+
+                    if (canSpawn){
+                        canSpawn = false;
+                        PortalSystem::AddExitPortal();
+
+                    }
+
                     
                 }
 

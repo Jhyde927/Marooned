@@ -63,12 +63,12 @@ namespace
 void JournalShopUI::Init()
 {
     SetWares({
-        {ShopUpgrade::Harpoon, "Harpoon", "Upgrades your crossbow with a grappling harpoon. Pull yourself across gaps or drag enemies toward you.", "", 30},
-        {ShopUpgrade::DoubleLoad, "Double Load", "Load a second charge into your blunderbuss for a devastating double shot.", "", 40},
-        {ShopUpgrade::Fireball, "Fireball", "Launch an explosive ball of fire that scorches enemies caught in the blast.", "", 50},
-        {ShopUpgrade::Iceball, "Iceball", "Launch a ball of ice that freezes enemies caught in the blast.", "", 60},
-        {ShopUpgrade::MagicMissile, "Magic Missile", "Release three homing missiles that seek out nearby enemies.", "", 100},
-        {ShopUpgrade::ChainLightning, "Chain Lightning", "Unleash a bolt of lightning that leaps between enemies, losing damage with each jump.", "", 150}
+        {ShopUpgrade::Harpoon, "Harpoon", "Upgrades your crossbow with a grappling harpoon. Pull yourself across gaps or drag enemies toward you.", "shopHarpoon", 30},
+        {ShopUpgrade::DoubleLoad, "Double Load", "Load a second charge into your blunderbuss for a devastating double shot.", "shopBlunderbuss", 40},
+        {ShopUpgrade::Fireball, "Fireball", "Launch an explosive ball of fire that scorches enemies caught in the blast.", "shopFireball", 50},
+        {ShopUpgrade::Iceball, "Iceball", "Launch a ball of ice that freezes enemies caught in the blast.", "shopIceball", 60},
+        {ShopUpgrade::MagicMissile, "Magic Missile", "Release three homing missiles that seek out nearby enemies.", "shopMissile", 100},
+        {ShopUpgrade::ChainLightning, "Chain Lightning", "Unleash a bolt of lightning that leaps between enemies, losing damage with each jump.", "shopLightning", 150}
     });
 }
 
@@ -148,6 +148,9 @@ void JournalShopUI::PurchaseSelectedWare()
 
     *unlocked = true;
     player.gold -= ware.price;
+
+    //cash register sound effect only if puchase was successful
+    SoundManager::GetInstance().Play("cashRegister");
 }
 
 
@@ -161,11 +164,11 @@ void JournalShopUI::Update()
     if (IsKeyPressed(KEY_ENTER))
     {
         // Get the currently selected ware.
-        //int selected = selectedIndex;
         if (wares[selectedIndex].price <= player.gold){
             PurchaseSelectedWare();
+
         }
-        // If the player has enough gold, call the purchase function.
+
     }
 
     if (IsKeyPressed(KEY_ESCAPE))
@@ -176,10 +179,12 @@ void JournalShopUI::Update()
 
     if (IsKeyPressed(KEY_Q) && selectedIndex > 0)
     {
+        SoundManager::GetInstance().Play("pageTurn");
         --selectedIndex;
     }
     else if (IsKeyPressed(KEY_E) && selectedIndex + 1 < wares.size())
     {
+        SoundManager::GetInstance().Play("pageTurn");
         ++selectedIndex;
     }
 }

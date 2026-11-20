@@ -418,6 +418,13 @@ void ResourceManager::LoadAllResources() {
     R.LoadTexture("EmptyFrame",          "assets/sprites/EmptyFrame.png");
     R.LoadTexture("waspSheet",           "assets/sprites/waspSheet.png");
 
+    R.LoadTexture("shopHarpoon",         "assets/sprites/shopHarpoon.png");
+    R.LoadTexture("shopBlunderbuss",     "assets/sprites/shopBlunderbuss.png");
+    R.LoadTexture("shopFireball",        "assets/sprites/shopFireball.png");
+    R.LoadTexture("shopIceball",        "assets/sprites/shopIceball.png");
+    R.LoadTexture("shopMissile",        "assets/sprites/shopMissile.png");
+    R.LoadTexture("shopLightning",      "assets/sprites/shopLightning.png");
+
     R.LoadTexture("shopKeeperSheet",     "assets/sprites/shopKeeperSheet.png");
 
     R.LoadTexture("raftMast", "assets/sprites/raftMast.png");
@@ -719,6 +726,7 @@ void ResourceManager::SetLightingShaderValues()
     setLightmap(candelabra);
     setLightmap(cannonballs);
     setLightmap(shopDoor);
+
 
 
     // Per-level uniforms for lighting shader

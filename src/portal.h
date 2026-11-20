@@ -22,6 +22,7 @@ struct Portal
     int tileY;
     int groupID;
     Color tint;
+    bool isExit;
 };
 
 // Holds and manages all portals in the current dungeon
@@ -52,4 +53,5 @@ namespace PortalSystem
     void UpdatePortalRenderCamera(const Camera3D& mainCamera);
     void RenderPortalView(void (*drawSceneFunc)(const Camera3D&));
     const PortalRenderState& GetRenderState();
+    void AddExitPortal();
 }

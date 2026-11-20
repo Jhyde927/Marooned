@@ -509,6 +509,10 @@ void SoundManager::LoadSounds() {
     SoundManager::GetInstance().LoadSound("CannonShot",     "assets/sounds/CannonShot.ogg");
     SoundManager::GetInstance().LoadSound("tentacleSlam",   "assets/sounds/tentacleSlam.ogg");
 
+    //UI
+    SoundManager::GetInstance().LoadSound("cashRegister",   "assets/sounds/cashRegister.ogg");
+    SoundManager::GetInstance().LoadSound("pageTurn",       "assets/sounds/pageTurn.ogg");
+
     //speech
     SoundManager::GetInstance().LoadSound("hermitTalk1", "assets/sounds/AlienVoice1.ogg");
     SoundManager::GetInstance().LoadSound("hermitTalk2", "assets/sounds/AlienVoice2.ogg");

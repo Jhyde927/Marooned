@@ -32,6 +32,29 @@ static int gPendingGroupIndex = -1;
 // Optional: remember which portal we teleported FROM (extra safety)
 static int gLastPortalIndex = -1;
 
+void PortalSystem::AddExitPortal(){
+    std::cout << "spawning portal\n";
+    float baseY = 110.0f;
+    Vector2 tile =  {8, 10};
+    Vector3 spawnPos = TileToWorld(tile.x, tile.y, tileSize, baseY);
+
+    //create a portal.
+
+    Portal p;
+    p.position = spawnPos;
+    float half = 50;
+    p.box = {
+        { spawnPos.x - half, baseY - 50.0f, spawnPos.z - half },
+        { spawnPos.x + half, baseY + 50.0f, spawnPos.z + half }
+    };
+
+    p.groupID = 0;
+    p.isExit = true;
+
+    portals.push_back(p);        // Draw the portal
+    portalsGroup0.push_back(p);  // Test its trigger in Update()
+}
+
 
 static std::vector<Portal>* GetPortalGroupByID(int groupID)
 {
@@ -286,16 +309,14 @@ static bool TryTeleportInGroup(
 )
 {
     (void)teleportCooldown;
-    if ((int)group.size() < 2)
-    {
-        return false;
-    }
 
     int hitIndex = -1;
+
     for (int i = 0; i < (int)group.size(); i++)
     {
         if (CheckCollisionBoxSphere(group[i].box, playerPos, playerRadius))
         {
+            std::cout << "hit at index " << i << "\n";
             hitIndex = i;
             break;
         }
@@ -304,6 +325,26 @@ static bool TryTeleportInGroup(
     }
 
     if (hitIndex == -1)
+    {
+        return false;
+    }
+
+    const Portal& hitPortal = group[hitIndex];
+    if (hitPortal.isExit)
+    {
+        // Run your normal exit-door transition to Middle Island here.
+        std::cout << "enter portal\n";
+        previousLevelIndex = levelIndex;
+
+        pendingLevelIndex = 0; //portal to middle island. 
+        StartFadeOutToLevel(pendingLevelIndex);
+
+        isLoadingLevel = true;
+        currentGameState = GameState::LoadingLevel;
+        return true;
+    }
+
+    if ((int)group.size() < 2)
     {
         return false;
     }

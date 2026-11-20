@@ -3370,11 +3370,14 @@ void DrawDungeonPillars() {
     //Pillars means Pedestal fire light sources. Light sources are generated separatly and spawn at pillar positions. 
     for (size_t i = 0; i < pillars.size(); ++i) {
         const PillarInstance& pillar = pillars[i];
-        //Fire& fire = fires[i];
-
-        // Draw the pedestal model
-        DrawModelEx(R.GetModel("lampModel"), pillar.position, Vector3{0, 1, 0}, pillar.rotation, Vector3{350, 350, 350}, LIGHTGRAY);
-
+        
+        if (CurrentLevelIs("Shop")){
+            Vector3 offset = {0.0f, 25.0f, 0.0f};
+            DrawModelEx(R.GetModel("candelabra"), pillar.position + offset, Vector3{0, 1, 0}, pillar.rotation, Vector3{100, 100, 100}, LIGHTGRAY);
+        }else{
+            // Draw the pedestal model
+            DrawModelEx(R.GetModel("lampModel"), pillar.position, Vector3{0, 1, 0}, pillar.rotation, Vector3{350, 350, 350}, LIGHTGRAY);
+        }
     }
 }
 

@@ -197,6 +197,7 @@ DungeonProp MakeDefaultProp(DungeonPropType type, Vector3 position, float rotati
             prop.modelName = "candelabra";
             prop.modelSize = {100.0f, 100.0f, 100.0f};
             prop.tint = WHITE;
+
         } break;
 
 
@@ -249,9 +250,12 @@ void GenerateDungeonPropsForCurrentLevel()
     }
 
     if (CurrentLevelIs("Shop")){
-        Vector3 spawnPos = TileToWorld(4, 10, tileSize, floorHeight);
-        DungeonProp barProp = MakeDefaultProp(DungeonPropType::BarTop, spawnPos, 0.0f);
-        gDungeonProps.push_back(barProp);
+
+        //TODO: Find a better model
+
+        // Vector3 spawnPos = TileToWorld(4, 10, tileSize, floorHeight);
+        // DungeonProp barProp = MakeDefaultProp(DungeonPropType::BarTop, spawnPos, 0.0f);
+        // gDungeonProps.push_back(barProp);
     }
 
 
@@ -455,6 +459,7 @@ static DungeonPropType PickAutoCornerPropType()
 void GenerateAutoCornerProps(float baseY)
 {
     if (!isDungeon) return;
+    if (CurrentLevelIs("Shop")) return; //no corner props on shop.
 
     //const int spawnChancePercent = 75.0f;
     const float cornerInset = tileSize * 0.6f;

@@ -1031,8 +1031,6 @@ void HandleDoorInteraction(Camera& camera)
             isLoadingLevel = true;
             currentGameState = GameState::LoadingLevel;
 
-            
-
             return;
         }
 

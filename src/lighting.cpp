@@ -264,7 +264,8 @@ void GatherFrameLights() {
 
         LightSample s;
         s.pos = enemy->position;
-        s.color = {1.0f, 0.196f, 0.196f};
+        //s.color = {1.0f, 0.196f, 0.196f}; //red
+        s.color = {0.196f, 0.65f, 1.0f};
         s.range = 400.0f;
         s.intensity = 0.5f;
         

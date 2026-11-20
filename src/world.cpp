@@ -1354,9 +1354,11 @@ void FireEnemyLightning(Vector3 origin, Vector3 aimPoint, float damage, Characte
         // Apply damage using the same player-hit code as enemy magic missiles.
     }
 
-    const Color boltColor = (caster && caster->type == CharacterType::Bug)
-        ? Color{255, 50, 50, 255}
-        : Color{30, 120, 255, 255};
+    // const Color boltColor = (caster && caster->type == CharacterType::Bug)
+    //     ? Color{255, 50, 50, 255}
+    //     : Color{30, 120, 255, 255};
+
+    const Color boltColor = Color{30, 120, 255, 255};
 
     activeChainLightnings.emplace_back(
         origin, targetPoint, nullptr, damage, reachedPlayer, caster, boltColor);

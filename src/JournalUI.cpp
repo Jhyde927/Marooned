@@ -7,6 +7,7 @@
 #include "shaderSetup.h"
 #include "camera_system.h"
 #include "JournalBook.h"
+#include "sound_manager.h"
 
 void JournalUI::Init()
 {
@@ -108,6 +109,7 @@ void JournalUI::OpenCreatureSection()
 
 void JournalUI::PreviousJournalPage()
 {
+    SoundManager::GetInstance().Play("pageTurn");
     std::vector<const JournalData::JournalEntry*> entries =
         JournalData::GetDiscoveredJournalEntries();
 
@@ -128,6 +130,7 @@ void JournalUI::PreviousJournalPage()
 
 void JournalUI::NextJournalPage()
 {
+    SoundManager::GetInstance().Play("pageTurn");
     std::vector<const JournalData::JournalEntry*> entries =
         JournalData::GetDiscoveredJournalEntries();
 
@@ -150,6 +153,7 @@ void JournalUI::NextJournalPage()
 
 void JournalUI::PreviousCreaturePage()
 {
+    SoundManager::GetInstance().Play("pageTurn");
     std::vector<const JournalData::CreatureEntry*> entries =
         JournalData::GetDiscoveredCreatureEntries();
 
@@ -169,6 +173,7 @@ void JournalUI::PreviousCreaturePage()
 
 void JournalUI::NextCreaturePage()
 {
+    SoundManager::GetInstance().Play("pageTurn");
     std::vector<const JournalData::CreatureEntry*> entries =
         JournalData::GetDiscoveredCreatureEntries();
 
@@ -210,6 +215,7 @@ void JournalUI::Update(float deltaTime)
     {
         if (IsKeyPressed(KEY_Q))
         {
+           
             PreviousJournalPage();
         }
 

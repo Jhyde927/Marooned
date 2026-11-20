@@ -448,6 +448,8 @@ void GatherSpiderEggDrawRequests(Camera& camera)
 
 
 void GatherDungeonFires(Camera& camera, float deltaTime) {
+    if (CurrentLevelIs("Shop")) return; //dont draw fires on shop, for now
+
     for (size_t i = 0; i < pillars.size(); ++i) {
         PillarInstance& pillar = pillars[i];
         Fire& fire = fires[i];
